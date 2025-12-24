@@ -32,20 +32,14 @@ export function useCreateOwner() {
 
   return useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      // Get current session to extract access token
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !sessionData?.session?.access_token) {
+      // Ensure caller is authenticated (the SDK will attach the JWT automatically)
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData?.user) {
         throw new Error('Not authenticated. Please sign in again.');
       }
 
-      const accessToken = sessionData.session.access_token;
-
       const { data, error } = await supabase.functions.invoke('admin-create-user', {
         body: { email, password },
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
       });
 
       if (error) {
@@ -68,7 +62,7 @@ export function useCreateOwner() {
       toast({ title: 'Owner created successfully' });
     },
     onError: (error: Error) => {
-      const message = error.message.includes('already registered') 
+      const message = error.message.includes('already registered')
         ? 'This email is already registered'
         : error.message;
       toast({ title: 'Error creating owner', description: message, variant: 'destructive' });
