@@ -32,14 +32,19 @@ export function useCreateOwner() {
 
   return useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      // Ensure caller is authenticated (the SDK will attach the JWT automatically)
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData?.user) {
+      // Ensure we send a valid user JWT to the backend function
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+
+      if (sessionError || !accessToken) {
         throw new Error('Not authenticated. Please sign in again.');
       }
 
       const { data, error } = await supabase.functions.invoke('admin-create-user', {
         body: { email, password },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
 
       if (error) {
