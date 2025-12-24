@@ -74,7 +74,7 @@ export default function Login() {
       <Card className="w-full max-w-md shadow-card animate-fade-in">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto">
-            <img src={kastanaLogo} alt="Kastana POS" className="h-20 w-auto mx-auto" />
+            <img src={kastanaLogo} alt="Kastana POS" className="h-20 w-48 mx-auto" />
           </div>
           <div>
             <CardTitle className="text-2xl font-semibold">Kastana POS System</CardTitle>
