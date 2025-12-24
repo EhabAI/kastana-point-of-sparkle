@@ -1,8 +1,9 @@
 import { ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LogOut, UtensilsCrossed } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import kastanaLogo from '@/assets/kastana-logo.png';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -25,9 +26,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
-                <UtensilsCrossed className="h-5 w-5 text-primary" />
-              </div>
+              <img src={kastanaLogo} alt="Kastana POS" className="h-9 w-auto" />
               <div>
                 <h1 className="text-lg font-semibold text-foreground">{title}</h1>
                 <p className="text-xs text-muted-foreground capitalize">{role?.replace('_', ' ')}</p>
