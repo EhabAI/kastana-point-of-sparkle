@@ -32,8 +32,20 @@ export function useCreateOwner() {
 
   return useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
+      // Get current session to extract access token
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !sessionData?.session?.access_token) {
+        throw new Error('Not authenticated. Please sign in again.');
+      }
+
+      const accessToken = sessionData.session.access_token;
+
       const { data, error } = await supabase.functions.invoke('admin-create-user', {
         body: { email, password },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
 
       if (error) {
