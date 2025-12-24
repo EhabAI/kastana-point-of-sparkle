@@ -22,15 +22,22 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && role && !allowedRoles.includes(role)) {
-    // Redirect based on role
-    if (role === 'system_admin') {
-      return <Navigate to="/system-admin" replace />;
+  if (allowedRoles) {
+    // If route requires roles, deny when role is missing or not allowed
+    if (!role) {
+      return <Navigate to="/login" replace />;
     }
-    if (role === 'owner') {
-      return <Navigate to="/admin" replace />;
+
+    if (!allowedRoles.includes(role)) {
+      // Redirect based on role
+      if (role === 'system_admin') {
+        return <Navigate to="/system-admin" replace />;
+      }
+      if (role === 'owner') {
+        return <Navigate to="/admin" replace />;
+      }
+      return <Navigate to="/login" replace />;
     }
-    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;

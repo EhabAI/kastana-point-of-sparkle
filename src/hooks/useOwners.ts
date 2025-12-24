@@ -32,26 +32,24 @@ export function useCreateOwner() {
 
   return useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      // Create user via admin function - for now we'll use signUp
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-        },
+      const { data, error } = await supabase.functions.invoke('admin-create-user', {
+        body: { email, password },
       });
-      
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('Failed to create user');
 
-      // Add owner role
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({ user_id: authData.user.id, role: 'owner' });
-      
-      if (roleError) throw roleError;
-      
-      return authData.user;
+      if (error) {
+        let message = error.message;
+        try {
+          // FunctionsHttpError may include a Response with a JSON body
+          const maybeBody = await (error as any).context?.json?.();
+          if (maybeBody?.error?.message) message = maybeBody.error.message;
+        } catch {
+          // ignore
+        }
+        throw new Error(message);
+      }
+
+      if (!data?.user_id) throw new Error('Unexpected error creating owner');
+      return { id: data.user_id };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['owners'] });
