@@ -1,22 +1,30 @@
-import { useState } from 'react';
-import { DashboardLayout } from '@/components/DashboardLayout';
-import { StatCard } from '@/components/StatCard';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useRestaurants, useCreateRestaurant, useAssignOwner } from '@/hooks/useRestaurants';
-import { useOwners, useCreateOwner } from '@/hooks/useOwners';
-import { useMenuCategories } from '@/hooks/useMenuCategories';
-import { useAllMenuItems } from '@/hooks/useMenuItems';
-import { Store, Users, Plus, Link, Eye, Loader2 } from 'lucide-react';
-import { z } from 'zod';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { DashboardLayout } from "@/components/DashboardLayout";
+import { StatCard } from "@/components/StatCard";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useRestaurants, useCreateRestaurant, useAssignOwner } from "@/hooks/useRestaurants";
+import { useOwners, useCreateOwner } from "@/hooks/useOwners";
+import { useMenuCategories } from "@/hooks/useMenuCategories";
+import { useAllMenuItems } from "@/hooks/useMenuItems";
+import { Store, Users, Plus, Link, Eye, Loader2 } from "lucide-react";
+import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
 
-const emailSchema = z.string().email('Please enter a valid email');
-const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
+const emailSchema = z.string().email("Please enter a valid email");
+const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
 
 export default function SystemAdmin() {
   const { data: restaurants = [], isLoading: loadingRestaurants } = useRestaurants();
@@ -27,11 +35,11 @@ export default function SystemAdmin() {
   const { toast } = useToast();
 
   // Form states
-  const [restaurantName, setRestaurantName] = useState('');
-  const [ownerEmail, setOwnerEmail] = useState('');
-  const [ownerPassword, setOwnerPassword] = useState('');
-  const [selectedRestaurant, setSelectedRestaurant] = useState('');
-  const [selectedOwner, setSelectedOwner] = useState('');
+  const [restaurantName, setRestaurantName] = useState("");
+  const [ownerEmail, setOwnerEmail] = useState("");
+  const [ownerPassword, setOwnerPassword] = useState("");
+  const [selectedRestaurant, setSelectedRestaurant] = useState("");
+  const [selectedOwner, setSelectedOwner] = useState("");
   const [viewingRestaurant, setViewingRestaurant] = useState<string | null>(null);
 
   // Dialog states
@@ -42,43 +50,43 @@ export default function SystemAdmin() {
 
   const handleCreateRestaurant = async () => {
     if (!restaurantName.trim()) {
-      toast({ title: 'Please enter a restaurant name', variant: 'destructive' });
+      toast({ title: "Please enter a restaurant name", variant: "destructive" });
       return;
     }
     await createRestaurant.mutateAsync(restaurantName);
-    setRestaurantName('');
+    setRestaurantName("");
     setRestaurantDialogOpen(false);
   };
 
   const handleCreateOwner = async () => {
     const emailResult = emailSchema.safeParse(ownerEmail);
     if (!emailResult.success) {
-      toast({ title: emailResult.error.errors[0].message, variant: 'destructive' });
+      toast({ title: emailResult.error.errors[0].message, variant: "destructive" });
       return;
     }
     const passwordResult = passwordSchema.safeParse(ownerPassword);
     if (!passwordResult.success) {
-      toast({ title: passwordResult.error.errors[0].message, variant: 'destructive' });
+      toast({ title: passwordResult.error.errors[0].message, variant: "destructive" });
       return;
     }
     await createOwner.mutateAsync({ email: ownerEmail, password: ownerPassword });
-    setOwnerEmail('');
-    setOwnerPassword('');
+    setOwnerEmail("");
+    setOwnerPassword("");
     setOwnerDialogOpen(false);
   };
 
   const handleAssignOwner = async () => {
     if (!selectedRestaurant || !selectedOwner) {
-      toast({ title: 'Please select both restaurant and owner', variant: 'destructive' });
+      toast({ title: "Please select both restaurant and owner", variant: "destructive" });
       return;
     }
     await assignOwner.mutateAsync({ restaurantId: selectedRestaurant, ownerId: selectedOwner });
-    setSelectedRestaurant('');
-    setSelectedOwner('');
+    setSelectedRestaurant("");
+    setSelectedOwner("");
     setAssignDialogOpen(false);
   };
 
-  const unassignedRestaurants = restaurants.filter(r => !r.owner_id);
+  const unassignedRestaurants = restaurants.filter((r) => !r.owner_id);
 
   if (loadingRestaurants || loadingOwners) {
     return (
@@ -133,7 +141,9 @@ export default function SystemAdmin() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setRestaurantDialogOpen(false)}>Cancel</Button>
+                <Button variant="outline" onClick={() => setRestaurantDialogOpen(false)}>
+                  Cancel
+                </Button>
                 <Button onClick={handleCreateRestaurant} disabled={createRestaurant.isPending}>
                   {createRestaurant.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Create
@@ -185,7 +195,9 @@ export default function SystemAdmin() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setOwnerDialogOpen(false)}>Cancel</Button>
+                <Button variant="outline" onClick={() => setOwnerDialogOpen(false)}>
+                  Cancel
+                </Button>
                 <Button onClick={handleCreateOwner} disabled={createOwner.isPending}>
                   {createOwner.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Create
@@ -223,7 +235,9 @@ export default function SystemAdmin() {
                     </SelectTrigger>
                     <SelectContent>
                       {unassignedRestaurants.map((r) => (
-                        <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                        <SelectItem key={r.id} value={r.id}>
+                          {r.name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -236,14 +250,18 @@ export default function SystemAdmin() {
                     </SelectTrigger>
                     <SelectContent>
                       {owners.map((o) => (
-                        <SelectItem key={o.id} value={o.user_id}>{o.user_id.slice(0, 8)}...</SelectItem>
+                        <SelectItem key={o.id} value={o.user_id}>
+                          {o.email ?? o.user_id.slice(0, 8)}...
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>Cancel</Button>
+                <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>
+                  Cancel
+                </Button>
                 <Button onClick={handleAssignOwner} disabled={assignOwner.isPending}>
                   {assignOwner.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Assign
@@ -273,12 +291,12 @@ export default function SystemAdmin() {
                       <div>
                         <p className="font-medium text-foreground">{restaurant.name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {restaurant.owner_id ? `Owner: ${restaurant.owner_id.slice(0, 8)}...` : 'No owner assigned'}
+                          {restaurant.owner_id ? `Owner: ${restaurant.owner_id.slice(0, 8)}...` : "No owner assigned"}
                         </p>
                       </div>
                     </div>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
                       onClick={() => {
                         setViewingRestaurant(restaurant.id);
@@ -296,9 +314,9 @@ export default function SystemAdmin() {
         </Card>
 
         {/* View Menu Dialog */}
-        <ViewMenuDialog 
-          restaurantId={viewingRestaurant} 
-          open={viewDialogOpen} 
+        <ViewMenuDialog
+          restaurantId={viewingRestaurant}
+          open={viewDialogOpen}
           onOpenChange={setViewDialogOpen}
           restaurants={restaurants}
         />
@@ -307,18 +325,18 @@ export default function SystemAdmin() {
   );
 }
 
-function ViewMenuDialog({ 
-  restaurantId, 
-  open, 
+function ViewMenuDialog({
+  restaurantId,
+  open,
   onOpenChange,
-  restaurants 
-}: { 
-  restaurantId: string | null; 
-  open: boolean; 
+  restaurants,
+}: {
+  restaurantId: string | null;
+  open: boolean;
   onOpenChange: (open: boolean) => void;
   restaurants: { id: string; name: string }[];
 }) {
-  const restaurant = restaurants.find(r => r.id === restaurantId);
+  const restaurant = restaurants.find((r) => r.id === restaurantId);
   const { data: categories = [] } = useMenuCategories(restaurantId || undefined);
   const { data: items = [] } = useAllMenuItems(restaurantId || undefined);
 
@@ -326,7 +344,7 @@ function ViewMenuDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{restaurant?.name || 'Menu'}</DialogTitle>
+          <DialogTitle>{restaurant?.name || "Menu"}</DialogTitle>
           <DialogDescription>View menu categories and items (read-only)</DialogDescription>
         </DialogHeader>
         <div className="space-y-6 py-4">
@@ -342,20 +360,31 @@ function ViewMenuDialog({
                   )}
                 </div>
                 <div className="space-y-2 pl-4">
-                  {items.filter(i => i.category_id === category.id).map((item) => (
-                    <div key={item.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                      <div>
-                        <p className="font-medium text-foreground">{item.name}</p>
-                        {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
+                  {items
+                    .filter((i) => i.category_id === category.id)
+                    .map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between py-2 border-b border-border last:border-0"
+                      >
+                        <div>
+                          <p className="font-medium text-foreground">{item.name}</p>
+                          {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {item.is_offer && (
+                            <span className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded">Offer</span>
+                          )}
+                          {!item.is_available && (
+                            <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">
+                              Unavailable
+                            </span>
+                          )}
+                          <span className="font-medium text-foreground">${Number(item.price).toFixed(2)}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {item.is_offer && <span className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded">Offer</span>}
-                        {!item.is_available && <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">Unavailable</span>}
-                        <span className="font-medium text-foreground">${Number(item.price).toFixed(2)}</span>
-                      </div>
-                    </div>
-                  ))}
-                  {items.filter(i => i.category_id === category.id).length === 0 && (
+                    ))}
+                  {items.filter((i) => i.category_id === category.id).length === 0 && (
                     <p className="text-sm text-muted-foreground">No items in this category</p>
                   )}
                 </div>
