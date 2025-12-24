@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, UtensilsCrossed } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
+import kastanaLogo from '@/assets/kastana-logo.png';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -72,12 +73,12 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md shadow-card animate-fade-in">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center">
-            <UtensilsCrossed className="h-7 w-7 text-primary" />
+          <div className="mx-auto">
+            <img src={kastanaLogo} alt="Kastana POS" className="h-20 w-auto mx-auto" />
           </div>
           <div>
-            <CardTitle className="text-2xl font-semibold">Kastana POS</CardTitle>
-            <CardDescription className="mt-1">Sign in to your account</CardDescription>
+            <CardTitle className="text-2xl font-semibold">Kastana POS System</CardTitle>
+            <CardDescription className="mt-1 text-xs tracking-widest uppercase">Smart. Secure. Profitable.</CardDescription>
           </div>
         </CardHeader>
         <CardContent>
