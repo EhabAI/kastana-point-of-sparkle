@@ -291,7 +291,9 @@ export default function SystemAdmin() {
                       <div>
                         <p className="font-medium text-foreground">{restaurant.name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {restaurant.owner_id ? `Owner: ${restaurant.owner_id.slice(0, 8)}...` : "No owner assigned"}
+                          {restaurant.owner_id 
+                            ? `Owner: ${owners.find(o => o.user_id === restaurant.owner_id)?.email || restaurant.owner_id.slice(0, 8) + '...'}`
+                            : "No owner assigned"}
                         </p>
                       </div>
                     </div>
