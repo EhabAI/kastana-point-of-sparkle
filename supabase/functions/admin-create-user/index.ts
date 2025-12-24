@@ -28,9 +28,11 @@ function isLikelyUserExists(message: string) {
   const m = message.toLowerCase()
   return (
     m.includes('already registered') ||
+    m.includes('already been registered') ||
     m.includes('user already exists') ||
-    m.includes('duplicate') ||
-    m.includes('email already')
+    m.includes('email exists') ||
+    m.includes('email already') ||
+    m.includes('duplicate')
   )
 }
 
@@ -113,8 +115,9 @@ Deno.serve(async (req) => {
 
     if (createErr || !created?.user) {
       const msg = createErr?.message ?? 'Failed to create user.'
+      const authCode = (createErr as unknown as { code?: string })?.code
 
-      if (isLikelyUserExists(msg)) {
+      if (authCode === 'email_exists' || isLikelyUserExists(msg)) {
         return errorResponse('user_exists', 'This email is already registered.', 409)
       }
 
