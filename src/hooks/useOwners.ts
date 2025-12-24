@@ -14,14 +14,31 @@ export function useOwners() {
   return useQuery({
     queryKey: ['owners'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get all owners
+      const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
         .select('*')
         .eq('role', 'owner')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data as Owner[];
+      if (rolesError) throw rolesError;
+      if (!roles || roles.length === 0) return [] as Owner[];
+
+      // Then fetch their profiles
+      const userIds = roles.map(r => r.user_id);
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .in('id', userIds);
+      
+      if (profilesError) throw profilesError;
+
+      // Map emails to owners
+      const emailMap = new Map(profiles?.map(p => [p.id, p.email]) || []);
+      return roles.map(row => ({
+        ...row,
+        email: emailMap.get(row.user_id) || undefined
+      })) as Owner[];
     },
   });
 }

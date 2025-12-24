@@ -140,6 +140,16 @@ Deno.serve(async (req) => {
       return errorResponse('unexpected', 'User created, but assigning the owner role failed. Please try again.', 500)
     }
 
+    // Insert profile record (trigger should also create it, but this ensures it exists)
+    const { error: profileInsertErr } = await serviceClient
+      .from('profiles')
+      .insert({ id: newUserId, email })
+
+    if (profileInsertErr) {
+      console.error('Profile insert failed (non-fatal)', profileInsertErr)
+      // Non-fatal - trigger should have created it
+    }
+
     return json({ user_id: newUserId }, 200)
   } catch (e) {
     console.error('admin-create-user unexpected error', e)
