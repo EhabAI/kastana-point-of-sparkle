@@ -1,29 +1,31 @@
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { createClient } from "@supabase/supabase-js";
 
 /* =====================
-   Types
+   UN-TYPED Supabase client
 ===================== */
-type MenuItem = {
+const supabase = createClient(import.meta.env.VITE_SUPABASE_URL!, import.meta.env.VITE_SUPABASE_ANON_KEY!);
+
+/* =====================
+   Types (LOCAL – UI only)
+===================== */
+type Restaurant = {
   id: string;
-  name_ar: string;
-  name_en: string;
-  price: number;
-  category_id: string;
+  name: string;
 };
 
 type Category = {
   id: string;
-  name_ar: string;
-  name_en: string;
+  name: string;
   sort_order: number;
-  items: MenuItem[];
 };
 
-type Restaurant = {
+type MenuItem = {
   id: string;
   name: string;
+  price: number;
+  category_id: string;
 };
 
 type CartItem = {
@@ -31,37 +33,36 @@ type CartItem = {
   name: string;
   price: number;
   quantity: number;
-  notes?: string;
 };
 
 export default function Menu() {
-  const { restaurantId, tableCode } = useParams<{ restaurantId: string; tableCode: string }>();
+  const params = useParams();
+  const restaurantId = (params as any).restaurantId as string;
+  const tableCode = (params as any).tableCode as string;
 
   const [loading, setLoading] = useState(true);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [items, setItems] = useState<MenuItem[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   /* =====================
-     Init (PUBLIC SAFE)
+     Load menu (PUBLIC SAFE)
   ===================== */
   useEffect(() => {
     const loadMenu = async () => {
-      if (!restaurantId || !tableCode) {
-        setLoading(false);
-        return;
-      }
+      if (!restaurantId) return;
 
       setLoading(true);
 
-      /* 1️⃣ Restaurant via PUBLIC RPC */
+      // 1️⃣ Restaurant (via RPC – untyped)
       const { data: restaurantData } = await supabase.rpc("get_restaurant_public_info", {
         p_restaurant_id: restaurantId,
       });
 
-      if (!restaurantData || restaurantData.length === 0) {
+      if (!Array.isArray(restaurantData) || restaurantData.length === 0) {
         setRestaurant(null);
         setLoading(false);
         return;
@@ -72,52 +73,47 @@ export default function Menu() {
         name: restaurantData[0].name,
       });
 
-      /* 2️⃣ Categories */
-      const { data: categoriesData } = await supabase
+      // 2️⃣ Categories
+      const { data: cats } = await supabase
         .from("menu_categories")
-        .select("id, name_ar, name_en, sort_order")
+        .select("id, name, sort_order")
         .eq("restaurant_id", restaurantId)
-        .eq("is_active", true)
         .order("sort_order");
 
-      const categoryIds = (categoriesData || []).map((c) => c.id);
+      setCategories(cats ?? []);
 
-      /* 3️⃣ Items */
-      const { data: itemsData } = categoryIds.length
+      const catIds = (cats ?? []).map((c: any) => c.id);
+
+      // 3️⃣ Items
+      const { data: its } = catIds.length
         ? await supabase
             .from("menu_items")
-            .select("id, name_ar, name_en, price, category_id")
-            .in("category_id", categoryIds)
-            .eq("is_available", true)
-            .order("sort_order")
+            .select("id, name, price, category_id")
+            .in("category_id", catIds)
+            .order("name")
         : { data: [] };
 
-      const mapped: Category[] = (categoriesData || []).map((cat) => ({
-        ...cat,
-        items: (itemsData || []).filter((item) => item.category_id === cat.id),
-      }));
-
-      setCategories(mapped);
+      setItems(its ?? []);
       setLoading(false);
     };
 
     loadMenu();
-  }, [restaurantId, tableCode]);
+  }, [restaurantId]);
 
   /* =====================
      Cart helpers
   ===================== */
   const addItem = (item: MenuItem) => {
     setCart((prev) => {
-      const existing = prev.find((i) => i.menu_item_id === item.id);
-      if (existing) {
+      const found = prev.find((i) => i.menu_item_id === item.id);
+      if (found) {
         return prev.map((i) => (i.menu_item_id === item.id ? { ...i, quantity: i.quantity + 1 } : i));
       }
       return [
         ...prev,
         {
           menu_item_id: item.id,
-          name: item.name_ar,
+          name: item.name,
           price: item.price,
           quantity: 1,
         },
@@ -134,7 +130,7 @@ export default function Menu() {
   const total = useMemo(() => cart.reduce((sum, i) => sum + i.price * i.quantity, 0), [cart]);
 
   /* =====================
-     Submit Order (PENDING)
+     Submit order (PENDING)
   ===================== */
   const submitOrder = async () => {
     if (!restaurant || cart.length === 0) return;
@@ -142,49 +138,45 @@ export default function Menu() {
     setSubmitting(true);
 
     try {
-      /* 1️⃣ Create order */
-      const { data: order, error } = await supabase
+      // 1️⃣ create order
+      const { data: order } = await supabase
         .from("orders")
         .insert({
           restaurant_id: restaurant.id,
           table_code: tableCode,
           status: "pending",
-          total_amount: total,
+          notes: null,
         })
         .select("id")
         .single();
 
-      if (error || !order) throw error;
+      if (!order) throw new Error("order failed");
 
-      /* 2️⃣ Order items */
-      const orderItems = cart.map((item) => ({
+      // 2️⃣ order items (MATCH SCHEMA)
+      const orderItems = cart.map((c) => ({
         order_id: order.id,
-        menu_item_id: item.menu_item_id,
-        quantity: item.quantity,
-        unit_price: item.price,
-        notes: item.notes ?? null,
+        restaurant_id: restaurant.id,
+        menu_item_id: c.menu_item_id,
+        name: c.name,
+        price: c.price,
+        quantity: c.quantity,
       }));
 
       await supabase.from("order_items").insert(orderItems);
 
       setSubmitted(true);
     } catch {
-      // silent fail (حسب الاتفاق)
+      // silent
     } finally {
       setSubmitting(false);
     }
   };
 
   /* =====================
-     UI states
+     UI
   ===================== */
-  if (loading) {
-    return <div className="p-6 text-center">جاري تحميل القائمة...</div>;
-  }
-
-  if (!restaurant) {
-    return <div className="p-6 text-center">المطعم غير موجود</div>;
-  }
+  if (loading) return <div className="p-6 text-center">جاري التحميل…</div>;
+  if (!restaurant) return <div className="p-6 text-center">المطعم غير موجود</div>;
 
   if (submitted) {
     return (
@@ -198,33 +190,32 @@ export default function Menu() {
     );
   }
 
-  /* =====================
-     Main UI
-  ===================== */
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-32">
       <header className="border-b p-4">
         <h1 className="text-xl font-bold">{restaurant.name}</h1>
         <p className="text-sm text-muted-foreground">طاولة: {tableCode}</p>
       </header>
 
-      <main className="p-4 space-y-6 pb-32">
+      <main className="p-4 space-y-6">
         {categories.map((cat) => (
           <section key={cat.id}>
-            <h2 className="font-bold mb-2">{cat.name_ar}</h2>
-            {cat.items.map((item) => {
-              const inCart = cart.find((c) => c.menu_item_id === item.id);
-              return (
-                <div key={item.id} className="flex justify-between border p-3 mb-2">
-                  <span>{item.name_ar}</span>
-                  <div className="flex gap-2">
-                    <button onClick={() => removeItem(item.id)}>−</button>
-                    <span>{inCart?.quantity ?? 0}</span>
-                    <button onClick={() => addItem(item)}>+</button>
+            <h2 className="font-bold mb-2">{cat.name}</h2>
+            {items
+              .filter((i) => i.category_id === cat.id)
+              .map((item) => {
+                const inCart = cart.find((c) => c.menu_item_id === item.id);
+                return (
+                  <div key={item.id} className="flex justify-between border p-3 mb-2">
+                    <span>{item.name}</span>
+                    <div className="flex gap-2">
+                      <button onClick={() => removeItem(item.id)}>−</button>
+                      <span>{inCart?.quantity ?? 0}</span>
+                      <button onClick={() => addItem(item)}>+</button>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </section>
         ))}
       </main>
