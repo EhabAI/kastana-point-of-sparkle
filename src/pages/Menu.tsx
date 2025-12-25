@@ -15,6 +15,7 @@ type MenuItem = {
   id: string;
   name: string;
   price: number;
+  category_id: string;
 };
 
 type Category = {
@@ -33,9 +34,6 @@ export default function Menu() {
     tableCode: string;
   }>();
 
-  /* =====================
-     State
-  ===================== */
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
@@ -50,41 +48,35 @@ export default function Menu() {
     const loadMenu = async () => {
       setLoading(true);
 
-      // 1️⃣ Restaurant
+      // Restaurant (no single)
       const { data: restaurantData } = await supabase
-        .rpc("get_public_restaurant", { rid: restaurantId })
+        .from("restaurants")
         .select("id, name, logo_url")
         .eq("id", restaurantId)
-        .single();
+        .limit(1);
 
-      // 2️⃣ Categories
+      // Categories
       const { data: categoriesData } = await supabase
         .from("menu_categories")
         .select("id, name, sort_order")
         .eq("restaurant_id", restaurantId)
-        .order("sort_order", { ascending: true });
+        .order("sort_order");
 
-      // 3️⃣ Items
+      // Items
       const { data: itemsData } = await supabase
         .from("menu_items")
         .select("id, name, price, category_id")
-        .eq("restaurant_id", restaurantId)
-        .order("name");
+        .eq("restaurant_id", restaurantId);
 
-      if (restaurantData && categoriesData && itemsData) {
-        const mappedCategories: Category[] = categoriesData.map((cat) => ({
+      if (restaurantData?.length && categoriesData?.length && itemsData) {
+        setRestaurant(restaurantData[0]);
+
+        const mapped: Category[] = categoriesData.map((cat) => ({
           ...cat,
-          items: itemsData
-            .filter((i) => i.category_id === cat.id)
-            .map((i) => ({
-              id: i.id,
-              name: i.name,
-              price: i.price,
-            })),
+          items: itemsData.filter((item) => item.category_id === cat.id),
         }));
 
-        setRestaurant(restaurantData);
-        setCategories(mappedCategories);
+        setCategories(mapped);
       }
 
       setLoading(false);
@@ -98,7 +90,6 @@ export default function Menu() {
   ===================== */
   const addItem = (item: MenuItem) => {
     if (status === "pending") return;
-
     setOrderItems((prev) => {
       const found = prev.find((i) => i.id === item.id);
       if (found) {
@@ -110,14 +101,13 @@ export default function Menu() {
 
   const removeItem = (id: string) => {
     if (status === "pending") return;
-
     setOrderItems((prev) => prev.map((i) => (i.id === id ? { ...i, qty: i.qty - 1 } : i)).filter((i) => i.qty > 0));
   };
 
   const total = orderItems.reduce((sum, i) => sum + i.price * i.qty, 0);
 
   const submitOrder = () => {
-    if (orderItems.length === 0) return;
+    if (!orderItems.length) return;
     setStatus("pending");
   };
 
@@ -125,7 +115,7 @@ export default function Menu() {
      UI
   ===================== */
   if (loading) {
-    return <div className="p-6 text-center">جاري تحميل القائمة...</div>;
+    return <div className="p-6 text-center">جاري تحميل القائمة…</div>;
   }
 
   if (!restaurant) {
@@ -134,71 +124,42 @@ export default function Menu() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
       <header className="border-b bg-card px-4 py-4">
-        <div className="flex items-center gap-3">
-          {restaurant.logo_url && (
-            <img src={restaurant.logo_url} alt={restaurant.name} className="h-10 w-10 rounded-full object-cover" />
-          )}
-          <div>
-            <h1 className="text-xl font-bold">{restaurant.name}</h1>
-            <p className="text-sm text-muted-foreground">طاولة: {tableCode}</p>
-          </div>
-        </div>
+        <h1 className="text-xl font-bold">{restaurant.name}</h1>
+        <p className="text-sm text-muted-foreground">طاولة: {tableCode}</p>
       </header>
 
-      {/* Pending */}
-      {status === "pending" && (
-        <main className="flex-1 flex items-center justify-center p-6 text-center">
-          <div>
-            <h2 className="text-2xl font-bold mb-4">الطلب قيد الانتظار</h2>
-            <p className="text-muted-foreground">بانتظار تأكيد الكاشيير</p>
-          </div>
-        </main>
-      )}
-
-      {/* Menu */}
-      {status === "draft" && (
+      {status === "pending" ? (
+        <main className="flex-1 flex items-center justify-center">الطلب قيد الانتظار</main>
+      ) : (
         <>
           <main className="flex-1 p-4 space-y-6">
             {categories.map((cat) => (
               <section key={cat.id}>
-                <h2 className="text-lg font-bold mb-2">{cat.name}</h2>
-                <div className="space-y-2">
-                  {cat.items.map((item) => {
-                    const inOrder = orderItems.find((i) => i.id === item.id);
-                    return (
-                      <div key={item.id} className="flex justify-between items-center border rounded-lg p-3 bg-card">
-                        <div>
-                          <p className="font-medium">{item.name}</p>
-                          <p className="text-sm text-muted-foreground">{item.price.toFixed(2)} د.أ</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => removeItem(item.id)}>−</button>
-                          <span>{inOrder?.qty ?? 0}</span>
-                          <button onClick={() => addItem(item)}>+</button>
-                        </div>
+                <h2 className="font-bold mb-2">{cat.name}</h2>
+                {cat.items.map((item) => {
+                  const inOrder = orderItems.find((i) => i.id === item.id);
+                  return (
+                    <div key={item.id} className="flex justify-between border p-3 mb-2">
+                      <span>{item.name}</span>
+                      <div className="flex gap-2">
+                        <button onClick={() => removeItem(item.id)}>−</button>
+                        <span>{inOrder?.qty ?? 0}</span>
+                        <button onClick={() => addItem(item)}>+</button>
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })}
               </section>
             ))}
-
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="ملاحظات على الطلب (اختياري)"
-              className="w-full border rounded-lg p-3"
-            />
           </main>
 
-          <footer className="border-t bg-card p-4">
+          <footer className="border-t p-4">
             <div className="flex justify-between mb-2">
               <span>الإجمالي</span>
-              <span className="font-bold">{total.toFixed(2)} د.أ</span>
+              <span>{total.toFixed(2)} د.أ</span>
             </div>
-            <button onClick={submitOrder} className="w-full py-3 rounded-lg bg-primary text-primary-foreground">
+            <button onClick={submitOrder} className="w-full bg-primary text-white py-3">
               تثبيت الطلب
             </button>
           </footer>
