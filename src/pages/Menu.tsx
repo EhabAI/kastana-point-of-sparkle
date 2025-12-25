@@ -31,7 +31,6 @@ export default function Menu() {
   const params = useParams();
   const restaurantId = params.restaurantId as string;
   const tableCode = params.tableCode as string;
-  };
 
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -47,42 +46,51 @@ export default function Menu() {
     const loadMenu = async () => {
       setLoading(true);
 
-      // Restaurant (no single)
       const { data: restaurantData } = await supabase
         .from("restaurants")
-        .select("id, name, logo_url")
+        .select("id, name")
         .eq("id", restaurantId)
         .limit(1);
 
-      // Categories
       const { data: categoriesData } = await supabase
         .from("menu_categories")
         .select("id, name, sort_order")
         .eq("restaurant_id", restaurantId)
         .order("sort_order");
 
-      // Items
       const { data: itemsData } = await supabase
         .from("menu_items")
         .select("id, name, price, category_id")
         .eq("restaurant_id", restaurantId);
 
-      if (restaurantData?.length && categoriesData?.length && itemsData) {
+      if (restaurantData?.length) {
         setRestaurant(restaurantData[0]);
+      }
 
+      if (categoriesData && itemsData) {
         const mapped: Category[] = categoriesData.map((cat) => ({
           ...cat,
           items: itemsData.filter((item) => item.category_id === cat.id),
         }));
-
         setCategories(mapped);
       }
 
       setLoading(false);
     };
 
-    loadMenu();
+    if (restaurantId) loadMenu();
   }, [restaurantId]);
+
+  /* =====================
+     Early returns (MUST be here)
+  ===================== */
+  if (loading) {
+    return <div className="p-6 text-center">جاري تحميل القائمة...</div>;
+  }
+
+  if (!restaurant) {
+    return <div className="p-6 text-center">المطعم غير موجود</div>;
+  }
 
   /* =====================
      Order Helpers
@@ -113,14 +121,6 @@ export default function Menu() {
   /* =====================
      UI
   ===================== */
-  if (loading) {
-    return <div className="p-6 text-center">جاري تحميل القائمة…</div>;
-  }
-
-  if (!restaurant) {
-    return <div className="p-6 text-center">المطعم غير موجود</div>;
-  }
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="border-b bg-card px-4 py-4">
