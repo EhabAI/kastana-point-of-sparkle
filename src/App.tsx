@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import SystemAdmin from "./pages/SystemAdmin";
 import OwnerAdmin from "./pages/OwnerAdmin";
 import POS from "./pages/POS";
+import Menu from "./pages/Menu";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/menu/:restaurantId/:tableCode" element={<Menu />} />
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
