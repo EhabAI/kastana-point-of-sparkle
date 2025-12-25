@@ -31,8 +31,7 @@ export default function Menu() {
   const params = useParams();
   const restaurantId = params.restaurantId as string;
   const tableCode = params.tableCode as string;
-
-  }>();
+  });
 
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
