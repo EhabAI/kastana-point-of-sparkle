@@ -1,15 +1,19 @@
 import { useParams } from "react-router-dom";
 import { useState } from "react";
 
-/**
- * ================================
- * Types (Local only – no DB)
- * ================================
- */
+/* =====================
+   Types (Local only)
+===================== */
 type MenuItem = {
   id: string;
   name: string;
   price: number;
+};
+
+type Category = {
+  id: string;
+  name: string;
+  items: MenuItem[];
 };
 
 type OrderItem = MenuItem & {
@@ -18,49 +22,49 @@ type OrderItem = MenuItem & {
 
 type OrderStatus = "draft" | "pending";
 
-/**
- * ================================
- * Mock Data (PLACEHOLDER)
- * ⚠️ سيتم استبداله لاحقًا بقراءة حقيقية
- * ================================
- */
-const MOCK_ITEMS: MenuItem[] = [
-  { id: "1", name: "قهوة تركية", price: 1.0 },
-  { id: "2", name: "كابتشينو", price: 2.5 },
-  { id: "3", name: "لاتيه", price: 2.75 },
+/* =====================
+   MOCK DATA (واضح ومؤقت)
+   سيتم استبداله لاحقًا
+===================== */
+const RESTAURANT_NAME = "Kastana Café";
+
+const CATEGORIES: Category[] = [
+  {
+    id: "offers",
+    name: "🔥 العروض",
+    items: [{ id: "o1", name: "فطور عربي", price: 3.5 }],
+  },
+  {
+    id: "hot-coffee",
+    name: "☕ قهوة ساخنة",
+    items: [
+      { id: "h1", name: "قهوة تركية", price: 1.0 },
+      { id: "h2", name: "كابتشينو", price: 2.5 },
+    ],
+  },
+  {
+    id: "cold-coffee",
+    name: "🧊 قهوة باردة",
+    items: [{ id: "c1", name: "آيس لاتيه", price: 3.0 }],
+  },
 ];
 
-const Menu = () => {
-  /**
-   * ================================
-   * Route Params
-   * ================================
-   */
-  const { restaurantId, tableCode } = useParams<{
-    restaurantId: string;
-    tableCode: string;
-  }>();
+export default function Menu() {
+  const { tableCode } = useParams<{ tableCode: string }>();
 
-  /**
-   * ================================
-   * Local State
-   * ================================
-   */
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<OrderStatus>("draft");
 
-  /**
-   * ================================
-   * Helpers
-   * ================================
-   */
+  /* =====================
+     Helpers
+  ===================== */
   const addItem = (item: MenuItem) => {
     if (status === "pending") return;
 
     setOrderItems((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
-      if (existing) {
+      const found = prev.find((i) => i.id === item.id);
+      if (found) {
         return prev.map((i) => (i.id === item.id ? { ...i, qty: i.qty + 1 } : i));
       }
       return [...prev, { ...item, qty: 1 }];
@@ -80,29 +84,27 @@ const Menu = () => {
     setStatus("pending");
   };
 
-  /**
-   * ================================
-   * UI
-   * ================================
-   */
+  /* =====================
+     UI
+  ===================== */
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* ================= Header ================= */}
+      {/* Header */}
       <header className="border-b bg-card px-4 py-4">
-        <h1 className="text-xl font-bold">اسم المطعم</h1>
+        <h1 className="text-xl font-bold">{RESTAURANT_NAME}</h1>
         <p className="text-sm text-muted-foreground">طاولة: {tableCode}</p>
       </header>
 
-      {/* ================= Pending Screen ================= */}
+      {/* Pending */}
       {status === "pending" && (
-        <main className="flex-1 flex items-center justify-center p-6 text-center">
-          <div className="max-w-md">
+        <main className="flex-1 flex items-center justify-center p-6">
+          <div className="max-w-md w-full text-center">
             <h2 className="text-2xl font-bold mb-4">الطلب قيد الانتظار</h2>
-            <p className="text-muted-foreground mb-6">يرجى الانتظار حتى يقوم الكاشيير بتأكيد الطلب</p>
+            <p className="text-muted-foreground mb-6">بانتظار تأكيد الكاشيير</p>
 
-            <div className="border rounded-lg p-4 text-left bg-card">
+            <div className="border rounded-lg p-4 bg-card text-left">
               {orderItems.map((item) => (
-                <div key={item.id} className="flex justify-between text-sm mb-2">
+                <div key={item.id} className="flex justify-between mb-2">
                   <span>
                     {item.name} × {item.qty}
                   </span>
@@ -119,33 +121,41 @@ const Menu = () => {
         </main>
       )}
 
-      {/* ================= Menu Browsing ================= */}
+      {/* Menu */}
       {status === "draft" && (
         <>
-          <main className="flex-1 p-4 space-y-4">
-            {MOCK_ITEMS.map((item) => {
-              const inOrder = orderItems.find((i) => i.id === item.id);
-              return (
-                <div key={item.id} className="flex items-center justify-between border rounded-lg p-3 bg-card">
-                  <div>
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-sm text-muted-foreground">{item.price.toFixed(2)} د.أ</p>
-                  </div>
+          <main className="flex-1 p-4 space-y-6">
+            {CATEGORIES.map((cat) => (
+              <section key={cat.id}>
+                <h2 className="text-lg font-bold mb-3">{cat.name}</h2>
 
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => removeItem(item.id)} className="px-3 py-1 border rounded">
-                      −
-                    </button>
-                    <span>{inOrder?.qty ?? 0}</span>
-                    <button onClick={() => addItem(item)} className="px-3 py-1 border rounded">
-                      +
-                    </button>
-                  </div>
+                <div className="space-y-2">
+                  {cat.items.map((item) => {
+                    const inOrder = orderItems.find((i) => i.id === item.id);
+
+                    return (
+                      <div key={item.id} className="flex justify-between items-center border rounded-lg p-3 bg-card">
+                        <div>
+                          <p className="font-medium">{item.name}</p>
+                          <p className="text-sm text-muted-foreground">{item.price.toFixed(2)} د.أ</p>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => removeItem(item.id)} className="px-3 py-1 border rounded">
+                            −
+                          </button>
+                          <span>{inOrder?.qty ?? 0}</span>
+                          <button onClick={() => addItem(item)} className="px-3 py-1 border rounded">
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
+              </section>
+            ))}
 
-            {/* Notes */}
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -154,7 +164,7 @@ const Menu = () => {
             />
           </main>
 
-          {/* ================= Order Summary ================= */}
+          {/* Summary */}
           <footer className="border-t bg-card p-4">
             <div className="flex justify-between mb-2">
               <span>الإجمالي</span>
@@ -173,6 +183,4 @@ const Menu = () => {
       )}
     </div>
   );
-};
-
-export default Menu;
+}
