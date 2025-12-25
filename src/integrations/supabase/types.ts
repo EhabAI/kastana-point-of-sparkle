@@ -425,6 +425,41 @@ export type Database = {
           },
         ]
       }
+      restaurant_tables: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          restaurant_id: string
+          table_code: string
+          table_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          restaurant_id: string
+          table_code: string
+          table_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          restaurant_id?: string
+          table_code?: string
+          table_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_tables_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       restaurants: {
         Row: {
           created_at: string
