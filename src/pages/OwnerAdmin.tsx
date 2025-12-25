@@ -14,6 +14,7 @@ import { Store, Loader2, Plus, Edit2, Trash2, FolderOpen, Tag, Flame } from 'luc
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { CSVUpload } from '@/components/owner/CSVUpload';
+import { TableManagement } from '@/components/owner/TableManagement';
 
 export default function OwnerAdmin() {
   const { role } = useAuth();
@@ -111,6 +112,9 @@ export default function OwnerAdmin() {
 
         {/* CSV Upload Section - Only visible to owners */}
         {role === 'owner' && <CSVUpload restaurantId={restaurant.id} />}
+
+        {/* Tables Management Section - Only visible to owners */}
+        {role === 'owner' && <TableManagement restaurantId={restaurant.id} />}
 
         {/* Categories Section */}
         <CategoriesSection restaurantId={restaurant.id} categories={categories} isLoading={loadingCategories} />
