@@ -52,7 +52,7 @@ export default function Menu() {
 
       // 1️⃣ Restaurant
       const { data: restaurantData } = await supabase
-        .from("restaurants")
+        .rpc("get_public_restaurant", { rid: restaurantId })
         .select("id, name, logo_url")
         .eq("id", restaurantId)
         .single();
