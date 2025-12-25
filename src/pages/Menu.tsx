@@ -1,9 +1,16 @@
 import { useParams } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 /* =====================
-   Types (Local only)
+   Types (Read Only)
 ===================== */
+type Restaurant = {
+  id: string;
+  name: string;
+  logo_url: string | null;
+};
+
 type MenuItem = {
   id: string;
   name: string;
@@ -13,51 +20,81 @@ type MenuItem = {
 type Category = {
   id: string;
   name: string;
+  sort_order: number;
   items: MenuItem[];
 };
 
-type OrderItem = MenuItem & {
-  qty: number;
-};
-
+type OrderItem = MenuItem & { qty: number };
 type OrderStatus = "draft" | "pending";
 
-/* =====================
-   MOCK DATA (واضح ومؤقت)
-   سيتم استبداله لاحقًا
-===================== */
-const RESTAURANT_NAME = "Kastana Café";
-
-const CATEGORIES: Category[] = [
-  {
-    id: "offers",
-    name: "🔥 العروض",
-    items: [{ id: "o1", name: "فطور عربي", price: 3.5 }],
-  },
-  {
-    id: "hot-coffee",
-    name: "☕ قهوة ساخنة",
-    items: [
-      { id: "h1", name: "قهوة تركية", price: 1.0 },
-      { id: "h2", name: "كابتشينو", price: 2.5 },
-    ],
-  },
-  {
-    id: "cold-coffee",
-    name: "🧊 قهوة باردة",
-    items: [{ id: "c1", name: "آيس لاتيه", price: 3.0 }],
-  },
-];
-
 export default function Menu() {
-  const { tableCode } = useParams<{ tableCode: string }>();
+  const { restaurantId, tableCode } = useParams<{
+    restaurantId: string;
+    tableCode: string;
+  }>();
 
+  /* =====================
+     State
+  ===================== */
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<OrderStatus>("draft");
+  const [loading, setLoading] = useState(true);
 
   /* =====================
-     Helpers
+     Fetch Data (READ ONLY)
+  ===================== */
+  useEffect(() => {
+    const loadMenu = async () => {
+      setLoading(true);
+
+      // 1️⃣ Restaurant
+      const { data: restaurantData } = await supabase
+        .from("restaurants")
+        .select("id, name, logo_url")
+        .eq("id", restaurantId)
+        .single();
+
+      // 2️⃣ Categories
+      const { data: categoriesData } = await supabase
+        .from("menu_categories")
+        .select("id, name, sort_order")
+        .eq("restaurant_id", restaurantId)
+        .order("sort_order", { ascending: true });
+
+      // 3️⃣ Items
+      const { data: itemsData } = await supabase
+        .from("menu_items")
+        .select("id, name, price, category_id")
+        .eq("restaurant_id", restaurantId)
+        .order("name");
+
+      if (restaurantData && categoriesData && itemsData) {
+        const mappedCategories: Category[] = categoriesData.map((cat) => ({
+          ...cat,
+          items: itemsData
+            .filter((i) => i.category_id === cat.id)
+            .map((i) => ({
+              id: i.id,
+              name: i.name,
+              price: i.price,
+            })),
+        }));
+
+        setRestaurant(restaurantData);
+        setCategories(mappedCategories);
+      }
+
+      setLoading(false);
+    };
+
+    loadMenu();
+  }, [restaurantId]);
+
+  /* =====================
+     Order Helpers
   ===================== */
   const addItem = (item: MenuItem) => {
     if (status === "pending") return;
@@ -71,13 +108,13 @@ export default function Menu() {
     });
   };
 
-  const removeItem = (itemId: string) => {
+  const removeItem = (id: string) => {
     if (status === "pending") return;
 
-    setOrderItems((prev) => prev.map((i) => (i.id === itemId ? { ...i, qty: i.qty - 1 } : i)).filter((i) => i.qty > 0));
+    setOrderItems((prev) => prev.map((i) => (i.id === id ? { ...i, qty: i.qty - 1 } : i)).filter((i) => i.qty > 0));
   };
 
-  const total = orderItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const total = orderItems.reduce((sum, i) => sum + i.price * i.qty, 0);
 
   const submitOrder = () => {
     if (orderItems.length === 0) return;
@@ -87,36 +124,35 @@ export default function Menu() {
   /* =====================
      UI
   ===================== */
+  if (loading) {
+    return <div className="p-6 text-center">جاري تحميل القائمة...</div>;
+  }
+
+  if (!restaurant) {
+    return <div className="p-6 text-center">المطعم غير موجود</div>;
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="border-b bg-card px-4 py-4">
-        <h1 className="text-xl font-bold">{RESTAURANT_NAME}</h1>
-        <p className="text-sm text-muted-foreground">طاولة: {tableCode}</p>
+        <div className="flex items-center gap-3">
+          {restaurant.logo_url && (
+            <img src={restaurant.logo_url} alt={restaurant.name} className="h-10 w-10 rounded-full object-cover" />
+          )}
+          <div>
+            <h1 className="text-xl font-bold">{restaurant.name}</h1>
+            <p className="text-sm text-muted-foreground">طاولة: {tableCode}</p>
+          </div>
+        </div>
       </header>
 
       {/* Pending */}
       {status === "pending" && (
-        <main className="flex-1 flex items-center justify-center p-6">
-          <div className="max-w-md w-full text-center">
+        <main className="flex-1 flex items-center justify-center p-6 text-center">
+          <div>
             <h2 className="text-2xl font-bold mb-4">الطلب قيد الانتظار</h2>
-            <p className="text-muted-foreground mb-6">بانتظار تأكيد الكاشيير</p>
-
-            <div className="border rounded-lg p-4 bg-card text-left">
-              {orderItems.map((item) => (
-                <div key={item.id} className="flex justify-between mb-2">
-                  <span>
-                    {item.name} × {item.qty}
-                  </span>
-                  <span>{(item.price * item.qty).toFixed(2)} د.أ</span>
-                </div>
-              ))}
-              <hr className="my-2" />
-              <div className="flex justify-between font-bold">
-                <span>الإجمالي</span>
-                <span>{total.toFixed(2)} د.أ</span>
-              </div>
-            </div>
+            <p className="text-muted-foreground">بانتظار تأكيد الكاشيير</p>
           </div>
         </main>
       )}
@@ -125,29 +161,22 @@ export default function Menu() {
       {status === "draft" && (
         <>
           <main className="flex-1 p-4 space-y-6">
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <section key={cat.id}>
-                <h2 className="text-lg font-bold mb-3">{cat.name}</h2>
-
+                <h2 className="text-lg font-bold mb-2">{cat.name}</h2>
                 <div className="space-y-2">
                   {cat.items.map((item) => {
                     const inOrder = orderItems.find((i) => i.id === item.id);
-
                     return (
                       <div key={item.id} className="flex justify-between items-center border rounded-lg p-3 bg-card">
                         <div>
                           <p className="font-medium">{item.name}</p>
                           <p className="text-sm text-muted-foreground">{item.price.toFixed(2)} د.أ</p>
                         </div>
-
                         <div className="flex items-center gap-2">
-                          <button onClick={() => removeItem(item.id)} className="px-3 py-1 border rounded">
-                            −
-                          </button>
+                          <button onClick={() => removeItem(item.id)}>−</button>
                           <span>{inOrder?.qty ?? 0}</span>
-                          <button onClick={() => addItem(item)} className="px-3 py-1 border rounded">
-                            +
-                          </button>
+                          <button onClick={() => addItem(item)}>+</button>
                         </div>
                       </div>
                     );
@@ -164,18 +193,12 @@ export default function Menu() {
             />
           </main>
 
-          {/* Summary */}
           <footer className="border-t bg-card p-4">
             <div className="flex justify-between mb-2">
               <span>الإجمالي</span>
               <span className="font-bold">{total.toFixed(2)} د.أ</span>
             </div>
-
-            <button
-              onClick={submitOrder}
-              disabled={orderItems.length === 0}
-              className="w-full py-3 rounded-lg bg-primary text-primary-foreground disabled:opacity-50"
-            >
+            <button onClick={submitOrder} className="w-full py-3 rounded-lg bg-primary text-primary-foreground">
               تثبيت الطلب
             </button>
           </footer>
