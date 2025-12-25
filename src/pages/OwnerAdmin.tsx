@@ -10,10 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useOwnerRestaurant, useUpdateRestaurant } from '@/hooks/useRestaurants';
 import { useMenuCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/hooks/useMenuCategories';
 import { useMenuItems, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, MenuItem } from '@/hooks/useMenuItems';
-import { Store, Loader2, Plus, Edit2, Trash2, FolderOpen, Tag } from 'lucide-react';
+import { Store, Loader2, Plus, Edit2, Trash2, FolderOpen, Tag, Flame } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { CSVUpload } from '@/components/owner/CSVUpload';
 
 export default function OwnerAdmin() {
+  const { role } = useAuth();
   const { data: restaurant, isLoading: loadingRestaurant } = useOwnerRestaurant();
   const { data: categories = [], isLoading: loadingCategories } = useMenuCategories(restaurant?.id);
   const updateRestaurant = useUpdateRestaurant();
@@ -105,6 +108,9 @@ export default function OwnerAdmin() {
             </div>
           </CardHeader>
         </Card>
+
+        {/* CSV Upload Section - Only visible to owners */}
+        {role === 'owner' && <CSVUpload restaurantId={restaurant.id} />}
 
         {/* Categories Section */}
         <CategoriesSection restaurantId={restaurant.id} categories={categories} isLoading={loadingCategories} />
@@ -441,6 +447,7 @@ function MenuItemsSection({
               <div key={item.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
+                    {item.is_offer && <Flame className="h-4 w-4 text-warning" />}
                     <p className="font-medium text-foreground">{item.name}</p>
                     {item.is_offer && (
                       <span className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded">Offer</span>
