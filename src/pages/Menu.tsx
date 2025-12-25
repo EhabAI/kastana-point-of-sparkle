@@ -6,7 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
    Types (Read Only)
 ===================== */
 type Restaurant = {
-.select("id, name")
+  id: string;
+  name: string;
 };
 
 type MenuItem = {
