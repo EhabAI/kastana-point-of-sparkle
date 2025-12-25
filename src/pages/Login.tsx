@@ -29,6 +29,8 @@ export default function Login() {
         navigate("/system-admin", { replace: true });
       } else if (role === "owner") {
         navigate("/admin", { replace: true });
+      } else if (role === "cashier") {
+        navigate("/pos", { replace: true });
       }
     }
   }, [user, role, loading, navigate]);

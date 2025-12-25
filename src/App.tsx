@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Login from "./pages/Login";
 import SystemAdmin from "./pages/SystemAdmin";
 import OwnerAdmin from "./pages/OwnerAdmin";
+import POS from "./pages/POS";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['owner']}>
                   <OwnerAdmin />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pos"
+              element={
+                <ProtectedRoute allowedRoles={['cashier']}>
+                  <POS />
                 </ProtectedRoute>
               }
             />
