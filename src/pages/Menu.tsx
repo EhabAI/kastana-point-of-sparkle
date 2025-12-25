@@ -6,9 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
    Types (Read Only)
 ===================== */
 type Restaurant = {
-  id: string;
-  name: string;
-  logo_url: string | null;
+.select("id, name")
 };
 
 type MenuItem = {
@@ -29,9 +27,10 @@ type OrderItem = MenuItem & { qty: number };
 type OrderStatus = "draft" | "pending";
 
 export default function Menu() {
-  const { restaurantId, tableCode } = useParams<{
-    restaurantId: string;
-    tableCode: string;
+  const params = useParams();
+  const restaurantId = params.restaurantId as string;
+  const tableCode = params.tableCode as string;
+
   }>();
 
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
