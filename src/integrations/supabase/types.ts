@@ -615,6 +615,13 @@ export type Database = {
     Functions: {
       get_cashier_restaurant_id: { Args: { _user_id: string }; Returns: string }
       get_owner_restaurant_id: { Args: { _user_id: string }; Returns: string }
+      get_public_restaurant: {
+        Args: { p_restaurant_id: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

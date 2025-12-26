@@ -54,20 +54,17 @@ export default function Menu() {
         return;
       }
 
-      /* 1️⃣ Restaurant */
+      /* 1️⃣ Restaurant - use public RPC function */
       const { data: restaurantData, error: restaurantError } = await supabase
-        .from("restaurants")
-        .select("id, name")
-        .eq("id", restaurantId)
-        .single();
+        .rpc("get_public_restaurant", { p_restaurant_id: restaurantId });
 
-      if (restaurantError || !restaurantData) {
+      if (restaurantError || !restaurantData || restaurantData.length === 0) {
         setError("المطعم غير موجود");
         setLoading(false);
         return;
       }
 
-      setRestaurant(restaurantData);
+      setRestaurant(restaurantData[0]);
 
       /* 2️⃣ Categories */
       const { data: categoriesData, error: categoriesError } = await supabase
