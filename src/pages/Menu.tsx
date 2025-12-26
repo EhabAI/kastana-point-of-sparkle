@@ -1,14 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-
-const [openCategoryId, setOpenCategoryId] = useState<string | null>(null);
-
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 /* =======================
-   Types (بسيطة وآمنة)
+   Types
 ======================= */
 type Restaurant = {
   id: string;
@@ -30,19 +27,6 @@ type Item = {
 };
 
 /* =======================
-   Helpers
-======================= */
-function getInitials(name?: string | null) {
-  if (!name) return "R";
-  return name
-    .split(" ")
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase();
-}
-
-/* =======================
    Component
 ======================= */
 export default function Menu() {
@@ -50,6 +34,7 @@ export default function Menu() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [openCategoryId, setOpenCategoryId] = useState<string | null>(null);
 
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -100,21 +85,28 @@ export default function Menu() {
 
       setCategories(categoriesData || []);
 
-      /* 3️⃣ Items */
-      const { data: itemsData, error: itemsError } = await supabase
-        .from("menu_items")
-        .select("id, name, price, category_id, is_offer")
-        .eq("restaurant_id", restaurantId)
-        .eq("is_available", true)
-        .order("name", { ascending: true });
+      /* 3️⃣ Items - get by category IDs */
+      const categoryIds = (categoriesData || []).map((c) => c.id);
+      
+      if (categoryIds.length > 0) {
+        const { data: itemsData, error: itemsError } = await supabase
+          .from("menu_items")
+          .select("id, name, price, category_id, is_offer")
+          .in("category_id", categoryIds)
+          .eq("is_available", true)
+          .order("name", { ascending: true });
 
-      if (itemsError) {
-        setError("فشل تحميل الأصناف");
-        setLoading(false);
-        return;
+        if (itemsError) {
+          setError("فشل تحميل الأصناف");
+          setLoading(false);
+          return;
+        }
+
+        setItems(itemsData || []);
+      } else {
+        setItems([]);
       }
 
-      setItems(itemsData || []);
       setLoading(false);
     }
 
@@ -162,55 +154,51 @@ export default function Menu() {
     <div className="min-h-screen bg-background">
       <div className="max-w-3xl mx-auto p-4">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="mb-4">
-            <h1 className="text-xl font-bold">{restaurant?.name ?? "Restaurant"}</h1>
-            <p className="text-sm text-muted-foreground">Table: {tableCode}</p>
-          </div>
-
-          <div>
-            <h1 className="text-lg font-bold">{restaurant?.name ?? "Restaurant"}</h1>
-            <p className="text-sm text-muted-foreground">Table: {tableCode}</p>
-          </div>
+        <div className="mb-6">
+          <h1 className="text-xl font-bold">{restaurant?.name ?? "Restaurant"}</h1>
+          <p className="text-sm text-muted-foreground">Table: {tableCode}</p>
         </div>
 
         {/* Menu */}
-        {categoriesWithItems.map((category) => {
-  const isOpen = openCategoryId === category.id;
+        <div className="space-y-2">
+          {categoriesWithItems.map((category) => {
+            const isOpen = openCategoryId === category.id;
 
-  return (
-    <div key={category.id} className="border rounded">
-      <button
-        type="button"
-        onClick={() =>
-          setOpenCategoryId(isOpen ? null : category.id)
-        }
-        className="w-full flex justify-between items-center p-4 font-semibold"
-      >
-        <span>{category.name}</span>
-        <span className="text-sm">{isOpen ? "−" : "+"}</span>
-      </button>
+            return (
+              <div key={category.id} className="border rounded-lg overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setOpenCategoryId(isOpen ? null : category.id)}
+                  className="w-full flex justify-between items-center p-4 font-semibold bg-muted/50 hover:bg-muted transition-colors"
+                >
+                  <span>{category.name}</span>
+                  <span className="text-sm">{isOpen ? "−" : "+"}</span>
+                </button>
 
-
-            {isOpen && (
-  category.items.length === 0 ? 
-              <p className="text-sm text-muted-foreground">لا يوجد أصناف</p>
-            ) : (
-              <div className="space-y-3">
-                {category.items.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center">
-                    <div>
-                      <p className="font-medium">
-                        {item.name} {item.is_offer && <span className="ml-1 text-xs">🔥</span>}
-                      </p>
-                    </div>
-                    <div className="text-sm font-semibold">{item.price.toFixed(2)} JOD</div>
+                {isOpen && (
+                  <div className="p-4">
+                    {category.items.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">لا يوجد أصناف</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {category.items.map((item) => (
+                          <div key={item.id} className="flex justify-between items-center">
+                            <div>
+                              <p className="font-medium">
+                                {item.name} {item.is_offer && <span className="ml-1 text-xs">🔥</span>}
+                              </p>
+                            </div>
+                            <div className="text-sm font-semibold">{item.price.toFixed(2)} JOD</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                ))}
+                )}
               </div>
-            )}
-          </Card>
-        ))}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
