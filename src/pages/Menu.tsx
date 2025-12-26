@@ -62,35 +62,45 @@ export default function Menu() {
       }
 
       // 1️⃣ Categories
-      const { data: catRows, error: catError } = await supabase
+      const catResult = await supabase
         .from("menu_categories")
-        .select("*")
+        .select("id, name, sort_order")
         .eq("restaurant_id", restaurantId)
         .eq("is_active", true)
         .order("sort_order", { ascending: true });
 
-      if (catError) {
+      if (catResult.error) {
         setError("فشل تحميل التصنيفات");
         setLoading(false);
         return;
       }
 
-      // 2️⃣ Items
-      const { data: itemRows, error: itemError } = await supabase
+      const catRows = catResult.data as Category[];
+      const categoryIds = catRows.map((c) => c.id);
+
+      if (categoryIds.length === 0) {
+        setCategories([]);
+        setItems([]);
+        setLoading(false);
+        return;
+      }
+
+      // 2️⃣ Items (filter by category_id since menu_items doesn't have restaurant_id)
+      const itemResult = await supabase
         .from("menu_items")
-        .select("*")
-        .eq("restaurant_id", restaurantId)
+        .select("id, name, price, category_id, is_offer")
+        .in("category_id", categoryIds)
         .eq("is_available", true)
         .order("name", { ascending: true });
 
-      if (itemError) {
+      if (itemResult.error) {
         setError("فشل تحميل الأصناف");
         setLoading(false);
         return;
       }
 
-      setCategories((catRows as any[]) || []);
-      setItems((itemRows as any[]) || []);
+      setCategories(catRows);
+      setItems(itemResult.data as Item[]);
       setLoading(false);
     }
 
