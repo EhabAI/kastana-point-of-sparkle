@@ -2,6 +2,19 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
+const [openCategoryId, setOpenCategoryId] = useState<string | null>(null);
+
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+
+/* =======================
+   Types (بسيطة وآمنة)
+======================= */
+type Restaurant = {
+  id: string;
+  name: string | null;
+};
+
 type Category = {
   id: string;
   name: string;
@@ -16,42 +29,37 @@ type Item = {
   is_offer: boolean | null;
 };
 
+/* =======================
+   Helpers
+======================= */
+function getInitials(name?: string | null) {
+  if (!name) return "R";
+  return name
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+}
+
+/* =======================
+   Component
+======================= */
 export default function Menu() {
-  const { restaurantId, tableCode } = useParams<{
-    restaurantId: string;
-    tableCode: string;
-  }>();
+  const { restaurantId, tableCode } = useParams();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<Item[]>([]);
 
-  // SEO بسيط
+  /* =======================
+     Load Data
+  ======================= */
   useEffect(() => {
-    document.title = "Menu";
-
-    let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.name = "description";
-      document.head.appendChild(meta);
-    }
-    meta.content = "Restaurant menu";
-
-    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
-    if (!canonical) {
-      canonical = document.createElement("link");
-      canonical.rel = "canonical";
-      document.head.appendChild(canonical);
-    }
-    canonical.href = window.location.href;
-  }, []);
-
-  // جلب البيانات
-  useEffect(() => {
-    async function loadMenu() {
+    async function load() {
       setLoading(true);
       setError(null);
 
@@ -61,53 +69,61 @@ export default function Menu() {
         return;
       }
 
-      // 1️⃣ Categories
-      const catResult = await supabase
+      /* 1️⃣ Restaurant */
+      const { data: restaurantData, error: restaurantError } = await supabase
+        .from("restaurants")
+        .select("id, name")
+        .eq("id", restaurantId)
+        .single();
+
+      if (restaurantError || !restaurantData) {
+        setError("المطعم غير موجود");
+        setLoading(false);
+        return;
+      }
+
+      setRestaurant(restaurantData);
+
+      /* 2️⃣ Categories */
+      const { data: categoriesData, error: categoriesError } = await supabase
         .from("menu_categories")
         .select("id, name, sort_order")
         .eq("restaurant_id", restaurantId)
         .eq("is_active", true)
         .order("sort_order", { ascending: true });
 
-      if (catResult.error) {
+      if (categoriesError) {
         setError("فشل تحميل التصنيفات");
         setLoading(false);
         return;
       }
 
-      const catRows = catResult.data as Category[];
-      const categoryIds = catRows.map((c) => c.id);
+      setCategories(categoriesData || []);
 
-      if (categoryIds.length === 0) {
-        setCategories([]);
-        setItems([]);
-        setLoading(false);
-        return;
-      }
-
-      // 2️⃣ Items (filter by category_id since menu_items doesn't have restaurant_id)
-      const itemResult = await supabase
+      /* 3️⃣ Items */
+      const { data: itemsData, error: itemsError } = await supabase
         .from("menu_items")
         .select("id, name, price, category_id, is_offer")
-        .in("category_id", categoryIds)
+        .eq("restaurant_id", restaurantId)
         .eq("is_available", true)
         .order("name", { ascending: true });
 
-      if (itemResult.error) {
+      if (itemsError) {
         setError("فشل تحميل الأصناف");
         setLoading(false);
         return;
       }
 
-      setCategories(catRows);
-      setItems(itemResult.data as Item[]);
+      setItems(itemsData || []);
       setLoading(false);
     }
 
-    loadMenu();
+    load();
   }, [restaurantId]);
 
-  // ربط الأصناف بالتصنيفات
+  /* =======================
+     Group Items
+  ======================= */
   const categoriesWithItems = useMemo(() => {
     return categories.map((cat) => ({
       ...cat,
@@ -115,65 +131,87 @@ export default function Menu() {
     }));
   }, [categories, items]);
 
-  /* ================= UI ================= */
-
+  /* =======================
+     UI States
+  ======================= */
   if (loading) {
     return (
-      <main className="min-h-screen bg-background text-foreground">
-        <section className="mx-auto max-w-3xl p-4">
-          <div className="h-6 w-40 bg-slate-200 rounded mb-4" />
-          <div className="h-24 bg-slate-200 rounded mb-4" />
-          <div className="h-24 bg-slate-200 rounded" />
-        </section>
-      </main>
+      <div className="p-6 max-w-3xl mx-auto">
+        <Skeleton className="h-12 w-48 mb-4" />
+        <Skeleton className="h-24 w-full mb-4" />
+        <Skeleton className="h-24 w-full" />
+      </div>
     );
   }
 
   if (error) {
     return (
-      <main className="min-h-screen bg-background text-foreground">
-        <section className="mx-auto max-w-3xl p-4 text-center">
-          <div className="border rounded p-6">
-            <h2 className="font-bold mb-2">تعذر فتح القائمة</h2>
-            <p className="text-sm text-muted-foreground">{error}</p>
-          </div>
-        </section>
-      </main>
+      <div className="p-6 max-w-3xl mx-auto text-center">
+        <Card className="p-6">
+          <h2 className="font-bold text-lg mb-2">تعذر فتح القائمة</h2>
+          <p className="text-sm text-muted-foreground">{error}</p>
+        </Card>
+      </div>
     );
   }
 
+  /* =======================
+     Success UI
+  ======================= */
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <header className="border-b">
-        <div className="mx-auto w-full max-w-3xl p-4">
-          <h1 className="text-lg font-semibold">Menu</h1>
-          <p className="text-sm text-muted-foreground">Table: {tableCode}</p>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-3xl mx-auto p-4">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="mb-4">
+            <h1 className="text-xl font-bold">{restaurant?.name ?? "Restaurant"}</h1>
+            <p className="text-sm text-muted-foreground">Table: {tableCode}</p>
+          </div>
+
+          <div>
+            <h1 className="text-lg font-bold">{restaurant?.name ?? "Restaurant"}</h1>
+            <p className="text-sm text-muted-foreground">Table: {tableCode}</p>
+          </div>
         </div>
-      </header>
 
-      <section className="mx-auto w-full max-w-3xl p-4 space-y-4">
-        {categoriesWithItems.map((category) => (
-          <div key={category.id} className="border rounded p-4">
-            <h2 className="font-semibold mb-3">{category.name}</h2>
+        {/* Menu */}
+        {categoriesWithItems.map((category) => {
+  const isOpen = openCategoryId === category.id;
 
-            {category.items.length === 0 ? (
+  return (
+    <div key={category.id} className="border rounded">
+      <button
+        type="button"
+        onClick={() =>
+          setOpenCategoryId(isOpen ? null : category.id)
+        }
+        className="w-full flex justify-between items-center p-4 font-semibold"
+      >
+        <span>{category.name}</span>
+        <span className="text-sm">{isOpen ? "−" : "+"}</span>
+      </button>
+
+
+            {isOpen && (
+  category.items.length === 0 ? 
               <p className="text-sm text-muted-foreground">لا يوجد أصناف</p>
             ) : (
               <div className="space-y-3">
-                {category.items.map((item: Item) => (
+                {category.items.map((item) => (
                   <div key={item.id} className="flex justify-between items-center">
-                    <div className="text-sm font-medium">
-                      {item.name}
-                      {item.is_offer && <span className="ml-1 text-xs">🔥</span>}
+                    <div>
+                      <p className="font-medium">
+                        {item.name} {item.is_offer && <span className="ml-1 text-xs">🔥</span>}
+                      </p>
                     </div>
-                    <div className="text-sm font-semibold">{Number(item.price).toFixed(2)} JOD</div>
+                    <div className="text-sm font-semibold">{item.price.toFixed(2)} JOD</div>
                   </div>
                 ))}
               </div>
             )}
-          </div>
+          </Card>
         ))}
-      </section>
-    </main>
+      </div>
+    </div>
   );
 }
