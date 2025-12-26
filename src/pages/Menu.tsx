@@ -11,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 type Restaurant = {
   id: string;
   name: string | null;
-  logo_url: string | null;
 };
 
 type Category = {
