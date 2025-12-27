@@ -427,6 +427,7 @@ export type Database = {
       }
       restaurant_tables: {
         Row: {
+          capacity: number | null
           created_at: string
           id: string
           is_active: boolean
@@ -435,6 +436,7 @@ export type Database = {
           table_name: string
         }
         Insert: {
+          capacity?: number | null
           created_at?: string
           id?: string
           is_active?: boolean
@@ -443,6 +445,7 @@ export type Database = {
           table_name: string
         }
         Update: {
+          capacity?: number | null
           created_at?: string
           id?: string
           is_active?: boolean
