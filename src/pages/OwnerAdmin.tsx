@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { CSVUpload } from '@/components/owner/CSVUpload';
 import { TableManagement } from '@/components/owner/TableManagement';
+import { StaffManagement } from '@/components/owner/StaffManagement';
 
 export default function OwnerAdmin() {
   const { role } = useAuth();
@@ -115,6 +116,9 @@ export default function OwnerAdmin() {
 
         {/* Tables Management Section - Only visible to owners */}
         {role === 'owner' && <TableManagement restaurantId={restaurant.id} />}
+
+        {/* Staff Management Section - Only visible to owners */}
+        {role === 'owner' && <StaffManagement restaurantId={restaurant.id} />}
 
         {/* Categories Section */}
         <CategoriesSection restaurantId={restaurant.id} categories={categories} isLoading={loadingCategories} />
