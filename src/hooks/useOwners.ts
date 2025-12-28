@@ -57,8 +57,11 @@ export function useCreateOwner() {
         throw new Error('Not authenticated. Please sign in again.');
       }
 
+      const payload = { email, password, role: 'owner' as const };
+      console.log('Create owner payload:', { email, role: payload.role });
+
       const { data, error } = await supabase.functions.invoke('admin-create-user', {
-        body: { email, password, role: 'owner' },
+        body: payload,
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
