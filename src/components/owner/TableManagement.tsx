@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useRestaurantTables, useCreateRestaurantTable, useUpdateRestaurantTable, RestaurantTable } from "@/hooks/useRestaurantTables";
-import { Loader2, Plus, Edit2, QrCode, Copy, Download, Table2, ChevronDown } from "lucide-react";
+import { Loader2, Plus, Edit2, QrCode, Copy, Download, Table2, ChevronDown, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface TableManagementProps {
@@ -135,6 +135,10 @@ function TableRow({
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <p className="font-medium text-foreground">{table.table_name}</p>
+            <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+              <Users className="h-3 w-3" />
+              {table.capacity ?? 4}
+            </span>
             <span className={`text-xs px-2 py-0.5 rounded-full ${table.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
               {table.is_active ? "Active" : "Inactive"}
             </span>
@@ -174,27 +178,31 @@ export function TableManagement({ restaurantId }: TableManagementProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newTableName, setNewTableName] = useState("");
+  const [newTableCapacity, setNewTableCapacity] = useState(4);
   const [editingTable, setEditingTable] = useState<RestaurantTable | null>(null);
   const [editTableName, setEditTableName] = useState("");
+  const [editTableCapacity, setEditTableCapacity] = useState(4);
   
   const handleCreate = async () => {
     if (!newTableName.trim()) {
       toast({ title: "Please enter a table name", variant: "destructive" });
       return;
     }
-    await createTable.mutateAsync({ restaurantId, tableName: newTableName.trim() });
+    await createTable.mutateAsync({ restaurantId, tableName: newTableName.trim(), capacity: newTableCapacity });
     setNewTableName("");
+    setNewTableCapacity(4);
     setCreateDialogOpen(false);
   };
   
   const handleEdit = (table: RestaurantTable) => {
     setEditingTable(table);
     setEditTableName(table.table_name);
+    setEditTableCapacity(table.capacity ?? 4);
   };
   
   const handleSaveEdit = async () => {
     if (!editingTable || !editTableName.trim()) return;
-    await updateTable.mutateAsync({ id: editingTable.id, tableName: editTableName.trim() });
+    await updateTable.mutateAsync({ id: editingTable.id, tableName: editTableName.trim(), capacity: editTableCapacity });
     setEditingTable(null);
   };
   
@@ -235,6 +243,16 @@ export function TableManagement({ restaurantId }: TableManagementProps) {
                       value={newTableName}
                       onChange={(e) => setNewTableName(e.target.value)}
                       placeholder="e.g., Table 1, Patio A"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="table-capacity">Number of Chairs</Label>
+                    <Input
+                      id="table-capacity"
+                      type="number"
+                      min={1}
+                      value={newTableCapacity}
+                      onChange={(e) => setNewTableCapacity(parseInt(e.target.value) || 4)}
                     />
                   </div>
                 </div>
@@ -287,6 +305,16 @@ export function TableManagement({ restaurantId }: TableManagementProps) {
                       id="edit-table-name"
                       value={editTableName}
                       onChange={(e) => setEditTableName(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-table-capacity">Number of Chairs</Label>
+                    <Input
+                      id="edit-table-capacity"
+                      type="number"
+                      min={1}
+                      value={editTableCapacity}
+                      onChange={(e) => setEditTableCapacity(parseInt(e.target.value) || 4)}
                     />
                   </div>
                 </div>
