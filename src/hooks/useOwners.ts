@@ -58,7 +58,7 @@ export function useCreateOwner() {
       }
 
       const { data, error } = await supabase.functions.invoke('admin-create-user', {
-        body: { email, password },
+        body: { email, password, role: 'owner' },
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
