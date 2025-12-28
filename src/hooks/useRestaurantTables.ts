@@ -8,6 +8,7 @@ export interface RestaurantTable {
   table_name: string;
   table_code: string;
   is_active: boolean;
+  capacity: number | null;
   created_at: string;
 }
 
@@ -47,9 +48,11 @@ export function useCreateRestaurantTable() {
     mutationFn: async ({
       restaurantId,
       tableName,
+      capacity = 4,
     }: {
       restaurantId: string;
       tableName: string;
+      capacity?: number;
     }) => {
       // Generate unique table code with retry logic
       let tableCode = generateTableCode();
@@ -63,6 +66,7 @@ export function useCreateRestaurantTable() {
             restaurant_id: restaurantId,
             table_name: tableName,
             table_code: tableCode,
+            capacity,
           })
           .select()
           .single();
@@ -101,14 +105,17 @@ export function useUpdateRestaurantTable() {
       id,
       tableName,
       isActive,
+      capacity,
     }: {
       id: string;
       tableName?: string;
       isActive?: boolean;
+      capacity?: number;
     }) => {
       const updates: Partial<RestaurantTable> = {};
       if (tableName !== undefined) updates.table_name = tableName;
       if (isActive !== undefined) updates.is_active = isActive;
+      if (capacity !== undefined) updates.capacity = capacity;
 
       const { data, error } = await supabase
         .from("restaurant_tables")
