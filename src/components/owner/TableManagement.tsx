@@ -1,12 +1,13 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useRestaurantTables, useCreateRestaurantTable, useUpdateRestaurantTable, RestaurantTable } from "@/hooks/useRestaurantTables";
-import { Loader2, Plus, Edit2, QrCode, Copy, Download, Table2 } from "lucide-react";
+import { Loader2, Plus, Edit2, QrCode, Copy, Download, Table2, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface TableManagementProps {
@@ -170,6 +171,7 @@ export function TableManagement({ restaurantId }: TableManagementProps) {
   const updateTable = useUpdateRestaurantTable();
   const { toast } = useToast();
   
+  const [isOpen, setIsOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newTableName, setNewTableName] = useState("");
   const [editingTable, setEditingTable] = useState<RestaurantTable | null>(null);
@@ -197,100 +199,109 @@ export function TableManagement({ restaurantId }: TableManagementProps) {
   };
   
   return (
-    <Card className="shadow-card">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Table2 className="h-5 w-5" />
-              Tables Management
-            </CardTitle>
-            <CardDescription>Manage restaurant tables with QR codes for menu access</CardDescription>
-          </div>
-          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Table
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add Table</DialogTitle>
-                <DialogDescription>Create a new table with a unique QR code.</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="table-name">Table Name</Label>
-                  <Input
-                    id="table-name"
-                    value={newTableName}
-                    onChange={(e) => setNewTableName(e.target.value)}
-                    placeholder="e.g., Table 1, Patio A"
-                  />
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card className="shadow-card">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CollapsibleTrigger asChild>
+              <button className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity">
+                <Table2 className="h-5 w-5" />
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    Tables Management
+                    <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  </CardTitle>
+                  <CardDescription>Manage restaurant tables with QR codes for menu access</CardDescription>
                 </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
-                <Button onClick={handleCreate} disabled={createTable.isPending}>
-                  {createTable.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                  Create
+              </button>
+            </CollapsibleTrigger>
+            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Table
                 </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add Table</DialogTitle>
+                  <DialogDescription>Create a new table with a unique QR code.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="table-name">Table Name</Label>
+                    <Input
+                      id="table-name"
+                      value={newTableName}
+                      onChange={(e) => setNewTableName(e.target.value)}
+                      placeholder="e.g., Table 1, Patio A"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
+                  <Button onClick={handleCreate} disabled={createTable.isPending}>
+                    {createTable.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                    Create
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
-        ) : tables.length === 0 ? (
-          <div className="text-center py-8">
-            <QrCode className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">No tables yet. Add your first table to get started.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {tables.map((table) => (
-              <TableRow 
-                key={table.id} 
-                table={table} 
-                restaurantId={restaurantId}
-                onEdit={handleEdit}
-              />
-            ))}
-          </div>
-        )}
-        
-        {/* Edit Dialog */}
-        <Dialog open={!!editingTable} onOpenChange={(open) => !open && setEditingTable(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Table</DialogTitle>
-              <DialogDescription>Update the table name.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-table-name">Table Name</Label>
-                <Input
-                  id="edit-table-name"
-                  value={editTableName}
-                  onChange={(e) => setEditTableName(e.target.value)}
-                />
+        </CardHeader>
+        <CollapsibleContent>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setEditingTable(null)}>Cancel</Button>
-              <Button onClick={handleSaveEdit} disabled={updateTable.isPending}>
-                {updateTable.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                Save
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </CardContent>
-    </Card>
+            ) : tables.length === 0 ? (
+              <div className="text-center py-8">
+                <QrCode className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No tables yet. Add your first table to get started.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {tables.map((table) => (
+                  <TableRow 
+                    key={table.id} 
+                    table={table} 
+                    restaurantId={restaurantId}
+                    onEdit={handleEdit}
+                  />
+                ))}
+              </div>
+            )}
+            
+            {/* Edit Dialog */}
+            <Dialog open={!!editingTable} onOpenChange={(open) => !open && setEditingTable(null)}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Table</DialogTitle>
+                  <DialogDescription>Update the table name.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-table-name">Table Name</Label>
+                    <Input
+                      id="edit-table-name"
+                      value={editTableName}
+                      onChange={(e) => setEditTableName(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setEditingTable(null)}>Cancel</Button>
+                  <Button onClick={handleSaveEdit} disabled={updateTable.isPending}>
+                    {updateTable.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                    Save
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 }
