@@ -1,4 +1,5 @@
 export * from "./ShiftDialog";
+export * from "./ShiftSummaryDialog";
 export * from "./PaymentDialog";
 export * from "./DiscountDialog";
 export * from "./HeldOrdersDialog";
