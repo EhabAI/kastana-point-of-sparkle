@@ -9,6 +9,7 @@ import { useOwnerRestaurant } from "@/hooks/useRestaurants";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { DateRangeFilter, DateRange, DateRangePreset, getDateRangeForPreset } from "./DateRangeFilter";
 import { format } from "date-fns";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CashierSales {
   cashier_id: string;
@@ -18,6 +19,7 @@ interface CashierSales {
 }
 
 export function BasicReports() {
+  const { t } = useLanguage();
   const { data: restaurant } = useOwnerRestaurant();
   const { data: settings } = useOwnerRestaurantSettings();
   const currency = settings?.currency || "JOD";
@@ -138,12 +140,12 @@ export function BasicReports() {
   };
 
   const getDateRangeLabel = () => {
-    if (preset === "today") return "Today";
-    if (preset === "yesterday") return "Yesterday";
-    if (preset === "this_week") return "This Week";
-    if (preset === "this_month") return "This Month";
-    if (preset === "last_7_days") return "Last 7 Days";
-    if (preset === "last_30_days") return "Last 30 Days";
+    if (preset === "today") return t("today");
+    if (preset === "yesterday") return t("yesterday");
+    if (preset === "this_week") return t("this_week");
+    if (preset === "this_month") return t("this_month");
+    if (preset === "last_7_days") return t("last_7_days");
+    if (preset === "last_30_days") return t("last_30_days");
     return `${format(dateRange.from, "MMM d")} - ${format(dateRange.to, "MMM d, yyyy")}`;
   };
 
@@ -155,20 +157,20 @@ export function BasicReports() {
             <CollapsibleTrigger asChild>
               <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                 <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
-                <div className="text-left">
+                <div className="text-start">
                   <CardTitle className="flex items-center gap-2">
                     <BarChart3 className="h-5 w-5" />
-                    Reports
+                    {t("reports")}
                   </CardTitle>
                   <CardDescription>
-                    Performance metrics ({getDateRangeLabel()})
+                    {t("performance_metrics")} ({getDateRangeLabel()})
                   </CardDescription>
                 </div>
               </button>
             </CollapsibleTrigger>
             <Button variant="outline" size="sm" onClick={exportToCSV} disabled={isLoading}>
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
+              <Download className="h-4 w-4 me-2" />
+              {t("export_csv")}
             </Button>
           </div>
         </CardHeader>
@@ -191,24 +193,24 @@ export function BasicReports() {
                 {/* Summary Metrics */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 bg-muted/50 rounded-lg">
-                    <p className="text-sm text-muted-foreground">Total Sales</p>
+                    <p className="text-sm text-muted-foreground">{t("total_sales")}</p>
                     <p className="text-2xl font-bold text-foreground">{totalSales.toFixed(2)} {currency}</p>
                   </div>
                   <div className="p-4 bg-muted/50 rounded-lg">
-                    <p className="text-sm text-muted-foreground">Number of Orders</p>
+                    <p className="text-sm text-muted-foreground">{t("number_of_orders")}</p>
                     <p className="text-2xl font-bold text-foreground">{orderCount}</p>
                   </div>
                   <div className="p-4 bg-muted/50 rounded-lg col-span-2">
-                    <p className="text-sm text-muted-foreground">Total Discounts</p>
+                    <p className="text-sm text-muted-foreground">{t("total_discounts")}</p>
                     <p className="text-2xl font-bold text-foreground">{totalDiscounts.toFixed(2)} {currency}</p>
                   </div>
                 </div>
 
                 {/* Sales by Cashier */}
                 <div className="space-y-3">
-                  <h4 className="font-medium text-foreground">Sales by Cashier</h4>
+                  <h4 className="font-medium text-foreground">{t("sales_by_cashier")}</h4>
                   {salesByCashier.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No sales data available for this period.</p>
+                    <p className="text-sm text-muted-foreground">{t("no_sales_data_period")}</p>
                   ) : (
                     <div className="space-y-2">
                       {salesByCashier.map((cashier) => (

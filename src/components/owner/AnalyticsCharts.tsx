@@ -7,7 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOwnerRestaurant } from "@/hooks/useRestaurants";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { DateRangeFilter, DateRange, DateRangePreset, getDateRangeForPreset } from "./DateRangeFilter";
-import { format, eachDayOfInterval, eachHourOfInterval, startOfDay, endOfDay } from "date-fns";
+import { format, eachDayOfInterval, startOfDay, endOfDay } from "date-fns";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   AreaChart, 
   Area, 
@@ -34,6 +35,7 @@ const CHART_COLORS = [
 ];
 
 export function AnalyticsCharts() {
+  const { t } = useLanguage();
   const { data: restaurant } = useOwnerRestaurant();
   const { data: settings } = useOwnerRestaurantSettings();
   const currency = settings?.currency || "JOD";
@@ -181,12 +183,12 @@ export function AnalyticsCharts() {
             <CollapsibleTrigger asChild>
               <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                 <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
-                <div className="text-left">
+                <div className="text-start">
                   <CardTitle className="flex items-center gap-2">
                     <LineChart className="h-5 w-5" />
-                    Analytics & Charts
+                    {t("analytics_charts")}
                   </CardTitle>
-                  <CardDescription>Sales trends, peak hours, and category performance</CardDescription>
+                  <CardDescription>{t("analytics_desc")}</CardDescription>
                 </div>
               </button>
             </CollapsibleTrigger>
@@ -209,9 +211,9 @@ export function AnalyticsCharts() {
               <div className="space-y-8">
                 {/* Sales Trend Chart */}
                 <div className="space-y-3">
-                  <h4 className="font-medium text-foreground">Sales Trend</h4>
+                  <h4 className="font-medium text-foreground">{t("sales_trend")}</h4>
                   {salesTrendData.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No sales data for this period.</p>
+                    <p className="text-sm text-muted-foreground">{t("no_sales_data")}</p>
                   ) : (
                     <div className="h-[250px] w-full">
                       <ResponsiveContainer width="100%" height="100%">
@@ -240,7 +242,7 @@ export function AnalyticsCharts() {
                               borderRadius: '8px',
                               fontSize: '12px'
                             }}
-                            formatter={(value: number) => [`${value.toFixed(2)} ${currency}`, 'Sales']}
+                            formatter={(value: number) => [`${value.toFixed(2)} ${currency}`, t("sales")]}
                           />
                           <Area 
                             type="monotone" 
@@ -258,9 +260,9 @@ export function AnalyticsCharts() {
 
                 {/* Peak Hours Chart */}
                 <div className="space-y-3">
-                  <h4 className="font-medium text-foreground">Peak Hours</h4>
+                  <h4 className="font-medium text-foreground">{t("peak_hours")}</h4>
                   {peakHoursData.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No order data for this period.</p>
+                    <p className="text-sm text-muted-foreground">{t("no_order_data")}</p>
                   ) : (
                     <div className="h-[200px] w-full">
                       <ResponsiveContainer width="100%" height="100%">
@@ -284,7 +286,7 @@ export function AnalyticsCharts() {
                             }}
                             formatter={(value: number, name: string) => [
                               name === 'orders' ? value : `${value.toFixed(2)} ${currency}`,
-                              name === 'orders' ? 'Orders' : 'Sales'
+                              name === 'orders' ? t("orders") : t("sales")
                             ]}
                           />
                           <Bar dataKey="orders" fill="hsl(142, 76%, 36%)" radius={[4, 4, 0, 0]} />
@@ -296,9 +298,9 @@ export function AnalyticsCharts() {
 
                 {/* Category Performance */}
                 <div className="space-y-3">
-                  <h4 className="font-medium text-foreground">Category Performance</h4>
+                  <h4 className="font-medium text-foreground">{t("category_performance")}</h4>
                   {categoryData.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No category data for this period.</p>
+                    <p className="text-sm text-muted-foreground">{t("no_category_data")}</p>
                   ) : (
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="h-[200px] w-full">
@@ -324,7 +326,7 @@ export function AnalyticsCharts() {
                                 borderRadius: '8px',
                                 fontSize: '12px'
                               }}
-                              formatter={(value: number) => [`${value.toFixed(2)} ${currency}`, 'Sales']}
+                              formatter={(value: number) => [`${value.toFixed(2)} ${currency}`, t("sales")]}
                             />
                           </PieChart>
                         </ResponsiveContainer>
