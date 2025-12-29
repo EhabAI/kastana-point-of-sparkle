@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useOwnerRestaurant, useUpdateRestaurant } from "@/hooks/useRestaurants";
 import { useMenuCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from "@/hooks/useMenuCategories";
 import { useMenuItems, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, MenuItem } from "@/hooks/useMenuItems";
-import { Store, Loader2, Plus, Edit2, Trash2, FolderOpen, Tag, Flame, ChevronDown, Table2, Users } from "lucide-react";
+import { Store, Loader2, Plus, Edit2, Trash2, FolderOpen, Tag, Flame, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { CSVUpload } from "@/components/owner/CSVUpload";
@@ -29,8 +29,10 @@ import { RestaurantSettings } from "@/components/owner/RestaurantSettings";
 import { DiscountSettings } from "@/components/owner/DiscountSettings";
 import { BasicReports } from "@/components/owner/BasicReports";
 import { ShiftsView } from "@/components/owner/ShiftsView";
+import { DashboardOverview } from "@/components/owner/DashboardOverview";
 import { useRestaurantTables } from "@/hooks/useRestaurantTables";
 import { useCashiers } from "@/hooks/useCashiers";
+import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 
 export default function OwnerAdmin() {
   const { role } = useAuth();
@@ -38,8 +40,10 @@ export default function OwnerAdmin() {
   const { data: categories = [], isLoading: loadingCategories } = useMenuCategories(restaurant?.id);
   const { data: tables = [] } = useRestaurantTables(restaurant?.id);
   const { data: cashiers = [] } = useCashiers(restaurant?.id);
+  const { data: settings } = useOwnerRestaurantSettings();
   const updateRestaurant = useUpdateRestaurant();
   const { toast } = useToast();
+  const currency = settings?.currency || "JOD";
 
   const [editingRestaurantName, setEditingRestaurantName] = useState(false);
   const [restaurantName, setRestaurantName] = useState("");
@@ -136,6 +140,16 @@ export default function OwnerAdmin() {
           </CardHeader>
         </Card>
 
+
+        {/* Dashboard Overview - Quick Stats */}
+        {role === "owner" && (
+          <DashboardOverview
+            restaurantId={restaurant.id}
+            tableCount={tables.length}
+            staffCount={cashiers.length}
+            currency={currency}
+          />
+        )}
 
         {/* Restaurant Settings Section - Only visible to owners */}
         {role === "owner" && <RestaurantSettings />}
