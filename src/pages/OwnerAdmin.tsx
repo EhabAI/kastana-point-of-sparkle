@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useOwnerRestaurant, useUpdateRestaurant } from "@/hooks/useRestaurants";
 import { useMenuCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from "@/hooks/useMenuCategories";
 import { useMenuItems, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, MenuItem } from "@/hooks/useMenuItems";
-import { Store, Loader2, Plus, Edit2, Trash2, FolderOpen, Tag, Flame, ChevronDown } from "lucide-react";
+import { Store, Loader2, Plus, Edit2, Trash2, FolderOpen, Tag, Flame, ChevronDown, Table2, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { CSVUpload } from "@/components/owner/CSVUpload";
@@ -29,11 +29,16 @@ import { RestaurantSettings } from "@/components/owner/RestaurantSettings";
 import { DiscountSettings } from "@/components/owner/DiscountSettings";
 import { BasicReports } from "@/components/owner/BasicReports";
 import { ShiftsView } from "@/components/owner/ShiftsView";
+import { StatCard } from "@/components/StatCard";
+import { useRestaurantTables } from "@/hooks/useRestaurantTables";
+import { useCashiers } from "@/hooks/useCashiers";
 
 export default function OwnerAdmin() {
   const { role } = useAuth();
   const { data: restaurant, isLoading: loadingRestaurant } = useOwnerRestaurant();
   const { data: categories = [], isLoading: loadingCategories } = useMenuCategories(restaurant?.id);
+  const { data: tables = [] } = useRestaurantTables(restaurant?.id);
+  const { data: cashiers = [] } = useCashiers(restaurant?.id);
   const updateRestaurant = useUpdateRestaurant();
   const { toast } = useToast();
 
@@ -131,6 +136,30 @@ export default function OwnerAdmin() {
             </div>
           </CardHeader>
         </Card>
+
+        {/* Stats Overview */}
+        {role === "owner" && (
+          <div className="grid gap-4 sm:grid-cols-3">
+            <StatCard
+              title="Tables"
+              value={tables.length}
+              icon={Table2}
+              description="Total restaurant tables"
+            />
+            <StatCard
+              title="Staff"
+              value={cashiers.length}
+              icon={Users}
+              description="Total cashiers"
+            />
+            <StatCard
+              title="Menu Categories"
+              value={categories.length}
+              icon={FolderOpen}
+              description="Active categories"
+            />
+          </div>
+        )}
 
         {/* Restaurant Settings Section - Only visible to owners */}
         {role === "owner" && <RestaurantSettings />}
