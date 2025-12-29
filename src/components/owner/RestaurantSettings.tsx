@@ -4,7 +4,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Settings, Clock, Loader2 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Settings, Clock, Loader2, ChevronDown } from "lucide-react";
 import {
   useOwnerRestaurantSettings,
   useUpdateOwnerRestaurantSettings,
@@ -46,6 +47,7 @@ export function RestaurantSettings() {
   const [pricesIncludeTax, setPricesIncludeTax] = useState(false);
   const [businessHours, setBusinessHours] = useState<BusinessHours>(DEFAULT_BUSINESS_HOURS);
   const [hasChanges, setHasChanges] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   // Determine currency display based on UI language
   const currencyDisplay = isArabicUI() ? "د.أ" : "JOD";
@@ -105,36 +107,43 @@ export function RestaurantSettings() {
   }
 
   return (
-    <Card className="shadow-card">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Restaurant Settings
-            </CardTitle>
-            <CardDescription>Configure your restaurant preferences</CardDescription>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card className="shadow-card">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CollapsibleTrigger asChild>
+              <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
+                <div className="text-left">
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Restaurant Settings
+                  </CardTitle>
+                  <CardDescription>Configure your restaurant preferences</CardDescription>
+                </div>
+              </button>
+            </CollapsibleTrigger>
+            <Button onClick={handleSave} disabled={!hasChanges || updateSettings.isPending}>
+              {updateSettings.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Save Changes
+            </Button>
           </div>
-          <Button onClick={handleSave} disabled={!hasChanges || updateSettings.isPending}>
-            {updateSettings.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            Save Changes
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-8">
-        {/* Currency Section */}
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium text-foreground">Currency</h3>
-          <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
-            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-              <span className="text-primary font-semibold text-sm">{currencyDisplay}</span>
+        </CardHeader>
+        <CollapsibleContent>
+          <CardContent className="space-y-8">
+            {/* Currency Section */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-foreground">Currency</h3>
+              <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <span className="text-primary font-semibold text-sm">{currencyDisplay}</span>
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">{currencyDisplay}</p>
+                  <p className="text-sm text-muted-foreground">Jordanian Dinar (read-only)</p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="font-medium text-foreground">{currencyDisplay}</p>
-              <p className="text-sm text-muted-foreground">Jordanian Dinar (read-only)</p>
-            </div>
-          </div>
-        </div>
 
         {/* Tax Settings Section */}
         <div className="space-y-4">
@@ -226,7 +235,9 @@ export function RestaurantSettings() {
             ))}
           </div>
         </div>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 }
