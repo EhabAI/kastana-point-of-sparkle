@@ -40,6 +40,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { BranchProvider } from "@/contexts/BranchContext";
 import { CSVUpload } from "@/components/owner/CSVUpload";
 import { TableManagement } from "@/components/owner/TableManagement";
@@ -62,6 +63,7 @@ import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 
 export default function OwnerAdmin() {
   const { role } = useAuth();
+  const { t } = useLanguage();
   const { data: restaurant, isLoading: loadingRestaurant } = useOwnerRestaurant();
   const { data: categories = [], isLoading: loadingCategories } = useMenuCategories(restaurant?.id);
   const { data: tables = [] } = useRestaurantTables(restaurant?.id);
@@ -82,7 +84,7 @@ export default function OwnerAdmin() {
 
   if (loadingRestaurant) {
     return (
-      <DashboardLayout title="Owner Dashboard">
+      <DashboardLayout title={t("owner_dashboard")}>
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -92,13 +94,13 @@ export default function OwnerAdmin() {
 
   if (!restaurant) {
     return (
-      <DashboardLayout title="Owner Dashboard">
+      <DashboardLayout title={t("owner_dashboard")}>
         <Card className="shadow-card">
           <CardContent className="p-12 text-center">
             <Store className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-foreground mb-2">No Restaurant Assigned</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-2">{t("no_restaurant")}</h2>
             <p className="text-muted-foreground">
-              Please contact your system administrator to assign a restaurant to your account.
+              {t("no_restaurant_desc")}
             </p>
           </CardContent>
         </Card>
@@ -107,7 +109,7 @@ export default function OwnerAdmin() {
   }
 
   return (
-    <DashboardLayout title="Owner Dashboard">
+    <DashboardLayout title={t("owner_dashboard")}>
       <BranchProvider>
       <div className="space-y-6 animate-fade-in">
         {/* Restaurant Info - Always visible */}
@@ -126,24 +128,24 @@ export default function OwnerAdmin() {
                 )}
                 <div>
                   <CardTitle className="flex items-center gap-2">{restaurant.name}</CardTitle>
-                  <CardDescription>Your restaurant information</CardDescription>
+                  <CardDescription>{t("your_restaurant_info")}</CardDescription>
                 </div>
               </div>
               <Dialog open={editingRestaurantName} onOpenChange={setEditingRestaurantName}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" onClick={() => setRestaurantName(restaurant.name)}>
-                    <Edit2 className="h-4 w-4 mr-2" />
-                    Edit Name
+                    <Edit2 className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                    {t("edit_name")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Edit Restaurant Name</DialogTitle>
-                    <DialogDescription>Update your restaurant's name.</DialogDescription>
+                    <DialogTitle>{t("edit_restaurant_name")}</DialogTitle>
+                    <DialogDescription>{t("update_restaurant_name")}</DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                      <Label htmlFor="edit-restaurant-name">Restaurant Name</Label>
+                      <Label htmlFor="edit-restaurant-name">{t("restaurant_name")}</Label>
                       <Input
                         id="edit-restaurant-name"
                         value={restaurantName}
@@ -153,11 +155,11 @@ export default function OwnerAdmin() {
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setEditingRestaurantName(false)}>
-                      Cancel
+                      {t("cancel")}
                     </Button>
                     <Button onClick={handleUpdateRestaurantName} disabled={updateRestaurant.isPending}>
-                      {updateRestaurant.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                      Save
+                      {updateRestaurant.isPending ? <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" /> : null}
+                      {t("save")}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -174,49 +176,49 @@ export default function OwnerAdmin() {
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border-2 border-transparent bg-blue-50 text-blue-700 hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:border-blue-600 data-[state=active]:shadow-lg transition-all duration-200 hover-scale"
             >
               <LayoutDashboard className="h-4 w-4" />
-              <span>Overview</span>
+              <span>{t("overview")}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="analytics" 
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border-2 border-transparent bg-purple-50 text-purple-700 hover:bg-purple-100 data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:border-purple-600 data-[state=active]:shadow-lg transition-all duration-200 hover-scale"
             >
               <BarChart3 className="h-4 w-4" />
-              <span>Analytics</span>
+              <span>{t("analytics")}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="reports" 
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border-2 border-transparent bg-emerald-50 text-emerald-700 hover:bg-emerald-100 data-[state=active]:bg-emerald-600 data-[state=active]:text-white data-[state=active]:border-emerald-600 data-[state=active]:shadow-lg transition-all duration-200 hover-scale"
             >
               <FileText className="h-4 w-4" />
-              <span>Reports</span>
+              <span>{t("reports")}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="menu" 
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border-2 border-transparent bg-orange-50 text-orange-700 hover:bg-orange-100 data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:border-orange-600 data-[state=active]:shadow-lg transition-all duration-200 hover-scale"
             >
               <UtensilsCrossed className="h-4 w-4" />
-              <span>Menu</span>
+              <span>{t("menu")}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="management" 
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border-2 border-transparent bg-pink-50 text-pink-700 hover:bg-pink-100 data-[state=active]:bg-pink-600 data-[state=active]:text-white data-[state=active]:border-pink-600 data-[state=active]:shadow-lg transition-all duration-200 hover-scale"
             >
               <Users className="h-4 w-4" />
-              <span>Manage</span>
+              <span>{t("manage")}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="branches" 
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border-2 border-transparent bg-teal-50 text-teal-700 hover:bg-teal-100 data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:border-teal-600 data-[state=active]:shadow-lg transition-all duration-200 hover-scale"
             >
               <Building2 className="h-4 w-4" />
-              <span>Branches</span>
+              <span>{t("branches")}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="settings" 
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border-2 border-transparent bg-slate-100 text-slate-700 hover:bg-slate-200 data-[state=active]:bg-slate-700 data-[state=active]:text-white data-[state=active]:border-slate-700 data-[state=active]:shadow-lg transition-all duration-200 hover-scale"
             >
               <Settings className="h-4 w-4" />
-              <span>Settings</span>
+              <span>{t("settings")}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -293,6 +295,7 @@ function CategoriesSection({
   const updateCategory = useUpdateCategory();
   const deleteCategory = useDeleteCategory();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const [newCategoryName, setNewCategoryName] = useState("");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -301,7 +304,7 @@ function CategoriesSection({
 
   const handleCreateCategory = async () => {
     if (!newCategoryName.trim()) {
-      toast({ title: "Please enter a category name", variant: "destructive" });
+      toast({ title: t("enter_category_name"), variant: "destructive" });
       return;
     }
     await createCategory.mutateAsync({ restaurantId, name: newCategoryName });
@@ -320,7 +323,7 @@ function CategoriesSection({
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (confirm("Are you sure you want to delete this category? All items in it will also be deleted.")) {
+    if (confirm(t("confirm_delete_category"))) {
       await deleteCategory.mutateAsync(id);
     }
   };
@@ -332,47 +335,46 @@ function CategoriesSection({
           <div className="flex items-center justify-between">
             <CollapsibleTrigger asChild>
               <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
-                <div className="text-left">
+                <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${isOpen ? "" : "ltr:-rotate-90 rtl:rotate-90"}`} />
+                <div className="text-start">
                   <CardTitle className="flex items-center gap-2">
                     <FolderOpen className="h-5 w-5" />
-                    Menu Categories
+                    {t("menu_categories")}
                     <span className="text-muted-foreground font-normal">({categories.length})</span>
                   </CardTitle>
-                  <CardDescription>Organize your menu with categories</CardDescription>
+                  <CardDescription>{t("organize_menu")}</CardDescription>
                 </div>
               </button>
             </CollapsibleTrigger>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Category
+                  <Plus className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                  {t("add_category")}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Create Category</DialogTitle>
-                  <DialogDescription>Add a new menu category.</DialogDescription>
+                  <DialogTitle>{t("create_category")}</DialogTitle>
+                  <DialogDescription>{t("add_new_category")}</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="category-name">Category Name</Label>
+                    <Label htmlFor="category-name">{t("category_name")}</Label>
                     <Input
                       id="category-name"
                       value={newCategoryName}
                       onChange={(e) => setNewCategoryName(e.target.value)}
-                      placeholder="e.g., Appetizers"
                     />
                   </div>
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                    Cancel
+                    {t("cancel")}
                   </Button>
                   <Button onClick={handleCreateCategory} disabled={createCategory.isPending}>
-                    {createCategory.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    Create
+                    {createCategory.isPending ? <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" /> : null}
+                    {t("create")}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -386,7 +388,7 @@ function CategoriesSection({
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : categories.length === 0 ? (
-          <p className="text-muted-foreground text-center py-8">No categories yet. Create one to get started.</p>
+          <p className="text-muted-foreground text-center py-8">{t("no_categories")}</p>
         ) : (
           <div className="space-y-3">
             {categories.map((category) => (
@@ -397,7 +399,7 @@ function CategoriesSection({
                   </div>
                   <div>
                     <p className="font-medium text-foreground">{category.name}</p>
-                    <p className="text-sm text-muted-foreground">{category.is_active ? "Active" : "Inactive"}</p>
+                    <p className="text-sm text-muted-foreground">{category.is_active ? t("active") : t("inactive")}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -420,12 +422,12 @@ function CategoriesSection({
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Edit Category</DialogTitle>
-                        <DialogDescription>Update the category name.</DialogDescription>
+                        <DialogTitle>{t("edit_category")}</DialogTitle>
+                        <DialogDescription>{t("update_category")}</DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                          <Label htmlFor="edit-category-name">Category Name</Label>
+                          <Label htmlFor="edit-category-name">{t("category_name")}</Label>
                           <Input
                             id="edit-category-name"
                             value={editingCategory?.name || ""}
@@ -437,11 +439,11 @@ function CategoriesSection({
                       </div>
                       <DialogFooter>
                         <Button variant="outline" onClick={() => setEditingCategory(null)}>
-                          Cancel
+                          {t("cancel")}
                         </Button>
                         <Button onClick={handleUpdateCategory} disabled={updateCategory.isPending}>
-                          {updateCategory.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                          Save
+                          {updateCategory.isPending ? <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" /> : null}
+                          {t("save")}
                         </Button>
                       </DialogFooter>
                     </DialogContent>
@@ -474,6 +476,7 @@ function MenuItemsSection({
   const updateItem = useUpdateMenuItem();
   const deleteItem = useDeleteMenuItem();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
@@ -481,11 +484,11 @@ function MenuItemsSection({
 
   const handleCreateItem = async () => {
     if (!selectedCategoryId) {
-      toast({ title: "Please select a category first", variant: "destructive" });
+      toast({ title: t("select_category_first"), variant: "destructive" });
       return;
     }
     if (!newItem.name.trim()) {
-      toast({ title: "Please enter an item name", variant: "destructive" });
+      toast({ title: t("enter_item_name"), variant: "destructive" });
       return;
     }
     const price = parseFloat(newItem.price) || 0;
@@ -514,7 +517,7 @@ function MenuItemsSection({
   };
 
   const handleDeleteItem = async (id: string) => {
-    if (confirm("Are you sure you want to delete this item?")) {
+    if (confirm(t("confirm_delete_item"))) {
       await deleteItem.mutateAsync(id);
     }
   };
@@ -526,43 +529,41 @@ function MenuItemsSection({
           <div>
             <CardTitle className="flex items-center gap-2">
               <Tag className="h-5 w-5" />
-              Menu Items
+              {t("menu_items")}
             </CardTitle>
-            <CardDescription>Manage items in your menu</CardDescription>
+            <CardDescription>{t("manage_menu_items")}</CardDescription>
           </div>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" disabled={!selectedCategoryId}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Item
+                <Plus className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                {t("add_item")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create Menu Item</DialogTitle>
-                <DialogDescription>Add a new item to your menu.</DialogDescription>
+                <DialogTitle>{t("create_menu_item")}</DialogTitle>
+                <DialogDescription>{t("add_new_item")}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="item-name">Name</Label>
+                  <Label htmlFor="item-name">{t("name")}</Label>
                   <Input
                     id="item-name"
                     value={newItem.name}
                     onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                    placeholder="e.g., Grilled Chicken"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="item-description">Description (optional)</Label>
+                  <Label htmlFor="item-description">{t("description_optional")}</Label>
                   <Input
                     id="item-description"
                     value={newItem.description}
                     onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-                    placeholder="Brief description"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="item-price">Price</Label>
+                  <Label htmlFor="item-price">{t("price")}</Label>
                   <Input
                     id="item-price"
                     type="number"
@@ -578,16 +579,16 @@ function MenuItemsSection({
                     checked={newItem.is_offer}
                     onCheckedChange={(checked) => setNewItem({ ...newItem, is_offer: checked })}
                   />
-                  <Label htmlFor="item-offer">Mark as Offer</Label>
+                  <Label htmlFor="item-offer">{t("mark_as_offer")}</Label>
                 </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                  Cancel
+                  {t("cancel")}
                 </Button>
                 <Button onClick={handleCreateItem} disabled={createItem.isPending}>
-                  {createItem.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Create
+                  {createItem.isPending ? <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" /> : null}
+                  {t("create")}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -597,10 +598,10 @@ function MenuItemsSection({
       <CardContent>
         {/* Category Selector */}
         <div className="mb-6">
-          <Label className="mb-2 block">Select Category</Label>
+          <Label className="mb-2 block">{t("select_category")}</Label>
           <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
             <SelectTrigger className="w-full md:w-64">
-              <SelectValue placeholder="Choose a category" />
+              <SelectValue placeholder={t("choose_category")} />
             </SelectTrigger>
             <SelectContent>
               {categories.map((cat) => (
@@ -614,13 +615,13 @@ function MenuItemsSection({
 
         {/* Items List */}
         {!selectedCategoryId ? (
-          <p className="text-muted-foreground text-center py-8">Select a category to view items.</p>
+          <p className="text-muted-foreground text-center py-8">{t("select_category_view")}</p>
         ) : isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : items.length === 0 ? (
-          <p className="text-muted-foreground text-center py-8">No items in this category. Add one to get started.</p>
+          <p className="text-muted-foreground text-center py-8">{t("no_items")}</p>
         ) : (
           <div className="space-y-3">
             {items.map((item) => (
@@ -630,10 +631,10 @@ function MenuItemsSection({
                     {item.is_offer && <Flame className="h-4 w-4 text-warning" />}
                     <p className="font-medium text-foreground">{item.name}</p>
                     {item.is_offer && (
-                      <span className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded">Offer</span>
+                      <span className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded">{t("offer")}</span>
                     )}
                     {!item.is_available && (
-                      <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">Unavailable</span>
+                      <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">{t("unavailable")}</span>
                     )}
                   </div>
                   {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
@@ -652,12 +653,12 @@ function MenuItemsSection({
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Edit Menu Item</DialogTitle>
-                        <DialogDescription>Update the item details.</DialogDescription>
+                        <DialogTitle>{t("edit_menu_item")}</DialogTitle>
+                        <DialogDescription>{t("update_item")}</DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                          <Label>Name</Label>
+                          <Label>{t("name")}</Label>
                           <Input
                             value={editingItem?.name || ""}
                             onChange={(e) =>
@@ -666,7 +667,7 @@ function MenuItemsSection({
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label>Description</Label>
+                          <Label>{t("description")}</Label>
                           <Input
                             value={editingItem?.description || ""}
                             onChange={(e) =>
@@ -675,7 +676,7 @@ function MenuItemsSection({
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label>Price</Label>
+                          <Label>{t("price")}</Label>
                           <Input
                             type="number"
                             step="0.01"
@@ -694,16 +695,16 @@ function MenuItemsSection({
                               setEditingItem((prev) => (prev ? { ...prev, is_offer: checked } : null))
                             }
                           />
-                          <Label>Mark as Offer</Label>
+                          <Label>{t("mark_as_offer")}</Label>
                         </div>
                       </div>
                       <DialogFooter>
                         <Button variant="outline" onClick={() => setEditingItem(null)}>
-                          Cancel
+                          {t("cancel")}
                         </Button>
                         <Button onClick={handleUpdateItem} disabled={updateItem.isPending}>
-                          {updateItem.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                          Save
+                          {updateItem.isPending ? <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" /> : null}
+                          {t("save")}
                         </Button>
                       </DialogFooter>
                     </DialogContent>

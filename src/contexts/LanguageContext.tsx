@@ -26,12 +26,19 @@ const translations: Record<Language, Record<string, string>> = {
     "inactive": "Inactive",
     "default": "Default",
     "disabled": "Disabled",
+    "name": "Name",
+    "optional": "optional",
     
     // Dashboard
     "owner_dashboard": "Owner Dashboard",
     "system_admin": "System Admin",
     "cashier": "Cashier",
     "owner": "Owner",
+    "your_restaurant_info": "Your restaurant information",
+    "edit_name": "Edit Name",
+    "edit_restaurant_name": "Edit Restaurant Name",
+    "update_restaurant_name": "Update your restaurant's name.",
+    "restaurant_name": "Restaurant Name",
     
     // Tabs
     "overview": "Overview",
@@ -68,6 +75,20 @@ const translations: Record<Language, Record<string, string>> = {
     "unavailable": "Unavailable",
     "offer": "Offer",
     "promo": "Promo",
+    "organize_menu": "Organize your menu with categories",
+    "manage_menu_items": "Manage items in your menu",
+    "create_category": "Create Category",
+    "add_new_category": "Add a new menu category.",
+    "edit_category": "Edit Category",
+    "update_category": "Update the category name.",
+    "create_menu_item": "Create Menu Item",
+    "add_new_item": "Add a new item to your menu.",
+    "edit_menu_item": "Edit Menu Item",
+    "update_item": "Update the item details.",
+    "select_category": "Select Category",
+    "choose_category": "Choose a category",
+    "mark_as_offer": "Mark as Offer",
+    "description_optional": "Description (optional)",
     
     // Staff
     "staff_management": "Staff Management",
@@ -75,9 +96,20 @@ const translations: Record<Language, Record<string, string>> = {
     
     // No data
     "no_restaurant": "No Restaurant Assigned",
+    "no_restaurant_desc": "Please contact your system administrator to assign a restaurant to your account.",
     "no_categories": "No categories yet. Create one to get started.",
-    "no_items": "No items in this category.",
+    "no_items": "No items in this category. Add one to get started.",
     "no_branches": "No branches found.",
+    "select_category_view": "Select a category to view items.",
+    
+    // Confirmations
+    "confirm_delete_category": "Are you sure you want to delete this category? All items in it will also be deleted.",
+    "confirm_delete_item": "Are you sure you want to delete this item?",
+    
+    // Toasts
+    "enter_category_name": "Please enter a category name",
+    "select_category_first": "Please select a category first",
+    "enter_item_name": "Please enter an item name",
   },
   ar: {
     // Common
@@ -95,12 +127,19 @@ const translations: Record<Language, Record<string, string>> = {
     "inactive": "غير نشط",
     "default": "افتراضي",
     "disabled": "معطل",
+    "name": "الاسم",
+    "optional": "اختياري",
     
     // Dashboard
     "owner_dashboard": "لوحة تحكم المالك",
     "system_admin": "مدير النظام",
     "cashier": "كاشير",
     "owner": "مالك",
+    "your_restaurant_info": "معلومات مطعمك",
+    "edit_name": "تعديل الاسم",
+    "edit_restaurant_name": "تعديل اسم المطعم",
+    "update_restaurant_name": "تحديث اسم مطعمك.",
+    "restaurant_name": "اسم المطعم",
     
     // Tabs
     "overview": "نظرة عامة",
@@ -137,6 +176,20 @@ const translations: Record<Language, Record<string, string>> = {
     "unavailable": "غير متوفر",
     "offer": "عرض",
     "promo": "ترويج",
+    "organize_menu": "نظّم قائمتك بالفئات",
+    "manage_menu_items": "إدارة عناصر القائمة",
+    "create_category": "إنشاء فئة",
+    "add_new_category": "إضافة فئة جديدة للقائمة.",
+    "edit_category": "تعديل الفئة",
+    "update_category": "تحديث اسم الفئة.",
+    "create_menu_item": "إنشاء عنصر",
+    "add_new_item": "إضافة عنصر جديد للقائمة.",
+    "edit_menu_item": "تعديل العنصر",
+    "update_item": "تحديث تفاصيل العنصر.",
+    "select_category": "اختر الفئة",
+    "choose_category": "اختر فئة",
+    "mark_as_offer": "تحديد كعرض",
+    "description_optional": "الوصف (اختياري)",
     
     // Staff
     "staff_management": "إدارة الموظفين",
@@ -144,9 +197,20 @@ const translations: Record<Language, Record<string, string>> = {
     
     // No data
     "no_restaurant": "لا يوجد مطعم مخصص",
+    "no_restaurant_desc": "يرجى التواصل مع مدير النظام لتعيين مطعم لحسابك.",
     "no_categories": "لا توجد فئات بعد. أنشئ واحدة للبدء.",
-    "no_items": "لا توجد عناصر في هذه الفئة.",
+    "no_items": "لا توجد عناصر في هذه الفئة. أضف واحداً للبدء.",
     "no_branches": "لا توجد فروع.",
+    "select_category_view": "اختر فئة لعرض العناصر.",
+    
+    // Confirmations
+    "confirm_delete_category": "هل أنت متأكد من حذف هذه الفئة؟ سيتم حذف جميع العناصر فيها أيضاً.",
+    "confirm_delete_item": "هل أنت متأكد من حذف هذا العنصر؟",
+    
+    // Toasts
+    "enter_category_name": "الرجاء إدخال اسم الفئة",
+    "select_category_first": "الرجاء اختيار فئة أولاً",
+    "enter_item_name": "الرجاء إدخال اسم العنصر",
   },
 };
 
