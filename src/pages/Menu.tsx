@@ -121,12 +121,7 @@ export default function Menu() {
   const [lang, setLang] = useState<Language>("ar");
   const t = translations[lang];
 
-  // Item selection state
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
-  const [itemQuantity, setItemQuantity] = useState(1);
-  const [itemNotes, setItemNotes] = useState("");
-
-  // Cart state (local only)
+  // Cart state (local only) - now tracks quantities per item
   const [cart, setCart] = useState<SelectedItem[]>([]);
 
   // Confirm order state
@@ -217,34 +212,43 @@ export default function Menu() {
   /* =======================
      Cart Functions
   ======================= */
-  const addToCart = () => {
-    if (!selectedItem) return;
+  const getItemQuantity = (itemId: string) => {
+    const cartItem = cart.find((i) => i.item_id === itemId);
+    return cartItem?.quantity || 0;
+  };
 
+  const incrementItem = (item: Item) => {
     setCart((prev) => {
-      const existing = prev.find((i) => i.item_id === selectedItem.id && i.notes === itemNotes);
+      const existing = prev.find((i) => i.item_id === item.id);
       if (existing) {
         return prev.map((i) =>
-          i.item_id === selectedItem.id && i.notes === itemNotes
-            ? { ...i, quantity: i.quantity + itemQuantity }
-            : i
+          i.item_id === item.id ? { ...i, quantity: i.quantity + 1 } : i
         );
       }
       return [
         ...prev,
         {
-          item_id: selectedItem.id,
-          name: selectedItem.name,
-          price: selectedItem.price,
-          quantity: itemQuantity,
-          notes: itemNotes,
+          item_id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: 1,
+          notes: "",
         },
       ];
     });
+  };
 
-    // Reset and close
-    setSelectedItem(null);
-    setItemQuantity(1);
-    setItemNotes("");
+  const decrementItem = (itemId: string) => {
+    setCart((prev) => {
+      const existing = prev.find((i) => i.item_id === itemId);
+      if (!existing) return prev;
+      if (existing.quantity <= 1) {
+        return prev.filter((i) => i.item_id !== itemId);
+      }
+      return prev.map((i) =>
+        i.item_id === itemId ? { ...i, quantity: i.quantity - 1 } : i
+      );
+    });
   };
 
   const cartTotal = useMemo(() => {
@@ -394,25 +398,54 @@ export default function Menu() {
                       <p className="text-sm text-muted-foreground">{t.noItems}</p>
                     ) : (
                       <div className="space-y-3">
-                        {category.items.map((item) => (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => {
-                              setSelectedItem(item);
-                              setItemQuantity(1);
-                              setItemNotes("");
-                            }}
-                            className="w-full flex justify-between items-center p-2 rounded-lg hover:bg-muted/50 transition-colors text-left"
-                          >
-                            <div>
-                              <p className="font-medium">
-                                {item.name} {item.is_offer && <span className="ml-1 text-xs">🔥</span>}
-                              </p>
+                        {category.items.map((item) => {
+                          const qty = getItemQuantity(item.id);
+                          return (
+                            <div
+                              key={item.id}
+                              className="flex justify-between items-center p-2 rounded-lg bg-muted/30"
+                            >
+                              <div className="flex-1">
+                                <p className="font-medium">
+                                  {item.name} {item.is_offer && <span className="ml-1 text-xs">🔥</span>}
+                                </p>
+                                <p className="text-sm text-muted-foreground">{item.price.toFixed(2)} JOD</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {qty > 0 ? (
+                                  <>
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      className="h-8 w-8"
+                                      onClick={() => decrementItem(item.id)}
+                                    >
+                                      <Minus className="h-4 w-4" />
+                                    </Button>
+                                    <span className="w-6 text-center font-semibold">{qty}</span>
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      className="h-8 w-8"
+                                      onClick={() => incrementItem(item)}
+                                    >
+                                      <Plus className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={() => incrementItem(item)}
+                                  >
+                                    <Plus className="h-4 w-4 mr-1" />
+                                    {t.add}
+                                  </Button>
+                                )}
+                              </div>
                             </div>
-                            <div className="text-sm font-semibold">{item.price.toFixed(2)} JOD</div>
-                          </button>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -423,55 +456,6 @@ export default function Menu() {
         </div>
       </div>
 
-      {/* Item Selection Bottom Sheet */}
-      <Sheet open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
-        <SheetContent side="bottom" className="rounded-t-2xl">
-          <SheetHeader>
-            <SheetTitle>{selectedItem?.name}</SheetTitle>
-            <SheetDescription>{selectedItem?.price.toFixed(2)} JOD</SheetDescription>
-          </SheetHeader>
-
-          <div className="mt-6 space-y-4">
-            {/* Quantity Selector */}
-            <div className="flex items-center justify-between">
-              <span className="font-medium">{t.quantity}</span>
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setItemQuantity(Math.max(1, itemQuantity - 1))}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <span className="w-8 text-center font-semibold">{itemQuantity}</span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setItemQuantity(itemQuantity + 1)}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Notes */}
-            <div>
-              <label className="block text-sm font-medium mb-2">{t.notes}</label>
-              <Textarea
-                placeholder={t.notesPlaceholder}
-                value={itemNotes}
-                onChange={(e) => setItemNotes(e.target.value)}
-                rows={2}
-              />
-            </div>
-
-            {/* Add Button */}
-            <Button className="w-full" onClick={addToCart}>
-              {t.add} ({((selectedItem?.price || 0) * itemQuantity).toFixed(2)} JOD)
-            </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
 
       {/* Order Confirmation Bottom Sheet */}
       <Sheet open={showConfirm} onOpenChange={setShowConfirm}>
