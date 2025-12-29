@@ -492,7 +492,7 @@ function MenuItemsSection({
                     )}
                   </div>
                   {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
-                  <p className="text-sm font-medium text-primary mt-1">دزأ{Number(item.price).toFixed(2)}</p>
+                  <p className="text-sm font-medium text-primary mt-1">د.أ{Number(item.price).toFixed(2)}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <Switch
