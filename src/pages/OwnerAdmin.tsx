@@ -162,29 +162,29 @@ export default function OwnerAdmin() {
 
         {/* Tabbed Navigation */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 h-auto gap-1 bg-muted/50 p-1">
-            <TabsTrigger value="overview" className="flex items-center gap-2 py-2.5">
-              <LayoutDashboard className="h-4 w-4" />
+          <TabsList className="inline-flex h-9 items-center justify-start rounded-lg bg-muted p-1 text-muted-foreground w-full overflow-x-auto">
+            <TabsTrigger value="overview" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all">
+              <LayoutDashboard className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2 py-2.5">
-              <BarChart3 className="h-4 w-4" />
+            <TabsTrigger value="analytics" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all">
+              <BarChart3 className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Analytics</span>
             </TabsTrigger>
-            <TabsTrigger value="reports" className="flex items-center gap-2 py-2.5">
-              <FileText className="h-4 w-4" />
+            <TabsTrigger value="reports" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all">
+              <FileText className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Reports</span>
             </TabsTrigger>
-            <TabsTrigger value="menu" className="flex items-center gap-2 py-2.5">
-              <UtensilsCrossed className="h-4 w-4" />
+            <TabsTrigger value="menu" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all">
+              <UtensilsCrossed className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Menu</span>
             </TabsTrigger>
-            <TabsTrigger value="management" className="flex items-center gap-2 py-2.5">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Management</span>
+            <TabsTrigger value="management" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all">
+              <Users className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Manage</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2 py-2.5">
-              <Settings className="h-4 w-4" />
+            <TabsTrigger value="settings" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all">
+              <Settings className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Settings</span>
             </TabsTrigger>
           </TabsList>
