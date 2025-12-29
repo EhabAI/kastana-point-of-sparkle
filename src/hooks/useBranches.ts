@@ -1,0 +1,137 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+export interface Branch {
+  id: string;
+  restaurant_id: string;
+  name: string;
+  code: string | null;
+  address: string | null;
+  phone: string | null;
+  is_active: boolean;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export function useBranches(restaurantId: string | undefined) {
+  return useQuery({
+    queryKey: ["branches", restaurantId],
+    queryFn: async () => {
+      if (!restaurantId) return [];
+
+      const { data, error } = await supabase
+        .from("restaurant_branches")
+        .select("*")
+        .eq("restaurant_id", restaurantId)
+        .order("is_default", { ascending: false })
+        .order("name", { ascending: true });
+
+      if (error) throw error;
+      return data as Branch[];
+    },
+    enabled: !!restaurantId,
+  });
+}
+
+export function useDefaultBranch(restaurantId: string | undefined) {
+  return useQuery({
+    queryKey: ["default-branch", restaurantId],
+    queryFn: async () => {
+      if (!restaurantId) return null;
+
+      const { data, error } = await supabase
+        .from("restaurant_branches")
+        .select("*")
+        .eq("restaurant_id", restaurantId)
+        .eq("is_default", true)
+        .single();
+
+      if (error) throw error;
+      return data as Branch;
+    },
+    enabled: !!restaurantId,
+  });
+}
+
+export function useCreateBranch() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (data: {
+      restaurant_id: string;
+      name: string;
+      code?: string;
+      address?: string;
+      phone?: string;
+    }) => {
+      const { data: branch, error } = await supabase
+        .from("restaurant_branches")
+        .insert(data)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return branch;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["branches", data.restaurant_id] });
+      toast({ title: "Branch created successfully" });
+    },
+    onError: (error) => {
+      toast({ title: "Failed to create branch", description: error.message, variant: "destructive" });
+    },
+  });
+}
+
+export function useUpdateBranch() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, ...data }: Partial<Branch> & { id: string }) => {
+      const { data: branch, error } = await supabase
+        .from("restaurant_branches")
+        .update(data)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return branch;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["branches", data.restaurant_id] });
+      toast({ title: "Branch updated successfully" });
+    },
+    onError: (error) => {
+      toast({ title: "Failed to update branch", description: error.message, variant: "destructive" });
+    },
+  });
+}
+
+export function useDeleteBranch() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("restaurant_branches")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["branches"] });
+      toast({ title: "Branch deleted successfully" });
+    },
+    onError: (error) => {
+      toast({ title: "Failed to delete branch", description: error.message, variant: "destructive" });
+    },
+  });
+}

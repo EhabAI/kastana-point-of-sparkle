@@ -55,6 +55,114 @@ export type Database = {
           },
         ]
       }
+      branch_menu_categories: {
+        Row: {
+          branch_id: string
+          category_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          branch_id: string
+          category_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string
+          category_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branch_menu_categories_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "branch_menu_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "menu_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      branch_menu_items: {
+        Row: {
+          branch_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          is_available: boolean
+          menu_item_id: string
+          price: number | null
+          promo_end: string | null
+          promo_label: string | null
+          promo_price: number | null
+          promo_start: string | null
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          branch_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_available?: boolean
+          menu_item_id: string
+          price?: number | null
+          promo_end?: string | null
+          promo_label?: string | null
+          promo_price?: number | null
+          promo_start?: string | null
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_available?: boolean
+          menu_item_id?: string
+          price?: number | null
+          promo_end?: string | null
+          promo_label?: string | null
+          promo_price?: number | null
+          promo_start?: string | null
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branch_menu_items_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "branch_menu_items_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_categories: {
         Row: {
           created_at: string
@@ -206,6 +314,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          branch_id: string | null
           cancelled_reason: string | null
           created_at: string
           discount_type: string | null
@@ -225,6 +334,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          branch_id?: string | null
           cancelled_reason?: string | null
           created_at?: string
           discount_type?: string | null
@@ -244,6 +354,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          branch_id?: string | null
           cancelled_reason?: string | null
           created_at?: string
           discount_type?: string | null
@@ -264,6 +375,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "orders_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_branches"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "orders_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
@@ -282,6 +400,7 @@ export type Database = {
       payments: {
         Row: {
           amount: number
+          branch_id: string | null
           created_at: string
           id: string
           method: string
@@ -290,6 +409,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          branch_id?: string | null
           created_at?: string
           id?: string
           method: string
@@ -298,6 +418,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          branch_id?: string | null
           created_at?: string
           id?: string
           method?: string
@@ -305,6 +426,13 @@ export type Database = {
           restaurant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "payments_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payments_order_id_fkey"
             columns: ["order_id"]
@@ -342,6 +470,7 @@ export type Database = {
       refunds: {
         Row: {
           amount: number
+          branch_id: string | null
           created_at: string
           id: string
           order_id: string
@@ -351,6 +480,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          branch_id?: string | null
           created_at?: string
           id?: string
           order_id: string
@@ -360,6 +490,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          branch_id?: string | null
           created_at?: string
           id?: string
           order_id?: string
@@ -369,6 +500,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "refunds_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_branches"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "refunds_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
@@ -377,6 +515,53 @@ export type Database = {
           },
           {
             foreignKeyName: "refunds_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurant_branches: {
+        Row: {
+          address: string | null
+          code: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          is_default: boolean
+          name: string
+          phone: string | null
+          restaurant_id: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name: string
+          phone?: string | null
+          restaurant_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name?: string
+          phone?: string | null
+          restaurant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_branches_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
             referencedRelation: "restaurants"
@@ -442,6 +627,7 @@ export type Database = {
       }
       restaurant_tables: {
         Row: {
+          branch_id: string | null
           capacity: number | null
           created_at: string
           id: string
@@ -451,6 +637,7 @@ export type Database = {
           table_name: string
         }
         Insert: {
+          branch_id?: string | null
           capacity?: number | null
           created_at?: string
           id?: string
@@ -460,6 +647,7 @@ export type Database = {
           table_name: string
         }
         Update: {
+          branch_id?: string | null
           capacity?: number | null
           created_at?: string
           id?: string
@@ -469,6 +657,13 @@ export type Database = {
           table_name?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "restaurant_tables_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "restaurant_tables_restaurant_id_fkey"
             columns: ["restaurant_id"]
@@ -508,6 +703,7 @@ export type Database = {
       shift_transactions: {
         Row: {
           amount: number
+          branch_id: string | null
           created_at: string
           id: string
           reason: string | null
@@ -517,6 +713,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          branch_id?: string | null
           created_at?: string
           id?: string
           reason?: string | null
@@ -526,6 +723,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          branch_id?: string | null
           created_at?: string
           id?: string
           reason?: string | null
@@ -534,6 +732,13 @@ export type Database = {
           type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "shift_transactions_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "shift_transactions_restaurant_id_fkey"
             columns: ["restaurant_id"]
@@ -552,6 +757,7 @@ export type Database = {
       }
       shifts: {
         Row: {
+          branch_id: string | null
           cashier_id: string
           closed_at: string | null
           closing_cash: number | null
@@ -564,6 +770,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          branch_id?: string | null
           cashier_id: string
           closed_at?: string | null
           closing_cash?: number | null
@@ -576,6 +783,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          branch_id?: string | null
           cashier_id?: string
           closed_at?: string | null
           closing_cash?: number | null
@@ -588,6 +796,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "shifts_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "shifts_restaurant_id_fkey"
             columns: ["restaurant_id"]
@@ -646,6 +861,10 @@ export type Database = {
           logo_url: string
           name: string
         }[]
+      }
+      get_restaurant_default_branch: {
+        Args: { p_restaurant_id: string }
+        Returns: string
       }
       get_user_role: {
         Args: { _user_id: string }
