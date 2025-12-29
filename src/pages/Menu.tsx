@@ -16,7 +16,7 @@ import {
   Minus, Plus, ShoppingCart, Check, Globe, Send,
   Coffee, Pizza, Sandwich, Salad, Soup, Cake, IceCream2,
   Beer, Wine, GlassWater, UtensilsCrossed, Beef, Fish,
-  Egg, Cookie, Croissant, Apple, Flame, Sparkles, ChefHat
+  Egg, Cookie, Croissant, Apple, Flame, Sparkles, ChefHat, Tag
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -92,7 +92,7 @@ const getCategoryIcon = (categoryName: string): LucideIcon => {
   
   // Main & Special
   if (name.includes("main") || name.includes("رئيسي") || name.includes("أطباق")) return UtensilsCrossed;
-  if (name.includes("special") || name.includes("خاص") || name.includes("مميز") || name.includes("offer") || name.includes("عرض")) return Sparkles;
+  if (name.includes("special") || name.includes("خاص") || name.includes("مميز") || name.includes("offer") || name.includes("عرض")) return Tag;
   
   // Default
   return UtensilsCrossed;
