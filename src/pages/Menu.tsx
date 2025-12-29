@@ -306,6 +306,64 @@ const translateCategoryName = (name: string, lang: Language): string => {
 };
 
 /* =======================
+   Menu Item Translations
+======================= */
+const itemTranslations: Record<string, { en: string; ar: string }> = {
+  // Coffee Items
+  "americano breakfast": { en: "Americano Breakfast", ar: "فطور أمريكانو" },
+  "arabic coffee": { en: "Arabic Coffee", ar: "قهوة عربية" },
+  "cold brew": { en: "Cold Brew", ar: "كولد برو" },
+  "flat white": { en: "Flat White", ar: "فلات وايت" },
+  "frappuccino": { en: "Frappuccino", ar: "فرابتشينو" },
+  "iced americano": { en: "Iced Americano", ar: "أمريكانو مثلج" },
+  "pistachio latte": { en: "Pistachio Latte", ar: "لاتيه فستق" },
+  "saffron latte": { en: "Saffron Latte", ar: "لاتيه زعفران" },
+  "spanish latte": { en: "Spanish Latte", ar: "لاتيه إسباني" },
+  "turkish coffee": { en: "Turkish Coffee", ar: "قهوة تركية" },
+  "white mocha": { en: "White Mocha", ar: "وايت موكا" },
+  
+  // Tea Items
+  "black tea": { en: "Black Tea", ar: "شاي أسود" },
+  "karak tea": { en: "Karak Tea", ar: "شاي كرك" },
+  "masala tea": { en: "Masala Tea", ar: "شاي ماسالا" },
+  
+  // Desserts
+  "cheesecake": { en: "Cheesecake", ar: "تشيز كيك" },
+  "chocolate muffin": { en: "Chocolate Muffin", ar: "مافن شوكولاتة" },
+  "cinnamon roll": { en: "Cinnamon Roll", ar: "سينابون" },
+  "red velvet cake": { en: "Red Velvet Cake", ar: "كيكة ريد فيلفت" },
+  "tiramisu": { en: "Tiramisu", ar: "تيراميسو" },
+  
+  // Bakery
+  "croissant plain": { en: "Croissant Plain", ar: "كرواسون سادة" },
+  
+  // Extras
+  "extra espresso shot": { en: "Extra Espresso Shot", ar: "شوت إسبريسو إضافي" },
+  "oat milk": { en: "Oat Milk", ar: "حليب شوفان" },
+  "whipped cream": { en: "Whipped Cream", ar: "كريمة مخفوقة" },
+  
+  // Combos & Deals
+  "breakfast combo": { en: "Breakfast Combo", ar: "كومبو فطور" },
+  "coffee & muffin breakfast": { en: "Coffee & Muffin Breakfast", ar: "فطور قهوة ومافن" },
+  "morning latte deal": { en: "Morning Latte Deal", ar: "عرض لاتيه الصباح" },
+  
+  // Happy Hour
+  "happy hour cappuccino": { en: "Happy Hour Cappuccino", ar: "كابتشينو الساعة السعيدة" },
+  "happy hour coffee & cookie": { en: "Happy Hour Coffee & Cookie", ar: "قهوة وكوكيز الساعة السعيدة" },
+  "happy hour cold brew": { en: "Happy Hour Cold Brew", ar: "كولد برو الساعة السعيدة" },
+  "happy hour iced latte": { en: "Happy Hour Iced Latte", ar: "لاتيه مثلج الساعة السعيدة" },
+};
+
+const translateItemName = (name: string, lang: Language): string => {
+  const lowerName = name.toLowerCase().trim();
+  const translation = itemTranslations[lowerName];
+  if (translation) {
+    return translation[lang];
+  }
+  return name;
+};
+
+/* =======================
    Translations
 ======================= */
 const translations = {
@@ -392,6 +450,11 @@ export default function Menu() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderLoading, setOrderLoading] = useState(false);
+
+  // Clear cart when language changes to avoid mixed language items
+  useEffect(() => {
+    setCart([]);
+  }, [lang]);
 
   /* =======================
      Load Data
@@ -493,7 +556,7 @@ export default function Menu() {
         ...prev,
         {
           item_id: item.id,
-          name: item.name,
+          name: translateItemName(item.name, lang),
           price: item.price,
           quantity: 1,
           notes: "",
@@ -678,7 +741,7 @@ export default function Menu() {
                             >
                               <div className="flex-1">
                                 <p className="font-medium">
-                                  {item.name} {item.is_offer && <span className="ml-1 text-xs">🔥</span>}
+                                  {translateItemName(item.name, lang)} {item.is_offer && <span className={lang === "ar" ? "mr-1" : "ml-1"}>🔥</span>}
                                 </p>
                                 <p className="text-sm text-muted-foreground">{item.price.toFixed(2)} {t.currency}</p>
                               </div>
