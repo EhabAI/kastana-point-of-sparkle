@@ -159,7 +159,7 @@ const getCategoryIcon = (categoryName: string): CategoryIconInfo => {
   if (name.includes("special") || name.includes("خاص") || name.includes("مميز")) 
     return { icon: Star, color: "text-yellow-500", bgColor: "bg-yellow-100" };
   if (name.includes("offer") || name.includes("عرض") || name.includes("deal")) 
-    return { icon: Tag, color: "text-emerald-500", bgColor: "bg-emerald-100" };
+    return { icon: Flame, color: "text-orange-500", bgColor: "bg-orange-100" };
   
   // Default
   return { icon: UtensilsCrossed, color: "text-gray-600", bgColor: "bg-gray-100" };
