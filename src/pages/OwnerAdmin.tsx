@@ -162,30 +162,48 @@ export default function OwnerAdmin() {
 
         {/* Tabbed Navigation */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="inline-flex h-9 items-center justify-start rounded-lg bg-muted p-1 text-muted-foreground w-full overflow-x-auto">
-            <TabsTrigger value="overview" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all">
-              <LayoutDashboard className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Overview</span>
+          <TabsList className="flex items-center gap-2 bg-transparent p-0 h-auto flex-wrap">
+            <TabsTrigger 
+              value="overview" 
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border-2 border-transparent bg-blue-50 text-blue-700 hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:border-blue-600 data-[state=active]:shadow-lg transition-all duration-200 hover-scale"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              <span>Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all">
-              <BarChart3 className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Analytics</span>
+            <TabsTrigger 
+              value="analytics" 
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border-2 border-transparent bg-purple-50 text-purple-700 hover:bg-purple-100 data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:border-purple-600 data-[state=active]:shadow-lg transition-all duration-200 hover-scale"
+            >
+              <BarChart3 className="h-4 w-4" />
+              <span>Analytics</span>
             </TabsTrigger>
-            <TabsTrigger value="reports" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all">
-              <FileText className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Reports</span>
+            <TabsTrigger 
+              value="reports" 
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border-2 border-transparent bg-emerald-50 text-emerald-700 hover:bg-emerald-100 data-[state=active]:bg-emerald-600 data-[state=active]:text-white data-[state=active]:border-emerald-600 data-[state=active]:shadow-lg transition-all duration-200 hover-scale"
+            >
+              <FileText className="h-4 w-4" />
+              <span>Reports</span>
             </TabsTrigger>
-            <TabsTrigger value="menu" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all">
-              <UtensilsCrossed className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Menu</span>
+            <TabsTrigger 
+              value="menu" 
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border-2 border-transparent bg-orange-50 text-orange-700 hover:bg-orange-100 data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:border-orange-600 data-[state=active]:shadow-lg transition-all duration-200 hover-scale"
+            >
+              <UtensilsCrossed className="h-4 w-4" />
+              <span>Menu</span>
             </TabsTrigger>
-            <TabsTrigger value="management" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all">
-              <Users className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Manage</span>
+            <TabsTrigger 
+              value="management" 
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border-2 border-transparent bg-pink-50 text-pink-700 hover:bg-pink-100 data-[state=active]:bg-pink-600 data-[state=active]:text-white data-[state=active]:border-pink-600 data-[state=active]:shadow-lg transition-all duration-200 hover-scale"
+            >
+              <Users className="h-4 w-4" />
+              <span>Manage</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all">
-              <Settings className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Settings</span>
+            <TabsTrigger 
+              value="settings" 
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border-2 border-transparent bg-slate-100 text-slate-700 hover:bg-slate-200 data-[state=active]:bg-slate-700 data-[state=active]:text-white data-[state=active]:border-slate-700 data-[state=active]:shadow-lg transition-all duration-200 hover-scale"
+            >
+              <Settings className="h-4 w-4" />
+              <span>Settings</span>
             </TabsTrigger>
           </TabsList>
 
