@@ -467,6 +467,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          logo_url: string | null
           name: string
           owner_id: string | null
           updated_at: string
@@ -474,6 +475,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          logo_url?: string | null
           name: string
           owner_id?: string | null
           updated_at?: string
@@ -481,6 +483,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          logo_url?: string | null
           name?: string
           owner_id?: string | null
           updated_at?: string
@@ -622,6 +625,7 @@ export type Database = {
         Args: { p_restaurant_id: string }
         Returns: {
           id: string
+          logo_url: string
           name: string
         }[]
       }

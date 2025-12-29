@@ -6,6 +6,7 @@ export interface Restaurant {
   id: string;
   name: string;
   owner_id: string | null;
+  logo_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -49,10 +50,10 @@ export function useCreateRestaurant() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (name: string) => {
+    mutationFn: async ({ name, logoUrl }: { name: string; logoUrl?: string }) => {
       const { data, error } = await supabase
         .from('restaurants')
-        .insert({ name })
+        .insert({ name, logo_url: logoUrl })
         .select()
         .single();
       
@@ -74,10 +75,14 @@ export function useUpdateRestaurant() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+    mutationFn: async ({ id, name, logoUrl }: { id: string; name?: string; logoUrl?: string }) => {
+      const updates: { name?: string; logo_url?: string } = {};
+      if (name !== undefined) updates.name = name;
+      if (logoUrl !== undefined) updates.logo_url = logoUrl;
+      
       const { data, error } = await supabase
         .from('restaurants')
-        .update({ name })
+        .update(updates)
         .eq('id', id)
         .select()
         .single();
