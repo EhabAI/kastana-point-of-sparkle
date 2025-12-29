@@ -386,9 +386,11 @@ export type Database = {
       }
       restaurant_settings: {
         Row: {
+          business_hours: Json | null
           created_at: string
           currency: string
           id: string
+          prices_include_tax: boolean
           restaurant_id: string
           rounding_enabled: boolean
           service_charge_rate: number
@@ -396,9 +398,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          business_hours?: Json | null
           created_at?: string
           currency?: string
           id?: string
+          prices_include_tax?: boolean
           restaurant_id: string
           rounding_enabled?: boolean
           service_charge_rate?: number
@@ -406,9 +410,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          business_hours?: Json | null
           created_at?: string
           currency?: string
           id?: string
+          prices_include_tax?: boolean
           restaurant_id?: string
           rounding_enabled?: boolean
           service_charge_rate?: number
