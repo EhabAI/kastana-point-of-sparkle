@@ -1,8 +1,14 @@
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { BarChart3, Loader2, ChevronDown, Download } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOwnerRestaurant } from "@/hooks/useRestaurants";
+import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
+import { DateRangeFilter, DateRange, DateRangePreset, getDateRangeForPreset } from "./DateRangeFilter";
+import { format } from "date-fns";
 
 interface CashierSales {
   cashier_id: string;
@@ -13,15 +19,16 @@ interface CashierSales {
 
 export function BasicReports() {
   const { data: restaurant } = useOwnerRestaurant();
+  const { data: settings } = useOwnerRestaurantSettings();
+  const currency = settings?.currency || "JOD";
+  
+  const [isOpen, setIsOpen] = useState(true);
+  const [preset, setPreset] = useState<DateRangePreset>("today");
+  const [dateRange, setDateRange] = useState<DateRange>(getDateRangeForPreset("today"));
 
-  // Get today's date range
-  const today = new Date();
-  const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
-  const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
-
-  // Fetch today's orders for the restaurant
+  // Fetch orders for the date range
   const { data: ordersData, isLoading: loadingOrders } = useQuery({
-    queryKey: ["owner-reports-orders", restaurant?.id, startOfDay],
+    queryKey: ["owner-reports-orders", restaurant?.id, dateRange.from.toISOString(), dateRange.to.toISOString()],
     queryFn: async () => {
       if (!restaurant?.id) return null;
 
@@ -29,8 +36,8 @@ export function BasicReports() {
         .from("orders")
         .select("id, total, discount_value, shift_id, status")
         .eq("restaurant_id", restaurant.id)
-        .gte("created_at", startOfDay)
-        .lt("created_at", endOfDay)
+        .gte("created_at", dateRange.from.toISOString())
+        .lt("created_at", dateRange.to.toISOString())
         .eq("status", "paid");
 
       if (error) throw error;
@@ -108,67 +115,122 @@ export function BasicReports() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <Card className="shadow-card">
-        <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        </CardContent>
-      </Card>
-    );
-  }
+  const exportToCSV = () => {
+    const headers = ["Metric", "Value"];
+    const rows = [
+      ["Date Range", `${format(dateRange.from, "PP")} - ${format(dateRange.to, "PP")}`],
+      ["Total Sales", `${totalSales.toFixed(2)} ${currency}`],
+      ["Number of Orders", orderCount.toString()],
+      ["Total Discounts", `${totalDiscounts.toFixed(2)} ${currency}`],
+      [""],
+      ["Cashier", "Total Sales", "Order Count"],
+      ...salesByCashier.map(c => [c.email, `${c.total_sales.toFixed(2)} ${currency}`, c.order_count.toString()]),
+    ];
+
+    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `reports_${format(dateRange.from, "yyyy-MM-dd")}_${format(dateRange.to, "yyyy-MM-dd")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const getDateRangeLabel = () => {
+    if (preset === "today") return "Today";
+    if (preset === "yesterday") return "Yesterday";
+    if (preset === "this_week") return "This Week";
+    if (preset === "this_month") return "This Month";
+    if (preset === "last_7_days") return "Last 7 Days";
+    if (preset === "last_30_days") return "Last 30 Days";
+    return `${format(dateRange.from, "MMM d")} - ${format(dateRange.to, "MMM d, yyyy")}`;
+  };
 
   return (
-    <Card className="shadow-card">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <BarChart3 className="h-5 w-5" />
-          Reports
-        </CardTitle>
-        <CardDescription>
-          Today's performance metrics (read-only)
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Summary Metrics */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 bg-muted/50 rounded-lg">
-            <p className="text-sm text-muted-foreground">Total Sales (Today)</p>
-            <p className="text-2xl font-bold text-foreground">{totalSales.toFixed(2)}</p>
-          </div>
-          <div className="p-4 bg-muted/50 rounded-lg">
-            <p className="text-sm text-muted-foreground">Number of Orders (Today)</p>
-            <p className="text-2xl font-bold text-foreground">{orderCount}</p>
-          </div>
-          <div className="p-4 bg-muted/50 rounded-lg col-span-2">
-            <p className="text-sm text-muted-foreground">Total Discounts Amount (Today)</p>
-            <p className="text-2xl font-bold text-foreground">{totalDiscounts.toFixed(2)}</p>
-          </div>
-        </div>
-
-        {/* Sales by Cashier */}
-        <div className="space-y-3">
-          <h4 className="font-medium text-foreground">Sales by Cashier (Today)</h4>
-          {salesByCashier.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No sales data available for today.</p>
-          ) : (
-            <div className="space-y-2">
-              {salesByCashier.map((cashier) => (
-                <div 
-                  key={cashier.cashier_id} 
-                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium text-foreground">{cashier.email}</p>
-                    <p className="text-sm text-muted-foreground">{cashier.order_count} orders</p>
-                  </div>
-                  <p className="text-lg font-semibold text-foreground">{cashier.total_sales.toFixed(2)}</p>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card className="shadow-card">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CollapsibleTrigger asChild>
+              <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
+                <div className="text-left">
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Reports
+                  </CardTitle>
+                  <CardDescription>
+                    Performance metrics ({getDateRangeLabel()})
+                  </CardDescription>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+              </button>
+            </CollapsibleTrigger>
+            <Button variant="outline" size="sm" onClick={exportToCSV} disabled={isLoading}>
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
+          </div>
+        </CardHeader>
+        <CollapsibleContent>
+          <CardContent className="space-y-6">
+            {/* Date Range Filter */}
+            <DateRangeFilter
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+              preset={preset}
+              onPresetChange={setPreset}
+            />
+
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <>
+                {/* Summary Metrics */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <p className="text-sm text-muted-foreground">Total Sales</p>
+                    <p className="text-2xl font-bold text-foreground">{totalSales.toFixed(2)} {currency}</p>
+                  </div>
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <p className="text-sm text-muted-foreground">Number of Orders</p>
+                    <p className="text-2xl font-bold text-foreground">{orderCount}</p>
+                  </div>
+                  <div className="p-4 bg-muted/50 rounded-lg col-span-2">
+                    <p className="text-sm text-muted-foreground">Total Discounts</p>
+                    <p className="text-2xl font-bold text-foreground">{totalDiscounts.toFixed(2)} {currency}</p>
+                  </div>
+                </div>
+
+                {/* Sales by Cashier */}
+                <div className="space-y-3">
+                  <h4 className="font-medium text-foreground">Sales by Cashier</h4>
+                  {salesByCashier.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No sales data available for this period.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {salesByCashier.map((cashier) => (
+                        <div 
+                          key={cashier.cashier_id} 
+                          className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                        >
+                          <div>
+                            <p className="font-medium text-foreground">{cashier.email}</p>
+                            <p className="text-sm text-muted-foreground">{cashier.order_count} orders</p>
+                          </div>
+                          <p className="text-lg font-semibold text-foreground">{cashier.total_sales.toFixed(2)} {currency}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 }
