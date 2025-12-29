@@ -5,6 +5,7 @@ import { Upload, FileSpreadsheet, Loader2, CheckCircle2, AlertCircle } from 'luc
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface CSVUploadProps {
   restaurantId: string;
@@ -93,6 +94,7 @@ function parseCSVLine(line: string): string[] {
 export function CSVUpload({ restaurantId }: CSVUploadProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   
   const [menuFileName, setMenuFileName] = useState<string | null>(null);
   const [offersFileName, setOffersFileName] = useState<string | null>(null);
@@ -420,18 +422,18 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileSpreadsheet className="h-5 w-5" />
-          CSV Upload
+          {t("csv_upload")}
         </CardTitle>
-        <CardDescription>Import menu items and offers from CSV files</CardDescription>
+        <CardDescription>{t("csv_upload_desc")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid gap-6 md:grid-cols-2">
           {/* Menu CSV Upload */}
           <div className="space-y-3">
             <div className="p-4 border border-border rounded-lg bg-muted/30">
-              <h4 className="font-medium text-foreground mb-2">Upload Menu CSV</h4>
+              <h4 className="font-medium text-foreground mb-2">{t("upload_menu_csv")}</h4>
               <p className="text-sm text-muted-foreground mb-3">
-                Required columns: category_en, category_ar, item_en, item_ar, price
+                {t("menu_csv_columns")}
               </p>
               
               <input
@@ -451,20 +453,20 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
               >
                 {menuUploading ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Uploading...
+                    <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" />
+                    {t("uploading")}
                   </>
                 ) : (
                   <>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload Menu CSV
+                    <Upload className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                    {t("upload_menu_csv")}
                   </>
                 )}
               </Button>
 
               {menuFileName && !menuUploading && (
                 <p className="text-sm text-muted-foreground mt-2">
-                  Selected: {menuFileName}
+                  {t("selected_file")}: {menuFileName}
                 </p>
               )}
 
@@ -488,9 +490,9 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
           {/* Offers CSV Upload */}
           <div className="space-y-3">
             <div className="p-4 border border-border rounded-lg bg-muted/30">
-              <h4 className="font-medium text-foreground mb-2">Upload Offers CSV</h4>
+              <h4 className="font-medium text-foreground mb-2">{t("upload_offers_csv")}</h4>
               <p className="text-sm text-muted-foreground mb-3">
-                Required columns: item_en, item_ar, price, description_en, description_ar
+                {t("offers_csv_columns")}
               </p>
               
               <input
@@ -510,20 +512,20 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
               >
                 {offersUploading ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Uploading...
+                    <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" />
+                    {t("uploading")}
                   </>
                 ) : (
                   <>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload Offers CSV
+                    <Upload className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                    {t("upload_offers_csv")}
                   </>
                 )}
               </Button>
 
               {offersFileName && !offersUploading && (
                 <p className="text-sm text-muted-foreground mt-2">
-                  Selected: {offersFileName}
+                  {t("selected_file")}: {offersFileName}
                 </p>
               )}
 

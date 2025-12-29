@@ -58,8 +58,9 @@ function getNextOpenTime(businessHours: BusinessHours | null, t: (key: string) =
 }
 
 export function DashboardOverview({ restaurantId, tableCount, staffCount, currency }: DashboardOverviewProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { data: settings } = useOwnerRestaurantSettings();
+  const currencySymbol = language === "ar" ? "د.أ" : "JOD";
   
   // Fetch today's quick stats
   const today = new Date();
@@ -128,7 +129,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
               <div>
                 <p className="text-xs text-muted-foreground">{t("todays_sales")}</p>
                 <p className="font-semibold text-foreground">
-                  {todayStats?.todaySales.toFixed(2) || "0.00"} {currency}
+                  {todayStats?.todaySales.toFixed(2) || "0.00"} {currencySymbol}
                 </p>
               </div>
             </div>
