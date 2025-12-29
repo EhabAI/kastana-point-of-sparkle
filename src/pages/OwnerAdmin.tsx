@@ -29,7 +29,6 @@ import { RestaurantSettings } from "@/components/owner/RestaurantSettings";
 import { DiscountSettings } from "@/components/owner/DiscountSettings";
 import { BasicReports } from "@/components/owner/BasicReports";
 import { ShiftsView } from "@/components/owner/ShiftsView";
-import { StatCard } from "@/components/StatCard";
 import { useRestaurantTables } from "@/hooks/useRestaurantTables";
 import { useCashiers } from "@/hooks/useCashiers";
 
@@ -137,29 +136,6 @@ export default function OwnerAdmin() {
           </CardHeader>
         </Card>
 
-        {/* Stats Overview */}
-        {role === "owner" && (
-          <div className="grid gap-4 sm:grid-cols-3">
-            <StatCard
-              title="Tables"
-              value={tables.length}
-              icon={Table2}
-              description="Total restaurant tables"
-            />
-            <StatCard
-              title="Staff"
-              value={cashiers.length}
-              icon={Users}
-              description="Total cashiers"
-            />
-            <StatCard
-              title="Menu Categories"
-              value={categories.length}
-              icon={FolderOpen}
-              description="Active categories"
-            />
-          </div>
-        )}
 
         {/* Restaurant Settings Section - Only visible to owners */}
         {role === "owner" && <RestaurantSettings />}
@@ -177,10 +153,10 @@ export default function OwnerAdmin() {
         {role === "owner" && <CSVUpload restaurantId={restaurant.id} />}
 
         {/* Tables Management Section - Only visible to owners */}
-        {role === "owner" && <TableManagement restaurantId={restaurant.id} />}
+        {role === "owner" && <TableManagement restaurantId={restaurant.id} tableCount={tables.length} />}
 
         {/* Staff Management Section - Only visible to owners */}
-        {role === "owner" && <StaffManagement restaurantId={restaurant.id} />}
+        {role === "owner" && <StaffManagement restaurantId={restaurant.id} staffCount={cashiers.length} />}
 
         {/* Categories Section */}
         <CategoriesSection restaurantId={restaurant.id} categories={categories} isLoading={loadingCategories} />
@@ -249,6 +225,7 @@ function CategoriesSection({
                   <CardTitle className="flex items-center gap-2">
                     <FolderOpen className="h-5 w-5" />
                     Menu Categories
+                    <span className="text-muted-foreground font-normal">({categories.length})</span>
                   </CardTitle>
                   <CardDescription>Organize your menu with categories</CardDescription>
                 </div>
