@@ -18,7 +18,7 @@ import {
   Beer, Wine, GlassWater, UtensilsCrossed, Beef, Fish,
   Egg, Cookie, Croissant, Apple, Flame, ChefHat, Tag,
   CupSoda, Milk, Citrus, Cherry, Drumstick, Wheat, Leaf,
-  Dessert, Popcorn, Ham, Carrot, Star
+  Dessert, Popcorn, Ham, Carrot, Star, Package, CakeSlice
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -95,8 +95,9 @@ const getCategoryIcon = (categoryName: string): LucideIcon => {
   if (name.includes("chicken") || name.includes("دجاج")) return Drumstick;
   if (name.includes("fish") || name.includes("سمك") || name.includes("seafood") || name.includes("بحري")) return Fish;
   
-  // 🍳 Breakfast
+  // 🍳 Breakfast & Bakery
   if (name.includes("breakfast") || name.includes("فطور") || name.includes("إفطار")) return Egg;
+  if (name.includes("bakery") || name.includes("مخبوزات") || name.includes("مخبز")) return CakeSlice;
   if (name.includes("bread") || name.includes("خبز")) return Wheat;
   
   // 🍰 Desserts & Sweets
@@ -108,7 +109,8 @@ const getCategoryIcon = (categoryName: string): LucideIcon => {
   
   // 🍎 Appetizers & Sides
   if (name.includes("appetizer") || name.includes("مقبلات") || name.includes("starter")) return Cherry;
-  if (name.includes("side") || name.includes("جانبي") || name.includes("إضافات")) return Apple;
+  if (name.includes("extra") || name.includes("إضافات") || name.includes("اضافات") || name.includes("additions")) return Package;
+  if (name.includes("side") || name.includes("جانبي")) return Apple;
   if (name.includes("snack") || name.includes("سناك")) return Popcorn;
   
   // ⭐ Main & Special
