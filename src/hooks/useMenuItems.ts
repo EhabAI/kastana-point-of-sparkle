@@ -15,23 +15,33 @@ export interface MenuItem {
   updated_at: string;
 }
 
-export function useMenuItems(categoryId?: string) {
+export function useMenuItems(restaurantId?: string, categoryId?: string) {
   return useQuery({
     queryKey: ["menu-items", restaurantId, categoryId],
     queryFn: async () => {
-      if (!categoryId || !restaurantId) return [];
+      if (!restaurantId || !categoryId) return [];
+
+      // تأكيد أن الـ category فعلاً تابعة لنفس المطعم (حماية مهمة)
+      const { data: cat, error: catError } = await supabase
+        .from("menu_categories")
+        .select("id")
+        .eq("id", categoryId)
+        .eq("restaurant_id", restaurantId)
+        .maybeSingle();
+
+      if (catError) throw catError;
+      if (!cat) return []; // category ليست لهذا المطعم
 
       const { data, error } = await supabase
         .from("menu_items")
-        .select("*, menu_categories!inner(restaurant_id)")
+        .select("*")
         .eq("category_id", categoryId)
-        .eq("menu_categories.restaurant_id", restaurantId)
         .order("sort_order", { ascending: true });
 
       if (error) throw error;
-      return (data ?? []).map(({ menu_categories, ...item }: any) => item) as MenuItem[];
+      return data as MenuItem[];
     },
-    enabled: !!categoryId && !!restaurantId,
+    enabled: !!restaurantId && !!categoryId,
   });
 }
 
