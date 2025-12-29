@@ -80,7 +80,8 @@ export default function SystemAdmin() {
       .from('restaurant-logos')
       .getPublicUrl(filePath);
     
-    return urlData.publicUrl;
+    // Add cache-busting timestamp to force browser to reload the image
+    return `${urlData.publicUrl}?t=${Date.now()}`;
   };
 
   const handleCreateRestaurant = async () => {
