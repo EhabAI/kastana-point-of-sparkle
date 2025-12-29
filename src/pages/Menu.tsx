@@ -166,6 +166,118 @@ const getCategoryIcon = (categoryName: string): CategoryIconInfo => {
 };
 
 /* =======================
+   Category Name Translations
+======================= */
+const categoryTranslations: Record<string, { en: string; ar: string }> = {
+  // Hot Drinks
+  "coffee": { en: "Coffee", ar: "قهوة" },
+  "قهوة": { en: "Coffee", ar: "قهوة" },
+  "tea": { en: "Tea", ar: "شاي" },
+  "شاي": { en: "Tea", ar: "شاي" },
+  "hot drinks": { en: "Hot Drinks", ar: "مشروبات ساخنة" },
+  "مشروبات ساخنة": { en: "Hot Drinks", ar: "مشروبات ساخنة" },
+  
+  // Cold Drinks
+  "cold drinks": { en: "Cold Drinks", ar: "مشروبات باردة" },
+  "مشروبات باردة": { en: "Cold Drinks", ar: "مشروبات باردة" },
+  "juice": { en: "Juice", ar: "عصائر" },
+  "juices": { en: "Juices", ar: "عصائر" },
+  "عصائر": { en: "Juices", ar: "عصائر" },
+  "smoothies": { en: "Smoothies", ar: "سموذي" },
+  "سموذي": { en: "Smoothies", ar: "سموذي" },
+  "drinks": { en: "Drinks", ar: "مشروبات" },
+  "مشروبات": { en: "Drinks", ar: "مشروبات" },
+  
+  // Food Categories
+  "pizza": { en: "Pizza", ar: "بيتزا" },
+  "بيتزا": { en: "Pizza", ar: "بيتزا" },
+  "burgers": { en: "Burgers", ar: "برجر" },
+  "burger": { en: "Burger", ar: "برجر" },
+  "برجر": { en: "Burgers", ar: "برجر" },
+  "sandwiches": { en: "Sandwiches", ar: "ساندويشات" },
+  "sandwich": { en: "Sandwich", ar: "ساندويش" },
+  "ساندويشات": { en: "Sandwiches", ar: "ساندويشات" },
+  "ساندويش": { en: "Sandwich", ar: "ساندويش" },
+  
+  // Salads & Healthy
+  "salads": { en: "Salads", ar: "سلطات" },
+  "salad": { en: "Salad", ar: "سلطة" },
+  "سلطات": { en: "Salads", ar: "سلطات" },
+  "سلطة": { en: "Salad", ar: "سلطة" },
+  "soup": { en: "Soup", ar: "شوربة" },
+  "soups": { en: "Soups", ar: "شوربات" },
+  "شوربة": { en: "Soup", ar: "شوربة" },
+  "شوربات": { en: "Soups", ar: "شوربات" },
+  
+  // Meat & Protein
+  "grill": { en: "Grill", ar: "مشاوي" },
+  "grills": { en: "Grills", ar: "مشاوي" },
+  "مشاوي": { en: "Grills", ar: "مشاوي" },
+  "meat": { en: "Meat", ar: "لحوم" },
+  "لحوم": { en: "Meat", ar: "لحوم" },
+  "chicken": { en: "Chicken", ar: "دجاج" },
+  "دجاج": { en: "Chicken", ar: "دجاج" },
+  "fish": { en: "Fish", ar: "أسماك" },
+  "seafood": { en: "Seafood", ar: "مأكولات بحرية" },
+  "أسماك": { en: "Fish", ar: "أسماك" },
+  "مأكولات بحرية": { en: "Seafood", ar: "مأكولات بحرية" },
+  
+  // Breakfast & Bakery
+  "breakfast": { en: "Breakfast", ar: "فطور" },
+  "فطور": { en: "Breakfast", ar: "فطور" },
+  "bakery": { en: "Bakery", ar: "مخبوزات" },
+  "مخبوزات": { en: "Bakery", ar: "مخبوزات" },
+  "bread": { en: "Bread", ar: "خبز" },
+  "خبز": { en: "Bread", ar: "خبز" },
+  
+  // Desserts
+  "desserts": { en: "Desserts", ar: "حلويات" },
+  "dessert": { en: "Dessert", ar: "حلى" },
+  "حلويات": { en: "Desserts", ar: "حلويات" },
+  "حلى": { en: "Dessert", ar: "حلى" },
+  "sweets": { en: "Sweets", ar: "حلويات" },
+  "ice cream": { en: "Ice Cream", ar: "آيس كريم" },
+  "آيس كريم": { en: "Ice Cream", ar: "آيس كريم" },
+  "cake": { en: "Cake", ar: "كيك" },
+  "cakes": { en: "Cakes", ar: "كيك" },
+  "كيك": { en: "Cakes", ar: "كيك" },
+  "pastries": { en: "Pastries", ar: "معجنات" },
+  "pastry": { en: "Pastry", ar: "معجنات" },
+  "معجنات": { en: "Pastries", ar: "معجنات" },
+  
+  // Appetizers & Sides
+  "appetizers": { en: "Appetizers", ar: "مقبلات" },
+  "مقبلات": { en: "Appetizers", ar: "مقبلات" },
+  "starters": { en: "Starters", ar: "مقبلات" },
+  "sides": { en: "Sides", ar: "أطباق جانبية" },
+  "أطباق جانبية": { en: "Sides", ar: "أطباق جانبية" },
+  "extras": { en: "Extras", ar: "إضافات" },
+  "extra": { en: "Extra", ar: "إضافات" },
+  "إضافات": { en: "Extras", ar: "إضافات" },
+  "snacks": { en: "Snacks", ar: "سناكات" },
+  "سناكات": { en: "Snacks", ar: "سناكات" },
+  
+  // Main & Special
+  "main dishes": { en: "Main Dishes", ar: "أطباق رئيسية" },
+  "main course": { en: "Main Course", ar: "الطبق الرئيسي" },
+  "أطباق رئيسية": { en: "Main Dishes", ar: "أطباق رئيسية" },
+  "specials": { en: "Specials", ar: "عروض خاصة" },
+  "special": { en: "Special", ar: "خاص" },
+  "عروض خاصة": { en: "Specials", ar: "عروض خاصة" },
+  "offers": { en: "Offers", ar: "عروض" },
+  "عروض": { en: "Offers", ar: "عروض" },
+};
+
+const translateCategoryName = (name: string, lang: Language): string => {
+  const lowerName = name.toLowerCase().trim();
+  const translation = categoryTranslations[lowerName];
+  if (translation) {
+    return translation[lang];
+  }
+  return name;
+};
+
+/* =======================
    Translations
 ======================= */
 const translations = {
@@ -518,7 +630,7 @@ export default function Menu() {
                     <div className={`p-2 rounded-lg ${iconInfo.bgColor}`}>
                       <IconComponent className={`h-5 w-5 ${iconInfo.color}`} />
                     </div>
-                    <span>{category.name}</span>
+                    <span>{translateCategoryName(category.name, lang)}</span>
                   </div>
                   <span className="text-lg">{isOpen ? "−" : "+"}</span>
                 </button>
