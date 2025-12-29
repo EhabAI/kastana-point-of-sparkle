@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useCashiers, useAddCashier, useDeleteCashier } from '@/hooks/useCashiers';
+import { useCashiers, useAddCashier } from '@/hooks/useCashiers';
 import { Users, Loader2, Plus, Trash2, UserPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,7 +16,7 @@ interface StaffManagementProps {
 export function StaffManagement({ restaurantId }: StaffManagementProps) {
   const { data: cashiers = [], isLoading } = useCashiers(restaurantId);
   const addCashier = useAddCashier();
-  const deleteCashier = useDeleteCashier();
+  //const deleteCashier = useDeleteCashier();
   const { toast } = useToast();
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -45,11 +45,11 @@ export function StaffManagement({ restaurantId }: StaffManagementProps) {
     setCreateDialogOpen(false);
   };
 
-  const handleDeleteCashier = async (roleId: string) => {
-    if (confirm('Are you sure you want to remove this cashier?')) {
-      await deleteCashier.mutateAsync({ roleId, restaurantId });
-    }
-  };
+  //const handleDeleteCashier = async (roleId: string) => {
+    //if (confirm('Are you sure you want to remove this cashier?')) {
+      //await deleteCashier.mutateAsync({ roleId, restaurantId });
+    //}
+  //};
 
   return (
     <Card className="shadow-card">
@@ -123,6 +123,7 @@ export function StaffManagement({ restaurantId }: StaffManagementProps) {
               <TableRow>
                 <TableHead>Email</TableHead>
                 <TableHead>Created</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -136,15 +137,32 @@ export function StaffManagement({ restaurantId }: StaffManagementProps) {
                     {new Date(cashier.created_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDeleteCashier(cashier.id)}
-                      disabled={deleteCashier.isPending}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    //<Button
+                      //variant="ghost"
+                      //size="icon"
+                      //onClick={() => handleDeleteCashier(cashier.id)}
+                      //disabled={deleteCashier.isPending}
+                    //>
+                      //<Trash2 className="h-4 w-4 text-destructive" />
+                    //</Button>
                   </TableCell>
+                  <TableCell>
+  <div className="flex items-center gap-2">
+    <Switch
+      checked={cashier.is_active}
+      onCheckedChange={() => {
+        toast({
+          title: 'Status change saved (UI only)',
+          description: 'Backend wiring will be added later',
+        });
+      }}
+    />
+    <span className="text-sm text-muted-foreground">
+      {cashier.is_active ? 'Active' : 'Inactive'}
+    </span>
+  </div>
+</TableCell>
+
                 </TableRow>
               ))}
             </TableBody>
