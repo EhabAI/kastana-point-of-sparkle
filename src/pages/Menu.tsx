@@ -12,7 +12,13 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { Minus, Plus, ShoppingCart, Check, Globe, Send } from "lucide-react";
+import { 
+  Minus, Plus, ShoppingCart, Check, Globe, Send,
+  Coffee, Pizza, Sandwich, Salad, Soup, Cake, IceCream2,
+  Beer, Wine, GlassWater, UtensilsCrossed, Beef, Fish,
+  Egg, Cookie, Croissant, Apple, Flame, Sparkles, ChefHat
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 /* =======================
    Types
@@ -46,6 +52,51 @@ type SelectedItem = {
 };
 
 type Language = "ar" | "en";
+
+/* =======================
+   Category Icon Mapping
+======================= */
+const getCategoryIcon = (categoryName: string): LucideIcon => {
+  const name = categoryName.toLowerCase();
+  
+  // Drinks
+  if (name.includes("coffee") || name.includes("قهوة") || name.includes("كافي")) return Coffee;
+  if (name.includes("juice") || name.includes("عصير") || name.includes("عصائر")) return GlassWater;
+  if (name.includes("drink") || name.includes("مشروب") || name.includes("شراب")) return GlassWater;
+  if (name.includes("beer") || name.includes("بيرة")) return Beer;
+  if (name.includes("wine") || name.includes("نبيذ")) return Wine;
+  if (name.includes("hot") || name.includes("ساخن")) return Coffee;
+  if (name.includes("cold") || name.includes("بارد")) return GlassWater;
+  
+  // Food categories
+  if (name.includes("pizza") || name.includes("بيتزا")) return Pizza;
+  if (name.includes("burger") || name.includes("برجر") || name.includes("sandwich") || name.includes("ساندويش")) return Sandwich;
+  if (name.includes("salad") || name.includes("سلطة") || name.includes("سلطات")) return Salad;
+  if (name.includes("soup") || name.includes("شوربة") || name.includes("حساء")) return Soup;
+  if (name.includes("grill") || name.includes("مشاوي") || name.includes("مشوي")) return Flame;
+  if (name.includes("meat") || name.includes("لحم") || name.includes("لحوم") || name.includes("steak")) return Beef;
+  if (name.includes("chicken") || name.includes("دجاج")) return ChefHat;
+  if (name.includes("fish") || name.includes("سمك") || name.includes("seafood") || name.includes("بحري")) return Fish;
+  if (name.includes("breakfast") || name.includes("فطور") || name.includes("إفطار")) return Egg;
+  
+  // Desserts & Sweets
+  if (name.includes("dessert") || name.includes("حلى") || name.includes("حلويات") || name.includes("sweet")) return Cake;
+  if (name.includes("ice") || name.includes("آيس") || name.includes("مثلج")) return IceCream2;
+  if (name.includes("cake") || name.includes("كيك") || name.includes("تورت")) return Cake;
+  if (name.includes("pastry") || name.includes("معجنات") || name.includes("فطائر")) return Croissant;
+  if (name.includes("cookie") || name.includes("بسكويت")) return Cookie;
+  
+  // Appetizers & Sides
+  if (name.includes("appetizer") || name.includes("مقبلات") || name.includes("starter")) return Sparkles;
+  if (name.includes("side") || name.includes("جانبي") || name.includes("إضافات")) return Apple;
+  
+  // Main & Special
+  if (name.includes("main") || name.includes("رئيسي") || name.includes("أطباق")) return UtensilsCrossed;
+  if (name.includes("special") || name.includes("خاص") || name.includes("مميز") || name.includes("offer") || name.includes("عرض")) return Sparkles;
+  
+  // Default
+  return UtensilsCrossed;
+};
 
 /* =======================
    Translations
@@ -377,19 +428,25 @@ export default function Menu() {
         )}
 
         {/* Menu */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           {categoriesWithItems.map((category) => {
             const isOpen = openCategoryId === category.id;
+            const CategoryIcon = getCategoryIcon(category.name);
 
             return (
-              <div key={category.id} className="border rounded-lg overflow-hidden">
+              <div key={category.id} className="border rounded-xl overflow-hidden shadow-sm">
                 <button
                   type="button"
                   onClick={() => setOpenCategoryId(isOpen ? null : category.id)}
-                  className="w-full flex justify-between items-center p-4 font-semibold bg-muted/50 hover:bg-muted transition-colors"
+                  className="w-full flex justify-between items-center p-4 font-semibold bg-gradient-to-r from-muted/80 to-muted/40 hover:from-muted hover:to-muted/60 transition-all"
                 >
-                  <span>{category.name}</span>
-                  <span className="text-sm">{isOpen ? "−" : "+"}</span>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                      <CategoryIcon className="h-5 w-5" />
+                    </div>
+                    <span>{category.name}</span>
+                  </div>
+                  <span className="text-lg">{isOpen ? "−" : "+"}</span>
                 </button>
 
                 {isOpen && (
