@@ -8,6 +8,7 @@ import { useOwnerRestaurant } from "@/hooks/useRestaurants";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { DateRangeFilter, DateRange, DateRangePreset, getDateRangeForPreset } from "./DateRangeFilter";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemSalesData {
   menuItemId: string;
@@ -17,6 +18,7 @@ interface ItemSalesData {
 }
 
 export function BestWorstSellers() {
+  const { t } = useLanguage();
   const { data: restaurant } = useOwnerRestaurant();
   const { data: settings } = useOwnerRestaurantSettings();
   const currency = settings?.currency || "JOD";
@@ -91,12 +93,12 @@ export function BestWorstSellers() {
             <CollapsibleTrigger asChild>
               <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                 <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
-                <div className="text-left">
+                <div className="text-start">
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
-                    Best & Worst Sellers
+                    {t("best_worst_sellers")}
                   </CardTitle>
-                  <CardDescription>Identify your top and bottom performing menu items</CardDescription>
+                  <CardDescription>{t("best_worst_desc")}</CardDescription>
                 </div>
               </button>
             </CollapsibleTrigger>
@@ -116,14 +118,14 @@ export function BestWorstSellers() {
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             ) : salesData?.items.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No sales data for this period.</p>
+              <p className="text-sm text-muted-foreground text-center py-8">{t("no_sales_data")}</p>
             ) : (
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Best Sellers */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="h-4 w-4 text-success" />
-                    <h4 className="font-medium text-foreground">Top 5 Best Sellers</h4>
+                    <h4 className="font-medium text-foreground">{t("top_5_best")}</h4>
                   </div>
                   <div className="space-y-2">
                     {bestSellers.map((item, index) => (
@@ -137,7 +139,7 @@ export function BestWorstSellers() {
                           </Badge>
                           <div>
                             <p className="font-medium text-foreground">{item.name}</p>
-                            <p className="text-sm text-muted-foreground">{item.quantity} sold</p>
+                            <p className="text-sm text-muted-foreground">{item.quantity} {t("sold")}</p>
                           </div>
                         </div>
                         <p className="font-semibold text-foreground">{item.revenue.toFixed(2)} {currency}</p>
@@ -150,11 +152,11 @@ export function BestWorstSellers() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <TrendingDown className="h-4 w-4 text-destructive" />
-                    <h4 className="font-medium text-foreground">Bottom 5 Sellers</h4>
+                    <h4 className="font-medium text-foreground">{t("bottom_5")}</h4>
                   </div>
                   <div className="space-y-2">
                     {worstSellers.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">Not enough data to show worst sellers.</p>
+                      <p className="text-sm text-muted-foreground">{t("not_enough_data")}</p>
                     ) : (
                       worstSellers.map((item, index) => (
                         <div 
@@ -167,7 +169,7 @@ export function BestWorstSellers() {
                             </Badge>
                             <div>
                               <p className="font-medium text-foreground">{item.name}</p>
-                              <p className="text-sm text-muted-foreground">{item.quantity} sold</p>
+                              <p className="text-sm text-muted-foreground">{item.quantity} {t("sold")}</p>
                             </div>
                           </div>
                           <p className="font-semibold text-foreground">{item.revenue.toFixed(2)} {currency}</p>

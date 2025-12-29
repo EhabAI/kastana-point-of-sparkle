@@ -14,6 +14,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Common
     "sign_out": "Sign Out",
     "save": "Save",
+    "save_changes": "Save Changes",
     "cancel": "Cancel",
     "edit": "Edit",
     "delete": "Delete",
@@ -28,6 +29,20 @@ const translations: Record<Language, Record<string, string>> = {
     "disabled": "Disabled",
     "name": "Name",
     "optional": "optional",
+    "email": "Email",
+    "password": "Password",
+    "status": "Status",
+    "created": "Created",
+    "copy": "Copy",
+    "export_csv": "Export CSV",
+    "custom": "Custom",
+    "open": "Open",
+    "closed": "Closed",
+    "unknown": "Unknown",
+    "page": "Page",
+    "of": "of",
+    "showing": "Showing",
+    "to": "to",
     
     // Dashboard
     "owner_dashboard": "Owner Dashboard",
@@ -48,6 +63,67 @@ const translations: Record<Language, Record<string, string>> = {
     "manage": "Manage",
     "branches": "Branches",
     "settings": "Settings",
+    
+    // Overview Dashboard
+    "todays_sales": "Today's Sales",
+    "todays_orders": "Today's Orders",
+    "open_shifts": "Open Shifts",
+    "staff": "Staff",
+    "opens_at": "Opens at",
+    "opens_on": "Opens",
+    
+    // Analytics
+    "analytics_charts": "Analytics & Charts",
+    "analytics_desc": "Sales trends, peak hours, and category performance",
+    "sales_trend": "Sales Trend",
+    "peak_hours": "Peak Hours",
+    "category_performance": "Category Performance",
+    "no_sales_data": "No sales data for this period.",
+    "no_order_data": "No order data for this period.",
+    "no_category_data": "No category data for this period.",
+    "sales": "Sales",
+    "orders": "Orders",
+    
+    // Reports
+    "performance_metrics": "Performance metrics",
+    "total_sales": "Total Sales",
+    "number_of_orders": "Number of Orders",
+    "total_discounts": "Total Discounts",
+    "sales_by_cashier": "Sales by Cashier",
+    "no_sales_data_period": "No sales data available for this period.",
+    
+    // Best/Worst Sellers
+    "best_worst_sellers": "Best & Worst Sellers",
+    "best_worst_desc": "Identify your top and bottom performing menu items",
+    "top_5_best": "Top 5 Best Sellers",
+    "bottom_5": "Bottom 5 Sellers",
+    "sold": "sold",
+    "not_enough_data": "Not enough data to show worst sellers.",
+    
+    // Cashier Performance
+    "cashier_performance": "Cashier Performance",
+    "cashier_performance_desc": "Track sales, discounts, and voids by cashier",
+    "avg_order": "Avg Order",
+    "discounts_given": "Discounts Given",
+    "voided_items": "Voided Items",
+    "cancelled_orders": "Cancelled Orders",
+    "no_shift_data": "No shift data for this period.",
+    
+    // Shifts
+    "shifts": "Shifts",
+    "started": "Started",
+    "ended": "Ended",
+    "opening_cash": "Opening Cash",
+    "closing_cash": "Closing Cash",
+    "no_shifts_found": "No shifts found for this period.",
+    
+    // Date Range
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "this_week": "This Week",
+    "this_month": "This Month",
+    "last_7_days": "Last 7 Days",
+    "last_30_days": "Last 30 Days",
     
     // Branch Management
     "branch_management": "Branch Management",
@@ -131,9 +207,72 @@ const translations: Record<Language, Record<string, string>> = {
     "mark_as_offer": "Mark as Offer",
     "description_optional": "Description (optional)",
     
-    // Staff
+    // Staff Management
     "staff_management": "Staff Management",
+    "manage_cashiers": "Manage your restaurant's cashiers",
+    "add_cashier": "Add Cashier",
+    "add_new_cashier": "Add New Cashier",
+    "create_cashier_desc": "Create a new cashier account for your restaurant.",
+    "create_cashier": "Create Cashier",
+    "no_cashiers": "No cashiers yet. Add one to get started.",
+    "no_email": "No email address",
+    "enter_email": "Please enter an email address",
+    "password_min": "Password must be at least 6 characters",
+    "min_6_chars": "Minimum 6 characters",
+    
+    // Table Management
     "tables": "Tables",
+    "tables_management": "Tables Management",
+    "tables_desc": "Manage restaurant tables with QR codes for menu access",
+    "add_table": "Add Table",
+    "add_table_desc": "Create a new table with a unique QR code.",
+    "edit_table": "Edit Table",
+    "edit_table_desc": "Update the table name.",
+    "table_name": "Table Name",
+    "table_name_placeholder": "e.g., Table 1, Patio A",
+    "number_of_chairs": "Number of Chairs",
+    "no_tables": "No tables yet. Add your first table to get started.",
+    "enter_table_name": "Please enter a table name",
+    "link_copied": "Link copied to clipboard",
+    "code": "Code",
+    
+    // Settings
+    "restaurant_settings": "Restaurant Settings",
+    "configure_preferences": "Configure your restaurant preferences",
+    "currency": "Currency",
+    "jordanian_dinar": "Jordanian Dinar (read-only)",
+    "tax_settings": "Tax Settings",
+    "tax_percentage": "Tax Percentage (%)",
+    "prices_include_tax": "Prices include tax?",
+    "menu_prices_include_tax": "Menu prices already include tax",
+    "business_hours": "Business Hours",
+    "sunday": "Sunday",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    
+    // Discount Settings
+    "discount_settings": "Discount Settings",
+    "discount_settings_desc": "Configure discount rules for future use (configuration only)",
+    "enable_discounts": "Enable Discounts",
+    "allow_discounts": "Allow discounts to be configured",
+    "discount_type": "Discount Type",
+    "percentage": "Percentage (%)",
+    "fixed_amount": "Fixed Amount",
+    "max_discount_value": "Maximum Discount Value (optional)",
+    "max_percent_desc": "Maximum percentage discount allowed",
+    "max_fixed_desc": "Maximum fixed discount amount allowed",
+    "save_discount_settings": "Save Discount Settings",
+    "discount_settings_saved": "Discount settings saved",
+    
+    // Notifications
+    "notifications_alerts": "Notifications & Alerts",
+    "notifications_desc": "Proactive alerts about your restaurant performance",
+    "all_clear": "All Clear!",
+    "no_alerts": "No alerts or notifications at this time.",
     
     // No data
     "no_restaurant": "No Restaurant Assigned",
@@ -156,6 +295,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Common
     "sign_out": "تسجيل الخروج",
     "save": "حفظ",
+    "save_changes": "حفظ التغييرات",
     "cancel": "إلغاء",
     "edit": "تعديل",
     "delete": "حذف",
@@ -170,6 +310,20 @@ const translations: Record<Language, Record<string, string>> = {
     "disabled": "معطل",
     "name": "الاسم",
     "optional": "اختياري",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "status": "الحالة",
+    "created": "تاريخ الإنشاء",
+    "copy": "نسخ",
+    "export_csv": "تصدير CSV",
+    "custom": "مخصص",
+    "open": "مفتوح",
+    "closed": "مغلق",
+    "unknown": "غير معروف",
+    "page": "صفحة",
+    "of": "من",
+    "showing": "عرض",
+    "to": "إلى",
     
     // Dashboard
     "owner_dashboard": "لوحة تحكم المالك",
@@ -190,6 +344,67 @@ const translations: Record<Language, Record<string, string>> = {
     "manage": "الإدارة",
     "branches": "الفروع",
     "settings": "الإعدادات",
+    
+    // Overview Dashboard
+    "todays_sales": "مبيعات اليوم",
+    "todays_orders": "طلبات اليوم",
+    "open_shifts": "الورديات المفتوحة",
+    "staff": "الموظفين",
+    "opens_at": "يفتح الساعة",
+    "opens_on": "يفتح",
+    
+    // Analytics
+    "analytics_charts": "التحليلات والرسوم البيانية",
+    "analytics_desc": "اتجاهات المبيعات، ساعات الذروة، وأداء الفئات",
+    "sales_trend": "اتجاه المبيعات",
+    "peak_hours": "ساعات الذروة",
+    "category_performance": "أداء الفئات",
+    "no_sales_data": "لا توجد بيانات مبيعات لهذه الفترة.",
+    "no_order_data": "لا توجد بيانات طلبات لهذه الفترة.",
+    "no_category_data": "لا توجد بيانات فئات لهذه الفترة.",
+    "sales": "المبيعات",
+    "orders": "الطلبات",
+    
+    // Reports
+    "performance_metrics": "مقاييس الأداء",
+    "total_sales": "إجمالي المبيعات",
+    "number_of_orders": "عدد الطلبات",
+    "total_discounts": "إجمالي الخصومات",
+    "sales_by_cashier": "المبيعات حسب الكاشير",
+    "no_sales_data_period": "لا توجد بيانات مبيعات لهذه الفترة.",
+    
+    // Best/Worst Sellers
+    "best_worst_sellers": "الأكثر والأقل مبيعاً",
+    "best_worst_desc": "تحديد العناصر الأكثر والأقل أداءً في القائمة",
+    "top_5_best": "أفضل 5 مبيعاً",
+    "bottom_5": "أقل 5 مبيعاً",
+    "sold": "مباع",
+    "not_enough_data": "لا توجد بيانات كافية لعرض الأقل مبيعاً.",
+    
+    // Cashier Performance
+    "cashier_performance": "أداء الكاشير",
+    "cashier_performance_desc": "تتبع المبيعات والخصومات والإلغاءات حسب الكاشير",
+    "avg_order": "متوسط الطلب",
+    "discounts_given": "الخصومات الممنوحة",
+    "voided_items": "العناصر الملغاة",
+    "cancelled_orders": "الطلبات الملغاة",
+    "no_shift_data": "لا توجد بيانات ورديات لهذه الفترة.",
+    
+    // Shifts
+    "shifts": "الورديات",
+    "started": "البداية",
+    "ended": "النهاية",
+    "opening_cash": "النقد الافتتاحي",
+    "closing_cash": "النقد الختامي",
+    "no_shifts_found": "لا توجد ورديات لهذه الفترة.",
+    
+    // Date Range
+    "today": "اليوم",
+    "yesterday": "أمس",
+    "this_week": "هذا الأسبوع",
+    "this_month": "هذا الشهر",
+    "last_7_days": "آخر 7 أيام",
+    "last_30_days": "آخر 30 يوم",
     
     // Branch Management
     "branch_management": "إدارة الفروع",
@@ -273,9 +488,72 @@ const translations: Record<Language, Record<string, string>> = {
     "mark_as_offer": "تحديد كعرض",
     "description_optional": "الوصف (اختياري)",
     
-    // Staff
+    // Staff Management
     "staff_management": "إدارة الموظفين",
+    "manage_cashiers": "إدارة كاشيرات مطعمك",
+    "add_cashier": "إضافة كاشير",
+    "add_new_cashier": "إضافة كاشير جديد",
+    "create_cashier_desc": "إنشاء حساب كاشير جديد لمطعمك.",
+    "create_cashier": "إنشاء كاشير",
+    "no_cashiers": "لا يوجد كاشيرات بعد. أضف واحداً للبدء.",
+    "no_email": "لا يوجد بريد إلكتروني",
+    "enter_email": "الرجاء إدخال البريد الإلكتروني",
+    "password_min": "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+    "min_6_chars": "6 أحرف على الأقل",
+    
+    // Table Management
     "tables": "الطاولات",
+    "tables_management": "إدارة الطاولات",
+    "tables_desc": "إدارة طاولات المطعم مع رموز QR للوصول للقائمة",
+    "add_table": "إضافة طاولة",
+    "add_table_desc": "إنشاء طاولة جديدة برمز QR فريد.",
+    "edit_table": "تعديل الطاولة",
+    "edit_table_desc": "تحديث اسم الطاولة.",
+    "table_name": "اسم الطاولة",
+    "table_name_placeholder": "مثال: طاولة 1، الشرفة أ",
+    "number_of_chairs": "عدد الكراسي",
+    "no_tables": "لا توجد طاولات بعد. أضف أول طاولة للبدء.",
+    "enter_table_name": "الرجاء إدخال اسم الطاولة",
+    "link_copied": "تم نسخ الرابط",
+    "code": "الرمز",
+    
+    // Settings
+    "restaurant_settings": "إعدادات المطعم",
+    "configure_preferences": "تكوين تفضيلات مطعمك",
+    "currency": "العملة",
+    "jordanian_dinar": "دينار أردني (للقراءة فقط)",
+    "tax_settings": "إعدادات الضريبة",
+    "tax_percentage": "نسبة الضريبة (%)",
+    "prices_include_tax": "الأسعار تشمل الضريبة؟",
+    "menu_prices_include_tax": "أسعار القائمة تشمل الضريبة",
+    "business_hours": "ساعات العمل",
+    "sunday": "الأحد",
+    "monday": "الاثنين",
+    "tuesday": "الثلاثاء",
+    "wednesday": "الأربعاء",
+    "thursday": "الخميس",
+    "friday": "الجمعة",
+    "saturday": "السبت",
+    
+    // Discount Settings
+    "discount_settings": "إعدادات الخصم",
+    "discount_settings_desc": "تكوين قواعد الخصم للاستخدام المستقبلي (إعداد فقط)",
+    "enable_discounts": "تفعيل الخصومات",
+    "allow_discounts": "السماح بتكوين الخصومات",
+    "discount_type": "نوع الخصم",
+    "percentage": "نسبة مئوية (%)",
+    "fixed_amount": "مبلغ ثابت",
+    "max_discount_value": "الحد الأقصى للخصم (اختياري)",
+    "max_percent_desc": "الحد الأقصى لنسبة الخصم المسموح بها",
+    "max_fixed_desc": "الحد الأقصى لمبلغ الخصم الثابت المسموح به",
+    "save_discount_settings": "حفظ إعدادات الخصم",
+    "discount_settings_saved": "تم حفظ إعدادات الخصم",
+    
+    // Notifications
+    "notifications_alerts": "الإشعارات والتنبيهات",
+    "notifications_desc": "تنبيهات استباقية حول أداء مطعمك",
+    "all_clear": "كل شيء على ما يرام!",
+    "no_alerts": "لا توجد تنبيهات أو إشعارات في الوقت الحالي.",
     
     // No data
     "no_restaurant": "لا يوجد مطعم مخصص",
