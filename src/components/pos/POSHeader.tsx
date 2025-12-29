@@ -10,6 +10,7 @@ import {
 
 interface POSHeaderProps {
   restaurantName: string;
+  restaurantLogo?: string | null;
   cashierEmail: string;
   shiftStatus: "open" | "closed";
   onSignOut: () => void;
@@ -24,6 +25,7 @@ interface POSHeaderProps {
 
 export function POSHeader({
   restaurantName,
+  restaurantLogo,
   cashierEmail,
   shiftStatus,
   onSignOut,
@@ -38,6 +40,13 @@ export function POSHeader({
   return (
     <header className="flex items-center justify-between p-3 bg-card border-b">
       <div className="flex items-center gap-3">
+        {restaurantLogo && (
+          <img 
+            src={restaurantLogo} 
+            alt={`${restaurantName} logo`}
+            className="w-10 h-10 object-contain rounded-lg"
+          />
+        )}
         <div>
           <h1 className="text-lg font-bold">{restaurantName}</h1>
           <p className="text-xs text-muted-foreground">{cashierEmail}</p>

@@ -65,12 +65,22 @@ export default function OwnerAdmin() {
         <Card className="shadow-card">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Store className="h-5 w-5" />
-                  {restaurant.name}
-                </CardTitle>
-                <CardDescription>Your restaurant information</CardDescription>
+              <div className="flex items-center gap-4">
+                {restaurant.logo_url ? (
+                  <img 
+                    src={restaurant.logo_url} 
+                    alt={`${restaurant.name} logo`}
+                    className="w-12 h-12 object-contain rounded-lg"
+                  />
+                ) : (
+                  <Store className="h-8 w-8 text-primary" />
+                )}
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    {restaurant.name}
+                  </CardTitle>
+                  <CardDescription>Your restaurant information</CardDescription>
+                </div>
               </div>
               <Dialog open={editingRestaurantName} onOpenChange={setEditingRestaurantName}>
                 <DialogTrigger asChild>

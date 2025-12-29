@@ -351,6 +351,7 @@ export default function POS() {
     <div className="h-screen flex flex-col bg-background">
       <POSHeader
         restaurantName={restaurant.name}
+        restaurantLogo={restaurant.logo_url}
         cashierEmail={user?.email || ""}
         shiftStatus={shiftOpen ? "open" : "closed"}
         onSignOut={signOut}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { StatCard } from "@/components/StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,13 +15,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useRestaurants, useCreateRestaurant, useAssignOwner } from "@/hooks/useRestaurants";
+import { useRestaurants, useCreateRestaurant, useAssignOwner, useUpdateRestaurant } from "@/hooks/useRestaurants";
 import { useOwners, useCreateOwner } from "@/hooks/useOwners";
 import { useMenuCategories } from "@/hooks/useMenuCategories";
 import { useAllMenuItems } from "@/hooks/useMenuItems";
-import { Store, Users, Plus, Link, Eye, Loader2 } from "lucide-react";
+import { Store, Users, Plus, Link, Eye, Loader2, Upload, Image } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const emailSchema = z.string().email("Please enter a valid email");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -30,32 +31,107 @@ export default function SystemAdmin() {
   const { data: restaurants = [], isLoading: loadingRestaurants } = useRestaurants();
   const { data: owners = [], isLoading: loadingOwners } = useOwners();
   const createRestaurant = useCreateRestaurant();
+  const updateRestaurant = useUpdateRestaurant();
   const createOwner = useCreateOwner();
   const assignOwner = useAssignOwner();
   const { toast } = useToast();
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   // Form states
   const [restaurantName, setRestaurantName] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [ownerEmail, setOwnerEmail] = useState("");
   const [ownerPassword, setOwnerPassword] = useState("");
   const [selectedRestaurant, setSelectedRestaurant] = useState("");
   const [selectedOwner, setSelectedOwner] = useState("");
   const [viewingRestaurant, setViewingRestaurant] = useState<string | null>(null);
+  const [editLogoRestaurantId, setEditLogoRestaurantId] = useState<string | null>(null);
 
   // Dialog states
   const [restaurantDialogOpen, setRestaurantDialogOpen] = useState(false);
   const [ownerDialogOpen, setOwnerDialogOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [editLogoDialogOpen, setEditLogoDialogOpen] = useState(false);
+
+  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      setLogoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const uploadLogo = async (restaurantId: string): Promise<string | null> => {
+    if (!logoFile) return null;
+    
+    const fileExt = logoFile.name.split('.').pop();
+    const filePath = `${restaurantId}.${fileExt}`;
+    
+    const { error } = await supabase.storage
+      .from('restaurant-logos')
+      .upload(filePath, logoFile, { upsert: true });
+    
+    if (error) throw error;
+    
+    const { data: urlData } = supabase.storage
+      .from('restaurant-logos')
+      .getPublicUrl(filePath);
+    
+    return urlData.publicUrl;
+  };
 
   const handleCreateRestaurant = async () => {
     if (!restaurantName.trim()) {
       toast({ title: "Please enter a restaurant name", variant: "destructive" });
       return;
     }
-    await createRestaurant.mutateAsync(restaurantName);
-    setRestaurantName("");
-    setRestaurantDialogOpen(false);
+    
+    try {
+      setUploadingLogo(true);
+      
+      // First create the restaurant to get its ID
+      const newRestaurant = await createRestaurant.mutateAsync({ name: restaurantName });
+      
+      // Then upload logo if provided
+      if (logoFile && newRestaurant?.id) {
+        const logoUrl = await uploadLogo(newRestaurant.id);
+        if (logoUrl) {
+          await updateRestaurant.mutateAsync({ id: newRestaurant.id, logoUrl });
+        }
+      }
+      
+      setRestaurantName("");
+      setLogoFile(null);
+      setLogoPreview(null);
+      setRestaurantDialogOpen(false);
+    } catch (error) {
+      toast({ title: "Error creating restaurant", variant: "destructive" });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleUpdateLogo = async () => {
+    if (!editLogoRestaurantId || !logoFile) return;
+    
+    try {
+      setUploadingLogo(true);
+      const logoUrl = await uploadLogo(editLogoRestaurantId);
+      if (logoUrl) {
+        await updateRestaurant.mutateAsync({ id: editLogoRestaurantId, logoUrl });
+      }
+      setLogoFile(null);
+      setLogoPreview(null);
+      setEditLogoDialogOpen(false);
+      setEditLogoRestaurantId(null);
+    } catch (error) {
+      toast({ title: "Error uploading logo", variant: "destructive" });
+    } finally {
+      setUploadingLogo(false);
+    }
   };
 
   const handleCreateOwner = async () => {
@@ -127,7 +203,7 @@ export default function SystemAdmin() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Create Restaurant</DialogTitle>
-                <DialogDescription>Enter the name for the new restaurant.</DialogDescription>
+                <DialogDescription>Enter the name and logo for the new restaurant.</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
@@ -139,13 +215,48 @@ export default function SystemAdmin() {
                     placeholder="Enter restaurant name"
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label>Restaurant Logo (optional)</Label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={logoInputRef}
+                    onChange={handleLogoSelect}
+                    className="hidden"
+                  />
+                  {logoPreview ? (
+                    <div className="flex items-center gap-4">
+                      <img src={logoPreview} alt="Logo preview" className="w-16 h-16 object-contain rounded-lg border" />
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => { setLogoFile(null); setLogoPreview(null); }}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      onClick={() => logoInputRef.current?.click()}
+                      className="w-full"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Logo
+                    </Button>
+                  )}
+                </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setRestaurantDialogOpen(false)}>
+                <Button variant="outline" onClick={() => {
+                  setRestaurantDialogOpen(false);
+                  setLogoFile(null);
+                  setLogoPreview(null);
+                }}>
                   Cancel
                 </Button>
-                <Button onClick={handleCreateRestaurant} disabled={createRestaurant.isPending}>
-                  {createRestaurant.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                <Button onClick={handleCreateRestaurant} disabled={createRestaurant.isPending || uploadingLogo}>
+                  {(createRestaurant.isPending || uploadingLogo) ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Create
                 </Button>
               </DialogFooter>
@@ -285,9 +396,17 @@ export default function SystemAdmin() {
                 {restaurants.map((restaurant) => (
                   <div key={restaurant.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
-                        <Store className="h-4 w-4 text-primary" />
-                      </div>
+                      {restaurant.logo_url ? (
+                        <img 
+                          src={restaurant.logo_url} 
+                          alt={`${restaurant.name} logo`}
+                          className="w-9 h-9 object-contain rounded-lg"
+                        />
+                      ) : (
+                        <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
+                          <Store className="h-4 w-4 text-primary" />
+                        </div>
+                      )}
                       <div>
                         <p className="font-medium text-foreground">{restaurant.name}</p>
                         <p className="text-sm text-muted-foreground">
@@ -297,17 +416,31 @@ export default function SystemAdmin() {
                         </p>
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setViewingRestaurant(restaurant.id);
-                        setViewDialogOpen(true);
-                      }}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Menu
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setEditLogoRestaurantId(restaurant.id);
+                          setLogoPreview(restaurant.logo_url || null);
+                          setEditLogoDialogOpen(true);
+                        }}
+                      >
+                        <Image className="h-4 w-4 mr-2" />
+                        Logo
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setViewingRestaurant(restaurant.id);
+                          setViewDialogOpen(true);
+                        }}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Menu
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -322,6 +455,68 @@ export default function SystemAdmin() {
           onOpenChange={setViewDialogOpen}
           restaurants={restaurants}
         />
+
+        {/* Edit Logo Dialog */}
+        <Dialog open={editLogoDialogOpen} onOpenChange={(open) => {
+          setEditLogoDialogOpen(open);
+          if (!open) {
+            setLogoFile(null);
+            setLogoPreview(null);
+            setEditLogoRestaurantId(null);
+          }
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Update Restaurant Logo</DialogTitle>
+              <DialogDescription>Upload a new logo for this restaurant.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <input
+                type="file"
+                accept="image/*"
+                ref={logoInputRef}
+                onChange={handleLogoSelect}
+                className="hidden"
+              />
+              {logoPreview ? (
+                <div className="flex flex-col items-center gap-4">
+                  <img src={logoPreview} alt="Logo preview" className="w-32 h-32 object-contain rounded-lg border" />
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => logoInputRef.current?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Change Logo
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={() => logoInputRef.current?.click()}
+                  className="w-full"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload Logo
+                </Button>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setEditLogoDialogOpen(false);
+                setLogoFile(null);
+                setLogoPreview(null);
+                setEditLogoRestaurantId(null);
+              }}>
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateLogo} disabled={!logoFile || uploadingLogo}>
+                {uploadingLogo ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Save
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );

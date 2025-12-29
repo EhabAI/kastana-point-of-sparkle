@@ -20,6 +20,7 @@ import { Minus, Plus, ShoppingCart, Check, Globe, Send } from "lucide-react";
 type Restaurant = {
   id: string;
   name: string | null;
+  logo_url: string | null;
 };
 
 type Category = {
@@ -337,9 +338,18 @@ export default function Menu() {
       <div className="max-w-3xl mx-auto p-4">
         {/* Header */}
         <div className="mb-6 flex justify-between items-start">
-          <div>
-            <h1 className="text-xl font-bold">{restaurant?.name ?? "Restaurant"}</h1>
-            <p className="text-sm text-muted-foreground">{t.table}: {tableCode}</p>
+          <div className="flex items-center gap-3">
+            {restaurant?.logo_url && (
+              <img 
+                src={restaurant.logo_url} 
+                alt={`${restaurant.name || 'Restaurant'} logo`}
+                className="w-12 h-12 object-contain rounded-lg"
+              />
+            )}
+            <div>
+              <h1 className="text-xl font-bold">{restaurant?.name ?? "Restaurant"}</h1>
+              <p className="text-sm text-muted-foreground">{t.table}: {tableCode}</p>
+            </div>
           </div>
           
           {/* Language Toggle */}
