@@ -169,13 +169,25 @@ const getCategoryIcon = (categoryName: string): CategoryIconInfo => {
    Category Name Translations
 ======================= */
 const categoryTranslations: Record<string, { en: string; ar: string }> = {
+  // Your specific categories
+  "bakery": { en: "Bakery", ar: "مخبوزات" },
+  "cold coffee": { en: "Cold Coffee", ar: "قهوة باردة" },
+  "desserts": { en: "Desserts", ar: "حلويات" },
+  "extras": { en: "Extras", ar: "إضافات" },
+  "hot drinks": { en: "Hot Drinks", ar: "مشروبات ساخنة" },
+  "signature drinks": { en: "Signature Drinks", ar: "مشروبات مميزة" },
+  "tea": { en: "Tea", ar: "شاي" },
+  "العروض": { en: "Offers", ar: "العروض" },
+  
   // Hot Drinks
   "coffee": { en: "Coffee", ar: "قهوة" },
   "قهوة": { en: "Coffee", ar: "قهوة" },
-  "tea": { en: "Tea", ar: "شاي" },
   "شاي": { en: "Tea", ar: "شاي" },
-  "hot drinks": { en: "Hot Drinks", ar: "مشروبات ساخنة" },
   "مشروبات ساخنة": { en: "Hot Drinks", ar: "مشروبات ساخنة" },
+  "hot coffee": { en: "Hot Coffee", ar: "قهوة ساخنة" },
+  "قهوة ساخنة": { en: "Hot Coffee", ar: "قهوة ساخنة" },
+  "قهوة باردة": { en: "Cold Coffee", ar: "قهوة باردة" },
+  "مشروبات مميزة": { en: "Signature Drinks", ar: "مشروبات مميزة" },
   
   // Cold Drinks
   "cold drinks": { en: "Cold Drinks", ar: "مشروبات باردة" },
@@ -187,6 +199,12 @@ const categoryTranslations: Record<string, { en: string; ar: string }> = {
   "سموذي": { en: "Smoothies", ar: "سموذي" },
   "drinks": { en: "Drinks", ar: "مشروبات" },
   "مشروبات": { en: "Drinks", ar: "مشروبات" },
+  "milkshakes": { en: "Milkshakes", ar: "ميلك شيك" },
+  "ميلك شيك": { en: "Milkshakes", ar: "ميلك شيك" },
+  "mojitos": { en: "Mojitos", ar: "موهيتو" },
+  "موهيتو": { en: "Mojitos", ar: "موهيتو" },
+  "fresh juice": { en: "Fresh Juice", ar: "عصير طازج" },
+  "عصير طازج": { en: "Fresh Juice", ar: "عصير طازج" },
   
   // Food Categories
   "pizza": { en: "Pizza", ar: "بيتزا" },
@@ -198,6 +216,10 @@ const categoryTranslations: Record<string, { en: string; ar: string }> = {
   "sandwich": { en: "Sandwich", ar: "ساندويش" },
   "ساندويشات": { en: "Sandwiches", ar: "ساندويشات" },
   "ساندويش": { en: "Sandwich", ar: "ساندويش" },
+  "wraps": { en: "Wraps", ar: "راب" },
+  "راب": { en: "Wraps", ar: "راب" },
+  "pasta": { en: "Pasta", ar: "باستا" },
+  "باستا": { en: "Pasta", ar: "باستا" },
   
   // Salads & Healthy
   "salads": { en: "Salads", ar: "سلطات" },
@@ -225,13 +247,13 @@ const categoryTranslations: Record<string, { en: string; ar: string }> = {
   // Breakfast & Bakery
   "breakfast": { en: "Breakfast", ar: "فطور" },
   "فطور": { en: "Breakfast", ar: "فطور" },
-  "bakery": { en: "Bakery", ar: "مخبوزات" },
   "مخبوزات": { en: "Bakery", ar: "مخبوزات" },
   "bread": { en: "Bread", ar: "خبز" },
   "خبز": { en: "Bread", ar: "خبز" },
+  "croissants": { en: "Croissants", ar: "كرواسون" },
+  "كرواسون": { en: "Croissants", ar: "كرواسون" },
   
   // Desserts
-  "desserts": { en: "Desserts", ar: "حلويات" },
   "dessert": { en: "Dessert", ar: "حلى" },
   "حلويات": { en: "Desserts", ar: "حلويات" },
   "حلى": { en: "Dessert", ar: "حلى" },
@@ -244,6 +266,12 @@ const categoryTranslations: Record<string, { en: string; ar: string }> = {
   "pastries": { en: "Pastries", ar: "معجنات" },
   "pastry": { en: "Pastry", ar: "معجنات" },
   "معجنات": { en: "Pastries", ar: "معجنات" },
+  "waffles": { en: "Waffles", ar: "وافل" },
+  "وافل": { en: "Waffles", ar: "وافل" },
+  "pancakes": { en: "Pancakes", ar: "بان كيك" },
+  "بان كيك": { en: "Pancakes", ar: "بان كيك" },
+  "crepes": { en: "Crepes", ar: "كريب" },
+  "كريب": { en: "Crepes", ar: "كريب" },
   
   // Appetizers & Sides
   "appetizers": { en: "Appetizers", ar: "مقبلات" },
@@ -251,11 +279,11 @@ const categoryTranslations: Record<string, { en: string; ar: string }> = {
   "starters": { en: "Starters", ar: "مقبلات" },
   "sides": { en: "Sides", ar: "أطباق جانبية" },
   "أطباق جانبية": { en: "Sides", ar: "أطباق جانبية" },
-  "extras": { en: "Extras", ar: "إضافات" },
   "extra": { en: "Extra", ar: "إضافات" },
   "إضافات": { en: "Extras", ar: "إضافات" },
   "snacks": { en: "Snacks", ar: "سناكات" },
   "سناكات": { en: "Snacks", ar: "سناكات" },
+  "additions": { en: "Additions", ar: "إضافات" },
   
   // Main & Special
   "main dishes": { en: "Main Dishes", ar: "أطباق رئيسية" },
