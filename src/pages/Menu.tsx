@@ -579,7 +579,7 @@ export default function Menu() {
   ======================= */
   if (loading) {
     return (
-      <div className="p-6 max-w-3xl mx-auto">
+      <div className="p-6 max-w-3xl mx-auto" dir={lang === "ar" ? "rtl" : "ltr"}>
         <Skeleton className="h-12 w-48 mb-4" />
         <Skeleton className="h-24 w-full mb-4" />
         <Skeleton className="h-24 w-full" />
@@ -589,7 +589,7 @@ export default function Menu() {
 
   if (error) {
     return (
-      <div className="p-6 max-w-3xl mx-auto text-center">
+      <div className="p-6 max-w-3xl mx-auto text-center" dir={lang === "ar" ? "rtl" : "ltr"}>
         <Card className="p-6">
           <h2 className="font-bold text-lg mb-2">{t.loadError}</h2>
           <p className="text-sm text-muted-foreground">{error}</p>
@@ -709,7 +709,7 @@ export default function Menu() {
                                     size="sm"
                                     onClick={() => incrementItem(item)}
                                   >
-                                    <Plus className="h-4 w-4 mr-1" />
+                                    <Plus className={`h-4 w-4 ${lang === "ar" ? "ml-1" : "mr-1"}`} />
                                     {t.add}
                                   </Button>
                                 )}
@@ -730,7 +730,7 @@ export default function Menu() {
 
       {/* Order Confirmation Bottom Sheet */}
       <Sheet open={showConfirm} onOpenChange={setShowConfirm}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[80vh] overflow-auto">
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[80vh] overflow-auto" dir={lang === "ar" ? "rtl" : "ltr"}>
           <SheetHeader>
             <SheetTitle>{t.orderSummary}</SheetTitle>
             <SheetDescription>{t.table}: {tableCode}</SheetDescription>
