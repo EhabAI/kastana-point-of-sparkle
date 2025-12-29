@@ -17,6 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useCashiers, useAddCashier, useUpdateCashierStatus } from "@/hooks/useCashiers";
 import { Users, Loader2, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface StaffManagementProps {
   restaurantId: string;
@@ -28,17 +29,18 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
   const addCashier = useAddCashier();
   const updateStatus = useUpdateCashierStatus();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newCashier, setNewCashier] = useState({ email: "", password: "" });
 
   const handleCreateCashier = async () => {
     if (!newCashier.email.trim()) {
-      toast({ title: "Please enter an email address", variant: "destructive" });
+      toast({ title: t("enter_email"), variant: "destructive" });
       return;
     }
     if (!newCashier.password || newCashier.password.length < 6) {
-      toast({ title: "Password must be at least 6 characters", variant: "destructive" });
+      toast({ title: t("password_min"), variant: "destructive" });
       return;
     }
 
@@ -59,26 +61,26 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
           <div>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Staff Management
+              {t("staff_management")}
               <span className="text-muted-foreground font-normal">({staffCount ?? cashiers.length})</span>
             </CardTitle>
-            <CardDescription>Manage your restaurant's cashiers</CardDescription>
+            <CardDescription>{t("manage_cashiers")}</CardDescription>
           </div>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm">
                 <UserPlus className="h-4 w-4 mr-2" />
-                Add Cashier
+                {t("add_cashier")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add New Cashier</DialogTitle>
-                <DialogDescription>Create a new cashier account for your restaurant.</DialogDescription>
+                <DialogTitle>{t("add_new_cashier")}</DialogTitle>
+                <DialogDescription>{t("create_cashier_desc")}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="cashier-email">Email</Label>
+                  <Label htmlFor="cashier-email">{t("email")}</Label>
                   <Input
                     id="cashier-email"
                     type="email"
@@ -88,23 +90,23 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="cashier-password">Password</Label>
+                  <Label htmlFor="cashier-password">{t("password")}</Label>
                   <Input
                     id="cashier-password"
                     type="password"
                     value={newCashier.password}
                     onChange={(e) => setNewCashier({ ...newCashier, password: e.target.value })}
-                    placeholder="Minimum 6 characters"
+                    placeholder={t("min_6_chars")}
                   />
                 </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                  Cancel
+                  {t("cancel")}
                 </Button>
                 <Button onClick={handleCreateCashier} disabled={addCashier.isPending}>
                   {addCashier.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Create Cashier
+                  {t("create_cashier")}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -119,26 +121,26 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
         ) : cashiers.length === 0 ? (
           <div className="text-center py-8">
             <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">No cashiers yet. Add one to get started.</p>
+            <p className="text-muted-foreground">{t("no_cashiers")}</p>
           </div>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Email</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="text-right">Status</TableHead>
+                <TableHead>{t("email")}</TableHead>
+                <TableHead>{t("created")}</TableHead>
+                <TableHead className="text-right">{t("status")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {cashiers.map((cashier) => (
                 <TableRow key={cashier.id}>
-                  <TableCell className="font-medium">{cashier.email || "No email address"}</TableCell>
+                  <TableCell className="font-medium">{cashier.email || t("no_email")}</TableCell>
                   <TableCell>{new Date(cashier.created_at).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-3">
                       <span className={`text-xs font-medium ${cashier.is_active ? 'text-green-600 dark:text-green-400' : 'text-destructive'}`}>
-                        {cashier.is_active ? 'Active' : 'Inactive'}
+                        {cashier.is_active ? t("active") : t("inactive")}
                       </span>
                       <Switch
                         checked={cashier.is_active}

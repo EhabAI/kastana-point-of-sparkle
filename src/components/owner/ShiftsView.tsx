@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Clock, ChevronDown, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { DateRangeFilter, DateRange, DateRangePreset, getDateRangeForPreset } from "./DateRangeFilter";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ShiftWithCashier {
   id: string;
@@ -35,6 +36,7 @@ const ITEMS_PER_PAGE = 10;
 export function ShiftsView() {
   const { data: restaurant } = useOwnerRestaurant();
   const { data: settings } = useOwnerRestaurantSettings();
+  const { t } = useLanguage();
   const currency = settings?.currency || "JOD";
   const restaurantId = restaurant?.id;
 
@@ -117,12 +119,12 @@ export function ShiftsView() {
   };
 
   const getDateRangeLabel = () => {
-    if (preset === "today") return "Today";
-    if (preset === "yesterday") return "Yesterday";
-    if (preset === "this_week") return "This Week";
-    if (preset === "this_month") return "This Month";
-    if (preset === "last_7_days") return "Last 7 Days";
-    if (preset === "last_30_days") return "Last 30 Days";
+    if (preset === "today") return t("today");
+    if (preset === "yesterday") return t("yesterday");
+    if (preset === "this_week") return t("this_week");
+    if (preset === "this_month") return t("this_month");
+    if (preset === "last_7_days") return t("last_7_days");
+    if (preset === "last_30_days") return t("last_30_days");
     return `${format(dateRange.from, "MMM d")} - ${format(dateRange.to, "MMM d, yyyy")}`;
   };
 
@@ -137,7 +139,7 @@ export function ShiftsView() {
                 <div className="text-left">
                   <CardTitle className="flex items-center gap-2">
                     <Clock className="h-5 w-5" />
-                    Shifts
+                    {t("shifts")}
                     <span className="text-muted-foreground font-normal">({totalShifts})</span>
                   </CardTitle>
                   <CardDescription>{getDateRangeLabel()}</CardDescription>
@@ -146,7 +148,7 @@ export function ShiftsView() {
             </CollapsibleTrigger>
             <Button variant="outline" size="sm" onClick={exportToCSV} disabled={isLoading || shifts.length === 0}>
               <Download className="h-4 w-4 mr-2" />
-              Export CSV
+              {t("export_csv")}
             </Button>
           </div>
         </CardHeader>
@@ -166,7 +168,7 @@ export function ShiftsView() {
               </div>
             ) : shifts.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                No shifts found for this period.
+                {t("no_shifts_found")}
               </div>
             ) : (
               <>
@@ -174,12 +176,12 @@ export function ShiftsView() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Cashier</TableHead>
-                        <TableHead>Started</TableHead>
-                        <TableHead>Ended</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Opening Cash</TableHead>
-                        <TableHead className="text-right">Closing Cash</TableHead>
+                        <TableHead>{t("cashier")}</TableHead>
+                        <TableHead>{t("started")}</TableHead>
+                        <TableHead>{t("ended")}</TableHead>
+                        <TableHead>{t("status")}</TableHead>
+                        <TableHead className="text-right">{t("opening_cash")}</TableHead>
+                        <TableHead className="text-right">{t("closing_cash")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -200,7 +202,7 @@ export function ShiftsView() {
                             <Badge
                               variant={shift.status === "open" ? "default" : "secondary"}
                             >
-                              {shift.status === "open" ? "Open" : "Closed"}
+                              {shift.status === "open" ? t("open") : t("closed")}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
@@ -222,7 +224,7 @@ export function ShiftsView() {
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-muted-foreground">
-                      Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, totalShifts)} of {totalShifts} shifts
+                      {t("showing")} {(currentPage - 1) * ITEMS_PER_PAGE + 1} {t("to")} {Math.min(currentPage * ITEMS_PER_PAGE, totalShifts)} {t("of")} {totalShifts} {t("shifts").toLowerCase()}
                     </p>
                     <div className="flex items-center gap-2">
                       <Button
@@ -234,7 +236,7 @@ export function ShiftsView() {
                         <ChevronLeft className="h-4 w-4" />
                       </Button>
                       <span className="text-sm">
-                        Page {currentPage} of {totalPages}
+                        {t("page")} {currentPage} {t("of")} {totalPages}
                       </span>
                       <Button
                         variant="outline"

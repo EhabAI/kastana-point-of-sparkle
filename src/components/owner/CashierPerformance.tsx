@@ -9,6 +9,7 @@ import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { DateRangeFilter, DateRange, DateRangePreset, getDateRangeForPreset } from "./DateRangeFilter";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CashierMetrics {
   cashierId: string;
@@ -24,6 +25,7 @@ interface CashierMetrics {
 export function CashierPerformance() {
   const { data: restaurant } = useOwnerRestaurant();
   const { data: settings } = useOwnerRestaurantSettings();
+  const { t } = useLanguage();
   const currency = settings?.currency || "JOD";
   
   const [isOpen, setIsOpen] = useState(true);
@@ -146,9 +148,9 @@ export function CashierPerformance() {
                 <div className="text-left">
                   <CardTitle className="flex items-center gap-2">
                     <Users className="h-5 w-5" />
-                    Cashier Performance
+                    {t("cashier_performance")}
                   </CardTitle>
-                  <CardDescription>Track sales, discounts, and voids by cashier</CardDescription>
+                  <CardDescription>{t("cashier_performance_desc")}</CardDescription>
                 </div>
               </button>
             </CollapsibleTrigger>
@@ -168,7 +170,7 @@ export function CashierPerformance() {
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             ) : performanceData?.cashiers.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No shift data for this period.</p>
+              <p className="text-sm text-muted-foreground text-center py-8">{t("no_shift_data")}</p>
             ) : (
               <div className="space-y-4">
                 {performanceData?.cashiers.map((cashier, index) => (
@@ -180,40 +182,40 @@ export function CashierPerformance() {
                         </Badge>
                         <div>
                           <p className="font-medium text-foreground">{cashier.email}</p>
-                          <p className="text-sm text-muted-foreground">{cashier.orderCount} orders</p>
-                        </div>
+                        <p className="text-sm text-muted-foreground">{cashier.orderCount} {t("orders").toLowerCase()}</p>
                       </div>
-                      <p className="text-lg font-bold text-foreground">{cashier.totalSales.toFixed(2)} {currency}</p>
                     </div>
-                    
-                    {/* Sales Progress Bar */}
-                    <div className="space-y-1">
-                      <Progress value={(cashier.totalSales / maxSales) * 100} className="h-2" />
-                    </div>
+                    <p className="text-lg font-bold text-foreground">{cashier.totalSales.toFixed(2)} {currency}</p>
+                  </div>
+                  
+                  {/* Sales Progress Bar */}
+                  <div className="space-y-1">
+                    <Progress value={(cashier.totalSales / maxSales) * 100} className="h-2" />
+                  </div>
 
-                    {/* Metrics Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                      <div className="p-2 bg-background rounded">
-                        <p className="text-muted-foreground">Avg Order</p>
-                        <p className="font-semibold text-foreground">{cashier.averageOrderValue.toFixed(2)} {currency}</p>
-                      </div>
-                      <div className="p-2 bg-background rounded">
-                        <p className="text-muted-foreground">Discounts Given</p>
-                        <p className="font-semibold text-foreground">{cashier.discountGiven.toFixed(2)} {currency}</p>
-                      </div>
-                      <div className="p-2 bg-background rounded">
-                        <p className="text-muted-foreground">Voided Items</p>
-                        <p className={`font-semibold ${cashier.voidedItems > 10 ? "text-destructive" : "text-foreground"}`}>
-                          {cashier.voidedItems}
-                        </p>
-                      </div>
-                      <div className="p-2 bg-background rounded">
-                        <p className="text-muted-foreground">Cancelled Orders</p>
-                        <p className={`font-semibold ${cashier.cancelledOrders > 5 ? "text-destructive" : "text-foreground"}`}>
-                          {cashier.cancelledOrders}
-                        </p>
-                      </div>
+                  {/* Metrics Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    <div className="p-2 bg-background rounded">
+                      <p className="text-muted-foreground">{t("avg_order")}</p>
+                      <p className="font-semibold text-foreground">{cashier.averageOrderValue.toFixed(2)} {currency}</p>
                     </div>
+                    <div className="p-2 bg-background rounded">
+                      <p className="text-muted-foreground">{t("discounts_given")}</p>
+                      <p className="font-semibold text-foreground">{cashier.discountGiven.toFixed(2)} {currency}</p>
+                    </div>
+                    <div className="p-2 bg-background rounded">
+                      <p className="text-muted-foreground">{t("voided_items")}</p>
+                      <p className={`font-semibold ${cashier.voidedItems > 10 ? "text-destructive" : "text-foreground"}`}>
+                        {cashier.voidedItems}
+                      </p>
+                    </div>
+                    <div className="p-2 bg-background rounded">
+                      <p className="text-muted-foreground">{t("cancelled_orders")}</p>
+                      <p className={`font-semibold ${cashier.cancelledOrders > 5 ? "text-destructive" : "text-foreground"}`}>
+                        {cashier.cancelledOrders}
+                      </p>
+                    </div>
+                  </div>
                   </div>
                 ))}
               </div>

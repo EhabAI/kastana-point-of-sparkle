@@ -11,15 +11,16 @@ import {
   useUpdateOwnerRestaurantSettings,
   BusinessHours,
 } from "@/hooks/useOwnerRestaurantSettings";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const DAYS_OF_WEEK = [
-  { key: "sunday", label: "Sunday", labelAr: "الأحد" },
-  { key: "monday", label: "Monday", labelAr: "الاثنين" },
-  { key: "tuesday", label: "Tuesday", labelAr: "الثلاثاء" },
-  { key: "wednesday", label: "Wednesday", labelAr: "الأربعاء" },
-  { key: "thursday", label: "Thursday", labelAr: "الخميس" },
-  { key: "friday", label: "Friday", labelAr: "الجمعة" },
-  { key: "saturday", label: "Saturday", labelAr: "السبت" },
+  { key: "sunday", labelKey: "sunday" },
+  { key: "monday", labelKey: "monday" },
+  { key: "tuesday", labelKey: "tuesday" },
+  { key: "wednesday", labelKey: "wednesday" },
+  { key: "thursday", labelKey: "thursday" },
+  { key: "friday", labelKey: "friday" },
+  { key: "saturday", labelKey: "saturday" },
 ] as const;
 
 const DEFAULT_BUSINESS_HOURS: BusinessHours = {
@@ -32,16 +33,10 @@ const DEFAULT_BUSINESS_HOURS: BusinessHours = {
   saturday: { open: "09:00", close: "22:00", closed: false },
 };
 
-function isArabicUI(): boolean {
-  // Check document language or navigator language for Arabic
-  const docLang = document.documentElement.lang?.toLowerCase();
-  const navLang = navigator.language?.toLowerCase();
-  return docLang?.startsWith("ar") || navLang?.startsWith("ar");
-}
-
 export function RestaurantSettings() {
   const { data: settings, isLoading } = useOwnerRestaurantSettings();
   const updateSettings = useUpdateOwnerRestaurantSettings();
+  const { t, language } = useLanguage();
 
   const [taxRate, setTaxRate] = useState<string>("16");
   const [pricesIncludeTax, setPricesIncludeTax] = useState(false);
@@ -50,7 +45,7 @@ export function RestaurantSettings() {
   const [isOpen, setIsOpen] = useState(false);
 
   // Determine currency display based on UI language
-  const currencyDisplay = isArabicUI() ? "د.أ" : "JOD";
+  const currencyDisplay = language === "ar" ? "د.أ" : "JOD";
 
   useEffect(() => {
     if (settings) {
@@ -117,15 +112,15 @@ export function RestaurantSettings() {
                 <div className="text-left">
                   <CardTitle className="flex items-center gap-2">
                     <Settings className="h-5 w-5" />
-                    Restaurant Settings
+                    {t("restaurant_settings")}
                   </CardTitle>
-                  <CardDescription>Configure your restaurant preferences</CardDescription>
+                  <CardDescription>{t("configure_preferences")}</CardDescription>
                 </div>
               </button>
             </CollapsibleTrigger>
             <Button onClick={handleSave} disabled={!hasChanges || updateSettings.isPending}>
               {updateSettings.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Save Changes
+              {t("save_changes")}
             </Button>
           </div>
         </CardHeader>
@@ -133,24 +128,24 @@ export function RestaurantSettings() {
           <CardContent className="space-y-8">
             {/* Currency Section */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-foreground">Currency</h3>
+              <h3 className="text-sm font-medium text-foreground">{t("currency")}</h3>
               <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
                 <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
                   <span className="text-primary font-semibold text-sm">{currencyDisplay}</span>
                 </div>
                 <div>
                   <p className="font-medium text-foreground">{currencyDisplay}</p>
-                  <p className="text-sm text-muted-foreground">Jordanian Dinar (read-only)</p>
+                  <p className="text-sm text-muted-foreground">{t("jordanian_dinar")}</p>
                 </div>
               </div>
             </div>
 
         {/* Tax Settings Section */}
         <div className="space-y-4">
-          <h3 className="text-sm font-medium text-foreground">Tax Settings</h3>
+          <h3 className="text-sm font-medium text-foreground">{t("tax_settings")}</h3>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="tax-rate">Tax Percentage (%)</Label>
+              <Label htmlFor="tax-rate">{t("tax_percentage")}</Label>
               <Input
                 id="tax-rate"
                 type="number"
@@ -165,9 +160,9 @@ export function RestaurantSettings() {
             <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
               <div>
                 <Label htmlFor="prices-include-tax" className="text-sm font-medium">
-                  Prices include tax?
+                  {t("prices_include_tax")}
                 </Label>
-                <p className="text-sm text-muted-foreground">Menu prices already include tax</p>
+                <p className="text-sm text-muted-foreground">{t("menu_prices_include_tax")}</p>
               </div>
               <Switch
                 id="prices-include-tax"
@@ -182,7 +177,7 @@ export function RestaurantSettings() {
         <div className="space-y-4">
           <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
             <Clock className="h-4 w-4" />
-            Business Hours
+            {t("business_hours")}
           </h3>
           <div className="space-y-3">
             {DAYS_OF_WEEK.map((day) => (
@@ -191,12 +186,12 @@ export function RestaurantSettings() {
                 className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-muted/50 rounded-lg"
               >
                 <div className="w-28 shrink-0">
-                  <p className="font-medium text-foreground">{day.label}</p>
+                  <p className="font-medium text-foreground">{t(day.labelKey)}</p>
                 </div>
                 <div className="flex flex-1 items-center gap-3 flex-wrap">
                   <div className="flex items-center gap-2">
                     <Label htmlFor={`${day.key}-open`} className="text-sm text-muted-foreground w-12">
-                      Open
+                      {t("open")}
                     </Label>
                     <Input
                       id={`${day.key}-open`}
@@ -209,7 +204,7 @@ export function RestaurantSettings() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Label htmlFor={`${day.key}-close`} className="text-sm text-muted-foreground w-12">
-                      Close
+                      {t("close")}
                     </Label>
                     <Input
                       id={`${day.key}-close`}
@@ -222,7 +217,7 @@ export function RestaurantSettings() {
                   </div>
                   <div className="flex items-center gap-2 ml-auto">
                     <Label htmlFor={`${day.key}-closed`} className="text-sm text-muted-foreground">
-                      Closed
+                      {t("closed")}
                     </Label>
                     <Switch
                       id={`${day.key}-closed`}

@@ -8,6 +8,7 @@ import { useOwnerRestaurant } from "@/hooks/useRestaurants";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { startOfDay, endOfDay, subDays, format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Alert {
   id: string;
@@ -20,6 +21,7 @@ interface Alert {
 export function NotificationsAlerts() {
   const { data: restaurant } = useOwnerRestaurant();
   const { data: settings } = useOwnerRestaurantSettings();
+  const { t } = useLanguage();
   const currency = settings?.currency || "JOD";
   
   const [isOpen, setIsOpen] = useState(true);
@@ -237,14 +239,14 @@ export function NotificationsAlerts() {
                 <div className="text-left">
                   <CardTitle className="flex items-center gap-2">
                     <Bell className="h-5 w-5" />
-                    Notifications & Alerts
+                    {t("notifications_alerts")}
                     {(alertCounts.error > 0 || alertCounts.warning > 0) && (
                       <Badge variant="destructive" className="ml-2">
                         {alertCounts.error + alertCounts.warning}
                       </Badge>
                     )}
                   </CardTitle>
-                  <CardDescription>Proactive alerts about your restaurant performance</CardDescription>
+                  <CardDescription>{t("notifications_desc")}</CardDescription>
                 </div>
               </button>
             </CollapsibleTrigger>
@@ -259,8 +261,8 @@ export function NotificationsAlerts() {
             ) : sortedAlerts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <CheckCircle className="h-12 w-12 text-success mb-3" />
-                <p className="font-medium text-foreground">All Clear!</p>
-                <p className="text-sm text-muted-foreground">No alerts or notifications at this time.</p>
+                <p className="font-medium text-foreground">{t("all_clear")}</p>
+                <p className="text-sm text-muted-foreground">{t("no_alerts")}</p>
               </div>
             ) : (
               <div className="space-y-3">

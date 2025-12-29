@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOwnerRestaurant } from "@/hooks/useRestaurants";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DiscountSettingsData {
   discounts_enabled: boolean;
@@ -21,6 +22,7 @@ export function DiscountSettings() {
   const { data: restaurant } = useOwnerRestaurant();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const [discountsEnabled, setDiscountsEnabled] = useState(false);
   const [discountType, setDiscountType] = useState("percentage");
@@ -83,7 +85,7 @@ export function DiscountSettings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["discount-settings"] });
-      toast({ title: "Discount settings saved" });
+      toast({ title: t("discount_settings_saved") });
     },
     onError: (error: Error) => {
       toast({ title: "Failed to save settings", description: error.message, variant: "destructive" });
@@ -105,17 +107,17 @@ export function DiscountSettings() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Percent className="h-5 w-5" />
-          Discount Settings
+          {t("discount_settings")}
         </CardTitle>
         <CardDescription>
-          Configure discount rules for future use (configuration only)
+          {t("discount_settings_desc")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label>Enable Discounts</Label>
-            <p className="text-sm text-muted-foreground">Allow discounts to be configured</p>
+            <Label>{t("enable_discounts")}</Label>
+            <p className="text-sm text-muted-foreground">{t("allow_discounts")}</p>
           </div>
           <Switch
             checked={discountsEnabled}
@@ -124,20 +126,20 @@ export function DiscountSettings() {
         </div>
 
         <div className="space-y-2">
-          <Label>Discount Type</Label>
+          <Label>{t("discount_type")}</Label>
           <Select value={discountType} onValueChange={setDiscountType}>
             <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="percentage">Percentage (%)</SelectItem>
-              <SelectItem value="fixed">Fixed Amount</SelectItem>
+              <SelectItem value="percentage">{t("percentage")}</SelectItem>
+              <SelectItem value="fixed">{t("fixed_amount")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-2">
-          <Label>Maximum Discount Value (optional)</Label>
+          <Label>{t("max_discount_value")}</Label>
           <Input
             type="number"
             placeholder={discountType === "percentage" ? "e.g., 20 for 20%" : "e.g., 10.00"}
@@ -148,8 +150,8 @@ export function DiscountSettings() {
           />
           <p className="text-sm text-muted-foreground">
             {discountType === "percentage" 
-              ? "Maximum percentage discount allowed" 
-              : "Maximum fixed discount amount allowed"}
+              ? t("max_percent_desc")
+              : t("max_fixed_desc")}
           </p>
         </div>
 
@@ -159,7 +161,7 @@ export function DiscountSettings() {
           className="w-full"
         >
           {updateSettings.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-          Save Discount Settings
+          {t("save_discount_settings")}
         </Button>
       </CardContent>
     </Card>
