@@ -1,6 +1,8 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -8,7 +10,20 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const { user, role, loading } = useAuth();
+  const { user, role, isActive, loading, signOut } = useAuth();
+  const { toast } = useToast();
+
+  // Handle inactive cashier - sign them out
+  useEffect(() => {
+    if (!loading && user && !isActive) {
+      toast({
+        title: 'Account Deactivated',
+        description: 'Your account has been deactivated. Please contact your manager.',
+        variant: 'destructive',
+      });
+      signOut();
+    }
+  }, [loading, user, isActive, signOut, toast]);
 
   if (loading) {
     return (
@@ -16,6 +31,11 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  // If user is inactive (cashier deactivated), redirect to login
+  if (!isActive) {
+    return <Navigate to="/login" replace />;
   }
 
   if (!user) {

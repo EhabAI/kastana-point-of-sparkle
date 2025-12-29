@@ -9,6 +9,7 @@ export interface Cashier {
   restaurant_id: string;
   created_at: string;
   email?: string;
+  is_active: boolean;
 }
 
 export function useCashiers(restaurantId: string | undefined) {
@@ -39,15 +40,11 @@ export function useCashiers(restaurantId: string | undefined) {
 
       // Map emails to cashiers
       const emailMap = new Map(profiles?.map(p => [p.id, p.email]) || []);
-      
-      console.log('Cashiers loaded:', roles.map(row => ({
-        ...row,
-        email: emailMap.get(row.user_id) || undefined
-      })));
 
       return roles.map(row => ({
         ...row,
-        email: emailMap.get(row.user_id) || undefined
+        email: emailMap.get(row.user_id) || undefined,
+        is_active: row.is_active ?? true,
       })) as Cashier[];
     },
     enabled: !!restaurantId,
@@ -114,32 +111,34 @@ export function useAddCashier() {
   });
 }
 
-export function useDeleteCashier() {
+export function useUpdateCashierStatus() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
     mutationFn: async ({ 
       roleId, 
+      isActive,
       restaurantId 
     }: { 
       roleId: string; 
+      isActive: boolean;
       restaurantId: string;
     }) => {
       const { error } = await supabase
         .from('user_roles')
-        .delete()
+        .update({ is_active: isActive })
         .eq('id', roleId);
 
       if (error) throw error;
-      return { roleId };
+      return { roleId, isActive };
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['cashiers', variables.restaurantId] });
-      toast({ title: 'Cashier removed successfully' });
+      toast({ title: data.isActive ? 'Cashier activated' : 'Cashier deactivated' });
     },
     onError: (error: Error) => {
-      toast({ title: 'Error removing cashier', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error updating cashier status', description: error.message, variant: 'destructive' });
     },
   });
 }
