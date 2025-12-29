@@ -31,6 +31,7 @@ import { useAddPayment, useCompleteOrder } from "@/hooks/pos/usePayments";
 import { POSHeader, CategoryList, MenuItemGrid, OrderPanel } from "@/components/pos";
 import {
   ShiftDialog,
+  ShiftSummaryDialog,
   PaymentDialog,
   DiscountDialog,
   HeldOrdersDialog,
@@ -84,6 +85,13 @@ export default function POS() {
   const [zReportDialogOpen, setZReportDialogOpen] = useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [selectedItemForNotes, setSelectedItemForNotes] = useState<{ id: string; name: string; notes?: string | null } | null>(null);
+  const [summaryDialogOpen, setSummaryDialogOpen] = useState(false);
+  const [closedShiftData, setClosedShiftData] = useState<{
+    openingCash: number;
+    openedAt: string;
+    closedAt: string;
+    orderCount: number;
+  } | null>(null);
 
   const currency = settings?.currency || "JOD";
   const taxRate = settings?.tax_rate || 0.16;
@@ -136,7 +144,18 @@ export default function POS() {
         toast.success("Shift opened");
       } else {
         if (currentShift) {
+          const closedAt = new Date().toISOString();
+          const orderCount = recentOrders.length;
+          
           await closeShiftMutation.mutateAsync({ shiftId: currentShift.id, closingCash: amount });
+          
+          setClosedShiftData({
+            openingCash: currentShift.opening_cash,
+            openedAt: currentShift.opened_at,
+            closedAt,
+            orderCount,
+          });
+          setSummaryDialogOpen(true);
           toast.success("Shift closed");
         }
       }
@@ -506,6 +525,13 @@ export default function POS() {
         currentNotes={selectedItemForNotes?.notes}
         onSave={handleSaveNotes}
         isLoading={updateNotesMutation.isPending}
+      />
+
+      <ShiftSummaryDialog
+        open={summaryDialogOpen}
+        onOpenChange={setSummaryDialogOpen}
+        shiftData={closedShiftData}
+        currency={currency}
       />
     </div>
   );
