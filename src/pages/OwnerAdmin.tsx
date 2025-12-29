@@ -26,6 +26,8 @@ import { CSVUpload } from "@/components/owner/CSVUpload";
 import { TableManagement } from "@/components/owner/TableManagement";
 import { StaffManagement } from "@/components/owner/StaffManagement";
 import { RestaurantSettings } from "@/components/owner/RestaurantSettings";
+import { DiscountSettings } from "@/components/owner/DiscountSettings";
+import { BasicReports } from "@/components/owner/BasicReports";
 
 export default function OwnerAdmin() {
   const { role } = useAuth();
@@ -131,6 +133,12 @@ export default function OwnerAdmin() {
 
         {/* Restaurant Settings Section - Only visible to owners */}
         {role === "owner" && <RestaurantSettings />}
+
+        {/* Discount Settings Section - Only visible to owners */}
+        {role === "owner" && <DiscountSettings />}
+
+        {/* Basic Reports Section - Only visible to owners */}
+        {role === "owner" && <BasicReports />}
 
         {/* CSV Upload Section - Only visible to owners */}
         {role === "owner" && <CSVUpload restaurantId={restaurant.id} />}
