@@ -1,21 +1,29 @@
-import { useState } from 'react';
-import { DashboardLayout } from '@/components/DashboardLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useOwnerRestaurant, useUpdateRestaurant } from '@/hooks/useRestaurants';
-import { useMenuCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/hooks/useMenuCategories';
-import { useMenuItems, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, MenuItem } from '@/hooks/useMenuItems';
-import { Store, Loader2, Plus, Edit2, Trash2, FolderOpen, Tag, Flame } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
-import { CSVUpload } from '@/components/owner/CSVUpload';
-import { TableManagement } from '@/components/owner/TableManagement';
-import { StaffManagement } from '@/components/owner/StaffManagement';
+import { useState } from "react";
+import { DashboardLayout } from "@/components/DashboardLayout";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useOwnerRestaurant, useUpdateRestaurant } from "@/hooks/useRestaurants";
+import { useMenuCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from "@/hooks/useMenuCategories";
+import { useMenuItems, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, MenuItem } from "@/hooks/useMenuItems";
+import { Store, Loader2, Plus, Edit2, Trash2, FolderOpen, Tag, Flame } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { CSVUpload } from "@/components/owner/CSVUpload";
+import { TableManagement } from "@/components/owner/TableManagement";
+import { StaffManagement } from "@/components/owner/StaffManagement";
 
 export default function OwnerAdmin() {
   const { role } = useAuth();
@@ -25,7 +33,7 @@ export default function OwnerAdmin() {
   const { toast } = useToast();
 
   const [editingRestaurantName, setEditingRestaurantName] = useState(false);
-  const [restaurantName, setRestaurantName] = useState('');
+  const [restaurantName, setRestaurantName] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
   const handleUpdateRestaurantName = async () => {
@@ -51,7 +59,9 @@ export default function OwnerAdmin() {
           <CardContent className="p-12 text-center">
             <Store className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-foreground mb-2">No Restaurant Assigned</h2>
-            <p className="text-muted-foreground">Please contact your system administrator to assign a restaurant to your account.</p>
+            <p className="text-muted-foreground">
+              Please contact your system administrator to assign a restaurant to your account.
+            </p>
           </CardContent>
         </Card>
       </DashboardLayout>
@@ -67,8 +77,8 @@ export default function OwnerAdmin() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 {restaurant.logo_url ? (
-                  <img 
-                    src={restaurant.logo_url} 
+                  <img
+                    src={restaurant.logo_url}
                     alt={`${restaurant.name} logo`}
                     className="w-12 h-12 object-contain rounded-lg"
                   />
@@ -76,19 +86,13 @@ export default function OwnerAdmin() {
                   <Store className="h-8 w-8 text-primary" />
                 )}
                 <div>
-                  <CardTitle className="flex items-center gap-2">
-                    {restaurant.name}
-                  </CardTitle>
+                  <CardTitle className="flex items-center gap-2">{restaurant.name}</CardTitle>
                   <CardDescription>Your restaurant information</CardDescription>
                 </div>
               </div>
               <Dialog open={editingRestaurantName} onOpenChange={setEditingRestaurantName}>
                 <DialogTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setRestaurantName(restaurant.name)}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => setRestaurantName(restaurant.name)}>
                     <Edit2 className="h-4 w-4 mr-2" />
                     Edit Name
                   </Button>
@@ -109,7 +113,9 @@ export default function OwnerAdmin() {
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button variant="outline" onClick={() => setEditingRestaurantName(false)}>Cancel</Button>
+                    <Button variant="outline" onClick={() => setEditingRestaurantName(false)}>
+                      Cancel
+                    </Button>
                     <Button onClick={handleUpdateRestaurantName} disabled={updateRestaurant.isPending}>
                       {updateRestaurant.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                       Save
@@ -122,13 +128,13 @@ export default function OwnerAdmin() {
         </Card>
 
         {/* CSV Upload Section - Only visible to owners */}
-        {role === 'owner' && <CSVUpload restaurantId={restaurant.id} />}
+        {role === "owner" && <CSVUpload restaurantId={restaurant.id} />}
 
         {/* Tables Management Section - Only visible to owners */}
-        {role === 'owner' && <TableManagement restaurantId={restaurant.id} />}
+        {role === "owner" && <TableManagement restaurantId={restaurant.id} />}
 
         {/* Staff Management Section - Only visible to owners */}
-        {role === 'owner' && <StaffManagement restaurantId={restaurant.id} />}
+        {role === "owner" && <StaffManagement restaurantId={restaurant.id} />}
 
         {/* Categories Section */}
         <CategoriesSection restaurantId={restaurant.id} categories={categories} isLoading={loadingCategories} />
@@ -140,12 +146,12 @@ export default function OwnerAdmin() {
   );
 }
 
-function CategoriesSection({ 
-  restaurantId, 
-  categories, 
-  isLoading 
-}: { 
-  restaurantId: string; 
+function CategoriesSection({
+  restaurantId,
+  categories,
+  isLoading,
+}: {
+  restaurantId: string;
   categories: { id: string; name: string; is_active: boolean; sort_order: number }[];
   isLoading: boolean;
 }) {
@@ -154,17 +160,17 @@ function CategoriesSection({
   const deleteCategory = useDeleteCategory();
   const { toast } = useToast();
 
-  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryName, setNewCategoryName] = useState("");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<{ id: string; name: string } | null>(null);
 
   const handleCreateCategory = async () => {
     if (!newCategoryName.trim()) {
-      toast({ title: 'Please enter a category name', variant: 'destructive' });
+      toast({ title: "Please enter a category name", variant: "destructive" });
       return;
     }
     await createCategory.mutateAsync({ restaurantId, name: newCategoryName });
-    setNewCategoryName('');
+    setNewCategoryName("");
     setCreateDialogOpen(false);
   };
 
@@ -179,7 +185,7 @@ function CategoriesSection({
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (confirm('Are you sure you want to delete this category? All items in it will also be deleted.')) {
+    if (confirm("Are you sure you want to delete this category? All items in it will also be deleted.")) {
       await deleteCategory.mutateAsync(id);
     }
   };
@@ -219,7 +225,9 @@ function CategoriesSection({
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
+                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                  Cancel
+                </Button>
                 <Button onClick={handleCreateCategory} disabled={createCategory.isPending}>
                   {createCategory.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Create
@@ -246,20 +254,21 @@ function CategoriesSection({
                   </div>
                   <div>
                     <p className="font-medium text-foreground">{category.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {category.is_active ? 'Active' : 'Inactive'}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{category.is_active ? "Active" : "Inactive"}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Switch 
-                    checked={category.is_active} 
+                  <Switch
+                    checked={category.is_active}
                     onCheckedChange={() => handleToggleActive(category.id, category.is_active)}
                   />
-                  <Dialog open={editingCategory?.id === category.id} onOpenChange={(open) => !open && setEditingCategory(null)}>
+                  <Dialog
+                    open={editingCategory?.id === category.id}
+                    onOpenChange={(open) => !open && setEditingCategory(null)}
+                  >
                     <DialogTrigger asChild>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="icon"
                         onClick={() => setEditingCategory({ id: category.id, name: category.name })}
                       >
@@ -276,13 +285,17 @@ function CategoriesSection({
                           <Label htmlFor="edit-category-name">Category Name</Label>
                           <Input
                             id="edit-category-name"
-                            value={editingCategory?.name || ''}
-                            onChange={(e) => setEditingCategory(prev => prev ? { ...prev, name: e.target.value } : null)}
+                            value={editingCategory?.name || ""}
+                            onChange={(e) =>
+                              setEditingCategory((prev) => (prev ? { ...prev, name: e.target.value } : null))
+                            }
                           />
                         </div>
                       </div>
                       <DialogFooter>
-                        <Button variant="outline" onClick={() => setEditingCategory(null)}>Cancel</Button>
+                        <Button variant="outline" onClick={() => setEditingCategory(null)}>
+                          Cancel
+                        </Button>
                         <Button onClick={handleUpdateCategory} disabled={updateCategory.isPending}>
                           {updateCategory.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                           Save
@@ -303,15 +316,15 @@ function CategoriesSection({
   );
 }
 
-function MenuItemsSection({ 
-  restaurantId, 
-  categories 
-}: { 
-  restaurantId: string; 
+function MenuItemsSection({
+  restaurantId,
+  categories,
+}: {
+  restaurantId: string;
   categories: { id: string; name: string }[];
 }) {
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
-  const { data: items = [], isLoading } = useMenuItems(selectedCategoryId || undefined);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const { data: items = [], isLoading } = useMenuItems(restaurantId, selectedCategoryId || undefined);
   const createItem = useCreateMenuItem();
   const updateItem = useUpdateMenuItem();
   const deleteItem = useDeleteMenuItem();
@@ -319,15 +332,15 @@ function MenuItemsSection({
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
-  const [newItem, setNewItem] = useState({ name: '', description: '', price: '', is_offer: false });
+  const [newItem, setNewItem] = useState({ name: "", description: "", price: "", is_offer: false });
 
   const handleCreateItem = async () => {
     if (!selectedCategoryId) {
-      toast({ title: 'Please select a category first', variant: 'destructive' });
+      toast({ title: "Please select a category first", variant: "destructive" });
       return;
     }
     if (!newItem.name.trim()) {
-      toast({ title: 'Please enter an item name', variant: 'destructive' });
+      toast({ title: "Please enter an item name", variant: "destructive" });
       return;
     }
     const price = parseFloat(newItem.price) || 0;
@@ -338,7 +351,7 @@ function MenuItemsSection({
       price,
       is_offer: newItem.is_offer,
     });
-    setNewItem({ name: '', description: '', price: '', is_offer: false });
+    setNewItem({ name: "", description: "", price: "", is_offer: false });
     setCreateDialogOpen(false);
   };
 
@@ -356,7 +369,7 @@ function MenuItemsSection({
   };
 
   const handleDeleteItem = async (id: string) => {
-    if (confirm('Are you sure you want to delete this item?')) {
+    if (confirm("Are you sure you want to delete this item?")) {
       await deleteItem.mutateAsync(id);
     }
   };
@@ -424,7 +437,9 @@ function MenuItemsSection({
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
+                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                  Cancel
+                </Button>
                 <Button onClick={handleCreateItem} disabled={createItem.isPending}>
                   {createItem.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Create
@@ -444,7 +459,9 @@ function MenuItemsSection({
             </SelectTrigger>
             <SelectContent>
               {categories.map((cat) => (
-                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                <SelectItem key={cat.id} value={cat.id}>
+                  {cat.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -478,17 +495,13 @@ function MenuItemsSection({
                   <p className="text-sm font-medium text-primary mt-1">${Number(item.price).toFixed(2)}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Switch 
-                    checked={item.is_available} 
+                  <Switch
+                    checked={item.is_available}
                     onCheckedChange={(checked) => updateItem.mutate({ id: item.id, is_available: checked })}
                   />
                   <Dialog open={editingItem?.id === item.id} onOpenChange={(open) => !open && setEditingItem(null)}>
                     <DialogTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => setEditingItem(item)}
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => setEditingItem(item)}>
                         <Edit2 className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
@@ -501,15 +514,19 @@ function MenuItemsSection({
                         <div className="space-y-2">
                           <Label>Name</Label>
                           <Input
-                            value={editingItem?.name || ''}
-                            onChange={(e) => setEditingItem(prev => prev ? { ...prev, name: e.target.value } : null)}
+                            value={editingItem?.name || ""}
+                            onChange={(e) =>
+                              setEditingItem((prev) => (prev ? { ...prev, name: e.target.value } : null))
+                            }
                           />
                         </div>
                         <div className="space-y-2">
                           <Label>Description</Label>
                           <Input
-                            value={editingItem?.description || ''}
-                            onChange={(e) => setEditingItem(prev => prev ? { ...prev, description: e.target.value } : null)}
+                            value={editingItem?.description || ""}
+                            onChange={(e) =>
+                              setEditingItem((prev) => (prev ? { ...prev, description: e.target.value } : null))
+                            }
                           />
                         </div>
                         <div className="space-y-2">
@@ -518,19 +535,27 @@ function MenuItemsSection({
                             type="number"
                             step="0.01"
                             value={editingItem?.price || 0}
-                            onChange={(e) => setEditingItem(prev => prev ? { ...prev, price: parseFloat(e.target.value) || 0 } : null)}
+                            onChange={(e) =>
+                              setEditingItem((prev) =>
+                                prev ? { ...prev, price: parseFloat(e.target.value) || 0 } : null,
+                              )
+                            }
                           />
                         </div>
                         <div className="flex items-center gap-2">
                           <Switch
                             checked={editingItem?.is_offer || false}
-                            onCheckedChange={(checked) => setEditingItem(prev => prev ? { ...prev, is_offer: checked } : null)}
+                            onCheckedChange={(checked) =>
+                              setEditingItem((prev) => (prev ? { ...prev, is_offer: checked } : null))
+                            }
                           />
                           <Label>Mark as Offer</Label>
                         </div>
                       </div>
                       <DialogFooter>
-                        <Button variant="outline" onClick={() => setEditingItem(null)}>Cancel</Button>
+                        <Button variant="outline" onClick={() => setEditingItem(null)}>
+                          Cancel
+                        </Button>
                         <Button onClick={handleUpdateItem} disabled={updateItem.isPending}>
                           {updateItem.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                           Save
