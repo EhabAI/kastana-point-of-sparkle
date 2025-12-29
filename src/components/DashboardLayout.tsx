@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import kastanaLogo from '@/assets/kastana-logo.png';
+import { LanguageToggle } from '@/components/LanguageToggle';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -12,6 +14,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, title }: DashboardLayoutProps) {
   const { signOut, user, role } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -32,11 +35,12 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
                 <p className="text-xs text-muted-foreground capitalize">{role?.replace('_', ' ')}</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <LanguageToggle />
               <span className="text-sm text-muted-foreground hidden sm:block">{user?.email}</span>
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
+                <LogOut className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                {t("sign_out")}
               </Button>
             </div>
           </div>
