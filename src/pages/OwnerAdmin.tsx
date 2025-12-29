@@ -16,10 +16,27 @@ import {
 } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useOwnerRestaurant, useUpdateRestaurant } from "@/hooks/useRestaurants";
 import { useMenuCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from "@/hooks/useMenuCategories";
 import { useMenuItems, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, MenuItem } from "@/hooks/useMenuItems";
-import { Store, Loader2, Plus, Edit2, Trash2, FolderOpen, Tag, Flame, ChevronDown } from "lucide-react";
+import { 
+  Store, 
+  Loader2, 
+  Plus, 
+  Edit2, 
+  Trash2, 
+  FolderOpen, 
+  Tag, 
+  Flame, 
+  ChevronDown,
+  LayoutDashboard,
+  BarChart3,
+  FileText,
+  UtensilsCrossed,
+  Users,
+  Settings
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { CSVUpload } from "@/components/owner/CSVUpload";
@@ -51,7 +68,6 @@ export default function OwnerAdmin() {
 
   const [editingRestaurantName, setEditingRestaurantName] = useState(false);
   const [restaurantName, setRestaurantName] = useState("");
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
   const handleUpdateRestaurantName = async () => {
     if (!restaurant || !restaurantName.trim()) return;
@@ -87,8 +103,8 @@ export default function OwnerAdmin() {
 
   return (
     <DashboardLayout title="Owner Dashboard">
-      <div className="space-y-8 animate-fade-in">
-        {/* Restaurant Info */}
+      <div className="space-y-6 animate-fade-in">
+        {/* Restaurant Info - Always visible */}
         <Card className="shadow-card">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -144,55 +160,80 @@ export default function OwnerAdmin() {
           </CardHeader>
         </Card>
 
+        {/* Tabbed Navigation */}
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 h-auto gap-1 bg-muted/50 p-1">
+            <TabsTrigger value="overview" className="flex items-center gap-2 py-2.5">
+              <LayoutDashboard className="h-4 w-4" />
+              <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2 py-2.5">
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden sm:inline">Analytics</span>
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="flex items-center gap-2 py-2.5">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Reports</span>
+            </TabsTrigger>
+            <TabsTrigger value="menu" className="flex items-center gap-2 py-2.5">
+              <UtensilsCrossed className="h-4 w-4" />
+              <span className="hidden sm:inline">Menu</span>
+            </TabsTrigger>
+            <TabsTrigger value="management" className="flex items-center gap-2 py-2.5">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Management</span>
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2 py-2.5">
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Settings</span>
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Dashboard Overview - Quick Stats */}
-        {role === "owner" && (
-          <DashboardOverview
-            restaurantId={restaurant.id}
-            tableCount={tables.length}
-            staffCount={cashiers.length}
-            currency={currency}
-          />
-        )}
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6 mt-6">
+            {role === "owner" && (
+              <DashboardOverview
+                restaurantId={restaurant.id}
+                tableCount={tables.length}
+                staffCount={cashiers.length}
+                currency={currency}
+              />
+            )}
+            {role === "owner" && <NotificationsAlerts />}
+          </TabsContent>
 
-        {/* Notifications & Alerts - Only visible to owners */}
-        {role === "owner" && <NotificationsAlerts />}
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6 mt-6">
+            {role === "owner" && <AnalyticsCharts />}
+            {role === "owner" && <BestWorstSellers />}
+            {role === "owner" && <CashierPerformance />}
+          </TabsContent>
 
-        {/* Analytics Charts - Only visible to owners */}
-        {role === "owner" && <AnalyticsCharts />}
+          {/* Reports Tab */}
+          <TabsContent value="reports" className="space-y-6 mt-6">
+            {role === "owner" && <BasicReports />}
+            {role === "owner" && <ShiftsView />}
+          </TabsContent>
 
-        {/* Best/Worst Sellers - Only visible to owners */}
-        {role === "owner" && <BestWorstSellers />}
+          {/* Menu Tab */}
+          <TabsContent value="menu" className="space-y-6 mt-6">
+            {role === "owner" && <CSVUpload restaurantId={restaurant.id} />}
+            <CategoriesSection restaurantId={restaurant.id} categories={categories} isLoading={loadingCategories} />
+            <MenuItemsSection restaurantId={restaurant.id} categories={categories} />
+          </TabsContent>
 
-        {/* Cashier Performance - Only visible to owners */}
-        {role === "owner" && <CashierPerformance />}
+          {/* Management Tab */}
+          <TabsContent value="management" className="space-y-6 mt-6">
+            {role === "owner" && <TableManagement restaurantId={restaurant.id} tableCount={tables.length} />}
+            {role === "owner" && <StaffManagement restaurantId={restaurant.id} staffCount={cashiers.length} />}
+          </TabsContent>
 
-        {/* Restaurant Settings Section - Only visible to owners */}
-        {role === "owner" && <RestaurantSettings />}
-
-        {/* Discount Settings Section - Only visible to owners */}
-        {role === "owner" && <DiscountSettings />}
-
-        {/* Basic Reports Section - Only visible to owners */}
-        {role === "owner" && <BasicReports />}
-
-        {/* Shifts View Section - Only visible to owners */}
-        {role === "owner" && <ShiftsView />}
-
-        {/* CSV Upload Section - Only visible to owners */}
-        {role === "owner" && <CSVUpload restaurantId={restaurant.id} />}
-
-        {/* Tables Management Section - Only visible to owners */}
-        {role === "owner" && <TableManagement restaurantId={restaurant.id} tableCount={tables.length} />}
-
-        {/* Staff Management Section - Only visible to owners */}
-        {role === "owner" && <StaffManagement restaurantId={restaurant.id} staffCount={cashiers.length} />}
-
-        {/* Categories Section */}
-        <CategoriesSection restaurantId={restaurant.id} categories={categories} isLoading={loadingCategories} />
-
-        {/* Menu Items Section */}
-        <MenuItemsSection restaurantId={restaurant.id} categories={categories} />
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="space-y-6 mt-6">
+            {role === "owner" && <RestaurantSettings />}
+            {role === "owner" && <DiscountSettings />}
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
