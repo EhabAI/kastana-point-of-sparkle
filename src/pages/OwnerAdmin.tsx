@@ -35,7 +35,8 @@ import {
   FileText,
   UtensilsCrossed,
   Users,
-  Settings
+  Settings,
+  Building2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -107,6 +108,7 @@ export default function OwnerAdmin() {
 
   return (
     <DashboardLayout title="Owner Dashboard">
+      <BranchProvider>
       <div className="space-y-6 animate-fade-in">
         {/* Restaurant Info - Always visible */}
         <Card className="shadow-card">
@@ -203,6 +205,13 @@ export default function OwnerAdmin() {
               <span>Manage</span>
             </TabsTrigger>
             <TabsTrigger 
+              value="branches" 
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border-2 border-transparent bg-teal-50 text-teal-700 hover:bg-teal-100 data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:border-teal-600 data-[state=active]:shadow-lg transition-all duration-200 hover-scale"
+            >
+              <Building2 className="h-4 w-4" />
+              <span>Branches</span>
+            </TabsTrigger>
+            <TabsTrigger 
               value="settings" 
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border-2 border-transparent bg-slate-100 text-slate-700 hover:bg-slate-200 data-[state=active]:bg-slate-700 data-[state=active]:text-white data-[state=active]:border-slate-700 data-[state=active]:shadow-lg transition-all duration-200 hover-scale"
             >
@@ -239,15 +248,24 @@ export default function OwnerAdmin() {
 
           {/* Menu Tab */}
           <TabsContent value="menu" className="space-y-6 mt-6">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <BranchSelector />
+            </div>
             {role === "owner" && <CSVUpload restaurantId={restaurant.id} />}
             <CategoriesSection restaurantId={restaurant.id} categories={categories} isLoading={loadingCategories} />
             <MenuItemsSection restaurantId={restaurant.id} categories={categories} />
+            <BranchMenuItemsManager restaurantId={restaurant.id} currency={currency} />
           </TabsContent>
 
           {/* Management Tab */}
           <TabsContent value="management" className="space-y-6 mt-6">
             {role === "owner" && <TableManagement restaurantId={restaurant.id} tableCount={tables.length} />}
             {role === "owner" && <StaffManagement restaurantId={restaurant.id} staffCount={cashiers.length} />}
+          </TabsContent>
+
+          {/* Branches Tab */}
+          <TabsContent value="branches" className="space-y-6 mt-6">
+            {role === "owner" && <BranchManagement restaurantId={restaurant.id} />}
           </TabsContent>
 
           {/* Settings Tab */}
@@ -257,6 +275,7 @@ export default function OwnerAdmin() {
           </TabsContent>
         </Tabs>
       </div>
+      </BranchProvider>
     </DashboardLayout>
   );
 }
