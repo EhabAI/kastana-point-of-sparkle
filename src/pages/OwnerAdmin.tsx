@@ -39,6 +39,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { BranchProvider } from "@/contexts/BranchContext";
 import { CSVUpload } from "@/components/owner/CSVUpload";
 import { TableManagement } from "@/components/owner/TableManagement";
 import { StaffManagement } from "@/components/owner/StaffManagement";
@@ -51,6 +52,9 @@ import { AnalyticsCharts } from "@/components/owner/AnalyticsCharts";
 import { BestWorstSellers } from "@/components/owner/BestWorstSellers";
 import { CashierPerformance } from "@/components/owner/CashierPerformance";
 import { NotificationsAlerts } from "@/components/owner/NotificationsAlerts";
+import { BranchSelector } from "@/components/owner/BranchSelector";
+import { BranchManagement } from "@/components/owner/BranchManagement";
+import { BranchMenuItemsManager } from "@/components/owner/BranchMenuItemsManager";
 import { useRestaurantTables } from "@/hooks/useRestaurantTables";
 import { useCashiers } from "@/hooks/useCashiers";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
