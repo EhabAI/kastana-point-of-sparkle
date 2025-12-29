@@ -17,12 +17,14 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useBranches, useCreateBranch, useUpdateBranch, useDeleteBranch, Branch } from "@/hooks/useBranches";
 import { Building2, Plus, Edit2, Trash2, Loader2, ChevronDown, MapPin, Phone, Hash, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface BranchManagementProps {
   restaurantId: string;
 }
 
 export function BranchManagement({ restaurantId }: BranchManagementProps) {
+  const { t } = useLanguage();
   const { data: branches = [], isLoading } = useBranches(restaurantId);
   const createBranch = useCreateBranch();
   const updateBranch = useUpdateBranch();
@@ -92,10 +94,10 @@ export function BranchManagement({ restaurantId }: BranchManagementProps) {
 
   const handleDelete = async (branch: Branch) => {
     if (branch.is_default) {
-      alert("لا يمكن حذف الفرع الافتراضي");
+      alert(t("cannot_delete_default"));
       return;
     }
-    if (confirm(`هل أنت متأكد من حذف الفرع "${branch.name}"؟`)) {
+    if (confirm(`${t("confirm_delete_branch")} "${branch.name}"?`)) {
       await deleteBranch.mutateAsync(branch.id);
     }
   };
@@ -118,58 +120,58 @@ export function BranchManagement({ restaurantId }: BranchManagementProps) {
             <CollapsibleTrigger asChild>
               <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                 <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
-                <div className="text-left">
+                <div className="text-start">
                   <CardTitle className="flex items-center gap-2">
                     <Building2 className="h-5 w-5" />
-                    إدارة الفروع
+                    {t("branch_management")}
                     <span className="text-muted-foreground font-normal">({branches.length})</span>
                   </CardTitle>
-                  <CardDescription>إدارة فروع المطعم</CardDescription>
+                  <CardDescription>{t("manage_restaurant_branches")}</CardDescription>
                 </div>
               </button>
             </CollapsibleTrigger>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" onClick={resetForm}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  إضافة فرع
+                  <Plus className="h-4 w-4 me-2" />
+                  {t("add_branch")}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>إضافة فرع جديد</DialogTitle>
-                  <DialogDescription>أضف فرعاً جديداً للمطعم</DialogDescription>
+                  <DialogTitle>{t("add_branch")}</DialogTitle>
+                  <DialogDescription>{t("add_new_branch")}</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="branch-name">اسم الفرع *</Label>
+                    <Label htmlFor="branch-name">{t("branch_name_required")}</Label>
                     <Input
                       id="branch-name"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="مثال: فرع الشميساني"
+                      placeholder={t("branch_name_placeholder")}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="branch-code">الرمز</Label>
+                    <Label htmlFor="branch-code">{t("branch_code")}</Label>
                     <Input
                       id="branch-code"
                       value={formData.code}
                       onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                      placeholder="مثال: SHM"
+                      placeholder={t("branch_code_placeholder")}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="branch-address">العنوان</Label>
+                    <Label htmlFor="branch-address">{t("branch_address")}</Label>
                     <Input
                       id="branch-address"
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      placeholder="العنوان الكامل"
+                      placeholder={t("full_address")}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="branch-phone">رقم الهاتف</Label>
+                    <Label htmlFor="branch-phone">{t("branch_phone")}</Label>
                     <Input
                       id="branch-phone"
                       value={formData.phone}
@@ -179,10 +181,10 @@ export function BranchManagement({ restaurantId }: BranchManagementProps) {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>إلغاء</Button>
+                  <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>{t("cancel")}</Button>
                   <Button onClick={handleCreate} disabled={createBranch.isPending}>
-                    {createBranch.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                    إنشاء
+                    {createBranch.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+                    {t("create")}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -196,7 +198,7 @@ export function BranchManagement({ restaurantId }: BranchManagementProps) {
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             ) : branches.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">لا توجد فروع. أضف فرعاً للبدء.</p>
+              <p className="text-muted-foreground text-center py-8">{t("no_branches_add")}</p>
             ) : (
               <div className="space-y-3">
                 {branches.map((branch) => (
@@ -215,12 +217,12 @@ export function BranchManagement({ restaurantId }: BranchManagementProps) {
                           <p className="font-medium text-foreground">{branch.name}</p>
                           {branch.is_default && (
                             <Badge variant="secondary" className="text-xs">
-                              <Star className="h-3 w-3 mr-1" />
-                              افتراضي
+                              <Star className="h-3 w-3 me-1" />
+                              {t("default")}
                             </Badge>
                           )}
                           {!branch.is_active && (
-                            <Badge variant="destructive" className="text-xs">معطل</Badge>
+                            <Badge variant="destructive" className="text-xs">{t("disabled")}</Badge>
                           )}
                         </div>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -251,7 +253,7 @@ export function BranchManagement({ restaurantId }: BranchManagementProps) {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleSetDefault(branch)}
-                          title="تعيين كافتراضي"
+                          title={t("set_default")}
                         >
                           <Star className="h-4 w-4" />
                         </Button>
@@ -271,32 +273,32 @@ export function BranchManagement({ restaurantId }: BranchManagementProps) {
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>تعديل الفرع</DialogTitle>
+                            <DialogTitle>{t("edit_branch")}</DialogTitle>
                           </DialogHeader>
                           <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                              <Label>اسم الفرع *</Label>
+                              <Label>{t("branch_name_required")}</Label>
                               <Input
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label>الرمز</Label>
+                              <Label>{t("branch_code")}</Label>
                               <Input
                                 value={formData.code}
                                 onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label>العنوان</Label>
+                              <Label>{t("branch_address")}</Label>
                               <Input
                                 value={formData.address}
                                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label>رقم الهاتف</Label>
+                              <Label>{t("branch_phone")}</Label>
                               <Input
                                 value={formData.phone}
                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -304,10 +306,10 @@ export function BranchManagement({ restaurantId }: BranchManagementProps) {
                             </div>
                           </div>
                           <DialogFooter>
-                            <Button variant="outline" onClick={() => setEditingBranch(null)}>إلغاء</Button>
+                            <Button variant="outline" onClick={() => setEditingBranch(null)}>{t("cancel")}</Button>
                             <Button onClick={handleUpdate} disabled={updateBranch.isPending}>
-                              {updateBranch.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                              حفظ
+                              {updateBranch.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+                              {t("save")}
                             </Button>
                           </DialogFooter>
                         </DialogContent>

@@ -25,6 +25,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useBranchMenuItems, useUpdateBranchMenuItem, useBulkUpdateBranchMenuItems, useCopyBranchPrices, BranchMenuItemWithBase } from "@/hooks/useBranchMenuItems";
 import { useBranchContext } from "@/contexts/BranchContext";
 import { useMenuCategories } from "@/hooks/useMenuCategories";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   Tag, 
   Loader2, 
@@ -45,6 +46,7 @@ interface BranchMenuItemsManagerProps {
 }
 
 export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuItemsManagerProps) {
+  const { t } = useLanguage();
   const { selectedBranch, branches, isBranchSelected } = useBranchContext();
   const { data: categories = [] } = useMenuCategories(restaurantId);
   const { data: items = [], isLoading } = useBranchMenuItems(selectedBranch?.id);
@@ -94,7 +96,7 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
   }, [filteredItems]);
 
   const getCategoryName = (catId: string) => {
-    return categories.find(c => c.id === catId)?.name || "غير مصنف";
+    return categories.find(c => c.id === catId)?.name || t("uncategorized");
   };
 
   const toggleSelectItem = (itemId: string) => {
@@ -205,8 +207,8 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
       <Card className="shadow-card">
         <CardContent className="p-8 text-center">
           <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">اختر الفرع أولاً</h3>
-          <p className="text-muted-foreground">يجب اختيار فرع من القائمة أعلاه لإدارة الأسعار والعروض</p>
+          <h3 className="text-lg font-semibold mb-2">{t("select_branch_first")}</h3>
+          <p className="text-muted-foreground">{t("select_branch_to_manage")}</p>
         </CardContent>
       </Card>
     );
@@ -220,13 +222,13 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
             <CollapsibleTrigger asChild>
               <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                 <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
-                <div className="text-left">
+                <div className="text-start">
                   <CardTitle className="flex items-center gap-2">
                     <Tag className="h-5 w-5" />
-                    أسعار وعروض الفرع
+                    {t("branch_prices_promos")}
                     <Badge variant="outline">{selectedBranch?.name}</Badge>
                   </CardTitle>
-                  <CardDescription>إدارة الأسعار والعروض لكل فرع</CardDescription>
+                  <CardDescription>{t("manage_prices_promos")}</CardDescription>
                 </div>
               </button>
             </CollapsibleTrigger>
@@ -237,8 +239,8 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                 onClick={() => setCopyDialogOpen(true)}
                 disabled={branches.length < 2}
               >
-                <Copy className="h-4 w-4 mr-2" />
-                نسخ من فرع
+                <Copy className="h-4 w-4 me-2" />
+                {t("copy_from_branch")}
               </Button>
             </div>
           </div>
@@ -249,10 +251,10 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
             <div className="flex flex-wrap items-center gap-4 pb-4 border-b">
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger className="w-48">
-                  <SelectValue placeholder="كل الأصناف" />
+                  <SelectValue placeholder={t("all_categories")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">كل الأصناف</SelectItem>
+                  <SelectItem value="all">{t("all_categories")}</SelectItem>
                   {categories.map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                   ))}
@@ -261,32 +263,32 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
 
               {selectedItems.length > 0 && (
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="secondary">{selectedItems.length} محدد</Badge>
+                  <Badge variant="secondary">{selectedItems.length} {t("selected")}</Badge>
                   <Button variant="outline" size="sm" onClick={() => handleBulkAvailability(true)}>
-                    <CheckSquare className="h-4 w-4 mr-1" />
-                    متاح
+                    <CheckSquare className="h-4 w-4 me-1" />
+                    {t("available")}
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => handleBulkAvailability(false)}>
-                    <XSquare className="h-4 w-4 mr-1" />
-                    غير متاح
+                    <XSquare className="h-4 w-4 me-1" />
+                    {t("unavailable")}
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => handleBulkActive(true)}>
-                    نشط
+                    {t("active_status")}
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => handleBulkActive(false)}>
-                    معطل
+                    {t("disabled_status")}
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => setPromoDialogOpen(true)}>
-                    <Percent className="h-4 w-4 mr-1" />
-                    عرض
+                    <Percent className="h-4 w-4 me-1" />
+                    {t("promo")}
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={deselectAll}>إلغاء التحديد</Button>
+                  <Button variant="ghost" size="sm" onClick={deselectAll}>{t("deselect")}</Button>
                 </div>
               )}
 
               {selectedItems.length === 0 && filteredItems.length > 0 && (
                 <Button variant="ghost" size="sm" onClick={selectAll}>
-                  تحديد الكل ({filteredItems.length})
+                  {t("select_all")} ({filteredItems.length})
                 </Button>
               )}
             </div>
@@ -297,7 +299,7 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             ) : filteredItems.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">لا توجد أصناف</p>
+              <p className="text-muted-foreground text-center py-8">{t("no_items")}</p>
             ) : (
               <div className="space-y-6">
                 {Object.entries(itemsByCategory).map(([catId, catItems]) => (
@@ -321,15 +323,15 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                                 <span className="font-medium">{item.base_name}</span>
                                 {item.is_promo_active && (
                                   <Badge variant="destructive" className="text-xs">
-                                    <Flame className="h-3 w-3 mr-1" />
-                                    {item.promo_label || "عرض"}
+                                    <Flame className="h-3 w-3 me-1" />
+                                    {item.promo_label || t("offer")}
                                   </Badge>
                                 )}
                                 {!item.is_available && (
-                                  <Badge variant="secondary" className="text-xs">غير متاح</Badge>
+                                  <Badge variant="secondary" className="text-xs">{t("unavailable")}</Badge>
                                 )}
                                 {!item.is_active && (
-                                  <Badge variant="outline" className="text-xs">معطل</Badge>
+                                  <Badge variant="outline" className="text-xs">{t("disabled")}</Badge>
                                 )}
                               </div>
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -342,7 +344,7 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                                   <span>{item.effective_price.toFixed(2)} {currency}</span>
                                 )}
                                 {item.price !== null && item.price !== item.menu_item?.price && (
-                                  <Badge variant="outline" className="text-xs">سعر مخصص</Badge>
+                                  <Badge variant="outline" className="text-xs">{t("custom_price")}</Badge>
                                 )}
                               </div>
                             </div>
@@ -351,12 +353,12 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                             <Switch
                               checked={item.is_available}
                               onCheckedChange={() => handleToggleAvailable(item)}
-                              title="متاح"
+                              title={t("available")}
                             />
                             <Switch
                               checked={item.is_active}
                               onCheckedChange={() => handleToggleActive(item)}
-                              title="نشط"
+                              title={t("active_status")}
                             />
                             <Button variant="ghost" size="icon" onClick={() => openEditDialog(item)}>
                               <Edit2 className="h-4 w-4" />
@@ -377,16 +379,16 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
       <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>تعديل الصنف - {editingItem?.base_name}</DialogTitle>
+            <DialogTitle>{t("edit_item")} - {editingItem?.base_name}</DialogTitle>
             <DialogDescription>
-              السعر الأساسي: {editingItem?.menu_item?.price?.toFixed(2)} {currency}
+              {t("base_price")}: {editingItem?.menu_item?.price?.toFixed(2)} {currency}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <DollarSign className="h-4 w-4" />
-                سعر الفرع (اتركه فارغاً لاستخدام السعر الأساسي)
+                {t("branch_price")}
               </Label>
               <Input
                 type="number"
@@ -399,30 +401,30 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
             <div className="border-t pt-4">
               <h4 className="font-medium mb-3 flex items-center gap-2">
                 <Flame className="h-4 w-4 text-destructive" />
-                إعدادات العرض
+                {t("promo_settings")}
               </h4>
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <Label>سعر العرض</Label>
+                  <Label>{t("promo_price")}</Label>
                   <Input
                     type="number"
                     step="0.01"
                     value={editFormData.promo_price}
                     onChange={(e) => setEditFormData({ ...editFormData, promo_price: e.target.value })}
-                    placeholder="سعر العرض"
+                    placeholder={t("promo_price")}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>نص العرض</Label>
+                  <Label>{t("promo_label")}</Label>
                   <Input
                     value={editFormData.promo_label}
                     onChange={(e) => setEditFormData({ ...editFormData, promo_label: e.target.value })}
-                    placeholder="مثال: خصم 20%"
+                    placeholder={t("promo_label_placeholder")}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label>بداية العرض</Label>
+                    <Label>{t("promo_start")}</Label>
                     <Input
                       type="datetime-local"
                       value={editFormData.promo_start}
@@ -430,7 +432,7 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>نهاية العرض</Label>
+                    <Label>{t("promo_end")}</Label>
                     <Input
                       type="datetime-local"
                       value={editFormData.promo_end}
@@ -442,10 +444,10 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingItem(null)}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setEditingItem(null)}>{t("cancel")}</Button>
             <Button onClick={handleUpdateItem} disabled={updateItem.isPending}>
-              {updateItem.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              حفظ
+              {updateItem.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+              {t("save")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -455,11 +457,11 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
       <Dialog open={promoDialogOpen} onOpenChange={setPromoDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>تطبيق عرض على {selectedItems.length} صنف</DialogTitle>
+            <DialogTitle>{t("apply_promo")} - {selectedItems.length} {t("selected")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>سعر العرض</Label>
+              <Label>{t("promo_price")}</Label>
               <Input
                 type="number"
                 step="0.01"
@@ -468,7 +470,7 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
               />
             </div>
             <div className="space-y-2">
-              <Label>نص العرض</Label>
+              <Label>{t("promo_label")}</Label>
               <Input
                 value={promoFormData.promo_label}
                 onChange={(e) => setPromoFormData({ ...promoFormData, promo_label: e.target.value })}
@@ -476,7 +478,7 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>بداية العرض</Label>
+                <Label>{t("promo_start")}</Label>
                 <Input
                   type="datetime-local"
                   value={promoFormData.promo_start}
@@ -484,7 +486,7 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                 />
               </div>
               <div className="space-y-2">
-                <Label>نهاية العرض</Label>
+                <Label>{t("promo_end")}</Label>
                 <Input
                   type="datetime-local"
                   value={promoFormData.promo_end}
@@ -494,10 +496,10 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setPromoDialogOpen(false)}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setPromoDialogOpen(false)}>{t("cancel")}</Button>
             <Button onClick={handleApplyPromo} disabled={bulkUpdate.isPending}>
-              {bulkUpdate.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              تطبيق
+              {bulkUpdate.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+              {t("apply_promo")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -507,17 +509,17 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
       <Dialog open={copyDialogOpen} onOpenChange={setCopyDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>نسخ الأسعار من فرع آخر</DialogTitle>
+            <DialogTitle>{t("copy_prices")}</DialogTitle>
             <DialogDescription>
-              سيتم نسخ جميع الأسعار من الفرع المصدر إلى {selectedBranch?.name}
+              {t("copy_prices_from_branch")} - {selectedBranch?.name}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>الفرع المصدر</Label>
+              <Label>{t("source_branch")}</Label>
               <Select value={sourceBranchId} onValueChange={setSourceBranchId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="اختر الفرع" />
+                  <SelectValue placeholder={t("select_source_branch")} />
                 </SelectTrigger>
                 <SelectContent>
                   {branches
@@ -534,14 +536,14 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                 checked={copyPromos}
                 onCheckedChange={(checked) => setCopyPromos(!!checked)}
               />
-              <Label htmlFor="copy-promos">نسخ العروض أيضاً</Label>
+              <Label htmlFor="copy-promos">{t("include_promos")}</Label>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCopyDialogOpen(false)}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setCopyDialogOpen(false)}>{t("cancel")}</Button>
             <Button onClick={handleCopyPrices} disabled={!sourceBranchId || copyPrices.isPending}>
-              {copyPrices.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              نسخ
+              {copyPrices.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+              {t("copy_prices")}
             </Button>
           </DialogFooter>
         </DialogContent>
