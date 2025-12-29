@@ -339,7 +339,7 @@ function MenuItemsSection({
   categories: { id: string; name: string }[];
 }) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
-  const { data: items = [], isLoading } = useMenuItems(selectedCategoryId || undefined);
+  const { data: items = [], isLoading } = useMenuItems(restaurantId, selectedCategoryId || undefined);
   const createItem = useCreateMenuItem();
   const updateItem = useUpdateMenuItem();
   const deleteItem = useDeleteMenuItem();
