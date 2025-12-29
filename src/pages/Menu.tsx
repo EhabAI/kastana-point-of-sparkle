@@ -172,7 +172,7 @@ const translations = {
   ar: {
     menu: "القائمة",
     table: "الطاولة",
-    add: "أضف للطلب",
+    add: "أضف",
     quantity: "الكمية",
     notes: "ملاحظات",
     notesPlaceholder: "بدون سكر، حليب أقل...",
@@ -189,15 +189,18 @@ const translations = {
     noPhone: "لا يوجد رقم هاتف للكاشير",
     loadError: "تعذر فتح القائمة",
     restaurantNotFound: "المطعم غير موجود",
-    invalidRestaurant: "Restaurant غير صالح",
+    invalidRestaurant: "معرف المطعم غير صالح",
     categoriesError: "فشل تحميل التصنيفات",
     itemsError: "فشل تحميل الأصناف",
     close: "إغلاق",
+    currency: "د.أ",
+    items: "أصناف",
+    remove: "إزالة",
   },
   en: {
     menu: "Menu",
     table: "Table",
-    add: "Add to Order",
+    add: "Add",
     quantity: "Quantity",
     notes: "Notes",
     notesPlaceholder: "No sugar, less milk...",
@@ -218,6 +221,9 @@ const translations = {
     categoriesError: "Failed to load categories",
     itemsError: "Failed to load items",
     close: "Close",
+    currency: "JOD",
+    items: "items",
+    remove: "Remove",
   },
 };
 
@@ -402,7 +408,7 @@ export default function Menu() {
         `🍽️ *${restaurant?.name || "Order"}*\n` +
         `📍 ${t.table}: ${tableCode}\n\n` +
         `${itemsList}\n\n` +
-        `💰 ${t.total}: ${cartTotal.toFixed(2)} JOD`
+        `💰 ${t.total}: ${cartTotal.toFixed(2)} ${t.currency}`
       );
 
       // Clear cart and show success
@@ -456,7 +462,7 @@ export default function Menu() {
      Success UI
   ======================= */
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-24" dir={lang === "ar" ? "rtl" : "ltr"}>
       <div className="max-w-3xl mx-auto p-4">
         {/* Header */}
         <div className="mb-6 flex justify-between items-start">
@@ -534,7 +540,7 @@ export default function Menu() {
                                 <p className="font-medium">
                                   {item.name} {item.is_offer && <span className="ml-1 text-xs">🔥</span>}
                                 </p>
-                                <p className="text-sm text-muted-foreground">{item.price.toFixed(2)} JOD</p>
+                                <p className="text-sm text-muted-foreground">{item.price.toFixed(2)} {t.currency}</p>
                               </div>
                               <div className="flex items-center gap-2">
                                 {qty > 0 ? (
@@ -600,7 +606,7 @@ export default function Menu() {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold">{(item.price * item.quantity).toFixed(2)} JOD</span>
+                  <span className="font-semibold">{(item.price * item.quantity).toFixed(2)} {t.currency}</span>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -615,7 +621,7 @@ export default function Menu() {
 
             <div className="border-t pt-3 flex justify-between items-center font-bold text-lg">
               <span>{t.total}</span>
-              <span>{cartTotal.toFixed(2)} JOD</span>
+              <span>{cartTotal.toFixed(2)} {t.currency}</span>
             </div>
 
             <Button
@@ -640,7 +646,7 @@ export default function Menu() {
               onClick={() => setShowConfirm(true)}
             >
               <ShoppingCart className="h-5 w-5" />
-              {t.confirmOrder} ({cart.length}) - {cartTotal.toFixed(2)} JOD
+              {t.confirmOrder} ({cart.length}) - {cartTotal.toFixed(2)} {t.currency}
             </Button>
           </div>
         </div>
