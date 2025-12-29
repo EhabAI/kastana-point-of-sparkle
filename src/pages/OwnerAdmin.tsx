@@ -28,6 +28,7 @@ import { StaffManagement } from "@/components/owner/StaffManagement";
 import { RestaurantSettings } from "@/components/owner/RestaurantSettings";
 import { DiscountSettings } from "@/components/owner/DiscountSettings";
 import { BasicReports } from "@/components/owner/BasicReports";
+import { ShiftsView } from "@/components/owner/ShiftsView";
 
 export default function OwnerAdmin() {
   const { role } = useAuth();
@@ -139,6 +140,9 @@ export default function OwnerAdmin() {
 
         {/* Basic Reports Section - Only visible to owners */}
         {role === "owner" && <BasicReports />}
+
+        {/* Shifts View Section - Only visible to owners */}
+        {role === "owner" && <ShiftsView />}
 
         {/* CSV Upload Section - Only visible to owners */}
         {role === "owner" && <CSVUpload restaurantId={restaurant.id} />}
