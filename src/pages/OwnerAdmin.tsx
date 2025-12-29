@@ -324,7 +324,7 @@ function MenuItemsSection({
   categories: { id: string; name: string }[];
 }) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
-  const { data: items = [], isLoading } = useMenuItems(restaurantId, selectedCategoryId || undefined);
+  const { data: items = [], isLoading } = useMenuItems(selectedCategoryId || undefined);
   const createItem = useCreateMenuItem();
   const updateItem = useUpdateMenuItem();
   const deleteItem = useDeleteMenuItem();
@@ -492,7 +492,7 @@ function MenuItemsSection({
                     )}
                   </div>
                   {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
-                  <p className="text-sm font-medium text-primary mt-1">${Number(item.price).toFixed(2)}</p>
+                  <p className="text-sm font-medium text-primary mt-1">دزأ{Number(item.price).toFixed(2)}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <Switch
