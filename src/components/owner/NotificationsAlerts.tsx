@@ -21,8 +21,8 @@ interface Alert {
 export function NotificationsAlerts() {
   const { data: restaurant } = useOwnerRestaurant();
   const { data: settings } = useOwnerRestaurantSettings();
-  const { t } = useLanguage();
-  const currency = settings?.currency || "JOD";
+  const { t, language } = useLanguage();
+  const currencySymbol = language === "ar" ? "د.أ" : "JOD";
   
   const [isOpen, setIsOpen] = useState(true);
 
@@ -98,16 +98,24 @@ export function NotificationsAlerts() {
           alerts.push({
             id: "sales-up",
             type: "success",
-            title: "Sales Up!",
-            message: `Today's sales are up ${salesChange.toFixed(0)}% compared to yesterday (${todaySales.toFixed(2)} vs ${yesterdaySales.toFixed(2)} ${currency})`,
+            title: t("sales_up"),
+            message: t("sales_up_msg")
+              .replace("{percent}", salesChange.toFixed(0))
+              .replace("{today}", todaySales.toFixed(2))
+              .replace("{yesterday}", yesterdaySales.toFixed(2))
+              .replace("{currency}", currencySymbol),
             timestamp: new Date(),
           });
         } else if (salesChange <= -20) {
           alerts.push({
             id: "sales-down",
             type: "warning",
-            title: "Sales Down",
-            message: `Today's sales are down ${Math.abs(salesChange).toFixed(0)}% compared to yesterday (${todaySales.toFixed(2)} vs ${yesterdaySales.toFixed(2)} ${currency})`,
+            title: t("sales_down"),
+            message: t("sales_down_msg")
+              .replace("{percent}", Math.abs(salesChange).toFixed(0))
+              .replace("{today}", todaySales.toFixed(2))
+              .replace("{yesterday}", yesterdaySales.toFixed(2))
+              .replace("{currency}", currencySymbol),
             timestamp: new Date(),
           });
         }
@@ -120,8 +128,11 @@ export function NotificationsAlerts() {
           alerts.push({
             id: "high-cancellations",
             type: "error",
-            title: "High Cancellation Rate",
-            message: `${cancellationRate.toFixed(0)}% of today's orders were cancelled (${todayCancelledOrders.length} of ${todayOrders.length})`,
+            title: t("high_cancellations"),
+            message: t("high_cancellations_msg")
+              .replace("{percent}", cancellationRate.toFixed(0))
+              .replace("{cancelled}", String(todayCancelledOrders.length))
+              .replace("{total}", String(todayOrders.length)),
             timestamp: new Date(),
           });
         }
@@ -132,8 +143,8 @@ export function NotificationsAlerts() {
         alerts.push({
           id: "high-voids",
           type: "warning",
-          title: "High Void Count",
-          message: `${weekVoidedCount} items voided in the last 7 days. Consider reviewing with staff.`,
+          title: t("high_voids"),
+          message: t("high_voids_msg").replace("{count}", String(weekVoidedCount)),
           timestamp: new Date(),
         });
       }
@@ -145,8 +156,8 @@ export function NotificationsAlerts() {
           alerts.push({
             id: `long-shift-${shift.id}`,
             type: "info",
-            title: "Long Open Shift",
-            message: `A shift has been open for ${shiftDuration.toFixed(1)} hours. Consider checking if it should be closed.`,
+            title: t("long_shift"),
+            message: t("long_shift_msg").replace("{hours}", shiftDuration.toFixed(1)),
             timestamp: new Date(shift.opened_at),
           });
         }
@@ -157,8 +168,11 @@ export function NotificationsAlerts() {
         alerts.push({
           id: "high-discounts",
           type: "warning",
-          title: "High Discount Usage",
-          message: `${((todayDiscounts / todaySales) * 100).toFixed(0)}% of today's sales were discounted (${todayDiscounts.toFixed(2)} ${currency})`,
+          title: t("high_discounts"),
+          message: t("high_discounts_msg")
+            .replace("{percent}", ((todayDiscounts / todaySales) * 100).toFixed(0))
+            .replace("{amount}", todayDiscounts.toFixed(2))
+            .replace("{currency}", currencySymbol),
           timestamp: new Date(),
         });
       }
@@ -169,8 +183,8 @@ export function NotificationsAlerts() {
         alerts.push({
           id: "no-sales-today",
           type: "info",
-          title: "No Sales Today",
-          message: "No completed orders have been recorded today yet.",
+          title: t("no_sales_today"),
+          message: t("no_sales_today_msg"),
           timestamp: new Date(),
         });
       }
@@ -180,8 +194,8 @@ export function NotificationsAlerts() {
         alerts.push({
           id: "good-performance",
           type: "success",
-          title: "Great Performance!",
-          message: "Operations are running smoothly with low cancellations and voids.",
+          title: t("great_performance"),
+          message: t("great_performance_msg"),
           timestamp: new Date(),
         });
       }

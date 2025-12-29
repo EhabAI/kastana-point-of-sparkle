@@ -19,10 +19,10 @@ interface CashierSales {
 }
 
 export function BasicReports() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { data: restaurant } = useOwnerRestaurant();
   const { data: settings } = useOwnerRestaurantSettings();
-  const currency = settings?.currency || "JOD";
+  const currencySymbol = language === "ar" ? "د.أ" : "JOD";
   
   const [isOpen, setIsOpen] = useState(true);
   const [preset, setPreset] = useState<DateRangePreset>("today");
@@ -121,12 +121,12 @@ export function BasicReports() {
     const headers = ["Metric", "Value"];
     const rows = [
       ["Date Range", `${format(dateRange.from, "PP")} - ${format(dateRange.to, "PP")}`],
-      ["Total Sales", `${totalSales.toFixed(2)} ${currency}`],
+      ["Total Sales", `${totalSales.toFixed(2)} ${currencySymbol}`],
       ["Number of Orders", orderCount.toString()],
-      ["Total Discounts", `${totalDiscounts.toFixed(2)} ${currency}`],
+      ["Total Discounts", `${totalDiscounts.toFixed(2)} ${currencySymbol}`],
       [""],
       ["Cashier", "Total Sales", "Order Count"],
-      ...salesByCashier.map(c => [c.email, `${c.total_sales.toFixed(2)} ${currency}`, c.order_count.toString()]),
+      ...salesByCashier.map(c => [c.email, `${c.total_sales.toFixed(2)} ${currencySymbol}`, c.order_count.toString()]),
     ];
 
     const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
@@ -194,7 +194,7 @@ export function BasicReports() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 bg-muted/50 rounded-lg">
                     <p className="text-sm text-muted-foreground">{t("total_sales")}</p>
-                    <p className="text-2xl font-bold text-foreground">{totalSales.toFixed(2)} {currency}</p>
+                    <p className="text-2xl font-bold text-foreground">{totalSales.toFixed(2)} {currencySymbol}</p>
                   </div>
                   <div className="p-4 bg-muted/50 rounded-lg">
                     <p className="text-sm text-muted-foreground">{t("number_of_orders")}</p>
@@ -202,7 +202,7 @@ export function BasicReports() {
                   </div>
                   <div className="p-4 bg-muted/50 rounded-lg col-span-2">
                     <p className="text-sm text-muted-foreground">{t("total_discounts")}</p>
-                    <p className="text-2xl font-bold text-foreground">{totalDiscounts.toFixed(2)} {currency}</p>
+                    <p className="text-2xl font-bold text-foreground">{totalDiscounts.toFixed(2)} {currencySymbol}</p>
                   </div>
                 </div>
 
@@ -222,7 +222,7 @@ export function BasicReports() {
                             <p className="font-medium text-foreground">{cashier.email}</p>
                             <p className="text-sm text-muted-foreground">{cashier.order_count} orders</p>
                           </div>
-                          <p className="text-lg font-semibold text-foreground">{cashier.total_sales.toFixed(2)} {currency}</p>
+                          <p className="text-lg font-semibold text-foreground">{cashier.total_sales.toFixed(2)} {currencySymbol}</p>
                         </div>
                       ))}
                     </div>

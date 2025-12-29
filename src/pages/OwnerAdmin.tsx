@@ -255,7 +255,7 @@ export default function OwnerAdmin() {
             </div>
             {role === "owner" && <CSVUpload restaurantId={restaurant.id} />}
             <CategoriesSection restaurantId={restaurant.id} categories={categories} isLoading={loadingCategories} />
-            <MenuItemsSection restaurantId={restaurant.id} categories={categories} />
+            <MenuItemsSection restaurantId={restaurant.id} categories={categories} currency={currency} />
             <BranchMenuItemsManager restaurantId={restaurant.id} currency={currency} />
           </TabsContent>
 
@@ -466,9 +466,11 @@ function CategoriesSection({
 function MenuItemsSection({
   restaurantId,
   categories,
+  currency,
 }: {
   restaurantId: string;
   categories: { id: string; name: string }[];
+  currency: string;
 }) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const { data: items = [], isLoading } = useMenuItems(restaurantId, selectedCategoryId || undefined);
@@ -476,7 +478,8 @@ function MenuItemsSection({
   const updateItem = useUpdateMenuItem();
   const deleteItem = useDeleteMenuItem();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const currencySymbol = language === "ar" ? "د.أ" : "JOD";
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
@@ -638,7 +641,7 @@ function MenuItemsSection({
                     )}
                   </div>
                   {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
-                  <p className="text-sm font-medium text-primary mt-1">د.أ{Number(item.price).toFixed(2)}</p>
+                  <p className="text-sm font-medium text-primary mt-1">{currencySymbol} {Number(item.price).toFixed(2)}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <Switch
