@@ -451,6 +451,9 @@ export default function Menu() {
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderLoading, setOrderLoading] = useState(false);
 
+  // Order-level notes (not item notes)
+  const [orderNotes, setOrderNotes] = useState("");
+
   // Clear cart when language changes to avoid mixed language items
   useEffect(() => {
     setCart([]);
@@ -607,15 +610,23 @@ export default function Menu() {
         .map((item) => `• ${item.name} x${item.quantity}${item.notes ? ` (${item.notes})` : ""}`)
         .join("\n");
 
-      const message = encodeURIComponent(
+      // Build message with optional order notes
+      let messageContent = 
         `🍽️ *${restaurant?.name || "Order"}*\n` +
         `📍 ${t.table}: ${tableCode}\n\n` +
         `${itemsList}\n\n` +
-        `💰 ${t.total}: ${cartTotal.toFixed(2)} ${t.currency}`
-      );
+        `💰 ${t.total}: ${cartTotal.toFixed(2)} ${t.currency}`;
 
-      // Clear cart and show success
+      // Append order notes if provided
+      if (orderNotes.trim()) {
+        messageContent += `\n\n📝 ملاحظات الطلب:\n${orderNotes.trim()}`;
+      }
+
+      const message = encodeURIComponent(messageContent);
+
+      // Clear cart, order notes, and show success
       setCart([]);
+      setOrderNotes("");
       setShowConfirm(false);
       setOrderSuccess(true);
 
@@ -821,6 +832,24 @@ export default function Menu() {
                 </div>
               </div>
             ))}
+
+            {/* Order-level notes */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                {lang === "ar" ? "ملاحظات على الطلب" : "Order Notes"}
+              </label>
+              <Textarea
+                value={orderNotes}
+                onChange={(e) => setOrderNotes(e.target.value.slice(0, 250))}
+                placeholder={lang === "ar" ? "مثال: شاي بالنعنع، القهوة سادة" : "E.g., tea with mint, coffee black"}
+                className="resize-none"
+                rows={2}
+                maxLength={250}
+              />
+              <p className="text-xs text-muted-foreground text-end">
+                {orderNotes.length}/250
+              </p>
+            </div>
 
             <div className="border-t pt-3 flex justify-between items-center font-bold text-lg">
               <span>{t.total}</span>

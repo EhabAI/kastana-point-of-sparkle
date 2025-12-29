@@ -322,6 +322,7 @@ export type Database = {
           id: string
           invoice_uuid: string | null
           notes: string | null
+          order_notes: string | null
           order_number: number
           restaurant_id: string
           service_charge: number
@@ -342,6 +343,7 @@ export type Database = {
           id?: string
           invoice_uuid?: string | null
           notes?: string | null
+          order_notes?: string | null
           order_number?: number
           restaurant_id: string
           service_charge?: number
@@ -362,6 +364,7 @@ export type Database = {
           id?: string
           invoice_uuid?: string | null
           notes?: string | null
+          order_notes?: string | null
           order_number?: number
           restaurant_id?: string
           service_charge?: number
