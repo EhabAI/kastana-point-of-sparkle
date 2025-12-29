@@ -168,7 +168,7 @@ function CategoriesSection({
   const [newCategoryName, setNewCategoryName] = useState("");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<{ id: string; name: string } | null>(null);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleCreateCategory = async () => {
     if (!newCategoryName.trim()) {

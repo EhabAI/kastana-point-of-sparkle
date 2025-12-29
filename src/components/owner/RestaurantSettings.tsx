@@ -47,7 +47,7 @@ export function RestaurantSettings() {
   const [pricesIncludeTax, setPricesIncludeTax] = useState(false);
   const [businessHours, setBusinessHours] = useState<BusinessHours>(DEFAULT_BUSINESS_HOURS);
   const [hasChanges, setHasChanges] = useState(false);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   // Determine currency display based on UI language
   const currencyDisplay = isArabicUI() ? "د.أ" : "JOD";
