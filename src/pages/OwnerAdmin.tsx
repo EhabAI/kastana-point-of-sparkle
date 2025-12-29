@@ -30,6 +30,10 @@ import { DiscountSettings } from "@/components/owner/DiscountSettings";
 import { BasicReports } from "@/components/owner/BasicReports";
 import { ShiftsView } from "@/components/owner/ShiftsView";
 import { DashboardOverview } from "@/components/owner/DashboardOverview";
+import { AnalyticsCharts } from "@/components/owner/AnalyticsCharts";
+import { BestWorstSellers } from "@/components/owner/BestWorstSellers";
+import { CashierPerformance } from "@/components/owner/CashierPerformance";
+import { NotificationsAlerts } from "@/components/owner/NotificationsAlerts";
 import { useRestaurantTables } from "@/hooks/useRestaurantTables";
 import { useCashiers } from "@/hooks/useCashiers";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
@@ -150,6 +154,18 @@ export default function OwnerAdmin() {
             currency={currency}
           />
         )}
+
+        {/* Notifications & Alerts - Only visible to owners */}
+        {role === "owner" && <NotificationsAlerts />}
+
+        {/* Analytics Charts - Only visible to owners */}
+        {role === "owner" && <AnalyticsCharts />}
+
+        {/* Best/Worst Sellers - Only visible to owners */}
+        {role === "owner" && <BestWorstSellers />}
+
+        {/* Cashier Performance - Only visible to owners */}
+        {role === "owner" && <CashierPerformance />}
 
         {/* Restaurant Settings Section - Only visible to owners */}
         {role === "owner" && <RestaurantSettings />}
