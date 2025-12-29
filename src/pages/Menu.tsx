@@ -14,9 +14,11 @@ import {
 } from "@/components/ui/sheet";
 import { 
   Minus, Plus, ShoppingCart, Check, Globe, Send,
-  Coffee, Pizza, Sandwich, Salad, Soup, Cake, IceCream2,
+  Coffee, Pizza, Sandwich, Salad, Soup, Cake, IceCreamCone,
   Beer, Wine, GlassWater, UtensilsCrossed, Beef, Fish,
-  Egg, Cookie, Croissant, Apple, Flame, Sparkles, ChefHat, Tag
+  Egg, Cookie, Croissant, Apple, Flame, ChefHat, Tag,
+  CupSoda, Milk, Citrus, Cherry, Drumstick, Wheat, Leaf,
+  Dessert, Popcorn, Ham, Carrot, Star
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -59,40 +61,60 @@ type Language = "ar" | "en";
 const getCategoryIcon = (categoryName: string): LucideIcon => {
   const name = categoryName.toLowerCase();
   
-  // Drinks
+  // ☕ Hot Drinks
   if (name.includes("coffee") || name.includes("قهوة") || name.includes("كافي")) return Coffee;
-  if (name.includes("juice") || name.includes("عصير") || name.includes("عصائر")) return GlassWater;
-  if (name.includes("drink") || name.includes("مشروب") || name.includes("شراب")) return GlassWater;
+  if (name.includes("tea") || name.includes("شاي")) return Leaf;
+  if (name.includes("hot") || name.includes("ساخن")) return Coffee;
+  
+  // 🥤 Cold Drinks
+  if (name.includes("juice") || name.includes("عصير") || name.includes("عصائر")) return Citrus;
+  if (name.includes("smoothie") || name.includes("سموذي")) return CupSoda;
+  if (name.includes("milk") || name.includes("حليب") || name.includes("لبن")) return Milk;
+  if (name.includes("cold") || name.includes("بارد")) return GlassWater;
+  if (name.includes("drink") || name.includes("مشروب") || name.includes("شراب")) return CupSoda;
+  
+  // 🍺 Alcoholic
   if (name.includes("beer") || name.includes("بيرة")) return Beer;
   if (name.includes("wine") || name.includes("نبيذ")) return Wine;
-  if (name.includes("hot") || name.includes("ساخن")) return Coffee;
-  if (name.includes("cold") || name.includes("بارد")) return GlassWater;
   
-  // Food categories
+  // 🍕 Fast Food
   if (name.includes("pizza") || name.includes("بيتزا")) return Pizza;
-  if (name.includes("burger") || name.includes("برجر") || name.includes("sandwich") || name.includes("ساندويش")) return Sandwich;
+  if (name.includes("burger") || name.includes("برجر")) return Sandwich;
+  if (name.includes("sandwich") || name.includes("ساندويش")) return Ham;
+  if (name.includes("fries") || name.includes("بطاطس")) return Popcorn;
+  
+  // 🥗 Healthy
   if (name.includes("salad") || name.includes("سلطة") || name.includes("سلطات")) return Salad;
   if (name.includes("soup") || name.includes("شوربة") || name.includes("حساء")) return Soup;
+  if (name.includes("vegan") || name.includes("نباتي")) return Leaf;
+  if (name.includes("healthy") || name.includes("صحي")) return Carrot;
+  
+  // 🥩 Meat & Protein
   if (name.includes("grill") || name.includes("مشاوي") || name.includes("مشوي")) return Flame;
   if (name.includes("meat") || name.includes("لحم") || name.includes("لحوم") || name.includes("steak")) return Beef;
-  if (name.includes("chicken") || name.includes("دجاج")) return ChefHat;
+  if (name.includes("chicken") || name.includes("دجاج")) return Drumstick;
   if (name.includes("fish") || name.includes("سمك") || name.includes("seafood") || name.includes("بحري")) return Fish;
-  if (name.includes("breakfast") || name.includes("فطور") || name.includes("إفطار")) return Egg;
   
-  // Desserts & Sweets
-  if (name.includes("dessert") || name.includes("حلى") || name.includes("حلويات") || name.includes("sweet")) return Cake;
-  if (name.includes("ice") || name.includes("آيس") || name.includes("مثلج")) return IceCream2;
+  // 🍳 Breakfast
+  if (name.includes("breakfast") || name.includes("فطور") || name.includes("إفطار")) return Egg;
+  if (name.includes("bread") || name.includes("خبز")) return Wheat;
+  
+  // 🍰 Desserts & Sweets
+  if (name.includes("dessert") || name.includes("حلى") || name.includes("حلويات") || name.includes("sweet")) return Dessert;
+  if (name.includes("ice") || name.includes("آيس") || name.includes("مثلج") || name.includes("gelato")) return IceCreamCone;
   if (name.includes("cake") || name.includes("كيك") || name.includes("تورت")) return Cake;
   if (name.includes("pastry") || name.includes("معجنات") || name.includes("فطائر")) return Croissant;
   if (name.includes("cookie") || name.includes("بسكويت")) return Cookie;
   
-  // Appetizers & Sides
-  if (name.includes("appetizer") || name.includes("مقبلات") || name.includes("starter")) return Sparkles;
+  // 🍎 Appetizers & Sides
+  if (name.includes("appetizer") || name.includes("مقبلات") || name.includes("starter")) return Cherry;
   if (name.includes("side") || name.includes("جانبي") || name.includes("إضافات")) return Apple;
+  if (name.includes("snack") || name.includes("سناك")) return Popcorn;
   
-  // Main & Special
-  if (name.includes("main") || name.includes("رئيسي") || name.includes("أطباق")) return UtensilsCrossed;
-  if (name.includes("special") || name.includes("خاص") || name.includes("مميز") || name.includes("offer") || name.includes("عرض")) return Tag;
+  // ⭐ Main & Special
+  if (name.includes("main") || name.includes("رئيسي") || name.includes("أطباق")) return ChefHat;
+  if (name.includes("special") || name.includes("خاص") || name.includes("مميز")) return Star;
+  if (name.includes("offer") || name.includes("عرض") || name.includes("deal")) return Tag;
   
   // Default
   return UtensilsCrossed;
