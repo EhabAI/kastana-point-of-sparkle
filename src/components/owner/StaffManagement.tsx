@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useCashiers, useAddCashier } from "@/hooks/useCashiers";
+import { useCashiers, useAddCashier, useUpdateCashierStatus } from "@/hooks/useCashiers";
 import { Users, Loader2, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -25,6 +25,7 @@ interface StaffManagementProps {
 export function StaffManagement({ restaurantId }: StaffManagementProps) {
   const { data: cashiers = [], isLoading } = useCashiers(restaurantId);
   const addCashier = useAddCashier();
+  const updateStatus = useUpdateCashierStatus();
   const { toast } = useToast();
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -49,9 +50,6 @@ export function StaffManagement({ restaurantId }: StaffManagementProps) {
     setNewCashier({ email: "", password: "" });
     setCreateDialogOpen(false);
   };
-
-  // Note: Active/Inactive toggle would require backend support for cashier status
-  // For now, all cashiers are shown as active (display only)
 
   return (
     <Card className="shadow-card">
@@ -136,9 +134,22 @@ export function StaffManagement({ restaurantId }: StaffManagementProps) {
                   <TableCell className="font-medium">{cashier.email || "No email address"}</TableCell>
                   <TableCell>{new Date(cashier.created_at).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                      Active
-                    </span>
+                    <div className="flex items-center justify-end gap-3">
+                      <span className={`text-xs font-medium ${cashier.is_active ? 'text-green-600 dark:text-green-400' : 'text-destructive'}`}>
+                        {cashier.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                      <Switch
+                        checked={cashier.is_active}
+                        onCheckedChange={(checked) => 
+                          updateStatus.mutate({
+                            roleId: cashier.id,
+                            isActive: checked,
+                            restaurantId
+                          })
+                        }
+                        disabled={updateStatus.isPending}
+                      />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
