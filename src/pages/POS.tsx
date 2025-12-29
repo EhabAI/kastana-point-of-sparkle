@@ -366,11 +366,17 @@ export default function POS() {
 
       {!shiftOpen ? (
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-lg text-muted-foreground mb-4">Open a shift to start taking orders</p>
+          <div className="text-center p-8 rounded-lg border bg-card max-w-md">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-semibold mb-2">No Active Shift</h2>
+            <p className="text-muted-foreground mb-6">You must open a shift before starting work.</p>
             <button
               onClick={handleOpenShift}
-              className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium"
+              className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
             >
               Open Shift
             </button>
