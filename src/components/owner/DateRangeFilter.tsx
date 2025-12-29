@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export type DateRangePreset = "today" | "yesterday" | "this_week" | "this_month" | "last_7_days" | "last_30_days" | "custom";
 
@@ -46,14 +47,15 @@ export function getDateRangeForPreset(preset: DateRangePreset, customRange?: Dat
 
 export function DateRangeFilter({ dateRange, onDateRangeChange, preset, onPresetChange }: DateRangeFilterProps) {
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const { t } = useLanguage();
 
-  const presetButtons: { value: DateRangePreset; label: string }[] = [
-    { value: "today", label: "Today" },
-    { value: "yesterday", label: "Yesterday" },
-    { value: "this_week", label: "This Week" },
-    { value: "this_month", label: "This Month" },
-    { value: "last_7_days", label: "Last 7 Days" },
-    { value: "last_30_days", label: "Last 30 Days" },
+  const presetButtons: { value: DateRangePreset; labelKey: string }[] = [
+    { value: "today", labelKey: "today" },
+    { value: "yesterday", labelKey: "yesterday" },
+    { value: "this_week", labelKey: "this_week" },
+    { value: "this_month", labelKey: "this_month" },
+    { value: "last_7_days", labelKey: "last_7_days" },
+    { value: "last_30_days", labelKey: "last_30_days" },
   ];
 
   const handlePresetClick = (newPreset: DateRangePreset) => {
@@ -70,7 +72,7 @@ export function DateRangeFilter({ dateRange, onDateRangeChange, preset, onPreset
           size="sm"
           onClick={() => handlePresetClick(btn.value)}
         >
-          {btn.label}
+          {t(btn.labelKey)}
         </Button>
       ))}
       
@@ -84,7 +86,7 @@ export function DateRangeFilter({ dateRange, onDateRangeChange, preset, onPreset
             <CalendarIcon className="h-4 w-4" />
             {preset === "custom" 
               ? `${format(dateRange.from, "MMM d")} - ${format(dateRange.to, "MMM d")}`
-              : "Custom"
+              : t("custom")
             }
           </Button>
         </PopoverTrigger>

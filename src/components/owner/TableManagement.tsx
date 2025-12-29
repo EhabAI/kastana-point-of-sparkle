@@ -9,6 +9,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useRestaurantTables, useCreateRestaurantTable, useUpdateRestaurantTable, RestaurantTable } from "@/hooks/useRestaurantTables";
 import { Loader2, Plus, Edit2, QrCode, Copy, Download, Table2, ChevronDown, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TableManagementProps {
   restaurantId: string;
@@ -84,12 +85,13 @@ function TableRow({
 }) {
   const updateTable = useUpdateRestaurantTable();
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   const menuLink = `${window.location.origin}/menu/${restaurantId}/${table.table_code}`;
   
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(menuLink);
-    toast({ title: "Link copied to clipboard" });
+    toast({ title: t("link_copied") });
   };
   
   const handleDownloadQR = () => {
@@ -141,10 +143,10 @@ function TableRow({
               {table.capacity ?? 4}
             </span>
             <span className={`text-xs px-2 py-0.5 rounded-full ${table.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-              {table.is_active ? "Active" : "Inactive"}
+              {table.is_active ? t("active") : t("inactive")}
             </span>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">Code: {table.table_code}</p>
+          <p className="text-sm text-muted-foreground mt-1">{t("code")}: {table.table_code}</p>
           <p className="text-xs text-muted-foreground mt-1 break-all max-w-xs">{menuLink}</p>
         </div>
       </div>
@@ -156,7 +158,7 @@ function TableRow({
         />
         <Button variant="outline" size="sm" onClick={handleCopyLink}>
           <Copy className="h-4 w-4 mr-1" />
-          Copy
+          {t("copy")}
         </Button>
         <Button variant="outline" size="sm" onClick={handleDownloadQR}>
           <Download className="h-4 w-4 mr-1" />
@@ -175,6 +177,7 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
   const createTable = useCreateRestaurantTable();
   const updateTable = useUpdateRestaurantTable();
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   const [isOpen, setIsOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -186,7 +189,7 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
   
   const handleCreate = async () => {
     if (!newTableName.trim()) {
-      toast({ title: "Please enter a table name", variant: "destructive" });
+      toast({ title: t("enter_table_name"), variant: "destructive" });
       return;
     }
     await createTable.mutateAsync({ restaurantId, tableName: newTableName.trim(), capacity: newTableCapacity });
@@ -217,11 +220,11 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
                 <Table2 className="h-5 w-5" />
                 <div>
                   <CardTitle className="flex items-center gap-2">
-                    Tables Management
+                    {t("tables_management")}
                     <span className="text-muted-foreground font-normal">({tableCount ?? tables.length})</span>
                     <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </CardTitle>
-                  <CardDescription>Manage restaurant tables with QR codes for menu access</CardDescription>
+                  <CardDescription>{t("tables_desc")}</CardDescription>
                 </div>
               </button>
             </CollapsibleTrigger>
@@ -229,26 +232,26 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
               <DialogTrigger asChild>
                 <Button size="sm">
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Table
+                  {t("add_table")}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Add Table</DialogTitle>
-                  <DialogDescription>Create a new table with a unique QR code.</DialogDescription>
+                  <DialogTitle>{t("add_table")}</DialogTitle>
+                  <DialogDescription>{t("add_table_desc")}</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="table-name">Table Name</Label>
+                    <Label htmlFor="table-name">{t("table_name")}</Label>
                     <Input
                       id="table-name"
                       value={newTableName}
                       onChange={(e) => setNewTableName(e.target.value)}
-                      placeholder="e.g., Table 1, Patio A"
+                      placeholder={t("table_name_placeholder")}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="table-capacity">Number of Chairs</Label>
+                    <Label htmlFor="table-capacity">{t("number_of_chairs")}</Label>
                     <Input
                       id="table-capacity"
                       type="number"
@@ -259,10 +262,10 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
+                  <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>{t("cancel")}</Button>
                   <Button onClick={handleCreate} disabled={createTable.isPending}>
                     {createTable.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                    Create
+                    {t("create")}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -278,7 +281,7 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
             ) : tables.length === 0 ? (
               <div className="text-center py-8">
                 <QrCode className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No tables yet. Add your first table to get started.</p>
+                <p className="text-muted-foreground">{t("no_tables")}</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -297,12 +300,12 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
             <Dialog open={!!editingTable} onOpenChange={(open) => !open && setEditingTable(null)}>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Edit Table</DialogTitle>
-                  <DialogDescription>Update the table name.</DialogDescription>
+                  <DialogTitle>{t("edit_table")}</DialogTitle>
+                  <DialogDescription>{t("edit_table_desc")}</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="edit-table-name">Table Name</Label>
+                    <Label htmlFor="edit-table-name">{t("table_name")}</Label>
                     <Input
                       id="edit-table-name"
                       value={editTableName}
@@ -310,7 +313,7 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="edit-table-capacity">Number of Chairs</Label>
+                    <Label htmlFor="edit-table-capacity">{t("number_of_chairs")}</Label>
                     <Input
                       id="edit-table-capacity"
                       type="number"
@@ -321,10 +324,10 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setEditingTable(null)}>Cancel</Button>
+                  <Button variant="outline" onClick={() => setEditingTable(null)}>{t("cancel")}</Button>
                   <Button onClick={handleSaveEdit} disabled={updateTable.isPending}>
                     {updateTable.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                    Save
+                    {t("save")}
                   </Button>
                 </DialogFooter>
               </DialogContent>
