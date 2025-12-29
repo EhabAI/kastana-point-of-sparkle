@@ -389,7 +389,10 @@ export type Database = {
           business_hours: Json | null
           created_at: string
           currency: string
+          discount_type: string
+          discounts_enabled: boolean
           id: string
+          max_discount_value: number | null
           prices_include_tax: boolean
           restaurant_id: string
           rounding_enabled: boolean
@@ -401,7 +404,10 @@ export type Database = {
           business_hours?: Json | null
           created_at?: string
           currency?: string
+          discount_type?: string
+          discounts_enabled?: boolean
           id?: string
+          max_discount_value?: number | null
           prices_include_tax?: boolean
           restaurant_id: string
           rounding_enabled?: boolean
@@ -413,7 +419,10 @@ export type Database = {
           business_hours?: Json | null
           created_at?: string
           currency?: string
+          discount_type?: string
+          discounts_enabled?: boolean
           id?: string
+          max_discount_value?: number | null
           prices_include_tax?: boolean
           restaurant_id?: string
           rounding_enabled?: boolean
