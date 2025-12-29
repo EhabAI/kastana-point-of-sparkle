@@ -58,68 +58,111 @@ type Language = "ar" | "en";
 /* =======================
    Category Icon Mapping
 ======================= */
-const getCategoryIcon = (categoryName: string): LucideIcon => {
+type CategoryIconInfo = {
+  icon: LucideIcon;
+  color: string;
+  bgColor: string;
+};
+
+const getCategoryIcon = (categoryName: string): CategoryIconInfo => {
   const name = categoryName.toLowerCase();
   
   // ☕ Hot Drinks
-  if (name.includes("coffee") || name.includes("قهوة") || name.includes("كافي")) return Coffee;
-  if (name.includes("tea") || name.includes("شاي")) return Leaf;
-  if (name.includes("hot") || name.includes("ساخن")) return Coffee;
+  if (name.includes("coffee") || name.includes("قهوة") || name.includes("كافي")) 
+    return { icon: Coffee, color: "text-amber-700", bgColor: "bg-amber-100" };
+  if (name.includes("tea") || name.includes("شاي")) 
+    return { icon: Leaf, color: "text-green-600", bgColor: "bg-green-100" };
+  if (name.includes("hot") || name.includes("ساخن")) 
+    return { icon: Coffee, color: "text-orange-600", bgColor: "bg-orange-100" };
   
   // 🥤 Cold Drinks
-  if (name.includes("juice") || name.includes("عصير") || name.includes("عصائر")) return Citrus;
-  if (name.includes("smoothie") || name.includes("سموذي")) return CupSoda;
-  if (name.includes("milk") || name.includes("حليب") || name.includes("لبن")) return Milk;
-  if (name.includes("cold") || name.includes("بارد")) return GlassWater;
-  if (name.includes("drink") || name.includes("مشروب") || name.includes("شراب")) return CupSoda;
+  if (name.includes("juice") || name.includes("عصير") || name.includes("عصائر")) 
+    return { icon: Citrus, color: "text-orange-500", bgColor: "bg-orange-100" };
+  if (name.includes("smoothie") || name.includes("سموذي")) 
+    return { icon: CupSoda, color: "text-pink-500", bgColor: "bg-pink-100" };
+  if (name.includes("milk") || name.includes("حليب") || name.includes("لبن")) 
+    return { icon: Milk, color: "text-sky-500", bgColor: "bg-sky-100" };
+  if (name.includes("cold") || name.includes("بارد")) 
+    return { icon: GlassWater, color: "text-cyan-500", bgColor: "bg-cyan-100" };
+  if (name.includes("drink") || name.includes("مشروب") || name.includes("شراب")) 
+    return { icon: CupSoda, color: "text-purple-500", bgColor: "bg-purple-100" };
   
   // 🍺 Alcoholic
-  if (name.includes("beer") || name.includes("بيرة")) return Beer;
-  if (name.includes("wine") || name.includes("نبيذ")) return Wine;
+  if (name.includes("beer") || name.includes("بيرة")) 
+    return { icon: Beer, color: "text-amber-500", bgColor: "bg-amber-100" };
+  if (name.includes("wine") || name.includes("نبيذ")) 
+    return { icon: Wine, color: "text-rose-600", bgColor: "bg-rose-100" };
   
   // 🍕 Fast Food
-  if (name.includes("pizza") || name.includes("بيتزا")) return Pizza;
-  if (name.includes("burger") || name.includes("برجر")) return Sandwich;
-  if (name.includes("sandwich") || name.includes("ساندويش")) return Ham;
-  if (name.includes("fries") || name.includes("بطاطس")) return Popcorn;
+  if (name.includes("pizza") || name.includes("بيتزا")) 
+    return { icon: Pizza, color: "text-red-500", bgColor: "bg-red-100" };
+  if (name.includes("burger") || name.includes("برجر")) 
+    return { icon: Sandwich, color: "text-yellow-600", bgColor: "bg-yellow-100" };
+  if (name.includes("sandwich") || name.includes("ساندويش")) 
+    return { icon: Ham, color: "text-rose-500", bgColor: "bg-rose-100" };
+  if (name.includes("fries") || name.includes("بطاطس")) 
+    return { icon: Popcorn, color: "text-yellow-500", bgColor: "bg-yellow-100" };
   
   // 🥗 Healthy
-  if (name.includes("salad") || name.includes("سلطة") || name.includes("سلطات")) return Salad;
-  if (name.includes("soup") || name.includes("شوربة") || name.includes("حساء")) return Soup;
-  if (name.includes("vegan") || name.includes("نباتي")) return Leaf;
-  if (name.includes("healthy") || name.includes("صحي")) return Carrot;
+  if (name.includes("salad") || name.includes("سلطة") || name.includes("سلطات")) 
+    return { icon: Salad, color: "text-emerald-500", bgColor: "bg-emerald-100" };
+  if (name.includes("soup") || name.includes("شوربة") || name.includes("حساء")) 
+    return { icon: Soup, color: "text-orange-400", bgColor: "bg-orange-100" };
+  if (name.includes("vegan") || name.includes("نباتي")) 
+    return { icon: Leaf, color: "text-green-500", bgColor: "bg-green-100" };
+  if (name.includes("healthy") || name.includes("صحي")) 
+    return { icon: Carrot, color: "text-orange-500", bgColor: "bg-orange-100" };
   
   // 🥩 Meat & Protein
-  if (name.includes("grill") || name.includes("مشاوي") || name.includes("مشوي")) return Flame;
-  if (name.includes("meat") || name.includes("لحم") || name.includes("لحوم") || name.includes("steak")) return Beef;
-  if (name.includes("chicken") || name.includes("دجاج")) return Drumstick;
-  if (name.includes("fish") || name.includes("سمك") || name.includes("seafood") || name.includes("بحري")) return Fish;
+  if (name.includes("grill") || name.includes("مشاوي") || name.includes("مشوي")) 
+    return { icon: Flame, color: "text-red-600", bgColor: "bg-red-100" };
+  if (name.includes("meat") || name.includes("لحم") || name.includes("لحوم") || name.includes("steak")) 
+    return { icon: Beef, color: "text-red-700", bgColor: "bg-red-100" };
+  if (name.includes("chicken") || name.includes("دجاج")) 
+    return { icon: Drumstick, color: "text-amber-600", bgColor: "bg-amber-100" };
+  if (name.includes("fish") || name.includes("سمك") || name.includes("seafood") || name.includes("بحري")) 
+    return { icon: Fish, color: "text-blue-500", bgColor: "bg-blue-100" };
   
   // 🍳 Breakfast & Bakery
-  if (name.includes("breakfast") || name.includes("فطور") || name.includes("إفطار")) return Egg;
-  if (name.includes("bakery") || name.includes("مخبوزات") || name.includes("مخبز")) return CakeSlice;
-  if (name.includes("bread") || name.includes("خبز")) return Wheat;
+  if (name.includes("breakfast") || name.includes("فطور") || name.includes("إفطار")) 
+    return { icon: Egg, color: "text-yellow-500", bgColor: "bg-yellow-100" };
+  if (name.includes("bakery") || name.includes("مخبوزات") || name.includes("مخبز")) 
+    return { icon: CakeSlice, color: "text-amber-600", bgColor: "bg-amber-100" };
+  if (name.includes("bread") || name.includes("خبز")) 
+    return { icon: Wheat, color: "text-amber-500", bgColor: "bg-amber-100" };
   
   // 🍰 Desserts & Sweets
-  if (name.includes("dessert") || name.includes("حلى") || name.includes("حلويات") || name.includes("sweet")) return Dessert;
-  if (name.includes("ice") || name.includes("آيس") || name.includes("مثلج") || name.includes("gelato")) return IceCreamCone;
-  if (name.includes("cake") || name.includes("كيك") || name.includes("تورت")) return Cake;
-  if (name.includes("pastry") || name.includes("معجنات") || name.includes("فطائر")) return Croissant;
-  if (name.includes("cookie") || name.includes("بسكويت")) return Cookie;
+  if (name.includes("dessert") || name.includes("حلى") || name.includes("حلويات") || name.includes("sweet")) 
+    return { icon: Dessert, color: "text-pink-500", bgColor: "bg-pink-100" };
+  if (name.includes("ice") || name.includes("آيس") || name.includes("مثلج") || name.includes("gelato")) 
+    return { icon: IceCreamCone, color: "text-pink-400", bgColor: "bg-pink-100" };
+  if (name.includes("cake") || name.includes("كيك") || name.includes("تورت")) 
+    return { icon: Cake, color: "text-rose-500", bgColor: "bg-rose-100" };
+  if (name.includes("pastry") || name.includes("معجنات") || name.includes("فطائر")) 
+    return { icon: Croissant, color: "text-amber-500", bgColor: "bg-amber-100" };
+  if (name.includes("cookie") || name.includes("بسكويت")) 
+    return { icon: Cookie, color: "text-yellow-700", bgColor: "bg-yellow-100" };
   
   // 🍎 Appetizers & Sides
-  if (name.includes("appetizer") || name.includes("مقبلات") || name.includes("starter")) return Cherry;
-  if (name.includes("extra") || name.includes("إضافات") || name.includes("اضافات") || name.includes("additions")) return Package;
-  if (name.includes("side") || name.includes("جانبي")) return Apple;
-  if (name.includes("snack") || name.includes("سناك")) return Popcorn;
+  if (name.includes("appetizer") || name.includes("مقبلات") || name.includes("starter")) 
+    return { icon: Cherry, color: "text-red-500", bgColor: "bg-red-100" };
+  if (name.includes("extra") || name.includes("إضافات") || name.includes("اضافات") || name.includes("additions")) 
+    return { icon: Package, color: "text-violet-500", bgColor: "bg-violet-100" };
+  if (name.includes("side") || name.includes("جانبي")) 
+    return { icon: Apple, color: "text-green-500", bgColor: "bg-green-100" };
+  if (name.includes("snack") || name.includes("سناك")) 
+    return { icon: Popcorn, color: "text-yellow-500", bgColor: "bg-yellow-100" };
   
   // ⭐ Main & Special
-  if (name.includes("main") || name.includes("رئيسي") || name.includes("أطباق")) return ChefHat;
-  if (name.includes("special") || name.includes("خاص") || name.includes("مميز")) return Star;
-  if (name.includes("offer") || name.includes("عرض") || name.includes("deal")) return Tag;
+  if (name.includes("main") || name.includes("رئيسي") || name.includes("أطباق")) 
+    return { icon: ChefHat, color: "text-slate-700", bgColor: "bg-slate-100" };
+  if (name.includes("special") || name.includes("خاص") || name.includes("مميز")) 
+    return { icon: Star, color: "text-yellow-500", bgColor: "bg-yellow-100" };
+  if (name.includes("offer") || name.includes("عرض") || name.includes("deal")) 
+    return { icon: Tag, color: "text-emerald-500", bgColor: "bg-emerald-100" };
   
   // Default
-  return UtensilsCrossed;
+  return { icon: UtensilsCrossed, color: "text-gray-600", bgColor: "bg-gray-100" };
 };
 
 /* =======================
@@ -455,7 +498,8 @@ export default function Menu() {
         <div className="space-y-3">
           {categoriesWithItems.map((category) => {
             const isOpen = openCategoryId === category.id;
-            const CategoryIcon = getCategoryIcon(category.name);
+            const iconInfo = getCategoryIcon(category.name);
+            const IconComponent = iconInfo.icon;
 
             return (
               <div key={category.id} className="border rounded-xl overflow-hidden shadow-sm">
@@ -465,8 +509,8 @@ export default function Menu() {
                   className="w-full flex justify-between items-center p-4 font-semibold bg-gradient-to-r from-muted/80 to-muted/40 hover:from-muted hover:to-muted/60 transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                      <CategoryIcon className="h-5 w-5" />
+                    <div className={`p-2 rounded-lg ${iconInfo.bgColor}`}>
+                      <IconComponent className={`h-5 w-5 ${iconInfo.color}`} />
                     </div>
                     <span>{category.name}</span>
                   </div>
