@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface TableManagementProps {
   restaurantId: string;
+  tableCount?: number;
 }
 
 // Simple QR Code generator using SVG (no external libraries)
@@ -169,7 +170,7 @@ function TableRow({
   );
 }
 
-export function TableManagement({ restaurantId }: TableManagementProps) {
+export function TableManagement({ restaurantId, tableCount }: TableManagementProps) {
   const { data: tables = [], isLoading } = useRestaurantTables(restaurantId);
   const createTable = useCreateRestaurantTable();
   const updateTable = useUpdateRestaurantTable();
@@ -217,6 +218,7 @@ export function TableManagement({ restaurantId }: TableManagementProps) {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     Tables Management
+                    <span className="text-muted-foreground font-normal">({tableCount ?? tables.length})</span>
                     <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </CardTitle>
                   <CardDescription>Manage restaurant tables with QR codes for menu access</CardDescription>

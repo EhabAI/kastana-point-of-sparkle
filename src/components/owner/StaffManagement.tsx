@@ -20,9 +20,10 @@ import { useToast } from "@/hooks/use-toast";
 
 interface StaffManagementProps {
   restaurantId: string;
+  staffCount?: number;
 }
 
-export function StaffManagement({ restaurantId }: StaffManagementProps) {
+export function StaffManagement({ restaurantId, staffCount }: StaffManagementProps) {
   const { data: cashiers = [], isLoading } = useCashiers(restaurantId);
   const addCashier = useAddCashier();
   const updateStatus = useUpdateCashierStatus();
@@ -59,6 +60,7 @@ export function StaffManagement({ restaurantId }: StaffManagementProps) {
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
               Staff Management
+              <span className="text-muted-foreground font-normal">({staffCount ?? cashiers.length})</span>
             </CardTitle>
             <CardDescription>Manage your restaurant's cashiers</CardDescription>
           </div>
