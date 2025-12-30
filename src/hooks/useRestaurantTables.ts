@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 export interface RestaurantTable {
   id: string;
   restaurant_id: string;
+  branch_id: string | null;
   table_name: string;
   table_code: string;
   is_active: boolean;

@@ -49,6 +49,7 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+              <Route path="/menu/:restaurantId/:branchId/:tableCode" element={<Menu />} />
               <Route path="/menu/:restaurantId/:tableCode" element={<Menu />} />
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="*" element={<NotFound />} />
