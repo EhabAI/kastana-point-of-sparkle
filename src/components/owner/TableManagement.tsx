@@ -87,7 +87,11 @@ function TableRow({
   const { toast } = useToast();
   const { t } = useLanguage();
   
-  const menuLink = `${window.location.origin}/menu/${restaurantId}/${table.table_code}`;
+  // QR link now includes branchId from the table record
+  const branchId = table.branch_id;
+  const menuLink = branchId 
+    ? `${window.location.origin}/menu/${restaurantId}/${branchId}/${table.table_code}`
+    : `${window.location.origin}/menu/${restaurantId}/${table.table_code}`;
   
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(menuLink);

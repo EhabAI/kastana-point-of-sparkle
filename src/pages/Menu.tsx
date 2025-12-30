@@ -40,7 +40,7 @@ import {
   Drumstick,
   Wheat,
   Leaf,
-  Dessert,
+  CakeSlice as Dessert,
   Popcorn,
   Ham,
   Carrot,
@@ -457,7 +457,7 @@ const translations = {
    Component
 ======================= */
 export default function Menu() {
-  const { restaurantId, tableCode } = useParams();
+  const { restaurantId, branchId, tableCode } = useParams();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -495,7 +495,7 @@ export default function Menu() {
       setLoading(true);
       setError(null);
 
-      if (!restaurantId) {
+      if (!restaurantId || !branchId) {
         setError(t.invalidRestaurant);
         setLoading(false);
         return;
@@ -556,7 +556,7 @@ export default function Menu() {
     }
 
     load();
-  }, [restaurantId]);
+  }, [restaurantId, branchId]);
 
   /* =======================
      Group Items
@@ -618,47 +618,62 @@ export default function Menu() {
      Order Submission
   ======================= */
   const handleConfirmOrder = async () => {
-    if (cart.length === 0 || !restaurantId) return;
+    if (cart.length === 0 || !restaurantId || !branchId) return;
 
     setOrderLoading(true);
 
     try {
-      // Get restaurant settings for phone number
-      const { data: settings } = await supabase
-        .from("restaurant_settings")
-        .select("*")
-        .eq("restaurant_id", restaurantId)
-        .maybeSingle();
+      // Calculate subtotal
+      const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-      // Generate WhatsApp message
-      const itemsList = cart
-        .map((item) => `• ${item.name} x${item.quantity}${item.notes ? ` (${item.notes})` : ""}`)
-        .join("\n");
+      // Insert order into database
+      const { data: orderData, error: orderError } = await supabase
+        .from("orders")
+        .insert({
+          restaurant_id: restaurantId,
+          branch_id: branchId,
+          status: "pending",
+          subtotal: subtotal,
+          total: subtotal,
+          order_notes: orderNotes.trim() || null,
+        })
+        .select()
+        .single();
 
-      // Build message with optional order notes
-      let messageContent =
-        `🍽️ *${restaurant?.name || "Order"}*\n` +
-        `📍 ${t.table}: ${tableCode}\n\n` +
-        `${itemsList}\n\n` +
-        `💰 ${t.total}: ${cartTotal.toFixed(2)} ${t.currency}`;
-
-      // Append order notes if provided
-      if (orderNotes.trim()) {
-        messageContent += `\n\n📝 ملاحظات الطلب:\n${orderNotes.trim()}`;
+      if (orderError || !orderData) {
+        console.error("Order insert error:", orderError);
+        setError(t.orderError);
+        setOrderLoading(false);
+        return;
       }
 
-      const message = encodeURIComponent(messageContent);
+      // Insert order items
+      const orderItems = cart.map((item) => ({
+        order_id: orderData.id,
+        restaurant_id: restaurantId,
+        menu_item_id: item.item_id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        notes: item.notes || null,
+      }));
 
-      // Clear cart, order notes, and show success
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .insert(orderItems);
+
+      if (itemsError) {
+        console.error("Order items insert error:", itemsError);
+        setError(t.orderError);
+        setOrderLoading(false);
+        return;
+      }
+
+      // Success - clear cart and show success
       setCart([]);
       setOrderNotes("");
       setShowConfirm(false);
       setOrderSuccess(true);
-
-      // Check if we have a phone number (future: add to restaurant_settings)
-      // For now, use a generic WhatsApp link
-      const whatsappUrl = `https://wa.me/?text=${message}`;
-      window.open(whatsappUrl, "_blank");
 
       // Auto-hide success after 3 seconds
       setTimeout(() => {

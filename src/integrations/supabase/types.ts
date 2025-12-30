@@ -326,7 +326,7 @@ export type Database = {
           order_number: number
           restaurant_id: string
           service_charge: number
-          shift_id: string
+          shift_id: string | null
           status: string
           subtotal: number
           tax_amount: number
@@ -347,7 +347,7 @@ export type Database = {
           order_number?: number
           restaurant_id: string
           service_charge?: number
-          shift_id: string
+          shift_id?: string | null
           status?: string
           subtotal?: number
           tax_amount?: number
@@ -368,7 +368,7 @@ export type Database = {
           order_number?: number
           restaurant_id?: string
           service_charge?: number
-          shift_id?: string
+          shift_id?: string | null
           status?: string
           subtotal?: number
           tax_amount?: number
