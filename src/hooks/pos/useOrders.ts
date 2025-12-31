@@ -73,15 +73,25 @@ export function useCreateOrder() {
     mutationFn: async ({ 
       shiftId, 
       taxRate, 
-      branchId, 
-      notes 
+      branchId,
+      orderType,
+      tableId,
     }: { 
       shiftId: string; 
       taxRate: number; 
       branchId?: string;
-      notes?: string;
+      orderType?: string;
+      tableId?: string | null;
     }) => {
       if (!restaurant?.id) throw new Error("Missing restaurant");
+
+      // Build notes from order type and table for backwards compatibility
+      let notes: string | null = null;
+      if (tableId) {
+        notes = `table:${tableId}`;
+      } else if (orderType) {
+        notes = `type:${orderType}`;
+      }
 
       const { data, error } = await supabase
         .from("orders")
@@ -91,7 +101,7 @@ export function useCreateOrder() {
           branch_id: branchId || null,
           status: "open",
           tax_rate: taxRate,
-          order_notes: notes || null,
+          order_notes: notes,
         })
         .select()
         .single();
