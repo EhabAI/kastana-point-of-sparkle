@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
   useCashierSession,
+  NoCashierRoleError,
   useCurrentShift,
   useOpenShift,
   useCloseShift,
@@ -62,7 +63,7 @@ import type { OrderType } from "@/components/pos/OrderTypeSelector";
 
 export default function POS() {
   const { signOut, user } = useAuth();
-  const { data: session, isLoading: sessionLoading } = useCashierSession();
+  const { data: session, isLoading: sessionLoading, error: sessionError } = useCashierSession();
   const restaurant = session?.restaurant;
   const branch = session?.branch;
   const { data: currentShift, isLoading: shiftLoading } = useCurrentShift();
@@ -463,10 +464,21 @@ export default function POS() {
     );
   }
 
-  if (!session || !restaurant || !branch) {
+  if (sessionError instanceof NoCashierRoleError || !session || !restaurant || !branch) {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col gap-4">
         <p className="text-muted-foreground">No restaurant or branch assigned to this cashier.</p>
+        <button onClick={signOut} className="text-primary underline">
+          Sign Out
+        </button>
+      </div>
+    );
+  }
+
+  if (sessionError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center flex-col gap-4">
+        <p className="text-destructive">Failed to load session. Please try again.</p>
         <button onClick={signOut} className="text-primary underline">
           Sign Out
         </button>
