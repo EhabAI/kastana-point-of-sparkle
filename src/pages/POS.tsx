@@ -49,6 +49,7 @@ import {
   OrderPanel,
   QRPendingOrders,
   OpenOrdersList,
+  TableCard,
   type POSTab,
 } from "@/components/pos";
 import {
@@ -795,7 +796,7 @@ export default function POS() {
           )}
 
           {activeTab === "tables" && (
-            <div className="flex-1 p-4 overflow-auto">
+            <div className="flex-1 p-4 overflow-auto bg-gradient-to-br from-muted/30 to-muted/10">
               {tablesLoading ? (
                 <div className="flex items-center justify-center h-48">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -806,38 +807,21 @@ export default function POS() {
                   <p className="text-sm mt-1">Ask owner to create tables for this branch.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                   {tables.map((table) => {
                     const order = tableOrderMap.get(table.id);
                     const isOccupied = !!order;
 
                     return (
-                      <button
+                      <TableCard
                         key={table.id}
+                        tableName={table.table_name}
+                        capacity={table.capacity || 4}
+                        isOccupied={isOccupied}
+                        orderNumber={order?.order_number}
                         onClick={() => handleTableClick(table.id)}
                         disabled={createOrderMutation.isPending || resumeOrderMutation.isPending}
-                        className={cn(
-                          "flex flex-col items-center justify-center p-4 rounded-lg border transition-all min-h-[100px]",
-                          isOccupied
-                            ? "border-orange-500 bg-orange-500/10 hover:bg-orange-500/20"
-                            : "border-border bg-card hover:border-primary hover:bg-primary/5"
-                        )}
-                      >
-                        <span className="font-bold text-lg">{table.table_name}</span>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                          <Users className="h-3 w-3" />
-                          <span>{table.capacity || 4}</span>
-                        </div>
-                        {isOccupied ? (
-                          <span className="text-xs text-orange-600 mt-2 font-medium">
-                            #{order.order_number}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-green-600 mt-2 font-medium">
-                            Available
-                          </span>
-                        )}
-                      </button>
+                      />
                     );
                   })}
                 </div>
