@@ -9,3 +9,4 @@ export * from "./CancelOrderDialog";
 export * from "./CashMovementDialog";
 export * from "./ZReportDialog";
 export * from "./ItemNotesDialog";
+export * from "./NewOrderDialog";
