@@ -144,6 +144,7 @@ export default function POS() {
   const currency = settings?.currency || "JOD";
   const taxRate = settings?.tax_rate || 0.16;
   const serviceChargeRate = settings?.service_charge_rate || 0;
+  const shiftOpen = currentShift?.status === "open";
 
   // Auto-select first category
   useEffect(() => {
@@ -157,9 +158,61 @@ export default function POS() {
     setMenuSearch("");
   }, [selectedCategoryId]);
 
-
-  // Calculate order totals
+  // Calculate order totals - MUST be before keyboard shortcuts useEffect
   const orderItems = currentOrder?.order_items?.filter((item: { voided: boolean }) => !item.voided) || [];
+
+  // B2: Keyboard shortcuts - MUST be before any early returns
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Skip if typing in input/textarea
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
+        return;
+      }
+
+      // Only work when shift is open and on new-order tab
+      if (!shiftOpen || activeTab !== "new-order") return;
+
+      switch (e.key) {
+        case "Enter":
+          // Trigger Pay if there are items
+          if (orderItems.length > 0 && currentOrder) {
+            setPaymentDialogOpen(true);
+          }
+          break;
+        case "h":
+        case "H":
+          // Hold current order - use mutation directly
+          if (currentOrder && orderItems.length > 0) {
+            holdOrderMutation.mutate(currentOrder.id);
+          }
+          break;
+        case "Escape":
+          // Open cancel dialog
+          if (currentOrder) {
+            setCancelDialogOpen(true);
+          }
+          break;
+      }
+    };
+
+    const handleKeyDownWithPrevent = (e: KeyboardEvent) => {
+      // Ctrl+F to focus search
+      if ((e.ctrlKey || e.metaKey) && e.key === "f") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("keydown", handleKeyDownWithPrevent);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDownWithPrevent);
+    };
+  }, [shiftOpen, activeTab, orderItems.length, currentOrder]);
+
   const subtotal = orderItems.reduce(
     (sum: number, item: { price: number; quantity: number }) => sum + Number(item.price) * item.quantity,
     0,
@@ -503,60 +556,6 @@ export default function POS() {
       </div>
     );
   }
-
-  const shiftOpen = currentShift?.status === "open";
-
-  // B2: Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Skip if typing in input/textarea
-      const target = e.target as HTMLElement;
-      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
-        return;
-      }
-
-      // Only work when shift is open and on new-order tab
-      if (!shiftOpen || activeTab !== "new-order") return;
-
-      switch (e.key) {
-        case "Enter":
-          // Trigger Pay if there are items
-          if (orderItems.length > 0 && currentOrder) {
-            handlePay();
-          }
-          break;
-        case "h":
-        case "H":
-          // Hold current order
-          if (currentOrder && orderItems.length > 0) {
-            handleHoldOrder();
-          }
-          break;
-        case "Escape":
-          // Open cancel dialog
-          if (currentOrder) {
-            setCancelDialogOpen(true);
-          }
-          break;
-      }
-    };
-
-    const handleKeyDownWithPrevent = (e: KeyboardEvent) => {
-      // Ctrl+F to focus search
-      if ((e.ctrlKey || e.metaKey) && e.key === "f") {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    document.addEventListener("keydown", handleKeyDownWithPrevent);
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("keydown", handleKeyDownWithPrevent);
-    };
-  }, [shiftOpen, activeTab, orderItems.length, currentOrder]);
 
   return (
     <div className="h-screen flex flex-col bg-background">
