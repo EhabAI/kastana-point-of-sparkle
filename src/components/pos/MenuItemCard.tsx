@@ -7,6 +7,8 @@ interface MenuItem {
   price: number;
   is_offer: boolean;
   is_available: boolean;
+  promo_price?: number | null;
+  promo_label?: string | null;
 }
 
 interface MenuItemCardProps {
@@ -16,6 +18,12 @@ interface MenuItemCardProps {
 }
 
 export function MenuItemCard({ item, currency, onSelect }: MenuItemCardProps) {
+  // B3: Detect offer/deal (via is_offer, promo_price, or name keywords)
+  const hasPromo = item.promo_price != null && item.promo_price > 0;
+  const nameHasOfferKeyword = /happy|deal|offer|عروض/i.test(item.name);
+  const isOffer = item.is_offer || hasPromo || nameHasOfferKeyword;
+  const promoLabel = item.promo_label || (hasPromo ? "Promo" : "Offer");
+
   return (
     <button
       onClick={() => onSelect(item)}
@@ -24,12 +32,13 @@ export function MenuItemCard({ item, currency, onSelect }: MenuItemCardProps) {
         "relative flex flex-col items-center justify-center p-4 rounded-lg border transition-all text-center min-h-[100px]",
         item.is_available
           ? "hover:border-primary hover:shadow-md bg-card"
-          : "opacity-50 cursor-not-allowed bg-muted"
+          : "opacity-50 cursor-not-allowed bg-muted",
+        isOffer && item.is_available && "ring-2 ring-destructive/30"
       )}
     >
-      {item.is_offer && (
+      {isOffer && (
         <Badge className="absolute top-2 right-2 bg-destructive text-destructive-foreground text-xs">
-          Offer
+          {promoLabel}
         </Badge>
       )}
       <span className="font-medium text-sm mb-1 line-clamp-2">{item.name}</span>
