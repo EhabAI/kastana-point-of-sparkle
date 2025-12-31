@@ -279,13 +279,14 @@ export default function POS() {
   };
 
   const handleNewOrder = async (orderType: OrderType, tableId: string | null) => {
-    if (!currentShift || !branch) return;
+    if (!currentShift || !branch || !restaurant) return;
 
     try {
       await createOrderMutation.mutateAsync({
         shiftId: currentShift.id,
         taxRate,
         branchId: branch.id,
+        restaurantId: restaurant.id,
         orderType,
         tableId: orderType === "takeaway" ? null : tableId,
       });

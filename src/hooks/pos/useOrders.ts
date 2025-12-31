@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCashierRestaurant } from "./useCashierRestaurant";
 
 export function useCurrentOrder(shiftId: string | undefined) {
   return useQuery({
@@ -66,7 +65,6 @@ export function useRecentOrders(shiftId: string | undefined) {
 }
 
 export function useCreateOrder() {
-  const { data: restaurant } = useCashierRestaurant();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -74,16 +72,17 @@ export function useCreateOrder() {
       shiftId, 
       taxRate, 
       branchId,
+      restaurantId,
       orderType,
       tableId,
     }: { 
       shiftId: string; 
       taxRate: number; 
       branchId?: string;
+      restaurantId: string;
       orderType?: string;
       tableId?: string | null;
     }) => {
-      if (!restaurant?.id) throw new Error("Missing restaurant");
 
       // Build notes from order type and table for backwards compatibility
       let notes: string | null = null;
@@ -97,7 +96,7 @@ export function useCreateOrder() {
         .from("orders")
         .insert({
           shift_id: shiftId,
-          restaurant_id: restaurant.id,
+          restaurant_id: restaurantId,
           branch_id: branchId || null,
           status: "open",
           tax_rate: taxRate,
