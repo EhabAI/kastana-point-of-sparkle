@@ -7,6 +7,7 @@ export interface Cashier {
   user_id: string;
   role: 'cashier';
   restaurant_id: string;
+  branch_id: string | null;
   created_at: string;
   email?: string;
   is_active: boolean;
@@ -43,6 +44,7 @@ export function useCashiers(restaurantId: string | undefined) {
 
       return roles.map(row => ({
         ...row,
+        branch_id: row.branch_id || null,
         email: emailMap.get(row.user_id) || undefined,
         is_active: row.is_active ?? true,
       })) as Cashier[];
@@ -59,11 +61,13 @@ export function useAddCashier() {
     mutationFn: async ({ 
       email, 
       password, 
-      restaurantId 
+      restaurantId,
+      branchId 
     }: { 
       email: string; 
       password: string; 
       restaurantId: string;
+      branchId: string;
     }) => {
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       const accessToken = sessionData?.session?.access_token;
@@ -77,7 +81,8 @@ export function useAddCashier() {
           email, 
           password,
           role: 'cashier',
-          restaurant_id: restaurantId
+          restaurant_id: restaurantId,
+          branch_id: branchId
         },
         headers: {
           Authorization: `Bearer ${accessToken}`,

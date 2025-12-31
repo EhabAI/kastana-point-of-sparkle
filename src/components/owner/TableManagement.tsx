@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,8 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRestaurantTables, useCreateRestaurantTable, useUpdateRestaurantTable, RestaurantTable } from "@/hooks/useRestaurantTables";
-import { Loader2, Plus, Edit2, QrCode, Copy, Download, Table2, ChevronDown, Users } from "lucide-react";
+import { useBranches } from "@/hooks/useBranches";
+import { Loader2, Plus, Edit2, QrCode, Copy, Download, Table2, ChevronDown, Users, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -178,6 +180,7 @@ function TableRow({
 
 export function TableManagement({ restaurantId, tableCount }: TableManagementProps) {
   const { data: tables = [], isLoading } = useRestaurantTables(restaurantId);
+  const { data: branches = [], isLoading: branchesLoading } = useBranches(restaurantId);
   const createTable = useCreateRestaurantTable();
   const updateTable = useUpdateRestaurantTable();
   const { toast } = useToast();
@@ -187,16 +190,49 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newTableName, setNewTableName] = useState("");
   const [newTableCapacity, setNewTableCapacity] = useState(4);
+  const [newTableBranchId, setNewTableBranchId] = useState("");
   const [editingTable, setEditingTable] = useState<RestaurantTable | null>(null);
   const [editTableName, setEditTableName] = useState("");
   const [editTableCapacity, setEditTableCapacity] = useState(4);
+  
+  // Filter by branch
+  const [filterBranchId, setFilterBranchId] = useState<string>("all");
+  
+  // Auto-select first branch for new tables
+  useEffect(() => {
+    if (branches.length > 0 && !newTableBranchId) {
+      const defaultBranch = branches.find(b => b.is_default) || branches[0];
+      setNewTableBranchId(defaultBranch.id);
+    }
+  }, [branches, newTableBranchId]);
+
+  // Filter tables by selected branch
+  const filteredTables = filterBranchId === "all" 
+    ? tables 
+    : tables.filter(t => t.branch_id === filterBranchId);
+
+  // Get branch name by ID
+  const getBranchName = (branchId: string | null) => {
+    if (!branchId) return t("no_branch");
+    const branch = branches.find(b => b.id === branchId);
+    return branch?.name || t("unknown_branch");
+  };
   
   const handleCreate = async () => {
     if (!newTableName.trim()) {
       toast({ title: t("enter_table_name"), variant: "destructive" });
       return;
     }
-    await createTable.mutateAsync({ restaurantId, tableName: newTableName.trim(), capacity: newTableCapacity });
+    if (!newTableBranchId) {
+      toast({ title: t("select_branch_required"), variant: "destructive" });
+      return;
+    }
+    await createTable.mutateAsync({ 
+      restaurantId, 
+      tableName: newTableName.trim(), 
+      capacity: newTableCapacity,
+      branchId: newTableBranchId
+    });
     setNewTableName("");
     setNewTableCapacity(4);
     setCreateDialogOpen(false);
@@ -246,6 +282,24 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
+                    <Label htmlFor="table-branch" className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      {t("branch")} *
+                    </Label>
+                    <Select value={newTableBranchId} onValueChange={setNewTableBranchId}>
+                      <SelectTrigger id="table-branch">
+                        <SelectValue placeholder={t("select_branch")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {branches.map((branch) => (
+                          <SelectItem key={branch.id} value={branch.id}>
+                            {branch.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="table-name">{t("table_name")}</Label>
                     <Input
                       id="table-name"
@@ -278,18 +332,18 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
         </CardHeader>
         <CollapsibleContent>
           <CardContent>
-            {isLoading ? (
+            {isLoading || branchesLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
-            ) : tables.length === 0 ? (
+            ) : filteredTables.length === 0 ? (
               <div className="text-center py-8">
                 <QrCode className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">{t("no_tables")}</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {tables.map((table) => (
+                {filteredTables.map((table) => (
                   <TableRow 
                     key={table.id} 
                     table={table} 

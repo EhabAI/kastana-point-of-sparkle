@@ -57,6 +57,7 @@ import { NotificationsAlerts } from "@/components/owner/NotificationsAlerts";
 import { BranchSelector } from "@/components/owner/BranchSelector";
 import { BranchManagement } from "@/components/owner/BranchManagement";
 import { BranchMenuItemsManager } from "@/components/owner/BranchMenuItemsManager";
+import { PaymentMethodsSettings } from "@/components/owner/PaymentMethodsSettings";
 import { useRestaurantTables } from "@/hooks/useRestaurantTables";
 import { useCashiers } from "@/hooks/useCashiers";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
@@ -273,6 +274,7 @@ export default function OwnerAdmin() {
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6 mt-6">
             {role === "owner" && <RestaurantSettings />}
+            {role === "owner" && <PaymentMethodsSettings restaurantId={restaurant.id} />}
             {role === "owner" && <DiscountSettings />}
           </TabsContent>
         </Tabs>
