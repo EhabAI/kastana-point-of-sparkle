@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { CreditCard, Loader2, ChevronDown, Banknote, Building2 } from "lucide-react";
+import { CreditCard, Loader2, ChevronDown, Banknote, Building2, Wallet } from "lucide-react";
 import { useBranches } from "@/hooks/useBranches";
 import { useBranchPaymentMethods, useUpdateBranchPaymentMethods } from "@/hooks/useBranchPaymentMethods";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -35,6 +35,7 @@ export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsP
     visa: true,
     mastercard: true,
     efawateer: false,
+    wallet: false,
   });
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -46,6 +47,7 @@ export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsP
         visa: paymentMethods.visa_enabled,
         mastercard: paymentMethods.mastercard_enabled,
         efawateer: paymentMethods.efawateer_enabled,
+        wallet: paymentMethods.wallet_enabled,
       });
       setHasChanges(false);
     }
@@ -64,6 +66,7 @@ export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsP
       visaEnabled: localMethods.visa,
       mastercardEnabled: localMethods.mastercard,
       efawateerEnabled: localMethods.efawateer,
+      walletEnabled: localMethods.wallet,
     });
     setHasChanges(false);
   };
@@ -201,6 +204,23 @@ export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsP
                   <Switch
                     checked={localMethods.efawateer}
                     onCheckedChange={(checked) => handleToggle("efawateer", checked)}
+                  />
+                </div>
+
+                {/* Wallet */}
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center">
+                      <Wallet className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">{t("wallet")}</Label>
+                      <p className="text-xs text-muted-foreground">{t("accept_wallet_payments")}</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={localMethods.wallet}
+                    onCheckedChange={(checked) => handleToggle("wallet", checked)}
                   />
                 </div>
               </div>

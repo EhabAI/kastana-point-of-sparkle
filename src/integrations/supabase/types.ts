@@ -173,6 +173,7 @@ export type Database = {
           mastercard_enabled: boolean
           updated_at: string
           visa_enabled: boolean
+          wallet_enabled: boolean
         }
         Insert: {
           branch_id: string
@@ -183,6 +184,7 @@ export type Database = {
           mastercard_enabled?: boolean
           updated_at?: string
           visa_enabled?: boolean
+          wallet_enabled?: boolean
         }
         Update: {
           branch_id?: string
@@ -193,6 +195,7 @@ export type Database = {
           mastercard_enabled?: boolean
           updated_at?: string
           visa_enabled?: boolean
+          wallet_enabled?: boolean
         }
         Relationships: [
           {
