@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { format } from "date-fns";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +30,13 @@ export function ShiftDialog({
   expectedCash,
 }: ShiftDialogProps) {
   const [amount, setAmount] = useState("");
+  const [shiftTime, setShiftTime] = useState<Date>(new Date());
+
+  useEffect(() => {
+    if (open && mode === "open") {
+      setShiftTime(new Date());
+    }
+  }, [open, mode]);
 
   const handleConfirm = () => {
     const numAmount = parseFloat(amount);
@@ -54,6 +62,13 @@ export function ShiftDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          {mode === "open" && (
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground">Shift Start Time</p>
+              <p className="text-lg font-bold">{format(shiftTime, "MMM d, yyyy 'at' h:mm a")}</p>
+            </div>
+          )}
+
           {mode === "close" && expectedCash !== undefined && (
             <div className="p-3 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">Expected Cash</p>
