@@ -7,6 +7,7 @@ interface TableCardProps {
   orderNumber?: number;
   onClick: () => void;
   disabled?: boolean;
+  selected?: boolean;
 }
 
 export function TableCard({
@@ -16,6 +17,7 @@ export function TableCard({
   orderNumber,
   onClick,
   disabled,
+  selected,
 }: TableCardProps) {
   const effectiveCapacity = capacity || 4;
   
@@ -29,9 +31,11 @@ export function TableCard({
       className={cn(
         "relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 min-h-[140px] group",
         "hover:scale-105 hover:shadow-lg active:scale-95",
-        isOccupied
-          ? "border-amber-400 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-600 shadow-amber-200/50 dark:shadow-amber-900/30 shadow-md"
-          : "border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-600 hover:shadow-emerald-200/50 dark:hover:shadow-emerald-900/30",
+        selected
+          ? "border-primary bg-primary/10 ring-2 ring-primary ring-offset-2"
+          : isOccupied
+            ? "border-amber-400 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-600 shadow-amber-200/50 dark:shadow-amber-900/30 shadow-md"
+            : "border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-600 hover:shadow-emerald-200/50 dark:hover:shadow-emerald-900/30",
         disabled && "opacity-50 cursor-not-allowed hover:scale-100"
       )}
     >

@@ -28,6 +28,7 @@ import {
   useRejectPendingOrder,
   useOpenOrders,
   useMoveOrderToTable,
+  useMergeOrders,
   useCashierPaymentMethods,
   useMenuItemModifiers,
   useAddOrderItemModifiers,
@@ -65,6 +66,7 @@ import {
   ItemNotesDialog,
   NewOrderDialog,
   ModifierDialog,
+  MergeOrdersDialog,
 } from "@/components/pos/dialogs";
 import type { OrderType } from "@/components/pos/OrderTypeSelector";
 
@@ -130,6 +132,7 @@ export default function POS() {
   const rejectPendingMutation = useRejectPendingOrder();
   const moveToTableMutation = useMoveOrderToTable();
   const addModifiersMutation = useAddOrderItemModifiers();
+  const mergeOrdersMutation = useMergeOrders();
 
   // Dialog states
   const [shiftDialogOpen, setShiftDialogOpen] = useState(false);
@@ -143,6 +146,7 @@ export default function POS() {
   const [zReportDialogOpen, setZReportDialogOpen] = useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [modifierDialogOpen, setModifierDialogOpen] = useState(false);
+  const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
   const [selectedItemForModifiers, setSelectedItemForModifiers] = useState<MenuItemWithModifiers | null>(null);
   const [selectedItemForNotes, setSelectedItemForNotes] = useState<{
     id: string;
@@ -156,6 +160,9 @@ export default function POS() {
     closedAt: string;
     orderCount: number;
   } | null>(null);
+
+  // Merge orders state
+  const [mergeSelection, setMergeSelection] = useState<string[]>([]);
 
   // Fetch modifiers for selected item
   const { data: itemModifierGroups = [] } = useMenuItemModifiers(selectedItemForModifiers?.id);
@@ -594,6 +601,23 @@ export default function POS() {
   const handleTableClick = async (tableId: string) => {
     const existingOrder = tableOrderMap.get(tableId);
 
+    // If in merge mode and table is occupied, add to selection
+    if (mergeSelection.length > 0 && mergeSelection.length < 2) {
+      if (!existingOrder) {
+        toast.error("Select an occupied table to merge");
+        return;
+      }
+      if (mergeSelection.includes(tableId)) {
+        // Deselect
+        setMergeSelection([]);
+        return;
+      }
+      // Add second table and open dialog
+      setMergeSelection([...mergeSelection, tableId]);
+      setMergeDialogOpen(true);
+      return;
+    }
+
     if (existingOrder) {
       // Occupied: Load existing order
       try {
@@ -622,6 +646,76 @@ export default function POS() {
       }
     }
   };
+
+  const handleStartMerge = (tableId: string) => {
+    const order = tableOrderMap.get(tableId);
+    if (!order) {
+      toast.error("Select an occupied table first");
+      return;
+    }
+    setMergeSelection([tableId]);
+    toast.info("Select second table to merge");
+  };
+
+  const handleCancelMerge = () => {
+    setMergeSelection([]);
+    setMergeDialogOpen(false);
+  };
+
+  const handleConfirmMerge = async () => {
+    if (mergeSelection.length !== 2 || !restaurant) return;
+
+    const order1 = tableOrderMap.get(mergeSelection[0]);
+    const order2 = tableOrderMap.get(mergeSelection[1]);
+
+    if (!order1 || !order2) {
+      toast.error("Orders not found");
+      handleCancelMerge();
+      return;
+    }
+
+    // Determine primary (oldest) and secondary (newest)
+    const order1Date = new Date(order1.created_at);
+    const order2Date = new Date(order2.created_at);
+    const primaryOrder = order1Date <= order2Date ? order1 : order2;
+    const secondaryOrder = order1Date <= order2Date ? order2 : order1;
+
+    try {
+      await mergeOrdersMutation.mutateAsync({
+        primaryOrderId: primaryOrder.id,
+        secondaryOrderId: secondaryOrder.id,
+        restaurantId: restaurant.id,
+      });
+      toast.success(`Orders merged into #${primaryOrder.order_number}`);
+      handleCancelMerge();
+    } catch (error) {
+      toast.error("Failed to merge orders");
+    }
+  };
+
+  // Get merge data for dialog
+  const getMergeData = () => {
+    if (mergeSelection.length !== 2) return null;
+    const order1 = tableOrderMap.get(mergeSelection[0]);
+    const order2 = tableOrderMap.get(mergeSelection[1]);
+    if (!order1 || !order2) return null;
+
+    const table1 = tables.find(t => t.id === mergeSelection[0]);
+    const table2 = tables.find(t => t.id === mergeSelection[1]);
+
+    const order1Date = new Date(order1.created_at);
+    const order2Date = new Date(order2.created_at);
+    const isPrimaryFirst = order1Date <= order2Date;
+
+    return {
+      primaryTableName: isPrimaryFirst ? table1?.table_name || "Table" : table2?.table_name || "Table",
+      secondaryTableName: isPrimaryFirst ? table2?.table_name || "Table" : table1?.table_name || "Table",
+      primaryOrderNumber: isPrimaryFirst ? order1.order_number : order2.order_number,
+      secondaryOrderNumber: isPrimaryFirst ? order2.order_number : order1.order_number,
+    };
+  };
+
+  const mergeData = getMergeData();
 
   if (sessionLoading || shiftLoading) {
     return (
@@ -797,6 +891,23 @@ export default function POS() {
 
           {activeTab === "tables" && (
             <div className="flex-1 p-4 overflow-auto bg-gradient-to-br from-muted/30 to-muted/10">
+              {/* Merge mode banner */}
+              {mergeSelection.length > 0 && (
+                <div className="mb-4 p-3 bg-primary/10 border border-primary/30 rounded-lg flex items-center justify-between">
+                  <span className="text-sm font-medium">
+                    {mergeSelection.length === 1 
+                      ? "Select second table to merge" 
+                      : "Ready to merge"}
+                  </span>
+                  <button
+                    onClick={handleCancelMerge}
+                    className="text-sm text-destructive hover:underline"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+
               {tablesLoading ? (
                 <div className="flex items-center justify-center h-48">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -811,17 +922,33 @@ export default function POS() {
                   {tables.map((table) => {
                     const order = tableOrderMap.get(table.id);
                     const isOccupied = !!order;
+                    const isSelected = mergeSelection.includes(table.id);
 
                     return (
-                      <TableCard
-                        key={table.id}
-                        tableName={table.table_name}
-                        capacity={table.capacity || 4}
-                        isOccupied={isOccupied}
-                        orderNumber={order?.order_number}
-                        onClick={() => handleTableClick(table.id)}
-                        disabled={createOrderMutation.isPending || resumeOrderMutation.isPending}
-                      />
+                      <div key={table.id} className="relative">
+                        <TableCard
+                          tableName={table.table_name}
+                          capacity={table.capacity || 4}
+                          isOccupied={isOccupied}
+                          orderNumber={order?.order_number}
+                          onClick={() => handleTableClick(table.id)}
+                          disabled={createOrderMutation.isPending || resumeOrderMutation.isPending || mergeOrdersMutation.isPending}
+                          selected={isSelected}
+                        />
+                        {/* Merge button for occupied tables when not in merge mode */}
+                        {isOccupied && mergeSelection.length === 0 && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStartMerge(table.id);
+                            }}
+                            className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center hover:bg-primary/90 shadow-md"
+                            title="Merge with another table"
+                          >
+                            M
+                          </button>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
@@ -939,6 +1066,21 @@ export default function POS() {
         onConfirm={handleAddItemWithModifiers}
         isLoading={addItemMutation.isPending || addModifiersMutation.isPending}
       />
+
+      {mergeData && (
+        <MergeOrdersDialog
+          open={mergeDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) handleCancelMerge();
+          }}
+          primaryTableName={mergeData.primaryTableName}
+          secondaryTableName={mergeData.secondaryTableName}
+          primaryOrderNumber={mergeData.primaryOrderNumber}
+          secondaryOrderNumber={mergeData.secondaryOrderNumber}
+          onConfirm={handleConfirmMerge}
+          isLoading={mergeOrdersMutation.isPending}
+        />
+      )}
     </div>
   );
 }
