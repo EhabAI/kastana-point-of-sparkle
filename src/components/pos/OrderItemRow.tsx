@@ -1,6 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, X, MessageSquare } from "lucide-react";
 
+interface OrderItemModifier {
+  id: string;
+  modifier_name: string;
+  option_name: string;
+  price_adjustment: number;
+}
+
 interface OrderItem {
   id: string;
   name: string;
@@ -8,6 +15,7 @@ interface OrderItem {
   quantity: number;
   notes?: string | null;
   voided: boolean;
+  order_item_modifiers?: OrderItemModifier[];
 }
 
 interface OrderItemRowProps {
@@ -37,6 +45,7 @@ export function OrderItemRow({
   }
 
   const lineTotal = Number(item.price) * item.quantity;
+  const modifiers = item.order_item_modifiers || [];
 
   return (
     <div className="space-y-1 py-2 border-b last:border-b-0">
@@ -46,6 +55,23 @@ export function OrderItemRow({
           {lineTotal.toFixed(2)} {currency}
         </span>
       </div>
+
+      {/* Show modifiers */}
+      {modifiers.length > 0 && (
+        <div className="pl-2 space-y-0.5">
+          {modifiers.map((mod) => (
+            <div key={mod.id} className="flex items-center justify-between text-xs text-muted-foreground">
+              <span className="italic">+ {mod.option_name}</span>
+              {mod.price_adjustment !== 0 && (
+                <span>
+                  {mod.price_adjustment > 0 ? "+" : ""}
+                  {mod.price_adjustment.toFixed(2)}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
       
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1">

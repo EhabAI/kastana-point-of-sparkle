@@ -14,3 +14,4 @@ export * from "./useBranchTables";
 export * from "./usePendingOrders";
 export * from "./useOpenOrders";
 export * from "./useCashierPaymentMethods";
+export * from "./useModifiers";

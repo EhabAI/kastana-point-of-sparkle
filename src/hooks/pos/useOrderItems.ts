@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCashierRestaurant } from "./useCashierRestaurant";
 
 interface MenuItem {
   id: string;
@@ -9,28 +8,27 @@ interface MenuItem {
 }
 
 export function useAddOrderItem() {
-  const { data: restaurant } = useCashierRestaurant();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({
       orderId,
+      restaurantId,
       menuItem,
       quantity = 1,
       notes,
     }: {
       orderId: string;
+      restaurantId: string;
       menuItem: MenuItem;
       quantity?: number;
       notes?: string;
     }) => {
-      if (!restaurant?.id) throw new Error("Missing restaurant");
-
       const { data, error } = await supabase
         .from("order_items")
         .insert({
           order_id: orderId,
-          restaurant_id: restaurant.id,
+          restaurant_id: restaurantId,
           menu_item_id: menuItem.id,
           name: menuItem.name,
           price: menuItem.price,
