@@ -99,7 +99,7 @@ function RoundTableSmall({ isOccupied, tableName }: { isOccupied: boolean; table
           y="30"
           textAnchor="middle"
           dominantBaseline="middle"
-          className="fill-foreground font-bold text-[10px]"
+          className="fill-foreground font-bold text-[14px]"
         >
           {tableName}
         </text>
@@ -136,7 +136,7 @@ function RoundTable({ isOccupied, tableName }: { isOccupied: boolean; tableName:
           y="30"
           textAnchor="middle"
           dominantBaseline="middle"
-          className="fill-foreground font-bold text-[10px]"
+          className="fill-foreground font-bold text-[14px]"
         >
           {tableName}
         </text>
@@ -191,7 +191,7 @@ function RectangularTable({ isOccupied, capacity, tableName }: { isOccupied: boo
           y="25"
           textAnchor="middle"
           dominantBaseline="middle"
-          className="fill-foreground font-bold text-[10px]"
+          className="fill-foreground font-bold text-[14px]"
         >
           {tableName}
         </text>
