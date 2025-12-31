@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
   useCashierRestaurant,
+  useCashierBranch,
   useCurrentShift,
   useOpenShift,
   useCloseShift,
@@ -19,6 +20,13 @@ import {
   useZReport,
   useCashierCategories,
   useCashierMenuItems,
+  useBranchTables,
+  usePendingOrders,
+  useConfirmPendingOrder,
+  useRejectPendingOrder,
+  useOpenOrders,
+  useMoveOrderToTable,
+  useCashierPaymentMethods,
 } from "@/hooks/pos";
 import {
   useAddOrderItem,
@@ -28,7 +36,16 @@ import {
   useUpdateOrderItemNotes,
 } from "@/hooks/pos/useOrderItems";
 import { useAddPayment, useCompleteOrder } from "@/hooks/pos/usePayments";
-import { POSHeader, CategoryList, MenuItemGrid, OrderPanel } from "@/components/pos";
+import { 
+  POSHeader, 
+  POSTabControl, 
+  CategoryList, 
+  MenuItemGrid, 
+  OrderPanel,
+  QRPendingOrders,
+  OpenOrdersList,
+  type POSTab,
+} from "@/components/pos";
 import {
   ShiftDialog,
   ShiftSummaryDialog,
@@ -40,11 +57,14 @@ import {
   CashMovementDialog,
   ZReportDialog,
   ItemNotesDialog,
+  NewOrderDialog,
 } from "@/components/pos/dialogs";
+import type { OrderType } from "@/components/pos/OrderTypeSelector";
 
 export default function POS() {
   const { signOut, user } = useAuth();
   const { data: restaurant, isLoading: restaurantLoading } = useCashierRestaurant();
+  const { data: branch, isLoading: branchLoading } = useCashierBranch();
   const { data: currentShift, isLoading: shiftLoading } = useCurrentShift();
   const { data: settings } = useRestaurantSettings();
   const { data: categories = [] } = useCashierCategories();
@@ -52,9 +72,17 @@ export default function POS() {
   const { data: recentOrders = [] } = useRecentOrders(currentShift?.id);
   const { data: currentOrder, refetch: refetchOrder } = useCurrentOrder(currentShift?.id);
   const { data: zReportData, isLoading: zReportLoading } = useZReport(currentShift?.id);
+  const { data: tables = [], isLoading: tablesLoading } = useBranchTables(branch?.id);
+  const { data: pendingOrders = [] } = usePendingOrders(branch?.id);
+  const { data: openOrders = [] } = useOpenOrders(branch?.id);
+  const { data: paymentMethods = [] } = useCashierPaymentMethods(branch?.id);
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>();
   const { data: menuItems = [], isLoading: itemsLoading } = useCashierMenuItems(selectedCategoryId);
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState<POSTab>("new-order");
+  const [newOrderDialogOpen, setNewOrderDialogOpen] = useState(false);
 
   // Mutations
   const openShiftMutation = useOpenShift();
@@ -72,6 +100,9 @@ export default function POS() {
   const updateNotesMutation = useUpdateOrderItemNotes();
   const addPaymentMutation = useAddPayment();
   const completeOrderMutation = useCompleteOrder();
+  const confirmPendingMutation = useConfirmPendingOrder();
+  const rejectPendingMutation = useRejectPendingOrder();
+  const moveToTableMutation = useMoveOrderToTable();
 
   // Dialog states
   const [shiftDialogOpen, setShiftDialogOpen] = useState(false);
@@ -165,18 +196,35 @@ export default function POS() {
     }
   };
 
+  const handleNewOrder = async (orderType: OrderType, tableId: string | null) => {
+    if (!currentShift || !branch) return;
+    
+    try {
+      const notes = tableId ? `table:${tableId}` : `type:${orderType}`;
+      await createOrderMutation.mutateAsync({
+        shiftId: currentShift.id,
+        taxRate,
+        branchId: branch.id,
+        notes,
+      });
+      setNewOrderDialogOpen(false);
+      setActiveTab("new-order");
+      toast.success("Order created");
+    } catch (error) {
+      toast.error("Failed to create order");
+    }
+  };
+
   const handleSelectItem = async (menuItem: { id: string; name: string; price: number }) => {
-    if (!currentShift) return;
+    if (!currentShift || !branch) return;
     
     try {
       let orderId = currentOrder?.id;
       
       if (!orderId) {
-        const newOrder = await createOrderMutation.mutateAsync({
-          shiftId: currentShift.id,
-          taxRate,
-        });
-        orderId = newOrder.id;
+        // Open new order dialog if no current order
+        setNewOrderDialogOpen(true);
+        return;
       }
 
       await addItemMutation.mutateAsync({ orderId, menuItem });
@@ -288,7 +336,7 @@ export default function POS() {
 
   const handlePay = () => setPaymentDialogOpen(true);
 
-  const handlePaymentConfirm = async (payments: { method: "cash" | "card" | "mobile"; amount: number }[]) => {
+  const handlePaymentConfirm = async (payments: { method: string; amount: number }[]) => {
     if (!currentOrder) return;
     try {
       for (const payment of payments) {
@@ -319,6 +367,7 @@ export default function POS() {
   const handleResumeOrder = async (orderId: string) => {
     try {
       await resumeOrderMutation.mutateAsync(orderId);
+      setActiveTab("new-order");
       toast.success("Order resumed");
     } catch (error) {
       toast.error("Failed to resume order");
@@ -347,7 +396,44 @@ export default function POS() {
     }
   };
 
-  if (restaurantLoading || shiftLoading) {
+  const handleConfirmPending = async (orderId: string) => {
+    try {
+      await confirmPendingMutation.mutateAsync(orderId);
+      toast.success("Order confirmed");
+    } catch (error) {
+      toast.error("Failed to confirm order");
+    }
+  };
+
+  const handleRejectPending = async (orderId: string, reason?: string) => {
+    try {
+      await rejectPendingMutation.mutateAsync({ orderId, reason });
+      toast.success("Order rejected");
+    } catch (error) {
+      toast.error("Failed to reject order");
+    }
+  };
+
+  const handleSelectOpenOrder = async (orderId: string) => {
+    try {
+      await resumeOrderMutation.mutateAsync(orderId);
+      setActiveTab("new-order");
+      toast.success("Order loaded");
+    } catch (error) {
+      toast.error("Failed to load order");
+    }
+  };
+
+  const handleMoveToTable = async (orderId: string, tableId: string, tableName: string, prevTableId?: string, prevTableName?: string) => {
+    try {
+      await moveToTableMutation.mutateAsync({ orderId, tableId, tableName, previousTableId: prevTableId, previousTableName: prevTableName });
+      toast.success(`Order moved to ${tableName}`);
+    } catch (error) {
+      toast.error("Failed to move order");
+    }
+  };
+
+  if (restaurantLoading || branchLoading || shiftLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -359,6 +445,15 @@ export default function POS() {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col gap-4">
         <p className="text-muted-foreground">No restaurant assigned to this cashier.</p>
+        <button onClick={signOut} className="text-primary underline">Sign Out</button>
+      </div>
+    );
+  }
+
+  if (!branch) {
+    return (
+      <div className="min-h-screen flex items-center justify-center flex-col gap-4">
+        <p className="text-muted-foreground">No branch assigned to this cashier.</p>
         <button onClick={signOut} className="text-primary underline">Sign Out</button>
       </div>
     );
@@ -395,57 +490,93 @@ export default function POS() {
             <p className="text-muted-foreground mb-6">You must open a shift before starting work.</p>
             <button
               onClick={handleOpenShift}
-              className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+              className="px-8 py-4 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors min-h-[48px]"
             >
               Open Shift
             </button>
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex overflow-hidden">
-          {/* Categories */}
-          <div className="w-48 border-r bg-card">
-            <CategoryList
-              categories={categories}
-              selectedCategoryId={selectedCategoryId}
-              onSelectCategory={setSelectedCategoryId}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Tab Control */}
+          <div className="p-2 border-b bg-card">
+            <POSTabControl
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              pendingCount={pendingOrders.length}
+              openCount={openOrders.length}
             />
           </div>
 
-          {/* Menu Items */}
-          <div className="flex-1 bg-muted/30">
-            <MenuItemGrid
-              items={menuItems}
-              currency={currency}
-              onSelectItem={handleSelectItem}
-              isLoading={itemsLoading}
-            />
-          </div>
+          {/* Tab Content */}
+          {activeTab === "new-order" && (
+            <div className="flex-1 flex overflow-hidden">
+              {/* Categories */}
+              <div className="w-48 border-r bg-card">
+                <CategoryList
+                  categories={categories}
+                  selectedCategoryId={selectedCategoryId}
+                  onSelectCategory={setSelectedCategoryId}
+                />
+              </div>
 
-          {/* Order Panel */}
-          <div className="w-80 border-l">
-            <OrderPanel
-              orderNumber={currentOrder?.order_number}
-              items={currentOrder?.order_items || []}
-              subtotal={subtotal}
-              discountType={currentOrder?.discount_type}
-              discountValue={currentOrder?.discount_value ? Number(currentOrder.discount_value) : null}
-              taxRate={taxRate}
-              taxAmount={taxAmount}
-              serviceCharge={serviceCharge}
-              total={total}
+              {/* Menu Items */}
+              <div className="flex-1 bg-muted/30">
+                <MenuItemGrid
+                  items={menuItems}
+                  currency={currency}
+                  onSelectItem={handleSelectItem}
+                  isLoading={itemsLoading}
+                />
+              </div>
+
+              {/* Order Panel */}
+              <div className="w-80 border-l">
+                <OrderPanel
+                  orderNumber={currentOrder?.order_number}
+                  items={currentOrder?.order_items || []}
+                  subtotal={subtotal}
+                  discountType={currentOrder?.discount_type}
+                  discountValue={currentOrder?.discount_value ? Number(currentOrder.discount_value) : null}
+                  taxRate={taxRate}
+                  taxAmount={taxAmount}
+                  serviceCharge={serviceCharge}
+                  total={total}
+                  currency={currency}
+                  onUpdateQuantity={handleUpdateQuantity}
+                  onRemoveItem={handleRemoveItem}
+                  onVoidItem={handleVoidItem}
+                  onAddNotes={handleAddNotes}
+                  onApplyDiscount={() => setDiscountDialogOpen(true)}
+                  onPay={handlePay}
+                  onHoldOrder={handleHoldOrder}
+                  onCancelOrder={() => setCancelDialogOpen(true)}
+                  hasItems={orderItems.length > 0}
+                />
+              </div>
+            </div>
+          )}
+
+          {activeTab === "qr-pending" && (
+            <QRPendingOrders
+              orders={pendingOrders}
               currency={currency}
-              onUpdateQuantity={handleUpdateQuantity}
-              onRemoveItem={handleRemoveItem}
-              onVoidItem={handleVoidItem}
-              onAddNotes={handleAddNotes}
-              onApplyDiscount={() => setDiscountDialogOpen(true)}
-              onPay={handlePay}
-              onHoldOrder={handleHoldOrder}
-              onCancelOrder={() => setCancelDialogOpen(true)}
-              hasItems={orderItems.length > 0}
+              onConfirm={handleConfirmPending}
+              onReject={handleRejectPending}
+              isLoading={confirmPendingMutation.isPending || rejectPendingMutation.isPending}
             />
-          </div>
+          )}
+
+          {activeTab === "open-orders" && (
+            <OpenOrdersList
+              orders={openOrders}
+              tables={tables}
+              currency={currency}
+              onSelectOrder={handleSelectOpenOrder}
+              onMoveToTable={handleMoveToTable}
+              isLoading={resumeOrderMutation.isPending || moveToTableMutation.isPending}
+            />
+          )}
         </div>
       )}
 
@@ -459,6 +590,15 @@ export default function POS() {
         expectedCash={zReportData?.expectedCash}
       />
 
+      <NewOrderDialog
+        open={newOrderDialogOpen}
+        onOpenChange={setNewOrderDialogOpen}
+        tables={tables}
+        tablesLoading={tablesLoading}
+        onConfirm={handleNewOrder}
+        isLoading={createOrderMutation.isPending}
+      />
+
       <PaymentDialog
         open={paymentDialogOpen}
         onOpenChange={setPaymentDialogOpen}
@@ -466,6 +606,7 @@ export default function POS() {
         currency={currency}
         onConfirm={handlePaymentConfirm}
         isLoading={addPaymentMutation.isPending}
+        paymentMethods={paymentMethods}
       />
 
       <DiscountDialog
