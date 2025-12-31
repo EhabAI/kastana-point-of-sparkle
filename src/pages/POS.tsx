@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
@@ -81,6 +81,18 @@ export default function POS() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>();
   const { data: menuItems = [], isLoading: itemsLoading } = useCashierMenuItems(selectedCategoryId);
 
+  // B1: Menu item search
+  const [menuSearch, setMenuSearch] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const filteredMenuItems = useMemo(() => {
+    if (!menuSearch.trim()) return menuItems;
+    const query = menuSearch.toLowerCase().trim();
+    return menuItems.filter((item: { name: string }) => 
+      item.name.toLowerCase().includes(query)
+    );
+  }, [menuItems, menuSearch]);
+
   // Tab state
   const [activeTab, setActiveTab] = useState<POSTab>("new-order");
   const [newOrderDialogOpen, setNewOrderDialogOpen] = useState(false);
@@ -139,6 +151,12 @@ export default function POS() {
       setSelectedCategoryId(categories[0].id);
     }
   }, [categories, selectedCategoryId]);
+
+  // Clear search when category changes
+  useEffect(() => {
+    setMenuSearch("");
+  }, [selectedCategoryId]);
+
 
   // Calculate order totals
   const orderItems = currentOrder?.order_items?.filter((item: { voided: boolean }) => !item.voided) || [];
@@ -488,6 +506,58 @@ export default function POS() {
 
   const shiftOpen = currentShift?.status === "open";
 
+  // B2: Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Skip if typing in input/textarea
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
+        return;
+      }
+
+      // Only work when shift is open and on new-order tab
+      if (!shiftOpen || activeTab !== "new-order") return;
+
+      switch (e.key) {
+        case "Enter":
+          // Trigger Pay if there are items
+          if (orderItems.length > 0 && currentOrder) {
+            handlePay();
+          }
+          break;
+        case "h":
+        case "H":
+          // Hold current order
+          if (currentOrder && orderItems.length > 0) {
+            handleHoldOrder();
+          }
+          break;
+        case "Escape":
+          // Open cancel dialog
+          if (currentOrder) {
+            setCancelDialogOpen(true);
+          }
+          break;
+      }
+    };
+
+    const handleKeyDownWithPrevent = (e: KeyboardEvent) => {
+      // Ctrl+F to focus search
+      if ((e.ctrlKey || e.metaKey) && e.key === "f") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("keydown", handleKeyDownWithPrevent);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDownWithPrevent);
+    };
+  }, [shiftOpen, activeTab, orderItems.length, currentOrder]);
+
   return (
     <div className="h-screen flex flex-col bg-background">
       <POSHeader
@@ -559,13 +629,26 @@ export default function POS() {
               </div>
 
               {/* Menu Items */}
-              <div className="flex-1 bg-muted/30">
-                <MenuItemGrid
-                  items={menuItems}
-                  currency={currency}
-                  onSelectItem={handleSelectItem}
-                  isLoading={itemsLoading}
-                />
+              <div className="flex-1 bg-muted/30 flex flex-col">
+                {/* B1: Search Input */}
+                <div className="p-2 border-b bg-card">
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={menuSearch}
+                    onChange={(e) => setMenuSearch(e.target.value)}
+                    placeholder="Search items... (Ctrl+F)"
+                    className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <MenuItemGrid
+                    items={filteredMenuItems}
+                    currency={currency}
+                    onSelectItem={handleSelectItem}
+                    isLoading={itemsLoading}
+                  />
+                </div>
               </div>
 
               {/* Order Panel */}

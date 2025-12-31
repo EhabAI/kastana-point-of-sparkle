@@ -7,6 +7,8 @@ interface MenuItem {
   price: number;
   is_offer: boolean;
   is_available: boolean;
+  promo_price?: number | null;
+  promo_label?: string | null;
 }
 
 interface MenuItemGridProps {
