@@ -12,8 +12,8 @@ interface BranchContextType {
 
 const BranchContext = createContext<BranchContextType | undefined>(undefined);
 
-// Storage key is now scoped by restaurant
-const getStorageKey = (restaurantId: string) => `kastana_selected_branch_${restaurantId}`;
+// Storage key is scoped by restaurant_id per spec
+const getStorageKey = (restaurantId: string) => `kastana:${restaurantId}:selectedBranchId`;
 
 export function BranchProvider({ children }: { children: ReactNode }) {
   const { data: restaurant } = useOwnerRestaurant();
