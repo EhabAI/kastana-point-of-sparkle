@@ -480,8 +480,9 @@ function MenuItemsSection({
   const updateItem = useUpdateMenuItem();
   const deleteItem = useDeleteMenuItem();
   const { toast } = useToast();
-  const { t, language } = useLanguage();
-  const currencySymbol = language === "ar" ? "د.أ" : "JOD";
+  const { t } = useLanguage();
+  // Use currency prop from restaurant_settings instead of hardcoded value
+  const currencySymbol = currency;
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
