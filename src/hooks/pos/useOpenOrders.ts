@@ -98,3 +98,91 @@ export function useMoveOrderToTable() {
     },
   });
 }
+
+export function useMergeOrders() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      primaryOrderId,
+      secondaryOrderId,
+      restaurantId,
+    }: {
+      primaryOrderId: string;
+      secondaryOrderId: string;
+      restaurantId: string;
+    }) => {
+      // 1. Get all items from secondary order
+      const { data: secondaryItems, error: itemsError } = await supabase
+        .from("order_items")
+        .select("id, menu_item_id, name, price, quantity, notes, voided, void_reason")
+        .eq("order_id", secondaryOrderId);
+
+      if (itemsError) throw itemsError;
+
+      // 2. Move items to primary order (re-insert with new order_id)
+      if (secondaryItems && secondaryItems.length > 0) {
+        for (const item of secondaryItems) {
+          // Insert item into primary order
+          const { data: newItem, error: insertError } = await supabase
+            .from("order_items")
+            .insert({
+              order_id: primaryOrderId,
+              restaurant_id: restaurantId,
+              menu_item_id: item.menu_item_id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              notes: item.notes,
+              voided: item.voided,
+              void_reason: item.void_reason,
+            })
+            .select()
+            .single();
+
+          if (insertError) throw insertError;
+
+          // Copy modifiers if any
+          const { data: modifiers } = await supabase
+            .from("order_item_modifiers")
+            .select("modifier_option_id, modifier_name, option_name, price_adjustment")
+            .eq("order_item_id", item.id);
+
+          if (modifiers && modifiers.length > 0) {
+            await supabase.from("order_item_modifiers").insert(
+              modifiers.map((mod) => ({
+                order_item_id: newItem.id,
+                modifier_option_id: mod.modifier_option_id,
+                modifier_name: mod.modifier_name,
+                option_name: mod.option_name,
+                price_adjustment: mod.price_adjustment,
+              }))
+            );
+          }
+
+          // Delete original item
+          await supabase.from("order_items").delete().eq("id", item.id);
+        }
+      }
+
+      // 3. Close secondary order as cancelled (merged)
+      const { error: closeError } = await supabase
+        .from("orders")
+        .update({
+          status: "cancelled",
+          cancelled_reason: "Merged into another order",
+          notes: null, // Clear table assignment
+        })
+        .eq("id", secondaryOrderId);
+
+      if (closeError) throw closeError;
+
+      return { primaryOrderId, secondaryOrderId };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["open-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["branch-tables"] });
+      queryClient.invalidateQueries({ queryKey: ["current-order"] });
+    },
+  });
+}

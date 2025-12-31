@@ -11,3 +11,4 @@ export * from "./ZReportDialog";
 export * from "./ItemNotesDialog";
 export * from "./NewOrderDialog";
 export * from "./ModifierDialog";
+export * from "./MergeOrdersDialog";
