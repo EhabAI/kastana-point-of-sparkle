@@ -36,7 +36,8 @@ import {
   UtensilsCrossed,
   Users,
   Settings,
-  Building2
+  Building2,
+  ScrollText
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -58,6 +59,7 @@ import { BranchSelector } from "@/components/owner/BranchSelector";
 import { BranchManagement } from "@/components/owner/BranchManagement";
 import { BranchMenuItemsManager } from "@/components/owner/BranchMenuItemsManager";
 import { PaymentMethodsSettings } from "@/components/owner/PaymentMethodsSettings";
+import { AuditLogViewer } from "@/components/owner/AuditLogViewer";
 import { useRestaurantTables } from "@/hooks/useRestaurantTables";
 import { useCashiers } from "@/hooks/useCashiers";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
@@ -247,6 +249,7 @@ export default function OwnerAdmin() {
           <TabsContent value="reports" className="space-y-6 mt-6">
             {role === "owner" && <BasicReports />}
             {role === "owner" && <ShiftsView />}
+            {role === "owner" && <AuditLogViewer />}
           </TabsContent>
 
           {/* Menu Tab */}
