@@ -626,6 +626,7 @@ export default function POS() {
         onConfirm={handleShiftConfirm}
         isLoading={openShiftMutation.isPending || closeShiftMutation.isPending}
         expectedCash={zReportData?.expectedCash}
+        currency={currency}
       />
 
       <NewOrderDialog
