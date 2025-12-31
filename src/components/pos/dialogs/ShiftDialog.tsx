@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ShiftDialogProps {
   open: boolean;
@@ -19,6 +20,7 @@ interface ShiftDialogProps {
   onConfirm: (amount: number) => void;
   isLoading?: boolean;
   expectedCash?: number;
+  currency?: string;
 }
 
 export function ShiftDialog({
@@ -28,7 +30,9 @@ export function ShiftDialog({
   onConfirm,
   isLoading,
   expectedCash,
+  currency = "JOD",
 }: ShiftDialogProps) {
+  const { t } = useLanguage();
   const [amount, setAmount] = useState("");
   const [shiftTime, setShiftTime] = useState<Date>(new Date());
 
@@ -46,12 +50,12 @@ export function ShiftDialog({
     }
   };
 
-  const title = mode === "open" ? "Open Shift" : "Close Shift";
+  const title = mode === "open" ? t("open_shift") : t("close_shift");
   const description =
     mode === "open"
-      ? "Enter the opening cash amount in the drawer."
-      : "Count the cash in the drawer and enter the closing amount.";
-  const label = mode === "open" ? "Opening Cash" : "Closing Cash";
+      ? t("enter_opening_cash")
+      : t("enter_closing_cash");
+  const label = mode === "open" ? `${t("opening_cash")} (${currency})` : `${t("closing_cash")} (${currency})`;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -71,8 +75,8 @@ export function ShiftDialog({
 
           {mode === "close" && expectedCash !== undefined && (
             <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground">Expected Cash</p>
-              <p className="text-lg font-bold">{expectedCash.toFixed(2)} JOD</p>
+              <p className="text-sm text-muted-foreground">{t("expected_cash")}</p>
+              <p className="text-lg font-bold">{expectedCash.toFixed(2)} {currency}</p>
             </div>
           )}
 
