@@ -282,12 +282,12 @@ export default function POS() {
     if (!currentShift || !branch) return;
 
     try {
-      const notes = tableId ? `table:${tableId}` : `type:${orderType}`;
       await createOrderMutation.mutateAsync({
         shiftId: currentShift.id,
         taxRate,
         branchId: branch.id,
-        notes,
+        orderType,
+        tableId: orderType === "takeaway" ? null : tableId,
       });
       setNewOrderDialogOpen(false);
       setActiveTab("new-order");
