@@ -79,11 +79,13 @@ function QRCodeDisplay({ data, size = 120 }: { data: string; size?: number }) {
 function TableRow({ 
   table, 
   restaurantId,
-  onEdit 
+  onEdit,
+  branchName
 }: { 
   table: RestaurantTable; 
   restaurantId: string;
   onEdit: (table: RestaurantTable) => void;
+  branchName: string;
 }) {
   const updateTable = useUpdateRestaurantTable();
   const { toast } = useToast();
@@ -162,6 +164,10 @@ function TableRow({
             <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
               <Users className="h-3 w-3" />
               {table.capacity ?? 4}
+            </span>
+            <span className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${hasValidBranch ? 'bg-secondary text-secondary-foreground' : 'bg-destructive/20 text-destructive'}`}>
+              <Building2 className="h-3 w-3" />
+              {branchName}
             </span>
             <span className={`text-xs px-2 py-0.5 rounded-full ${table.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
               {table.is_active ? t("active") : t("inactive")}
@@ -389,6 +395,7 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
                     table={table} 
                     restaurantId={restaurantId}
                     onEdit={handleEdit}
+                    branchName={getBranchName(table.branch_id)}
                   />
                 ))}
               </div>
