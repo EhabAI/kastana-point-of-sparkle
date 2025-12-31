@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -89,18 +89,27 @@ function TableRow({
   const { toast } = useToast();
   const { t } = useLanguage();
   
-  // QR link now includes branchId from the table record
+  // QR link requires branchId - do not generate QR if missing
   const branchId = table.branch_id;
-  const menuLink = branchId 
+  const hasValidBranch = !!branchId;
+  const menuLink = hasValidBranch 
     ? `${window.location.origin}/menu/${restaurantId}/${branchId}/${table.table_code}`
-    : `${window.location.origin}/menu/${restaurantId}/${table.table_code}`;
+    : "";
   
   const handleCopyLink = async () => {
+    if (!hasValidBranch) {
+      toast({ title: t("branch_required_for_qr"), variant: "destructive" });
+      return;
+    }
     await navigator.clipboard.writeText(menuLink);
     toast({ title: t("link_copied") });
   };
   
   const handleDownloadQR = () => {
+    if (!hasValidBranch) {
+      toast({ title: t("branch_required_for_qr"), variant: "destructive" });
+      return;
+    }
     const svg = generateQRCodeSVG(menuLink, 400);
     const blob = new Blob([svg], { type: "image/svg+xml" });
     const url = URL.createObjectURL(blob);
@@ -138,11 +147,17 @@ function TableRow({
   };
   
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-muted/50 rounded-lg gap-4">
+    <div className={`flex flex-col md:flex-row md:items-center justify-between p-4 rounded-lg gap-4 ${!hasValidBranch ? 'bg-destructive/10 border border-destructive/30' : 'bg-muted/50'}`}>
       <div className="flex items-start gap-4">
-        <QRCodeDisplay data={menuLink} size={80} />
+        {hasValidBranch ? (
+          <QRCodeDisplay data={menuLink} size={80} />
+        ) : (
+          <div className="w-20 h-20 bg-muted flex items-center justify-center rounded border border-dashed border-destructive">
+            <span className="text-xs text-destructive text-center px-1">{t("no_branch")}</span>
+          </div>
+        )}
         <div className="flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <p className="font-medium text-foreground">{table.table_name}</p>
             <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
               <Users className="h-3 w-3" />
@@ -151,22 +166,29 @@ function TableRow({
             <span className={`text-xs px-2 py-0.5 rounded-full ${table.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
               {table.is_active ? t("active") : t("inactive")}
             </span>
+            {!hasValidBranch && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/20 text-destructive font-medium">
+                {t("branch_required")}
+              </span>
+            )}
           </div>
           <p className="text-sm text-muted-foreground mt-1">{t("code")}: {table.table_code}</p>
-          <p className="text-xs text-muted-foreground mt-1 break-all max-w-xs">{menuLink}</p>
+          {hasValidBranch && (
+            <p className="text-xs text-muted-foreground mt-1 break-all max-w-xs">{menuLink}</p>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
         <Switch 
           checked={table.is_active} 
           onCheckedChange={handleToggleActive}
-          disabled={updateTable.isPending}
+          disabled={updateTable.isPending || !hasValidBranch}
         />
-        <Button variant="outline" size="sm" onClick={handleCopyLink}>
+        <Button variant="outline" size="sm" onClick={handleCopyLink} disabled={!hasValidBranch}>
           <Copy className="h-4 w-4 mr-1" />
           {t("copy")}
         </Button>
-        <Button variant="outline" size="sm" onClick={handleDownloadQR}>
+        <Button variant="outline" size="sm" onClick={handleDownloadQR} disabled={!hasValidBranch}>
           <Download className="h-4 w-4 mr-1" />
           QR
         </Button>
@@ -195,16 +217,11 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
   const [editTableName, setEditTableName] = useState("");
   const [editTableCapacity, setEditTableCapacity] = useState(4);
   
-  // Filter by branch
+  // Filter by branch - default to first branch if available
   const [filterBranchId, setFilterBranchId] = useState<string>("all");
-  
-  // Auto-select first branch for new tables
-  useEffect(() => {
-    if (branches.length > 0 && !newTableBranchId) {
-      const defaultBranch = branches.find(b => b.is_default) || branches[0];
-      setNewTableBranchId(defaultBranch.id);
-    }
-  }, [branches, newTableBranchId]);
+
+  // DO NOT auto-select branch for new tables - Owner must explicitly select
+  // newTableBranchId stays empty until user selects
 
   // Filter tables by selected branch
   const filteredTables = filterBranchId === "all" 
@@ -270,7 +287,7 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
             </CollapsibleTrigger>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm">
+                <Button size="sm" disabled={branches.length === 0}>
                   <Plus className="h-4 w-4 mr-2" />
                   {t("add_table")}
                 </Button>
@@ -284,10 +301,10 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
                   <div className="space-y-2">
                     <Label htmlFor="table-branch" className="flex items-center gap-2">
                       <Building2 className="h-4 w-4" />
-                      {t("branch")} *
+                      {t("branch")} <span className="text-destructive">*</span>
                     </Label>
                     <Select value={newTableBranchId} onValueChange={setNewTableBranchId}>
-                      <SelectTrigger id="table-branch">
+                      <SelectTrigger id="table-branch" className={!newTableBranchId ? "border-destructive" : ""}>
                         <SelectValue placeholder={t("select_branch")} />
                       </SelectTrigger>
                       <SelectContent>
@@ -298,6 +315,9 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
                         ))}
                       </SelectContent>
                     </Select>
+                    {!newTableBranchId && (
+                      <p className="text-xs text-destructive">{t("branch_required")}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="table-name">{t("table_name")}</Label>
@@ -332,6 +352,26 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
         </CardHeader>
         <CollapsibleContent>
           <CardContent>
+            {/* Branch Filter */}
+            {branches.length > 0 && (
+              <div className="mb-4">
+                <Label className="mb-2 block text-sm">{t("filter_by_branch")}</Label>
+                <Select value={filterBranchId} onValueChange={setFilterBranchId}>
+                  <SelectTrigger className="w-full md:w-64">
+                    <SelectValue placeholder={t("all_branches")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("all_branches")}</SelectItem>
+                    {branches.map((branch) => (
+                      <SelectItem key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            
             {isLoading || branchesLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
