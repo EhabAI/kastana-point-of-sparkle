@@ -349,17 +349,32 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              checked={item.is_available}
-                              onCheckedChange={() => handleToggleAvailable(item)}
-                              title={t("available")}
-                            />
-                            <Switch
-                              checked={item.is_active}
-                              onCheckedChange={() => handleToggleActive(item)}
-                              title={t("active_status")}
-                            />
+                          <div className="flex items-center gap-3">
+                            {/* Available/Unavailable - Button/Chip style */}
+                            <div className="flex flex-col items-center gap-0.5">
+                              <Button
+                                variant={item.is_available ? "default" : "destructive"}
+                                size="sm"
+                                className={`h-7 text-xs ${item.is_available ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                                onClick={() => handleToggleAvailable(item)}
+                                disabled={!item.is_active}
+                                title={!item.is_active ? t("item_must_be_active") : (item.is_available ? t("mark_unavailable") : t("mark_available"))}
+                              >
+                                {item.is_available ? t("available") : t("unavailable")}
+                              </Button>
+                              <span className="text-[10px] text-muted-foreground">{t("for_sale")}</span>
+                            </div>
+                            
+                            {/* Active/Disabled - Toggle style */}
+                            <div className="flex flex-col items-center gap-0.5 ps-2 border-s">
+                              <Switch
+                                checked={item.is_active}
+                                onCheckedChange={() => handleToggleActive(item)}
+                                title={item.is_active ? t("disable_item") : t("enable_item")}
+                              />
+                              <span className="text-[10px] text-muted-foreground">{t("active")}</span>
+                            </div>
+                            
                             <Button variant="ghost" size="icon" onClick={() => openEditDialog(item)}>
                               <Edit2 className="h-4 w-4" />
                             </Button>
