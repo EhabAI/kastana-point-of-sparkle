@@ -62,7 +62,7 @@ import type { OrderType } from "@/components/pos/OrderTypeSelector";
 
 export default function POS() {
   const { signOut, user } = useAuth();
-  const { data: session, isLoading: sessionLoading } = useCashierSession(user?.id);
+  const { data: session, isLoading: sessionLoading } = useCashierSession();
   const restaurant = session?.restaurant;
   const branch = session?.branch;
   const { data: currentShift, isLoading: shiftLoading } = useCurrentShift();
