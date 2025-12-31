@@ -7,6 +7,7 @@ export * from "./OrderItemRow";
 export * from "./OrderTotals";
 export * from "./OrderPanel";
 export * from "./TableSelector";
+export * from "./TableCard";
 export * from "./OrderTypeSelector";
 export * from "./QRPendingOrders";
 export * from "./OpenOrdersList";
