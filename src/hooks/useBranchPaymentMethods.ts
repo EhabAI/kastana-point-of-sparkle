@@ -9,6 +9,7 @@ export interface BranchPaymentMethods {
   visa_enabled: boolean;
   mastercard_enabled: boolean;
   efawateer_enabled: boolean;
+  wallet_enabled: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -43,18 +44,21 @@ export function useUpdateBranchPaymentMethods() {
       visaEnabled,
       mastercardEnabled,
       efawateerEnabled,
+      walletEnabled,
     }: {
       branchId: string;
       cashEnabled?: boolean;
       visaEnabled?: boolean;
       mastercardEnabled?: boolean;
       efawateerEnabled?: boolean;
+      walletEnabled?: boolean;
     }) => {
       const updates: Partial<BranchPaymentMethods> = {};
       if (cashEnabled !== undefined) updates.cash_enabled = cashEnabled;
       if (visaEnabled !== undefined) updates.visa_enabled = visaEnabled;
       if (mastercardEnabled !== undefined) updates.mastercard_enabled = mastercardEnabled;
       if (efawateerEnabled !== undefined) updates.efawateer_enabled = efawateerEnabled;
+      if (walletEnabled !== undefined) updates.wallet_enabled = walletEnabled;
 
       const { data, error } = await supabase
         .from("branch_payment_methods")
