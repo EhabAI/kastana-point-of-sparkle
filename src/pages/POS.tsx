@@ -27,7 +27,10 @@ import {
   useOpenOrders,
   useMoveOrderToTable,
   useCashierPaymentMethods,
+  useMenuItemModifiers,
+  useAddOrderItemModifiers,
 } from "@/hooks/pos";
+import type { SelectedModifier } from "@/hooks/pos/useModifiers";
 import {
   useAddOrderItem,
   useUpdateOrderItemQuantity,
@@ -58,8 +61,15 @@ import {
   ZReportDialog,
   ItemNotesDialog,
   NewOrderDialog,
+  ModifierDialog,
 } from "@/components/pos/dialogs";
 import type { OrderType } from "@/components/pos/OrderTypeSelector";
+
+interface MenuItemWithModifiers {
+  id: string;
+  name: string;
+  price: number;
+}
 
 export default function POS() {
   const { signOut, user } = useAuth();
@@ -116,6 +126,7 @@ export default function POS() {
   const confirmPendingMutation = useConfirmPendingOrder();
   const rejectPendingMutation = useRejectPendingOrder();
   const moveToTableMutation = useMoveOrderToTable();
+  const addModifiersMutation = useAddOrderItemModifiers();
 
   // Dialog states
   const [shiftDialogOpen, setShiftDialogOpen] = useState(false);
@@ -128,6 +139,8 @@ export default function POS() {
   const [cashMovementDialogOpen, setCashMovementDialogOpen] = useState(false);
   const [zReportDialogOpen, setZReportDialogOpen] = useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [modifierDialogOpen, setModifierDialogOpen] = useState(false);
+  const [selectedItemForModifiers, setSelectedItemForModifiers] = useState<MenuItemWithModifiers | null>(null);
   const [selectedItemForNotes, setSelectedItemForNotes] = useState<{
     id: string;
     name: string;
@@ -140,6 +153,9 @@ export default function POS() {
     closedAt: string;
     orderCount: number;
   } | null>(null);
+
+  // Fetch modifiers for selected item
+  const { data: itemModifierGroups = [] } = useMenuItemModifiers(selectedItemForModifiers?.id);
 
   const currency = settings?.currency || "JOD";
   const taxRate = settings?.tax_rate || 0.16;
@@ -298,28 +314,56 @@ export default function POS() {
     }
   };
 
-  const handleSelectItem = async (menuItem: { id: string; name: string; price: number }) => {
+  const handleSelectItem = (menuItem: { id: string; name: string; price: number }) => {
     if (!currentShift || !branch) return;
 
-    try {
-      let orderId = currentOrder?.id;
+    if (!currentOrder?.id) {
+      // Open new order dialog if no current order
+      setNewOrderDialogOpen(true);
+      return;
+    }
 
-      if (!orderId) {
-        // Open new order dialog if no current order
-        setNewOrderDialogOpen(true);
-        return;
+    // Open modifier dialog - it will check if modifiers exist
+    setSelectedItemForModifiers(menuItem);
+    setModifierDialogOpen(true);
+  };
+
+  const handleAddItemWithModifiers = async (
+    menuItem: MenuItemWithModifiers,
+    modifiers: SelectedModifier[]
+  ) => {
+    if (!currentOrder?.id || !restaurant) return;
+
+    try {
+      // Calculate price with modifiers
+      const modifierTotal = modifiers.reduce((sum, m) => sum + m.price_adjustment, 0);
+      const finalPrice = menuItem.price + modifierTotal;
+      const menuItemWithPrice = { ...menuItem, price: finalPrice };
+
+      // Add item to order
+      const orderItem = await addItemMutation.mutateAsync({
+        orderId: currentOrder.id,
+        restaurantId: restaurant.id,
+        menuItem: menuItemWithPrice,
+      });
+
+      // Add modifiers if any
+      if (modifiers.length > 0 && orderItem) {
+        await addModifiersMutation.mutateAsync({
+          orderItemId: orderItem.id,
+          modifiers,
+        });
       }
 
-      await addItemMutation.mutateAsync({ orderId, menuItem });
       await refetchOrder();
 
       // Update order totals
-      const items = [...orderItems, { price: menuItem.price, quantity: 1 }];
+      const items = [...orderItems, { price: finalPrice, quantity: 1 }];
       const newSubtotal = items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
       const totals = calculateTotals(newSubtotal, currentOrder?.discount_type, currentOrder?.discount_value);
 
       await updateOrderMutation.mutateAsync({
-        orderId,
+        orderId: currentOrder.id,
         updates: {
           subtotal: newSubtotal,
           tax_amount: totals.taxAmount,
@@ -327,6 +371,8 @@ export default function POS() {
           total: totals.total,
         },
       });
+
+      setSelectedItemForModifiers(null);
     } catch (error) {
       toast.error("Failed to add item");
     }
@@ -795,6 +841,19 @@ export default function POS() {
         onOpenChange={setSummaryDialogOpen}
         shiftData={closedShiftData}
         currency={currency}
+      />
+
+      <ModifierDialog
+        open={modifierDialogOpen}
+        onOpenChange={(open) => {
+          setModifierDialogOpen(open);
+          if (!open) setSelectedItemForModifiers(null);
+        }}
+        menuItem={selectedItemForModifiers}
+        modifierGroups={itemModifierGroups}
+        currency={currency}
+        onConfirm={handleAddItemWithModifiers}
+        isLoading={addItemMutation.isPending || addModifiersMutation.isPending}
       />
     </div>
   );

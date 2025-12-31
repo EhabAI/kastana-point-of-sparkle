@@ -9,7 +9,7 @@ export function useCurrentOrder(shiftId: string | undefined) {
 
       const { data, error } = await supabase
         .from("orders")
-        .select("*, order_items(*)")
+        .select("*, order_items(*, order_item_modifiers(*))")
         .eq("shift_id", shiftId)
         .eq("status", "open")
         .order("created_at", { ascending: false })
