@@ -37,13 +37,10 @@ export function TableCard({
     >
       {/* Table SVG */}
       <div className="relative mb-2">
-        {tableType === "round-small" && <RoundTableSmall isOccupied={isOccupied} />}
-        {tableType === "round" && <RoundTable isOccupied={isOccupied} />}
-        {tableType === "rectangular" && <RectangularTable isOccupied={isOccupied} capacity={effectiveCapacity} />}
+        {tableType === "round-small" && <RoundTableSmall isOccupied={isOccupied} tableName={tableName} />}
+        {tableType === "round" && <RoundTable isOccupied={isOccupied} tableName={tableName} />}
+        {tableType === "rectangular" && <RectangularTable isOccupied={isOccupied} capacity={effectiveCapacity} tableName={tableName} />}
       </div>
-
-      {/* Table Name */}
-      <span className="font-bold text-sm text-foreground">{tableName}</span>
 
       {/* Capacity */}
       <span className="text-xs text-muted-foreground">{effectiveCapacity} seats</span>
@@ -77,7 +74,7 @@ function Chair({ className }: { className?: string }) {
 }
 
 // Small round table (2 seats)
-function RoundTableSmall({ isOccupied }: { isOccupied: boolean }) {
+function RoundTableSmall({ isOccupied, tableName }: { isOccupied: boolean; tableName: string }) {
   return (
     <div className="relative w-16 h-16 flex items-center justify-center">
       {/* Chairs */}
@@ -97,25 +94,22 @@ function RoundTableSmall({ isOccupied }: { isOccupied: boolean }) {
               : "fill-emerald-200 dark:fill-emerald-800 stroke-emerald-600 dark:stroke-emerald-400"
           )}
         />
-        {/* Table surface pattern */}
-        <circle
-          cx="30"
-          cy="30"
-          r="18"
-          className={cn(
-            "stroke-1 fill-none",
-            isOccupied
-              ? "stroke-amber-300 dark:stroke-amber-700"
-              : "stroke-emerald-300 dark:stroke-emerald-700"
-          )}
-        />
+        <text
+          x="30"
+          y="30"
+          textAnchor="middle"
+          dominantBaseline="middle"
+          className="fill-foreground font-bold text-[10px]"
+        >
+          {tableName}
+        </text>
       </svg>
     </div>
   );
 }
 
 // Round table (4 seats)
-function RoundTable({ isOccupied }: { isOccupied: boolean }) {
+function RoundTable({ isOccupied, tableName }: { isOccupied: boolean; tableName: string }) {
   return (
     <div className="relative w-20 h-20 flex items-center justify-center">
       {/* Chairs */}
@@ -137,25 +131,22 @@ function RoundTable({ isOccupied }: { isOccupied: boolean }) {
               : "fill-emerald-200 dark:fill-emerald-800 stroke-emerald-600 dark:stroke-emerald-400"
           )}
         />
-        {/* Table surface pattern */}
-        <circle
-          cx="30"
-          cy="30"
-          r="18"
-          className={cn(
-            "stroke-1 fill-none",
-            isOccupied
-              ? "stroke-amber-300 dark:stroke-amber-700"
-              : "stroke-emerald-300 dark:stroke-emerald-700"
-          )}
-        />
+        <text
+          x="30"
+          y="30"
+          textAnchor="middle"
+          dominantBaseline="middle"
+          className="fill-foreground font-bold text-[10px]"
+        >
+          {tableName}
+        </text>
       </svg>
     </div>
   );
 }
 
 // Rectangular table (6+ seats)
-function RectangularTable({ isOccupied, capacity }: { isOccupied: boolean; capacity: number }) {
+function RectangularTable({ isOccupied, capacity, tableName }: { isOccupied: boolean; capacity: number; tableName: string }) {
   const chairsPerSide = Math.ceil((capacity - 2) / 2);
   
   return (
@@ -195,20 +186,15 @@ function RectangularTable({ isOccupied, capacity }: { isOccupied: boolean; capac
               : "fill-emerald-200 dark:fill-emerald-800 stroke-emerald-600 dark:stroke-emerald-400"
           )}
         />
-        {/* Table surface pattern */}
-        <rect
-          x="12"
-          y="10"
-          width="76"
-          height="30"
-          rx="4"
-          className={cn(
-            "stroke-1 fill-none",
-            isOccupied
-              ? "stroke-amber-300 dark:stroke-amber-700"
-              : "stroke-emerald-300 dark:stroke-emerald-700"
-          )}
-        />
+        <text
+          x="50"
+          y="25"
+          textAnchor="middle"
+          dominantBaseline="middle"
+          className="fill-foreground font-bold text-[10px]"
+        >
+          {tableName}
+        </text>
       </svg>
     </div>
   );
