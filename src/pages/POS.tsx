@@ -35,11 +35,11 @@ import {
   useUpdateOrderItemNotes,
 } from "@/hooks/pos/useOrderItems";
 import { useAddPayment, useCompleteOrder } from "@/hooks/pos/usePayments";
-import { 
-  POSHeader, 
-  POSTabControl, 
-  CategoryList, 
-  MenuItemGrid, 
+import {
+  POSHeader,
+  POSTabControl,
+  CategoryList,
+  MenuItemGrid,
   OrderPanel,
   QRPendingOrders,
   OpenOrdersList,
@@ -62,7 +62,7 @@ import type { OrderType } from "@/components/pos/OrderTypeSelector";
 
 export default function POS() {
   const { signOut, user } = useAuth();
-  const { data: session, isLoading: sessionLoading } = useCashierSession();
+  const { data: session, isLoading: sessionLoading } = useCashierSession(user?.id);
   const restaurant = session?.restaurant;
   const branch = session?.branch;
   const { data: currentShift, isLoading: shiftLoading } = useCurrentShift();
@@ -115,7 +115,11 @@ export default function POS() {
   const [cashMovementDialogOpen, setCashMovementDialogOpen] = useState(false);
   const [zReportDialogOpen, setZReportDialogOpen] = useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
-  const [selectedItemForNotes, setSelectedItemForNotes] = useState<{ id: string; name: string; notes?: string | null } | null>(null);
+  const [selectedItemForNotes, setSelectedItemForNotes] = useState<{
+    id: string;
+    name: string;
+    notes?: string | null;
+  } | null>(null);
   const [summaryDialogOpen, setSummaryDialogOpen] = useState(false);
   const [closedShiftData, setClosedShiftData] = useState<{
     openingCash: number;
@@ -137,24 +141,30 @@ export default function POS() {
 
   // Calculate order totals
   const orderItems = currentOrder?.order_items?.filter((item: { voided: boolean }) => !item.voided) || [];
-  const subtotal = orderItems.reduce((sum: number, item: { price: number; quantity: number }) => sum + Number(item.price) * item.quantity, 0);
-  
-  const calculateTotals = useCallback((sub: number, discType?: string | null, discVal?: number | null) => {
-    let discountAmount = 0;
-    if (discVal && discVal > 0) {
-      discountAmount = discType === "percentage" ? (sub * discVal) / 100 : discVal;
-    }
-    const afterDiscount = sub - discountAmount;
-    const serviceCharge = afterDiscount * serviceChargeRate;
-    const taxAmount = (afterDiscount + serviceCharge) * taxRate;
-    const total = afterDiscount + serviceCharge + taxAmount;
-    return { discountAmount, serviceCharge, taxAmount, total };
-  }, [serviceChargeRate, taxRate]);
+  const subtotal = orderItems.reduce(
+    (sum: number, item: { price: number; quantity: number }) => sum + Number(item.price) * item.quantity,
+    0,
+  );
+
+  const calculateTotals = useCallback(
+    (sub: number, discType?: string | null, discVal?: number | null) => {
+      let discountAmount = 0;
+      if (discVal && discVal > 0) {
+        discountAmount = discType === "percentage" ? (sub * discVal) / 100 : discVal;
+      }
+      const afterDiscount = sub - discountAmount;
+      const serviceCharge = afterDiscount * serviceChargeRate;
+      const taxAmount = (afterDiscount + serviceCharge) * taxRate;
+      const total = afterDiscount + serviceCharge + taxAmount;
+      return { discountAmount, serviceCharge, taxAmount, total };
+    },
+    [serviceChargeRate, taxRate],
+  );
 
   const { discountAmount, serviceCharge, taxAmount, total } = calculateTotals(
     subtotal,
     currentOrder?.discount_type,
-    currentOrder?.discount_value
+    currentOrder?.discount_value,
   );
 
   // Handlers
@@ -177,9 +187,9 @@ export default function POS() {
         if (currentShift) {
           const closedAt = new Date().toISOString();
           const orderCount = recentOrders.length;
-          
+
           await closeShiftMutation.mutateAsync({ shiftId: currentShift.id, closingCash: amount });
-          
+
           setClosedShiftData({
             openingCash: currentShift.opening_cash,
             openedAt: currentShift.opened_at,
@@ -198,7 +208,7 @@ export default function POS() {
 
   const handleNewOrder = async (orderType: OrderType, tableId: string | null) => {
     if (!currentShift || !branch) return;
-    
+
     try {
       const notes = tableId ? `table:${tableId}` : `type:${orderType}`;
       await createOrderMutation.mutateAsync({
@@ -217,10 +227,10 @@ export default function POS() {
 
   const handleSelectItem = async (menuItem: { id: string; name: string; price: number }) => {
     if (!currentShift || !branch) return;
-    
+
     try {
       let orderId = currentOrder?.id;
-      
+
       if (!orderId) {
         // Open new order dialog if no current order
         setNewOrderDialogOpen(true);
@@ -229,12 +239,12 @@ export default function POS() {
 
       await addItemMutation.mutateAsync({ orderId, menuItem });
       await refetchOrder();
-      
+
       // Update order totals
       const items = [...orderItems, { price: menuItem.price, quantity: 1 }];
       const newSubtotal = items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
       const totals = calculateTotals(newSubtotal, currentOrder?.discount_type, currentOrder?.discount_value);
-      
+
       await updateOrderMutation.mutateAsync({
         orderId,
         updates: {
@@ -424,9 +434,21 @@ export default function POS() {
     }
   };
 
-  const handleMoveToTable = async (orderId: string, tableId: string, tableName: string, prevTableId?: string, prevTableName?: string) => {
+  const handleMoveToTable = async (
+    orderId: string,
+    tableId: string,
+    tableName: string,
+    prevTableId?: string,
+    prevTableName?: string,
+  ) => {
     try {
-      await moveToTableMutation.mutateAsync({ orderId, tableId, tableName, previousTableId: prevTableId, previousTableName: prevTableName });
+      await moveToTableMutation.mutateAsync({
+        orderId,
+        tableId,
+        tableName,
+        previousTableId: prevTableId,
+        previousTableName: prevTableName,
+      });
       toast.success(`Order moved to ${tableName}`);
     } catch (error) {
       toast.error("Failed to move order");
@@ -445,7 +467,9 @@ export default function POS() {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col gap-4">
         <p className="text-muted-foreground">No restaurant or branch assigned to this cashier.</p>
-        <button onClick={signOut} className="text-primary underline">Sign Out</button>
+        <button onClick={signOut} className="text-primary underline">
+          Sign Out
+        </button>
       </div>
     );
   }
@@ -473,8 +497,19 @@ export default function POS() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center p-8 rounded-lg border bg-card max-w-md">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-8 w-8 text-muted-foreground"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
             <h2 className="text-xl font-semibold mb-2">No Active Shift</h2>
