@@ -163,6 +163,47 @@ export type Database = {
           },
         ]
       }
+      branch_payment_methods: {
+        Row: {
+          branch_id: string
+          cash_enabled: boolean
+          created_at: string
+          efawateer_enabled: boolean
+          id: string
+          mastercard_enabled: boolean
+          updated_at: string
+          visa_enabled: boolean
+        }
+        Insert: {
+          branch_id: string
+          cash_enabled?: boolean
+          created_at?: string
+          efawateer_enabled?: boolean
+          id?: string
+          mastercard_enabled?: boolean
+          updated_at?: string
+          visa_enabled?: boolean
+        }
+        Update: {
+          branch_id?: string
+          cash_enabled?: boolean
+          created_at?: string
+          efawateer_enabled?: boolean
+          id?: string
+          mastercard_enabled?: boolean
+          updated_at?: string
+          visa_enabled?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branch_payment_methods_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: true
+            referencedRelation: "restaurant_branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_categories: {
         Row: {
           created_at: string
@@ -817,6 +858,7 @@ export type Database = {
       }
       user_roles: {
         Row: {
+          branch_id: string | null
           created_at: string
           id: string
           is_active: boolean
@@ -825,6 +867,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          branch_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
@@ -833,6 +876,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          branch_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
@@ -841,6 +885,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "user_roles_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_roles_restaurant_id_fkey"
             columns: ["restaurant_id"]

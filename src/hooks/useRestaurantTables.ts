@@ -50,10 +50,12 @@ export function useCreateRestaurantTable() {
       restaurantId,
       tableName,
       capacity = 4,
+      branchId,
     }: {
       restaurantId: string;
       tableName: string;
       capacity?: number;
+      branchId?: string;
     }) => {
       // Generate unique table code with retry logic
       let tableCode = generateTableCode();
@@ -68,6 +70,7 @@ export function useCreateRestaurantTable() {
             table_name: tableName,
             table_code: tableCode,
             capacity,
+            branch_id: branchId || null,
           })
           .select()
           .single();

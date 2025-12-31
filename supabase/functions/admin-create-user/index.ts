@@ -72,11 +72,13 @@ Deno.serve(async (req) => {
       password?: string
       role?: string
       restaurant_id?: string
+      branch_id?: string
     }
     const email = body?.email?.trim()
     const password = body?.password
     const requestedRole = body?.role || 'cashier'
     const restaurantId = body?.restaurant_id
+    const branchId = body?.branch_id
 
     if (!email || !password) {
       return errorResponse('unexpected', 'Please provide an email and password.', 400)
@@ -184,8 +186,8 @@ Deno.serve(async (req) => {
 
     const newUserId = created.user.id
 
-    // Insert role with restaurant_id if applicable
-    const roleInsertData: { user_id: string; role: AppRole; restaurant_id?: string } = {
+    // Insert role with restaurant_id and branch_id if applicable
+    const roleInsertData: { user_id: string; role: AppRole; restaurant_id?: string; branch_id?: string } = {
       user_id: newUserId,
       role: requestedRole as AppRole,
     }
@@ -193,6 +195,11 @@ Deno.serve(async (req) => {
     // Add restaurant_id for cashiers and optionally for owners if provided
     if (restaurantId) {
       roleInsertData.restaurant_id = restaurantId
+    }
+
+    // Add branch_id for cashiers
+    if (branchId) {
+      roleInsertData.branch_id = branchId
     }
 
     const { error: roleInsertErr } = await serviceClient

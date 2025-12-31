@@ -13,9 +13,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useCashiers, useAddCashier, useUpdateCashierStatus } from "@/hooks/useCashiers";
-import { Users, Loader2, UserPlus } from "lucide-react";
+import { useBranches } from "@/hooks/useBranches";
+import { Users, Loader2, UserPlus, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -26,13 +28,21 @@ interface StaffManagementProps {
 
 export function StaffManagement({ restaurantId, staffCount }: StaffManagementProps) {
   const { data: cashiers = [], isLoading } = useCashiers(restaurantId);
+  const { data: branches = [] } = useBranches(restaurantId);
   const addCashier = useAddCashier();
   const updateStatus = useUpdateCashierStatus();
   const { toast } = useToast();
   const { t } = useLanguage();
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [newCashier, setNewCashier] = useState({ email: "", password: "" });
+  const [newCashier, setNewCashier] = useState({ email: "", password: "", branchId: "" });
+
+  // Get branch name by ID for display
+  const getBranchName = (branchId: string | null | undefined) => {
+    if (!branchId) return t("no_branch");
+    const branch = branches.find(b => b.id === branchId);
+    return branch?.name || t("unknown_branch");
+  };
 
   const handleCreateCashier = async () => {
     if (!newCashier.email.trim()) {
@@ -43,14 +53,19 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
       toast({ title: t("password_min"), variant: "destructive" });
       return;
     }
+    if (!newCashier.branchId) {
+      toast({ title: t("select_branch_required"), variant: "destructive" });
+      return;
+    }
 
     await addCashier.mutateAsync({
       email: newCashier.email,
       password: newCashier.password,
       restaurantId,
+      branchId: newCashier.branchId,
     });
 
-    setNewCashier({ email: "", password: "" });
+    setNewCashier({ email: "", password: "", branchId: "" });
     setCreateDialogOpen(false);
   };
 
@@ -99,6 +114,28 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
                     placeholder={t("min_6_chars")}
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cashier-branch" className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    {t("assign_to_branch")} *
+                  </Label>
+                  <Select
+                    value={newCashier.branchId}
+                    onValueChange={(value) => setNewCashier({ ...newCashier, branchId: value })}
+                  >
+                    <SelectTrigger id="cashier-branch">
+                      <SelectValue placeholder={t("select_branch")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {branches.map((branch) => (
+                        <SelectItem key={branch.id} value={branch.id}>
+                          {branch.name}
+                          {branch.is_default && ` (${t("default")})`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
@@ -128,6 +165,7 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
             <TableHeader>
               <TableRow>
                 <TableHead>{t("email")}</TableHead>
+                <TableHead>{t("branch")}</TableHead>
                 <TableHead>{t("created")}</TableHead>
                 <TableHead className="text-right">{t("status")}</TableHead>
               </TableRow>
@@ -136,6 +174,12 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
               {cashiers.map((cashier) => (
                 <TableRow key={cashier.id}>
                   <TableCell className="font-medium">{cashier.email || t("no_email")}</TableCell>
+                  <TableCell>
+                    <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <Building2 className="h-3 w-3" />
+                      {getBranchName(cashier.branch_id)}
+                    </span>
+                  </TableCell>
                   <TableCell>{new Date(cashier.created_at).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-3">
