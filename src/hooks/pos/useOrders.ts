@@ -70,7 +70,17 @@ export function useCreateOrder() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ shiftId, taxRate }: { shiftId: string; taxRate: number }) => {
+    mutationFn: async ({ 
+      shiftId, 
+      taxRate, 
+      branchId, 
+      notes 
+    }: { 
+      shiftId: string; 
+      taxRate: number; 
+      branchId?: string;
+      notes?: string;
+    }) => {
       if (!restaurant?.id) throw new Error("Missing restaurant");
 
       const { data, error } = await supabase
@@ -78,8 +88,10 @@ export function useCreateOrder() {
         .insert({
           shift_id: shiftId,
           restaurant_id: restaurant.id,
+          branch_id: branchId || null,
           status: "open",
           tax_rate: taxRate,
+          order_notes: notes || null,
         })
         .select()
         .single();
@@ -89,6 +101,7 @@ export function useCreateOrder() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["current-order"] });
+      queryClient.invalidateQueries({ queryKey: ["open-orders"] });
     },
   });
 }
