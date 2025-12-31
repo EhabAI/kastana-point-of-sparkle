@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
-  useCashierRestaurant,
-  useCashierBranch,
+  useCashierSession,
   useCurrentShift,
   useOpenShift,
   useCloseShift,
@@ -63,8 +62,9 @@ import type { OrderType } from "@/components/pos/OrderTypeSelector";
 
 export default function POS() {
   const { signOut, user } = useAuth();
-  const { data: restaurant, isLoading: restaurantLoading } = useCashierRestaurant();
-  const { data: branch, isLoading: branchLoading } = useCashierBranch();
+  const { data: session, isLoading: sessionLoading } = useCashierSession();
+  const restaurant = session?.restaurant;
+  const branch = session?.branch;
   const { data: currentShift, isLoading: shiftLoading } = useCurrentShift();
   const { data: settings } = useRestaurantSettings();
   const { data: categories = [] } = useCashierCategories();
@@ -433,7 +433,7 @@ export default function POS() {
     }
   };
 
-  if (restaurantLoading || branchLoading || shiftLoading) {
+  if (sessionLoading || shiftLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -441,19 +441,10 @@ export default function POS() {
     );
   }
 
-  if (!restaurant) {
+  if (!session || !restaurant || !branch) {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col gap-4">
-        <p className="text-muted-foreground">No restaurant assigned to this cashier.</p>
-        <button onClick={signOut} className="text-primary underline">Sign Out</button>
-      </div>
-    );
-  }
-
-  if (!branch) {
-    return (
-      <div className="min-h-screen flex items-center justify-center flex-col gap-4">
-        <p className="text-muted-foreground">No branch assigned to this cashier.</p>
+        <p className="text-muted-foreground">No restaurant or branch assigned to this cashier.</p>
         <button onClick={signOut} className="text-primary underline">Sign Out</button>
       </div>
     );
