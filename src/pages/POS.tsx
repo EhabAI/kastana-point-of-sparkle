@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
@@ -161,6 +163,20 @@ export default function POS() {
   const taxRate = settings?.tax_rate || 0.16;
   const serviceChargeRate = settings?.service_charge_rate || 0;
   const shiftOpen = currentShift?.status === "open";
+
+  // Build map: tableId -> order (using existing openOrders)
+  const tableOrderMap = useMemo(() => {
+    const map = new Map<string, typeof openOrders[0]>();
+    for (const order of openOrders) {
+      const match = order.notes?.match(/table:([a-f0-9-]+)/i);
+      if (match) {
+        map.set(match[1], order);
+      }
+    }
+    return map;
+  }, [openOrders]);
+
+  const occupiedTablesCount = tableOrderMap.size;
 
   // Auto-select first category
   useEffect(() => {
@@ -574,6 +590,38 @@ export default function POS() {
     }
   };
 
+  const handleTableClick = async (tableId: string) => {
+    const existingOrder = tableOrderMap.get(tableId);
+
+    if (existingOrder) {
+      // Occupied: Load existing order
+      try {
+        await resumeOrderMutation.mutateAsync(existingOrder.id);
+        setActiveTab("new-order");
+        toast.success("Order loaded");
+      } catch (error) {
+        toast.error("Failed to load order");
+      }
+    } else {
+      // Available: Create new dine-in order
+      if (!currentShift || !branch || !restaurant) return;
+      try {
+        await createOrderMutation.mutateAsync({
+          shiftId: currentShift.id,
+          taxRate,
+          branchId: branch.id,
+          restaurantId: restaurant.id,
+          orderType: "dine-in",
+          tableId,
+        });
+        setActiveTab("new-order");
+        toast.success("Order created");
+      } catch (error) {
+        toast.error("Failed to create order");
+      }
+    }
+  };
+
   if (sessionLoading || shiftLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -659,6 +707,7 @@ export default function POS() {
               onTabChange={setActiveTab}
               pendingCount={pendingOrders.length}
               openCount={openOrders.length}
+              occupiedTablesCount={occupiedTablesCount}
             />
           </div>
 
@@ -743,6 +792,57 @@ export default function POS() {
               onMoveToTable={handleMoveToTable}
               isLoading={resumeOrderMutation.isPending || moveToTableMutation.isPending}
             />
+          )}
+
+          {activeTab === "tables" && (
+            <div className="flex-1 p-4 overflow-auto">
+              {tablesLoading ? (
+                <div className="flex items-center justify-center h-48">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                </div>
+              ) : tables.length === 0 ? (
+                <div className="text-center text-muted-foreground py-12">
+                  <p className="text-lg font-medium">No tables found</p>
+                  <p className="text-sm mt-1">Ask owner to create tables for this branch.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                  {tables.map((table) => {
+                    const order = tableOrderMap.get(table.id);
+                    const isOccupied = !!order;
+
+                    return (
+                      <button
+                        key={table.id}
+                        onClick={() => handleTableClick(table.id)}
+                        disabled={createOrderMutation.isPending || resumeOrderMutation.isPending}
+                        className={cn(
+                          "flex flex-col items-center justify-center p-4 rounded-lg border transition-all min-h-[100px]",
+                          isOccupied
+                            ? "border-orange-500 bg-orange-500/10 hover:bg-orange-500/20"
+                            : "border-border bg-card hover:border-primary hover:bg-primary/5"
+                        )}
+                      >
+                        <span className="font-bold text-lg">{table.table_name}</span>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                          <Users className="h-3 w-3" />
+                          <span>{table.capacity || 4}</span>
+                        </div>
+                        {isOccupied ? (
+                          <span className="text-xs text-orange-600 mt-2 font-medium">
+                            #{order.order_number}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-green-600 mt-2 font-medium">
+                            Available
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}

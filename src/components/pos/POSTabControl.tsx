@@ -1,13 +1,14 @@
 import { cn } from "@/lib/utils";
-import { ShoppingCart, QrCode, ClipboardList } from "lucide-react";
+import { ShoppingCart, QrCode, ClipboardList, Grid } from "lucide-react";
 
-export type POSTab = "new-order" | "qr-pending" | "open-orders";
+export type POSTab = "new-order" | "qr-pending" | "open-orders" | "tables";
 
 interface POSTabControlProps {
   activeTab: POSTab;
   onTabChange: (tab: POSTab) => void;
   pendingCount?: number;
   openCount?: number;
+  occupiedTablesCount?: number;
 }
 
 export function POSTabControl({ 
@@ -15,6 +16,7 @@ export function POSTabControl({
   onTabChange, 
   pendingCount = 0,
   openCount = 0,
+  occupiedTablesCount = 0,
 }: POSTabControlProps) {
   const tabs = [
     { 
@@ -34,6 +36,12 @@ export function POSTabControl({
       label: "Open Orders", 
       icon: ClipboardList,
       count: openCount,
+    },
+    { 
+      id: "tables" as POSTab, 
+      label: "Tables", 
+      icon: Grid,
+      count: occupiedTablesCount,
     },
   ];
 
