@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCashierRestaurant } from "./useCashierRestaurant";
+import { useCashierSession } from "./useCashierSession";
 
 export function useCurrentShift() {
   const { user } = useAuth();
@@ -27,18 +27,21 @@ export function useCurrentShift() {
 
 export function useOpenShift() {
   const { user } = useAuth();
-  const { data: restaurant } = useCashierRestaurant();
+  const { data: session } = useCashierSession();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (openingCash: number) => {
-      if (!user?.id || !restaurant?.id) throw new Error("Missing user or restaurant");
+      if (!user?.id || !session?.restaurant?.id || !session?.branch?.id) {
+        throw new Error("Missing user, restaurant or branch");
+      }
 
       const { data, error } = await supabase
         .from("shifts")
         .insert({
           cashier_id: user.id,
-          restaurant_id: restaurant.id,
+          restaurant_id: session.restaurant.id,
+          branch_id: session.branch.id,
           opening_cash: openingCash,
           status: "open",
         })
@@ -80,7 +83,7 @@ export function useCloseShift() {
 }
 
 export function useCashMovement() {
-  const { data: restaurant } = useCashierRestaurant();
+  const { data: session } = useCashierSession();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -95,13 +98,14 @@ export function useCashMovement() {
       amount: number;
       reason?: string;
     }) => {
-      if (!restaurant?.id) throw new Error("Missing restaurant");
+      if (!session?.restaurant?.id) throw new Error("Missing restaurant");
 
       const { data, error } = await supabase
         .from("shift_transactions")
         .insert({
           shift_id: shiftId,
-          restaurant_id: restaurant.id,
+          restaurant_id: session.restaurant.id,
+          branch_id: session.branch?.id,
           type,
           amount,
           reason,
