@@ -2,6 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+export class NoCashierRoleError extends Error {
+  constructor() {
+    super("NO_CASHIER_ROLE");
+    this.name = "NoCashierRoleError";
+  }
+}
+
 export interface CashierSession {
   restaurant: {
     id: string;
@@ -21,8 +28,8 @@ export function useCashierSession() {
 
   return useQuery({
     queryKey: ["cashier-session", user?.id],
-    queryFn: async (): Promise<CashierSession | null> => {
-      if (!user?.id) return null;
+    queryFn: async (): Promise<CashierSession> => {
+      if (!user?.id) throw new NoCashierRoleError();
 
       // Get cashier role with restaurant and branch info from user_roles
       const { data: roleData, error: roleError } = await supabase
@@ -33,35 +40,45 @@ export function useCashierSession() {
         .maybeSingle();
 
       if (roleError) throw roleError;
-      if (!roleData?.restaurant_id) return null;
+      if (!roleData?.restaurant_id || !roleData?.branch_id) {
+        throw new NoCashierRoleError();
+      }
 
-      // Fetch restaurant and branch in parallel
+      // Fetch restaurant via RPC (bypasses RLS) and branch in parallel
       const [restaurantResult, branchResult] = await Promise.all([
+        supabase.rpc("get_public_restaurant", { p_restaurant_id: roleData.restaurant_id }),
         supabase
-          .from("restaurants")
-          .select("id, name, logo_url")
-          .eq("id", roleData.restaurant_id)
+          .from("restaurant_branches")
+          .select("id, name, code, restaurant_id")
+          .eq("id", roleData.branch_id)
           .maybeSingle(),
-        roleData.branch_id
-          ? supabase
-              .from("restaurant_branches")
-              .select("id, name, code, restaurant_id")
-              .eq("id", roleData.branch_id)
-              .maybeSingle()
-          : Promise.resolve({ data: null, error: null }),
       ]);
 
       if (restaurantResult.error) throw restaurantResult.error;
-      if (!restaurantResult.data) return null;
+      if (!restaurantResult.data || restaurantResult.data.length === 0) {
+        throw new Error("Restaurant not found");
+      }
 
       if (branchResult.error) throw branchResult.error;
-      if (!branchResult.data) return null;
+      if (!branchResult.data) {
+        throw new Error("Branch not found");
+      }
+
+      // RPC returns array, get first row
+      const restaurant = Array.isArray(restaurantResult.data) 
+        ? restaurantResult.data[0] 
+        : restaurantResult.data;
 
       return {
-        restaurant: restaurantResult.data,
+        restaurant,
         branch: branchResult.data,
       };
     },
     enabled: !!user?.id,
+    retry: (failureCount, error) => {
+      // Don't retry if no cashier role
+      if (error instanceof NoCashierRoleError) return false;
+      return failureCount < 3;
+    },
   });
 }
