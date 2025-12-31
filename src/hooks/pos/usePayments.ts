@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCashierRestaurant } from "./useCashierRestaurant";
 
-export type PaymentMethod = "cash" | "card" | "mobile";
+export type PaymentMethod = string;
 
 export function useAddPayment() {
   const { data: restaurant } = useCashierRestaurant();
