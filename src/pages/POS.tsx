@@ -74,6 +74,7 @@ import {
   ReceiptDialog,
   RefundDialog,
   VoidItemDialog,
+  ConfirmRemoveLastItemDialog,
 } from "@/components/pos/dialogs";
 import type { RecentOrder } from "@/components/pos/dialogs/RecentOrdersDialog";
 import type { OrderType } from "@/components/pos/OrderTypeSelector";
@@ -176,6 +177,11 @@ export default function POS() {
   const [selectedOrderForReceipt, setSelectedOrderForReceipt] = useState<RecentOrder | null>(null);
   const [refundDialogOpen, setRefundDialogOpen] = useState(false);
   const [selectedOrderForRefund, setSelectedOrderForRefund] = useState<RecentOrder | null>(null);
+  const [removeLastItemDialogOpen, setRemoveLastItemDialogOpen] = useState(false);
+  const [selectedItemForRemoval, setSelectedItemForRemoval] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [closedShiftData, setClosedShiftData] = useState<{
     openingCash: number;
     openedAt: string;
@@ -457,9 +463,30 @@ export default function POS() {
   };
 
   const handleRemoveItem = async (itemId: string) => {
+    // Check if this is the last non-voided item
+    const activeItems = currentOrder?.order_items?.filter((i: { voided: boolean }) => !i.voided) || [];
+    if (activeItems.length === 1) {
+      const item = activeItems[0];
+      setSelectedItemForRemoval({ id: item.id, name: item.name });
+      setRemoveLastItemDialogOpen(true);
+      return;
+    }
+    
     try {
       await removeItemMutation.mutateAsync(itemId);
       await refetchOrder();
+    } catch (error) {
+      toast.error("Failed to remove item");
+    }
+  };
+
+  const handleConfirmRemoveLastItem = async () => {
+    if (!selectedItemForRemoval) return;
+    try {
+      await removeItemMutation.mutateAsync(selectedItemForRemoval.id);
+      await refetchOrder();
+      setRemoveLastItemDialogOpen(false);
+      setSelectedItemForRemoval(null);
     } catch (error) {
       toast.error("Failed to remove item");
     }
@@ -1199,6 +1226,19 @@ export default function POS() {
         onConfirm={handleCancelOrder}
         isLoading={cancelOrderMutation.isPending}
       />
+
+      {selectedItemForRemoval && (
+        <ConfirmRemoveLastItemDialog
+          open={removeLastItemDialogOpen}
+          onOpenChange={(open) => {
+            setRemoveLastItemDialogOpen(open);
+            if (!open) setSelectedItemForRemoval(null);
+          }}
+          itemName={selectedItemForRemoval.name}
+          onConfirm={handleConfirmRemoveLastItem}
+          isLoading={removeItemMutation.isPending}
+        />
+      )}
 
       <CashMovementDialog
         open={cashMovementDialogOpen}
