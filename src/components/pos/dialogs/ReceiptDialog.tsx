@@ -1,0 +1,210 @@
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Printer } from "lucide-react";
+import { format } from "date-fns";
+
+interface OrderItem {
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
+}
+
+interface Payment {
+  id: string;
+  method: string;
+  amount: number;
+}
+
+interface ReceiptOrder {
+  id: string;
+  order_number: number;
+  created_at: string;
+  status: string;
+  subtotal: number;
+  discount_type: string | null;
+  discount_value: number | null;
+  tax_amount: number;
+  service_charge: number;
+  total: number;
+  order_notes: string | null;
+  order_items: OrderItem[];
+  payments: Payment[];
+}
+
+interface Restaurant {
+  id: string;
+  name: string;
+  logo_url?: string | null;
+}
+
+interface Table {
+  id: string;
+  table_name: string;
+}
+
+interface ReceiptDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  order: ReceiptOrder | null;
+  restaurant?: Restaurant | null;
+  currency: string;
+  tables?: Table[];
+}
+
+export function ReceiptDialog({
+  open,
+  onOpenChange,
+  order,
+  restaurant,
+  currency,
+  tables = [],
+}: ReceiptDialogProps) {
+  if (!order) return null;
+
+  // Parse order type and table from order_notes
+  const getOrderTypeAndTable = () => {
+    const notes = order.order_notes || "";
+    const tableMatch = notes.match(/table:([a-f0-9-]+)/i);
+    if (tableMatch) {
+      const table = tables.find((t) => t.id === tableMatch[1]);
+      return { type: "DINE-IN", tableName: table?.table_name || null };
+    }
+    const typeMatch = notes.match(/type:(\w+)/i);
+    if (typeMatch) {
+      return { type: typeMatch[1].toUpperCase(), tableName: null };
+    }
+    return { type: "TAKEAWAY", tableName: null };
+  };
+
+  const { type: orderType, tableName } = getOrderTypeAndTable();
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+        {/* Print button - hidden during print */}
+        <div className="no-print p-4 border-b bg-muted/50">
+          <Button
+            onClick={handlePrint}
+            className="w-full h-12 text-base"
+            size="lg"
+          >
+            <Printer className="mr-2 h-5 w-5" />
+            Print Receipt
+          </Button>
+        </div>
+
+        {/* Receipt content - this is what prints */}
+        <div className="receipt-print-area p-6 bg-background">
+          {/* Header */}
+          <div className="text-center mb-6">
+            {restaurant?.logo_url && (
+              <img
+                src={restaurant.logo_url}
+                alt={restaurant.name}
+                className="h-12 mx-auto mb-2 object-contain"
+              />
+            )}
+            <h2 className="text-lg font-bold">{restaurant?.name || "Restaurant"}</h2>
+            <p className="text-sm text-muted-foreground">
+              {format(new Date(order.created_at), "dd/MM/yyyy HH:mm")}
+            </p>
+          </div>
+
+          {/* Order Info */}
+          <div className="border-t border-b border-dashed py-3 mb-4">
+            <div className="flex justify-between text-sm font-medium">
+              <span>Order #{order.order_number}</span>
+              <span className="uppercase">{orderType}</span>
+            </div>
+            {tableName && (
+              <div className="text-sm text-muted-foreground mt-1">
+                Table: {tableName}
+              </div>
+            )}
+          </div>
+
+          {/* Items */}
+          <div className="space-y-2 mb-4">
+            {order.order_items.map((item) => (
+              <div key={item.id} className="flex justify-between text-sm">
+                <span>
+                  {item.quantity} × {item.name}
+                </span>
+                <span className="font-mono">
+                  {(Number(item.price) * item.quantity).toFixed(2)}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Totals */}
+          <div className="border-t border-dashed pt-3 space-y-1 text-sm">
+            <div className="flex justify-between">
+              <span>Subtotal</span>
+              <span className="font-mono">{Number(order.subtotal).toFixed(2)}</span>
+            </div>
+
+            {order.discount_value && Number(order.discount_value) > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>
+                  Discount
+                  {order.discount_type === "percentage" && ` (${order.discount_value}%)`}
+                </span>
+                <span className="font-mono">
+                  -{order.discount_type === "percentage"
+                    ? ((Number(order.subtotal) * Number(order.discount_value)) / 100).toFixed(2)
+                    : Number(order.discount_value).toFixed(2)}
+                </span>
+              </div>
+            )}
+
+            {Number(order.service_charge) > 0 && (
+              <div className="flex justify-between">
+                <span>Service Charge</span>
+                <span className="font-mono">{Number(order.service_charge).toFixed(2)}</span>
+              </div>
+            )}
+
+            <div className="flex justify-between">
+              <span>Tax</span>
+              <span className="font-mono">{Number(order.tax_amount).toFixed(2)}</span>
+            </div>
+
+            <div className="flex justify-between font-bold text-base border-t border-dashed pt-2 mt-2">
+              <span>Total</span>
+              <span className="font-mono">
+                {Number(order.total).toFixed(2)} {currency}
+              </span>
+            </div>
+          </div>
+
+          {/* Payments */}
+          <div className="border-t border-dashed mt-4 pt-3">
+            <p className="text-xs text-muted-foreground mb-2">Payment Method(s)</p>
+            <div className="space-y-1 text-sm">
+              {order.payments.map((payment) => (
+                <div key={payment.id} className="flex justify-between">
+                  <span className="capitalize">{payment.method}</span>
+                  <span className="font-mono">{Number(payment.amount).toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="text-center text-xs text-muted-foreground mt-6 pt-4 border-t border-dashed">
+            Thank you for your visit!
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

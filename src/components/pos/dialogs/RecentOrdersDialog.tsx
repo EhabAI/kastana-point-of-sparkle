@@ -7,7 +7,8 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { FileText, Receipt } from "lucide-react";
 import { format } from "date-fns";
 
 interface OrderItem {
@@ -23,15 +24,18 @@ interface Payment {
   amount: number;
 }
 
-interface RecentOrder {
+export interface RecentOrder {
   id: string;
   order_number: number;
   created_at: string;
   status: string;
   subtotal: number;
+  discount_type: string | null;
   discount_value: number | null;
   tax_amount: number;
+  service_charge: number;
   total: number;
+  order_notes: string | null;
   order_items: OrderItem[];
   payments: Payment[];
 }
@@ -42,6 +46,7 @@ interface RecentOrdersDialogProps {
   orders: RecentOrder[];
   currency: string;
   onRefund?: (orderId: string) => void;
+  onViewReceipt?: (order: RecentOrder) => void;
 }
 
 export function RecentOrdersDialog({
@@ -49,6 +54,7 @@ export function RecentOrdersDialog({
   onOpenChange,
   orders,
   currency,
+  onViewReceipt,
 }: RecentOrdersDialogProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -90,9 +96,22 @@ export function RecentOrdersDialog({
                         {order.status}
                       </Badge>
                     </div>
-                    <span className="text-sm text-muted-foreground">
-                      {format(new Date(order.created_at), "HH:mm")}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {order.status === "paid" && onViewReceipt && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onViewReceipt(order)}
+                          className="h-8"
+                        >
+                          <Receipt className="h-4 w-4 mr-1" />
+                          Receipt
+                        </Button>
+                      )}
+                      <span className="text-sm text-muted-foreground">
+                        {format(new Date(order.created_at), "HH:mm")}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">

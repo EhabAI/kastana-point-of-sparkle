@@ -70,7 +70,9 @@ import {
   ModifierDialog,
   MergeOrdersDialog,
   SplitOrderDialog,
+  ReceiptDialog,
 } from "@/components/pos/dialogs";
+import type { RecentOrder } from "@/components/pos/dialogs/RecentOrdersDialog";
 import type { OrderType } from "@/components/pos/OrderTypeSelector";
 
 interface MenuItemWithModifiers {
@@ -161,6 +163,8 @@ export default function POS() {
     notes?: string | null;
   } | null>(null);
   const [summaryDialogOpen, setSummaryDialogOpen] = useState(false);
+  const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
+  const [selectedOrderForReceipt, setSelectedOrderForReceipt] = useState<RecentOrder | null>(null);
   const [closedShiftData, setClosedShiftData] = useState<{
     openingCash: number;
     openedAt: string;
@@ -559,6 +563,11 @@ export default function POS() {
     } catch (error) {
       toast.error("Failed to record cash movement");
     }
+  };
+
+  const handleViewReceipt = (order: RecentOrder) => {
+    setSelectedOrderForReceipt(order);
+    setReceiptDialogOpen(true);
   };
 
   const handleConfirmPending = async (orderId: string) => {
@@ -1056,8 +1065,18 @@ export default function POS() {
       <RecentOrdersDialog
         open={recentOrdersDialogOpen}
         onOpenChange={setRecentOrdersDialogOpen}
-        orders={recentOrders}
+        orders={recentOrders as RecentOrder[]}
         currency={currency}
+        onViewReceipt={handleViewReceipt}
+      />
+
+      <ReceiptDialog
+        open={receiptDialogOpen}
+        onOpenChange={setReceiptDialogOpen}
+        order={selectedOrderForReceipt}
+        restaurant={restaurant}
+        currency={currency}
+        tables={tables}
       />
 
       <CancelOrderDialog
