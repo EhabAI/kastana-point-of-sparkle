@@ -22,6 +22,7 @@ interface CustomerInfo {
 
 interface OrderPanelProps {
   orderNumber?: number;
+  orderStatus?: string;
   orderNotes?: string | null;
   items: OrderItem[];
   subtotal: number;
@@ -65,6 +66,7 @@ function parseOrderType(notes: string | null | undefined, hasTable?: boolean): "
 
 export function OrderPanel({
   orderNumber,
+  orderStatus,
   orderNotes,
   items,
   subtotal,
@@ -90,6 +92,7 @@ export function OrderPanel({
   const activeItems = items.filter((item) => !item.voided);
   const customerInfo = parseCustomerInfo(orderNotes);
   const orderType = parseOrderType(orderNotes);
+  const isOpen = orderStatus === "open";
 
   return (
     <Card className="h-full flex flex-col">
@@ -170,7 +173,7 @@ export function OrderPanel({
             variant="outline"
             size="sm"
             onClick={onApplyDiscount}
-            disabled={!hasItems}
+            disabled={!hasItems || !isOpen}
           >
             <Percent className="h-4 w-4 mr-1" />
             Discount
@@ -179,7 +182,7 @@ export function OrderPanel({
             variant="outline"
             size="sm"
             onClick={onHoldOrder}
-            disabled={!hasItems}
+            disabled={!hasItems || !isOpen}
           >
             <Pause className="h-4 w-4 mr-1" />
             Hold
@@ -200,7 +203,7 @@ export function OrderPanel({
             size="lg"
             className="font-bold"
             onClick={onPay}
-            disabled={!hasItems || total <= 0}
+            disabled={!hasItems || total <= 0 || !isOpen}
           >
             <CreditCard className="h-4 w-4 mr-1" />
             Pay {total.toFixed(2)}
