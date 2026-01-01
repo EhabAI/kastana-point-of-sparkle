@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Edit, ArrowRightLeft, ChevronDown, ChevronUp } from "lucide-react";
+import { Clock, Edit, ArrowRightLeft, ChevronDown, ChevronUp, XCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { OpenOrder } from "@/hooks/pos/useOpenOrders";
 import type { BranchTable } from "@/hooks/pos/useBranchTables";
@@ -23,6 +23,7 @@ interface OpenOrdersListProps {
   currency: string;
   onSelectOrder: (orderId: string) => void;
   onMoveToTable: (orderId: string, tableId: string, tableName: string, prevTableId?: string, prevTableName?: string) => void;
+  onCloseOrder: (orderId: string, tableId?: string, tableName?: string) => void;
   isLoading?: boolean;
 }
 
@@ -32,6 +33,7 @@ export function OpenOrdersList({
   currency,
   onSelectOrder,
   onMoveToTable,
+  onCloseOrder,
   isLoading,
 }: OpenOrdersListProps) {
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
@@ -172,6 +174,15 @@ export function OpenOrdersList({
                       Move Table
                     </Button>
                   )}
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-12"
+                    onClick={() => onCloseOrder(order.id, tableInfo?.id, tableInfo?.name)}
+                    disabled={isLoading}
+                  >
+                    <XCircle className="h-5 w-5 mr-2" />
+                    Close
+                  </Button>
                   <Button
                     className="flex-1 h-12"
                     onClick={() => onSelectOrder(order.id)}
