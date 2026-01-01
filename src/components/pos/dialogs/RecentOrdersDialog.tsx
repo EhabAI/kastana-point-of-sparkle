@@ -8,7 +8,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Receipt, Undo2 } from "lucide-react";
+import { FileText, Receipt, Undo2, RotateCcw } from "lucide-react";
 import { format } from "date-fns";
 
 interface OrderItem {
@@ -22,6 +22,12 @@ interface Payment {
   id: string;
   method: string;
   amount: number;
+}
+
+interface Refund {
+  id: string;
+  amount: number;
+  refund_type: string;
 }
 
 export interface RecentOrder {
@@ -38,6 +44,7 @@ export interface RecentOrder {
   order_notes: string | null;
   order_items: OrderItem[];
   payments: Payment[];
+  refunds?: Refund[];
 }
 
 interface RecentOrdersDialogProps {
@@ -47,6 +54,7 @@ interface RecentOrdersDialogProps {
   currency: string;
   onRefund?: (order: RecentOrder) => void;
   onViewReceipt?: (order: RecentOrder) => void;
+  onReopen?: (order: RecentOrder) => void;
 }
 
 export function RecentOrdersDialog({
@@ -56,6 +64,7 @@ export function RecentOrdersDialog({
   currency,
   onRefund,
   onViewReceipt,
+  onReopen,
 }: RecentOrdersDialogProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -66,6 +75,11 @@ export function RecentOrdersDialog({
       default:
         return "bg-muted text-muted-foreground";
     }
+  };
+
+  // Check if order can be reopened (paid status and no refunds)
+  const canReopen = (order: RecentOrder) => {
+    return order.status === "paid" && (!order.refunds || order.refunds.length === 0);
   };
 
   return (
@@ -97,7 +111,18 @@ export function RecentOrdersDialog({
                         {order.status}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap justify-end">
+                      {canReopen(order) && onReopen && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onReopen(order)}
+                          className="h-8"
+                        >
+                          <RotateCcw className="h-4 w-4 mr-1" />
+                          Reopen
+                        </Button>
+                      )}
                       {order.status === "paid" && onRefund && (
                         <Button
                           variant="outline"

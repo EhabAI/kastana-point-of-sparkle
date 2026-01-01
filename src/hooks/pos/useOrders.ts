@@ -51,7 +51,7 @@ export function useRecentOrders(shiftId: string | undefined) {
 
       const { data, error } = await supabase
         .from("orders")
-        .select("*, order_items(*), payments(*)")
+        .select("*, order_items(*), payments(*), refunds(*)")
         .eq("shift_id", shiftId)
         .in("status", ["paid", "refunded"])
         .order("created_at", { ascending: false })
@@ -226,6 +226,29 @@ export function useCancelOrder() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["current-order"] });
       queryClient.invalidateQueries({ queryKey: ["held-orders"] });
+    },
+  });
+}
+
+export function useReopenOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (orderId: string) => {
+      const { data, error } = await supabase
+        .from("orders")
+        .update({ status: "open" })
+        .eq("id", orderId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["current-order"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["open-orders"] });
     },
   });
 }
