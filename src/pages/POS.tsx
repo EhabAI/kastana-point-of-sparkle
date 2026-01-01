@@ -18,6 +18,7 @@ import {
   useHoldOrder,
   useResumeOrder,
   useCancelOrder,
+  useReopenOrder,
   useRestaurantSettings,
   useZReport,
   useCashierCategories,
@@ -37,6 +38,7 @@ import {
 } from "@/hooks/pos";
 import type { SelectedModifier } from "@/hooks/pos/useModifiers";
 import { useCreateRefund } from "@/hooks/pos/useRefunds";
+import { useAuditLog } from "@/hooks/pos/useAuditLog";
 import {
   useAddOrderItem,
   useUpdateOrderItemQuantity,
@@ -75,6 +77,7 @@ import {
   RefundDialog,
   VoidItemDialog,
   ConfirmRemoveLastItemDialog,
+  ReopenOrderDialog,
 } from "@/components/pos/dialogs";
 import type { RecentOrder } from "@/components/pos/dialogs/RecentOrdersDialog";
 import type { OrderType } from "@/components/pos/OrderTypeSelector";
@@ -145,6 +148,8 @@ export default function POS() {
   const addModifiersMutation = useAddOrderItemModifiers();
   const mergeOrdersMutation = useMergeOrders();
   const createRefundMutation = useCreateRefund();
+  const reopenOrderMutation = useReopenOrder();
+  const auditLogMutation = useAuditLog();
   // Dialog states
   const [shiftDialogOpen, setShiftDialogOpen] = useState(false);
   const [shiftDialogMode, setShiftDialogMode] = useState<"open" | "close">("open");
@@ -182,6 +187,8 @@ export default function POS() {
     id: string;
     name: string;
   } | null>(null);
+  const [reopenDialogOpen, setReopenDialogOpen] = useState(false);
+  const [selectedOrderForReopen, setSelectedOrderForReopen] = useState<RecentOrder | null>(null);
   const [closedShiftData, setClosedShiftData] = useState<{
     openingCash: number;
     openedAt: string;
@@ -693,6 +700,46 @@ export default function POS() {
       throw error;
     }
   };
+
+  const handleReopen = (order: RecentOrder) => {
+    // Only allow reopen on paid orders without refunds
+    if (order.status !== "paid") {
+      toast.error("Can only reopen paid orders");
+      return;
+    }
+    if (order.refunds && order.refunds.length > 0) {
+      toast.error("Cannot reopen refunded orders");
+      return;
+    }
+    setSelectedOrderForReopen(order);
+    setReopenDialogOpen(true);
+  };
+
+  const handleReopenConfirm = async () => {
+    if (!selectedOrderForReopen) return;
+    try {
+      await reopenOrderMutation.mutateAsync(selectedOrderForReopen.id);
+      
+      // Log the audit
+      await auditLogMutation.mutateAsync({
+        entityType: "order",
+        entityId: selectedOrderForReopen.id,
+        action: "order_reopen",
+        details: {
+          order_number: selectedOrderForReopen.order_number,
+          total: selectedOrderForReopen.total,
+        },
+      });
+
+      toast.success(`Order #${selectedOrderForReopen.order_number} reopened`);
+      setReopenDialogOpen(false);
+      setRecentOrdersDialogOpen(false);
+      setSelectedOrderForReopen(null);
+    } catch (error) {
+      toast.error("Failed to reopen order");
+    }
+  };
+
   const handleConfirmPending = async (orderId: string) => {
     try {
       await confirmPendingMutation.mutateAsync(orderId);
@@ -1197,6 +1244,7 @@ export default function POS() {
         currency={currency}
         onViewReceipt={handleViewReceipt}
         onRefund={handleRefund}
+        onReopen={handleReopen}
       />
 
       <ReceiptDialog
@@ -1221,6 +1269,19 @@ export default function POS() {
           currency={currency}
           onConfirm={handleRefundConfirm}
           isProcessing={createRefundMutation.isPending}
+        />
+      )}
+
+      {selectedOrderForReopen && (
+        <ReopenOrderDialog
+          open={reopenDialogOpen}
+          onOpenChange={(open) => {
+            setReopenDialogOpen(open);
+            if (!open) setSelectedOrderForReopen(null);
+          }}
+          orderNumber={selectedOrderForReopen.order_number}
+          onConfirm={handleReopenConfirm}
+          isLoading={reopenOrderMutation.isPending}
         />
       )}
 
