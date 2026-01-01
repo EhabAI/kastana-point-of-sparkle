@@ -286,15 +286,15 @@ export default function POS() {
 
       switch (e.key) {
         case "Enter":
-          // Trigger Pay if there are items
-          if (orderItems.length > 0 && currentOrder) {
+          // Trigger Pay if there are items and order is OPEN (not held)
+          if (orderItems.length > 0 && currentOrder && currentOrder.status === "open") {
             setPaymentDialogOpen(true);
           }
           break;
         case "h":
         case "H":
-          // Hold current order - use mutation directly
-          if (currentOrder && orderItems.length > 0) {
+          // Hold current order - only if OPEN status
+          if (currentOrder && currentOrder.status === "open" && orderItems.length > 0) {
             holdOrderMutation.mutate(currentOrder.id);
           }
           break;
@@ -608,7 +608,14 @@ export default function POS() {
     }
   };
 
-  const handlePay = () => setPaymentDialogOpen(true);
+  const handlePay = () => {
+    // Payment guard: only allow for OPEN orders
+    if (!currentOrder || currentOrder.status !== "open") {
+      toast.error("Cannot pay - order must be open");
+      return;
+    }
+    setPaymentDialogOpen(true);
+  };
 
   const handlePaymentConfirm = async (payments: { method: string; amount: number }[]) => {
     if (!currentOrder) return;
@@ -634,6 +641,12 @@ export default function POS() {
     // Block if no items
     if (orderItems.length === 0) {
       toast.error("Cannot hold empty order");
+      return;
+    }
+    
+    // Only allow hold on OPEN orders
+    if (currentOrder.status !== "open") {
+      toast.error("Can only hold open orders");
       return;
     }
     
@@ -1177,6 +1190,7 @@ export default function POS() {
               <div className="w-80 border-l">
                 <OrderPanel
                   orderNumber={currentOrder?.order_number}
+                  orderStatus={currentOrder?.status}
                   orderNotes={currentOrder?.order_notes}
                   items={currentOrder?.order_items || []}
                   subtotal={subtotal}
