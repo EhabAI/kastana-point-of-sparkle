@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Edit, ArrowRightLeft, ChevronDown, ChevronUp, XCircle } from "lucide-react";
+import { Clock, Edit, ArrowRightLeft, ChevronDown, ChevronUp, XCircle, Scissors } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { OpenOrder } from "@/hooks/pos/useOpenOrders";
 import type { BranchTable } from "@/hooks/pos/useBranchTables";
@@ -24,6 +24,7 @@ interface OpenOrdersListProps {
   onSelectOrder: (orderId: string) => void;
   onMoveToTable: (orderId: string, tableId: string, tableName: string, prevTableId?: string, prevTableName?: string) => void;
   onCloseOrder: (orderId: string, tableId?: string, tableName?: string) => void;
+  onSplitOrder: (order: OpenOrder) => void;
   isLoading?: boolean;
 }
 
@@ -34,6 +35,7 @@ export function OpenOrdersList({
   onSelectOrder,
   onMoveToTable,
   onCloseOrder,
+  onSplitOrder,
   isLoading,
 }: OpenOrdersListProps) {
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
@@ -162,21 +164,34 @@ export function OpenOrdersList({
                   </div>
                 </CardContent>
 
-                <CardFooter className="py-3 px-4 bg-muted/30 gap-2">
+                <CardFooter className="py-3 px-4 bg-muted/30 gap-2 flex-wrap">
                   {tableInfo && (
-                    <Button
-                      variant="outline"
-                      className="flex-1 h-12"
-                      onClick={() => handleMoveClick(order)}
-                      disabled={isLoading}
-                    >
-                      <ArrowRightLeft className="h-5 w-5 mr-2" />
-                      Move Table
-                    </Button>
+                    <>
+                      <Button
+                        variant="outline"
+                        className="flex-1 h-12 min-w-[120px]"
+                        onClick={() => handleMoveClick(order)}
+                        disabled={isLoading}
+                      >
+                        <ArrowRightLeft className="h-5 w-5 mr-2" />
+                        Move
+                      </Button>
+                      {activeItems.length > 1 && (
+                        <Button
+                          variant="outline"
+                          className="flex-1 h-12 min-w-[120px]"
+                          onClick={() => onSplitOrder(order)}
+                          disabled={isLoading}
+                        >
+                          <Scissors className="h-5 w-5 mr-2" />
+                          Split
+                        </Button>
+                      )}
+                    </>
                   )}
                   <Button
                     variant="outline"
-                    className="flex-1 h-12"
+                    className="flex-1 h-12 min-w-[120px]"
                     onClick={() => onCloseOrder(order.id, tableInfo?.id, tableInfo?.name)}
                     disabled={isLoading}
                   >
@@ -184,7 +199,7 @@ export function OpenOrdersList({
                     Close
                   </Button>
                   <Button
-                    className="flex-1 h-12"
+                    className="flex-1 h-12 min-w-[120px]"
                     onClick={() => onSelectOrder(order.id)}
                     disabled={isLoading}
                   >

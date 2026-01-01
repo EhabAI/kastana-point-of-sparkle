@@ -29,6 +29,7 @@ import {
   useOpenOrders,
   useMoveOrderToTable,
   useCloseOrder,
+  useSplitOrder,
   useMergeOrders,
   useCashierPaymentMethods,
   useMenuItemModifiers,
@@ -68,6 +69,7 @@ import {
   NewOrderDialog,
   ModifierDialog,
   MergeOrdersDialog,
+  SplitOrderDialog,
 } from "@/components/pos/dialogs";
 import type { OrderType } from "@/components/pos/OrderTypeSelector";
 
@@ -133,6 +135,7 @@ export default function POS() {
   const rejectPendingMutation = useRejectPendingOrder();
   const moveToTableMutation = useMoveOrderToTable();
   const closeOrderMutation = useCloseOrder();
+  const splitOrderMutation = useSplitOrder();
   const addModifiersMutation = useAddOrderItemModifiers();
   const mergeOrdersMutation = useMergeOrders();
 
@@ -149,6 +152,8 @@ export default function POS() {
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [modifierDialogOpen, setModifierDialogOpen] = useState(false);
   const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
+  const [splitDialogOpen, setSplitDialogOpen] = useState(false);
+  const [selectedOrderForSplit, setSelectedOrderForSplit] = useState<typeof openOrders[0] | null>(null);
   const [selectedItemForModifiers, setSelectedItemForModifiers] = useState<MenuItemWithModifiers | null>(null);
   const [selectedItemForNotes, setSelectedItemForNotes] = useState<{
     id: string;
@@ -609,6 +614,29 @@ export default function POS() {
     }
   };
 
+  const handleSplitOrder = (order: typeof openOrders[0]) => {
+    setSelectedOrderForSplit(order);
+    setSplitDialogOpen(true);
+  };
+
+  const handleConfirmSplit = async (itemsToSplit: { itemId: string; quantity: number }[]) => {
+    if (!selectedOrderForSplit || !currentShift || !branch) return;
+    try {
+      await splitOrderMutation.mutateAsync({
+        originalOrder: selectedOrderForSplit,
+        itemsToSplit,
+        shiftId: currentShift.id,
+        branchId: branch.id,
+        taxRate,
+      });
+      setSplitDialogOpen(false);
+      setSelectedOrderForSplit(null);
+      toast.success("Order split successfully");
+    } catch (error) {
+      toast.error("Failed to split order");
+    }
+  };
+
   const handleTableClick = async (tableId: string) => {
     const existingOrder = tableOrderMap.get(tableId);
 
@@ -897,7 +925,8 @@ export default function POS() {
               onSelectOrder={handleSelectOpenOrder}
               onMoveToTable={handleMoveToTable}
               onCloseOrder={handleCloseOrder}
-              isLoading={resumeOrderMutation.isPending || moveToTableMutation.isPending || closeOrderMutation.isPending}
+              onSplitOrder={handleSplitOrder}
+              isLoading={resumeOrderMutation.isPending || moveToTableMutation.isPending || closeOrderMutation.isPending || splitOrderMutation.isPending}
             />
           )}
 
@@ -1091,6 +1120,21 @@ export default function POS() {
           secondaryOrderNumber={mergeData.secondaryOrderNumber}
           onConfirm={handleConfirmMerge}
           isLoading={mergeOrdersMutation.isPending}
+        />
+      )}
+
+      {selectedOrderForSplit && (
+        <SplitOrderDialog
+          open={splitDialogOpen}
+          onOpenChange={(open) => {
+            setSplitDialogOpen(open);
+            if (!open) setSelectedOrderForSplit(null);
+          }}
+          orderNumber={selectedOrderForSplit.order_number}
+          items={selectedOrderForSplit.order_items.filter((i) => !i.voided)}
+          currency={currency}
+          onConfirm={handleConfirmSplit}
+          isLoading={splitOrderMutation.isPending}
         />
       )}
     </div>
