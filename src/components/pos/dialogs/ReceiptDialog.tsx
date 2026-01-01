@@ -3,7 +3,7 @@ import {
   DialogContent,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Printer } from "lucide-react";
+import { Printer, Undo2 } from "lucide-react";
 import { format } from "date-fns";
 
 interface OrderItem {
@@ -19,7 +19,7 @@ interface Payment {
   amount: number;
 }
 
-interface ReceiptOrder {
+export interface ReceiptOrder {
   id: string;
   order_number: number;
   created_at: string;
@@ -53,6 +53,7 @@ interface ReceiptDialogProps {
   restaurant?: Restaurant | null;
   currency: string;
   tables?: Table[];
+  onRefund?: (order: ReceiptOrder) => void;
 }
 
 export function ReceiptDialog({
@@ -62,6 +63,7 @@ export function ReceiptDialog({
   restaurant,
   currency,
   tables = [],
+  onRefund,
 }: ReceiptDialogProps) {
   if (!order) return null;
 
@@ -89,16 +91,27 @@ export function ReceiptDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md p-0 overflow-hidden">
-        {/* Print button - hidden during print */}
-        <div className="no-print p-4 border-b bg-muted/50">
+        {/* Action buttons - hidden during print */}
+        <div className="no-print p-4 border-b bg-muted/50 flex gap-2">
           <Button
             onClick={handlePrint}
-            className="w-full h-12 text-base"
+            className="flex-1 h-12 text-base"
             size="lg"
           >
             <Printer className="mr-2 h-5 w-5" />
-            Print Receipt
+            Print
           </Button>
+          {order.status === "paid" && onRefund && (
+            <Button
+              variant="outline"
+              onClick={() => onRefund(order)}
+              className="h-12 text-base"
+              size="lg"
+            >
+              <Undo2 className="mr-2 h-5 w-5" />
+              Refund
+            </Button>
+          )}
         </div>
 
         {/* Receipt content - this is what prints */}

@@ -8,7 +8,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Receipt } from "lucide-react";
+import { FileText, Receipt, Undo2 } from "lucide-react";
 import { format } from "date-fns";
 
 interface OrderItem {
@@ -45,7 +45,7 @@ interface RecentOrdersDialogProps {
   onOpenChange: (open: boolean) => void;
   orders: RecentOrder[];
   currency: string;
-  onRefund?: (orderId: string) => void;
+  onRefund?: (order: RecentOrder) => void;
   onViewReceipt?: (order: RecentOrder) => void;
 }
 
@@ -54,6 +54,7 @@ export function RecentOrdersDialog({
   onOpenChange,
   orders,
   currency,
+  onRefund,
   onViewReceipt,
 }: RecentOrdersDialogProps) {
   const getStatusColor = (status: string) => {
@@ -97,6 +98,17 @@ export function RecentOrdersDialog({
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2">
+                      {order.status === "paid" && onRefund && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onRefund(order)}
+                          className="h-8"
+                        >
+                          <Undo2 className="h-4 w-4 mr-1" />
+                          Refund
+                        </Button>
+                      )}
                       {order.status === "paid" && onViewReceipt && (
                         <Button
                           variant="outline"
