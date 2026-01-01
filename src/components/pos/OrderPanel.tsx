@@ -41,6 +41,8 @@ interface OrderPanelProps {
   onHoldOrder: () => void;
   onCancelOrder: () => void;
   hasItems: boolean;
+  onTransferItem?: (itemId: string) => void;
+  showTransfer?: boolean;
 }
 
 // Parse customer info from order_notes
@@ -81,6 +83,8 @@ export function OrderPanel({
   onHoldOrder,
   onCancelOrder,
   hasItems,
+  onTransferItem,
+  showTransfer,
 }: OrderPanelProps) {
   const activeItems = items.filter((item) => !item.voided);
   const customerInfo = parseCustomerInfo(orderNotes);
@@ -139,6 +143,8 @@ export function OrderPanel({
                   onRemove={onRemoveItem}
                   onVoid={onVoidItem}
                   onAddNotes={onAddNotes}
+                  onTransfer={onTransferItem}
+                  showTransfer={showTransfer}
                 />
               ))}
             </div>

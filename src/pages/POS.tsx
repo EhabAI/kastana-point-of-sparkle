@@ -35,6 +35,7 @@ import {
   useCashierPaymentMethods,
   useMenuItemModifiers,
   useAddOrderItemModifiers,
+  useTransferOrderItem,
 } from "@/hooks/pos";
 import type { SelectedModifier } from "@/hooks/pos/useModifiers";
 import { useCreateRefund } from "@/hooks/pos/useRefunds";
@@ -78,6 +79,7 @@ import {
   VoidItemDialog,
   ConfirmRemoveLastItemDialog,
   ReopenOrderDialog,
+  TransferItemDialog,
 } from "@/components/pos/dialogs";
 import type { RecentOrder } from "@/components/pos/dialogs/RecentOrdersDialog";
 import type { OrderType } from "@/components/pos/OrderTypeSelector";
@@ -150,6 +152,8 @@ export default function POS() {
   const createRefundMutation = useCreateRefund();
   const reopenOrderMutation = useReopenOrder();
   const auditLogMutation = useAuditLog();
+  const transferItemMutation = useTransferOrderItem();
+  
   // Dialog states
   const [shiftDialogOpen, setShiftDialogOpen] = useState(false);
   const [shiftDialogMode, setShiftDialogMode] = useState<"open" | "close">("open");
@@ -189,6 +193,11 @@ export default function POS() {
   } | null>(null);
   const [reopenDialogOpen, setReopenDialogOpen] = useState(false);
   const [selectedOrderForReopen, setSelectedOrderForReopen] = useState<RecentOrder | null>(null);
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [selectedItemForTransfer, setSelectedItemForTransfer] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [closedShiftData, setClosedShiftData] = useState<{
     openingCash: number;
     openedAt: string;
@@ -740,6 +749,45 @@ export default function POS() {
     }
   };
 
+  const handleTransferItem = (itemId: string) => {
+    // Only allow on open orders with more than 1 item
+    if (currentOrder?.status !== "open") {
+      toast.error("Can only transfer items from open orders");
+      return;
+    }
+    const activeItems = currentOrder?.order_items?.filter((i: { voided: boolean }) => !i.voided) || [];
+    if (activeItems.length <= 1) {
+      toast.error("Order must have at least 2 items to transfer");
+      return;
+    }
+    const item = currentOrder?.order_items?.find((i: { id: string }) => i.id === itemId);
+    if (item?.voided) {
+      toast.error("Cannot transfer voided items");
+      return;
+    }
+    if (item) {
+      setSelectedItemForTransfer({ id: item.id, name: item.name });
+      setTransferDialogOpen(true);
+    }
+  };
+
+  const handleTransferConfirm = async (targetOrderId: string) => {
+    if (!selectedItemForTransfer || !currentOrder) return;
+    try {
+      await transferItemMutation.mutateAsync({
+        itemId: selectedItemForTransfer.id,
+        sourceOrderId: currentOrder.id,
+        targetOrderId,
+      });
+      toast.success(`${selectedItemForTransfer.name} transferred`);
+      setTransferDialogOpen(false);
+      setSelectedItemForTransfer(null);
+      await refetchOrder();
+    } catch (error) {
+      toast.error("Failed to transfer item");
+    }
+  };
+
   const handleConfirmPending = async (orderId: string) => {
     try {
       await confirmPendingMutation.mutateAsync(orderId);
@@ -1087,6 +1135,8 @@ export default function POS() {
                   onHoldOrder={handleHoldOrder}
                   onCancelOrder={() => setCancelDialogOpen(true)}
                   hasItems={orderItems.length > 0}
+                  onTransferItem={handleTransferItem}
+                  showTransfer={currentOrder?.status === "open" && orderItems.length > 1 && openOrders.length > 1}
                 />
               </div>
             </div>
@@ -1391,6 +1441,21 @@ export default function POS() {
           currency={currency}
           onConfirm={handleConfirmSplit}
           isLoading={splitOrderMutation.isPending}
+        />
+      )}
+
+      {selectedItemForTransfer && currentOrder && (
+        <TransferItemDialog
+          open={transferDialogOpen}
+          onOpenChange={(open) => {
+            setTransferDialogOpen(open);
+            if (!open) setSelectedItemForTransfer(null);
+          }}
+          itemName={selectedItemForTransfer.name}
+          openOrders={openOrders}
+          currentOrderId={currentOrder.id}
+          onConfirm={handleTransferConfirm}
+          isLoading={transferItemMutation.isPending}
         />
       )}
     </div>
