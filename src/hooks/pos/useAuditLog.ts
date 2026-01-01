@@ -13,6 +13,7 @@ export type AuditAction =
   | "order_resume"
   | "order_complete"
   | "order_reopen"
+  | "order_confirmed"
   | "item_void"
   | "discount_apply"
   | "payment_add"
