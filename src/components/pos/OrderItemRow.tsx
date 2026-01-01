@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Minus, Plus, X, MessageSquare } from "lucide-react";
+import { Minus, Plus, X, MessageSquare, ArrowRightLeft } from "lucide-react";
 
 interface OrderItemModifier {
   id: string;
@@ -25,6 +25,8 @@ interface OrderItemRowProps {
   onRemove: (itemId: string) => void;
   onVoid: (itemId: string) => void;
   onAddNotes: (itemId: string) => void;
+  onTransfer?: (itemId: string) => void;
+  showTransfer?: boolean;
 }
 
 export function OrderItemRow({
@@ -34,6 +36,8 @@ export function OrderItemRow({
   onRemove,
   onVoid,
   onAddNotes,
+  onTransfer,
+  showTransfer,
 }: OrderItemRowProps) {
   if (item.voided) {
     return (
@@ -95,6 +99,17 @@ export function OrderItemRow({
         </div>
         
         <div className="flex items-center gap-1">
+          {showTransfer && onTransfer && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => onTransfer(item.id)}
+              title="Transfer to another order"
+            >
+              <ArrowRightLeft className="h-3 w-3" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"

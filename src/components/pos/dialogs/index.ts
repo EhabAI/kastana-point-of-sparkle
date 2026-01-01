@@ -17,3 +17,4 @@ export * from "./ReceiptDialog";
 export * from "./RefundDialog";
 export * from "./ConfirmRemoveLastItemDialog";
 export * from "./ReopenOrderDialog";
+export * from "./TransferItemDialog";
