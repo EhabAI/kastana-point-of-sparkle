@@ -36,6 +36,7 @@ import {
   useAddOrderItemModifiers,
 } from "@/hooks/pos";
 import type { SelectedModifier } from "@/hooks/pos/useModifiers";
+import { useCreateRefund } from "@/hooks/pos/useRefunds";
 import {
   useAddOrderItem,
   useUpdateOrderItemQuantity,
@@ -71,6 +72,7 @@ import {
   MergeOrdersDialog,
   SplitOrderDialog,
   ReceiptDialog,
+  RefundDialog,
 } from "@/components/pos/dialogs";
 import type { RecentOrder } from "@/components/pos/dialogs/RecentOrdersDialog";
 import type { OrderType } from "@/components/pos/OrderTypeSelector";
@@ -140,7 +142,7 @@ export default function POS() {
   const splitOrderMutation = useSplitOrder();
   const addModifiersMutation = useAddOrderItemModifiers();
   const mergeOrdersMutation = useMergeOrders();
-
+  const createRefundMutation = useCreateRefund();
   // Dialog states
   const [shiftDialogOpen, setShiftDialogOpen] = useState(false);
   const [shiftDialogMode, setShiftDialogMode] = useState<"open" | "close">("open");
@@ -165,6 +167,8 @@ export default function POS() {
   const [summaryDialogOpen, setSummaryDialogOpen] = useState(false);
   const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
   const [selectedOrderForReceipt, setSelectedOrderForReceipt] = useState<RecentOrder | null>(null);
+  const [refundDialogOpen, setRefundDialogOpen] = useState(false);
+  const [selectedOrderForRefund, setSelectedOrderForRefund] = useState<RecentOrder | null>(null);
   const [closedShiftData, setClosedShiftData] = useState<{
     openingCash: number;
     openedAt: string;
@@ -570,6 +574,38 @@ export default function POS() {
     setReceiptDialogOpen(true);
   };
 
+  const handleRefund = (order: RecentOrder) => {
+    // Only allow refunds on paid orders
+    if (order.status !== "paid") {
+      toast.error("Can only refund paid orders");
+      return;
+    }
+    setSelectedOrderForRefund(order);
+    setRefundDialogOpen(true);
+  };
+
+  const handleRefundConfirm = async (data: {
+    refundType: "full" | "partial";
+    amount: number;
+    reason: string;
+  }) => {
+    if (!selectedOrderForRefund) return;
+    try {
+      await createRefundMutation.mutateAsync({
+        orderId: selectedOrderForRefund.id,
+        amount: data.amount,
+        refundType: data.refundType,
+        reason: data.reason,
+      });
+      toast.success("Refund processed successfully");
+      setRefundDialogOpen(false);
+      setReceiptDialogOpen(false);
+      setSelectedOrderForRefund(null);
+    } catch (error) {
+      toast.error("Failed to process refund");
+      throw error;
+    }
+  };
   const handleConfirmPending = async (orderId: string) => {
     try {
       await confirmPendingMutation.mutateAsync(orderId);
@@ -1068,6 +1104,7 @@ export default function POS() {
         orders={recentOrders as RecentOrder[]}
         currency={currency}
         onViewReceipt={handleViewReceipt}
+        onRefund={handleRefund}
       />
 
       <ReceiptDialog
@@ -1077,7 +1114,23 @@ export default function POS() {
         restaurant={restaurant}
         currency={currency}
         tables={tables}
+        onRefund={handleRefund}
       />
+
+      {selectedOrderForRefund && (
+        <RefundDialog
+          open={refundDialogOpen}
+          onOpenChange={(open) => {
+            setRefundDialogOpen(open);
+            if (!open) setSelectedOrderForRefund(null);
+          }}
+          orderNumber={selectedOrderForRefund.order_number}
+          totalPaid={Number(selectedOrderForRefund.total)}
+          currency={currency}
+          onConfirm={handleRefundConfirm}
+          isProcessing={createRefundMutation.isPending}
+        />
+      )}
 
       <CancelOrderDialog
         open={cancelDialogOpen}

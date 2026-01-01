@@ -14,3 +14,4 @@ export * from "./NewOrderDialog";
 export * from "./SplitOrderDialog";
 export * from "./ZReportDialog";
 export * from "./ReceiptDialog";
+export * from "./RefundDialog";
