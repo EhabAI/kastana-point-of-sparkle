@@ -73,6 +73,7 @@ import {
   SplitOrderDialog,
   ReceiptDialog,
   RefundDialog,
+  VoidItemDialog,
 } from "@/components/pos/dialogs";
 import type { RecentOrder } from "@/components/pos/dialogs/RecentOrdersDialog";
 import type { OrderType } from "@/components/pos/OrderTypeSelector";
@@ -163,6 +164,12 @@ export default function POS() {
     id: string;
     name: string;
     notes?: string | null;
+  } | null>(null);
+  const [voidDialogOpen, setVoidDialogOpen] = useState(false);
+  const [selectedItemForVoid, setSelectedItemForVoid] = useState<{
+    id: string;
+    name: string;
+    quantity: number;
   } | null>(null);
   const [summaryDialogOpen, setSummaryDialogOpen] = useState(false);
   const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
@@ -441,9 +448,28 @@ export default function POS() {
   };
 
   const handleVoidItem = (itemId: string) => {
+    // Only allow void on open orders
+    if (currentOrder?.status !== "open") {
+      toast.error("Can only void items on open orders");
+      return;
+    }
     const item = currentOrder?.order_items?.find((i: { id: string }) => i.id === itemId);
     if (item) {
-      setSelectedItemForNotes({ id: item.id, name: item.name });
+      setSelectedItemForVoid({ id: item.id, name: item.name, quantity: item.quantity });
+      setVoidDialogOpen(true);
+    }
+  };
+
+  const handleVoidConfirm = async (reason: string) => {
+    if (!selectedItemForVoid) return;
+    try {
+      await voidItemMutation.mutateAsync({ itemId: selectedItemForVoid.id, reason });
+      setVoidDialogOpen(false);
+      setSelectedItemForVoid(null);
+      await refetchOrder();
+      toast.success("Item voided");
+    } catch (error) {
+      toast.error("Failed to void item");
     }
   };
 
@@ -1129,6 +1155,19 @@ export default function POS() {
           currency={currency}
           onConfirm={handleRefundConfirm}
           isProcessing={createRefundMutation.isPending}
+        />
+      )}
+
+      {selectedItemForVoid && (
+        <VoidItemDialog
+          open={voidDialogOpen}
+          onOpenChange={(open) => {
+            setVoidDialogOpen(open);
+            if (!open) setSelectedItemForVoid(null);
+          }}
+          itemName={`${selectedItemForVoid.name} (×${selectedItemForVoid.quantity})`}
+          onConfirm={handleVoidConfirm}
+          isLoading={voidItemMutation.isPending}
         />
       )}
 
