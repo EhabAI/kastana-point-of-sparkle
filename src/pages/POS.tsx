@@ -225,6 +225,22 @@ export default function POS() {
     return map;
   }, [openOrders]);
 
+  // Build map: tableId -> oldest order created_at (for occupancy timer)
+  const tableOldestOrderMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const order of openOrders) {
+      const match = order.notes?.match(/table:([a-f0-9-]+)/i);
+      if (match) {
+        const tableId = match[1];
+        const existing = map.get(tableId);
+        if (!existing || new Date(order.created_at) < new Date(existing)) {
+          map.set(tableId, order.created_at);
+        }
+      }
+    }
+    return map;
+  }, [openOrders]);
+
   const occupiedTablesCount = tableOrderMap.size;
 
   // Auto-select first category
@@ -1087,6 +1103,7 @@ export default function POS() {
                     const isOccupied = !!order;
                     const isSelected = mergeSelection.includes(table.id);
                     const orderCount = tableOrderCountMap.get(table.id);
+                    const oldestOrderCreatedAt = tableOldestOrderMap.get(table.id);
 
                     return (
                       <div key={table.id} className="relative">
@@ -1096,6 +1113,7 @@ export default function POS() {
                           isOccupied={isOccupied}
                           orderNumber={order?.order_number}
                           orderCount={orderCount}
+                          orderCreatedAt={oldestOrderCreatedAt}
                           onClick={() => handleTableClick(table.id)}
                           disabled={createOrderMutation.isPending || resumeOrderMutation.isPending || mergeOrdersMutation.isPending}
                           selected={isSelected}

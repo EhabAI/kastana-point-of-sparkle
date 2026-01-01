@@ -1,4 +1,6 @@
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { Clock } from "lucide-react";
 
 interface TableCardProps {
   tableName: string;
@@ -6,9 +8,24 @@ interface TableCardProps {
   isOccupied: boolean;
   orderNumber?: number;
   orderCount?: number;
+  orderCreatedAt?: string;
   onClick: () => void;
   disabled?: boolean;
   selected?: boolean;
+}
+
+function formatDuration(startTime: string): string {
+  const start = new Date(startTime).getTime();
+  const now = Date.now();
+  const diffMs = now - start;
+  
+  if (diffMs < 0) return "00:00";
+  
+  const totalMinutes = Math.floor(diffMs / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  
+  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
 }
 
 export function TableCard({
@@ -17,11 +34,28 @@ export function TableCard({
   isOccupied,
   orderNumber,
   orderCount,
+  orderCreatedAt,
   onClick,
   disabled,
   selected,
 }: TableCardProps) {
   const effectiveCapacity = capacity || 4;
+  const [duration, setDuration] = useState(() => 
+    orderCreatedAt ? formatDuration(orderCreatedAt) : "00:00"
+  );
+  
+  // Update timer every minute
+  useEffect(() => {
+    if (!isOccupied || !orderCreatedAt) return;
+    
+    setDuration(formatDuration(orderCreatedAt));
+    
+    const interval = setInterval(() => {
+      setDuration(formatDuration(orderCreatedAt));
+    }, 60000);
+    
+    return () => clearInterval(interval);
+  }, [isOccupied, orderCreatedAt]);
   
   // Determine table shape based on capacity
   const tableType = effectiveCapacity <= 2 ? "round-small" : effectiveCapacity <= 4 ? "round" : "rectangular";
@@ -67,6 +101,14 @@ export function TableCard({
       {orderCount && orderCount > 1 && (
         <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary text-primary-foreground">
           {orderCount} Orders
+        </div>
+      )}
+
+      {/* Occupancy Timer */}
+      {isOccupied && orderCreatedAt && (
+        <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/80 text-[10px] font-medium text-muted-foreground">
+          <Clock className="h-3 w-3" />
+          {duration}
         </div>
       )}
     </button>
