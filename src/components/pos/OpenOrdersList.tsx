@@ -51,6 +51,12 @@ export function OpenOrdersList({
     return table ? { id: table.id, name: table.table_name } : null;
   };
 
+  const getOrderType = (notes: string | null): "DINE-IN" | "TAKEAWAY" => {
+    if (!notes) return "TAKEAWAY";
+    if (notes.includes("table:")) return "DINE-IN";
+    return "TAKEAWAY";
+  };
+
   const handleMoveClick = (order: OpenOrder) => {
     setSelectedOrderForMove(order);
     setSelectedTableId(null);
@@ -95,6 +101,8 @@ export function OpenOrdersList({
             const activeItems = order.order_items.filter((i) => !i.voided);
             const itemCount = activeItems.reduce((sum, item) => sum + item.quantity, 0);
 
+            const orderType = getOrderType(order.notes);
+
             return (
               <Card key={order.id} className="overflow-hidden">
                 <CardHeader className="py-3 px-4">
@@ -104,19 +112,14 @@ export function OpenOrdersList({
                         Order #{order.order_number}
                       </CardTitle>
                       <Badge 
-                        variant={order.status === "confirmed" ? "default" : "secondary"}
+                        variant={orderType === "DINE-IN" ? "default" : "secondary"}
                         className="text-xs"
                       >
-                        {order.status}
+                        {orderType}
                       </Badge>
                       {tableInfo && (
                         <Badge variant="outline" className="text-xs">
                           {tableInfo.name}
-                        </Badge>
-                      )}
-                      {!tableInfo && (
-                        <Badge variant="outline" className="text-xs">
-                          Takeaway
                         </Badge>
                       )}
                     </div>

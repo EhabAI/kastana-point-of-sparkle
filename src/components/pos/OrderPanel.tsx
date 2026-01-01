@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { OrderItemRow } from "./OrderItemRow";
 import { OrderTotals } from "./OrderTotals";
 import { Percent, CreditCard, Pause, X, User, Phone } from "lucide-react";
@@ -89,7 +90,15 @@ export function OrderPanel({
     <Card className="h-full flex flex-col">
       <CardHeader className="py-3 px-4">
         <CardTitle className="text-base flex items-center justify-between">
-          <span>Current Order</span>
+          <div className="flex items-center gap-2">
+            <span>Current Order</span>
+            <Badge 
+              variant={orderType === "DINE-IN" ? "default" : "secondary"}
+              className="text-xs"
+            >
+              {orderType}
+            </Badge>
+          </div>
           {orderNumber && (
             <span className="text-muted-foreground">#{orderNumber}</span>
           )}
