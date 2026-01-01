@@ -99,6 +99,58 @@ export function useMoveOrderToTable() {
   });
 }
 
+export function useCloseOrder() {
+  const queryClient = useQueryClient();
+  const { data: restaurant } = useCashierRestaurant();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ 
+      orderId, 
+      tableId,
+      tableName,
+    }: { 
+      orderId: string; 
+      tableId?: string;
+      tableName?: string;
+    }) => {
+      const { data, error } = await supabase
+        .from("orders")
+        .update({ 
+          status: "closed",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", orderId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { ...data, tableId, tableName };
+    },
+    onSuccess: async (data) => {
+      queryClient.invalidateQueries({ queryKey: ["open-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["branch-tables"] });
+      queryClient.invalidateQueries({ queryKey: ["current-order"] });
+      
+      // Log to audit
+      if (user?.id && restaurant?.id) {
+        await supabase.from("audit_logs").insert({
+          user_id: user.id,
+          restaurant_id: restaurant.id,
+          entity_type: "order",
+          entity_id: data.id,
+          action: "CLOSE_ORDER",
+          details: { 
+            order_number: data.order_number,
+            table_id: data.tableId || null,
+            table_name: data.tableName || null,
+          } as unknown as Json,
+        });
+      }
+    },
+  });
+}
+
 export function useMergeOrders() {
   const queryClient = useQueryClient();
 

@@ -28,6 +28,7 @@ import {
   useRejectPendingOrder,
   useOpenOrders,
   useMoveOrderToTable,
+  useCloseOrder,
   useMergeOrders,
   useCashierPaymentMethods,
   useMenuItemModifiers,
@@ -131,6 +132,7 @@ export default function POS() {
   const confirmPendingMutation = useConfirmPendingOrder();
   const rejectPendingMutation = useRejectPendingOrder();
   const moveToTableMutation = useMoveOrderToTable();
+  const closeOrderMutation = useCloseOrder();
   const addModifiersMutation = useAddOrderItemModifiers();
   const mergeOrdersMutation = useMergeOrders();
 
@@ -598,6 +600,15 @@ export default function POS() {
     }
   };
 
+  const handleCloseOrder = async (orderId: string, tableId?: string, tableName?: string) => {
+    try {
+      await closeOrderMutation.mutateAsync({ orderId, tableId, tableName });
+      toast.success("Order closed");
+    } catch (error) {
+      toast.error("Failed to close order");
+    }
+  };
+
   const handleTableClick = async (tableId: string) => {
     const existingOrder = tableOrderMap.get(tableId);
 
@@ -885,7 +896,8 @@ export default function POS() {
               currency={currency}
               onSelectOrder={handleSelectOpenOrder}
               onMoveToTable={handleMoveToTable}
-              isLoading={resumeOrderMutation.isPending || moveToTableMutation.isPending}
+              onCloseOrder={handleCloseOrder}
+              isLoading={resumeOrderMutation.isPending || moveToTableMutation.isPending || closeOrderMutation.isPending}
             />
           )}
 
