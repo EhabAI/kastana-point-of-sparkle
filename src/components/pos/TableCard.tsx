@@ -5,6 +5,7 @@ interface TableCardProps {
   capacity: number;
   isOccupied: boolean;
   orderNumber?: number;
+  orderCount?: number;
   onClick: () => void;
   disabled?: boolean;
   selected?: boolean;
@@ -15,6 +16,7 @@ export function TableCard({
   capacity,
   isOccupied,
   orderNumber,
+  orderCount,
   onClick,
   disabled,
   selected,
@@ -60,6 +62,13 @@ export function TableCard({
       >
         {isOccupied ? `#${orderNumber}` : "Free"}
       </div>
+
+      {/* Multiple Orders Indicator */}
+      {orderCount && orderCount > 1 && (
+        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary text-primary-foreground">
+          {orderCount} Orders
+        </div>
+      )}
     </button>
   );
 }

@@ -206,6 +206,19 @@ export default function POS() {
     return map;
   }, [openOrders]);
 
+  // Build map: tableId -> order count (for multiple orders indicator)
+  const tableOrderCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const order of openOrders) {
+      const match = order.notes?.match(/table:([a-f0-9-]+)/i);
+      if (match) {
+        const tableId = match[1];
+        map.set(tableId, (map.get(tableId) || 0) + 1);
+      }
+    }
+    return map;
+  }, [openOrders]);
+
   const occupiedTablesCount = tableOrderMap.size;
 
   // Auto-select first category
@@ -1046,6 +1059,7 @@ export default function POS() {
                     const order = tableOrderMap.get(table.id);
                     const isOccupied = !!order;
                     const isSelected = mergeSelection.includes(table.id);
+                    const orderCount = tableOrderCountMap.get(table.id);
 
                     return (
                       <div key={table.id} className="relative">
@@ -1054,6 +1068,7 @@ export default function POS() {
                           capacity={table.capacity || 4}
                           isOccupied={isOccupied}
                           orderNumber={order?.order_number}
+                          orderCount={orderCount}
                           onClick={() => handleTableClick(table.id)}
                           disabled={createOrderMutation.isPending || resumeOrderMutation.isPending || mergeOrdersMutation.isPending}
                           selected={isSelected}
