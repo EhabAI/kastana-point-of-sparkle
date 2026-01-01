@@ -161,15 +161,17 @@ export function OpenOrdersList({
                 </CardContent>
 
                 <CardFooter className="py-3 px-4 bg-muted/30 gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1 h-12"
-                    onClick={() => handleMoveClick(order)}
-                    disabled={isLoading}
-                  >
-                    <ArrowRightLeft className="h-5 w-5 mr-2" />
-                    Move Table
-                  </Button>
+                  {tableInfo && (
+                    <Button
+                      variant="outline"
+                      className="flex-1 h-12"
+                      onClick={() => handleMoveClick(order)}
+                      disabled={isLoading}
+                    >
+                      <ArrowRightLeft className="h-5 w-5 mr-2" />
+                      Move Table
+                    </Button>
+                  )}
                   <Button
                     className="flex-1 h-12"
                     onClick={() => onSelectOrder(order.id)}
