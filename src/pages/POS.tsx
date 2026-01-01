@@ -345,7 +345,11 @@ export default function POS() {
     }
   };
 
-  const handleNewOrder = async (orderType: OrderType, tableId: string | null) => {
+  const handleNewOrder = async (
+    orderType: OrderType,
+    tableId: string | null,
+    customerInfo?: { name: string; phone: string }
+  ) => {
     if (!currentShift || !branch || !restaurant) return;
 
     try {
@@ -356,6 +360,7 @@ export default function POS() {
         restaurantId: restaurant.id,
         orderType,
         tableId: orderType === "takeaway" ? null : tableId,
+        customerInfo,
       });
       setNewOrderDialogOpen(false);
       setActiveTab("new-order");
@@ -960,6 +965,7 @@ export default function POS() {
               <div className="w-80 border-l">
                 <OrderPanel
                   orderNumber={currentOrder?.order_number}
+                  orderNotes={currentOrder?.order_notes}
                   items={currentOrder?.order_items || []}
                   subtotal={subtotal}
                   discountType={currentOrder?.discount_type}

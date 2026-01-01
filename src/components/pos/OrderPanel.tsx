@@ -3,7 +3,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { OrderItemRow } from "./OrderItemRow";
 import { OrderTotals } from "./OrderTotals";
-import { Percent, CreditCard, Pause, X } from "lucide-react";
+import { Percent, CreditCard, Pause, X, User, Phone } from "lucide-react";
 
 interface OrderItem {
   id: string;
@@ -14,8 +14,14 @@ interface OrderItem {
   voided: boolean;
 }
 
+interface CustomerInfo {
+  name: string;
+  phone: string;
+}
+
 interface OrderPanelProps {
   orderNumber?: number;
+  orderNotes?: string | null;
   items: OrderItem[];
   subtotal: number;
   discountType?: string | null;
@@ -36,8 +42,26 @@ interface OrderPanelProps {
   hasItems: boolean;
 }
 
+// Parse customer info from order_notes
+function parseCustomerInfo(notes: string | null | undefined): CustomerInfo | null {
+  if (!notes) return null;
+  const match = notes.match(/customer:([^;]*)/);
+  if (!match) return null;
+  const [name, phone] = match[1].split("|");
+  if (!name && !phone) return null;
+  return { name: name || "", phone: phone || "" };
+}
+
+// Parse order type from order_notes
+function parseOrderType(notes: string | null | undefined): "DINE-IN" | "TAKEAWAY" {
+  if (!notes) return "TAKEAWAY";
+  if (notes.includes("table:")) return "DINE-IN";
+  return "TAKEAWAY";
+}
+
 export function OrderPanel({
   orderNumber,
+  orderNotes,
   items,
   subtotal,
   discountType,
@@ -58,6 +82,8 @@ export function OrderPanel({
   hasItems,
 }: OrderPanelProps) {
   const activeItems = items.filter((item) => !item.voided);
+  const customerInfo = parseCustomerInfo(orderNotes);
+  const orderType = parseOrderType(orderNotes);
 
   return (
     <Card className="h-full flex flex-col">
@@ -68,6 +94,23 @@ export function OrderPanel({
             <span className="text-muted-foreground">#{orderNumber}</span>
           )}
         </CardTitle>
+        {/* Customer info for takeaway */}
+        {orderType === "TAKEAWAY" && customerInfo && (customerInfo.name || customerInfo.phone) && (
+          <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mt-1">
+            {customerInfo.name && (
+              <span className="flex items-center gap-1">
+                <User className="h-3.5 w-3.5" />
+                {customerInfo.name}
+              </span>
+            )}
+            {customerInfo.phone && (
+              <span className="flex items-center gap-1">
+                <Phone className="h-3.5 w-3.5" />
+                {customerInfo.phone}
+              </span>
+            )}
+          </div>
+        )}
       </CardHeader>
 
       <CardContent className="flex-1 overflow-hidden p-0">
