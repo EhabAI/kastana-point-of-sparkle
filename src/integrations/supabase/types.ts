@@ -548,6 +548,7 @@ export type Database = {
           shift_id: string | null
           status: string
           subtotal: number
+          table_id: string | null
           tax_amount: number
           tax_rate: number
           total: number
@@ -569,6 +570,7 @@ export type Database = {
           shift_id?: string | null
           status?: string
           subtotal?: number
+          table_id?: string | null
           tax_amount?: number
           tax_rate?: number
           total?: number
@@ -590,6 +592,7 @@ export type Database = {
           shift_id?: string | null
           status?: string
           subtotal?: number
+          table_id?: string | null
           tax_amount?: number
           tax_rate?: number
           total?: number
@@ -615,6 +618,13 @@ export type Database = {
             columns: ["shift_id"]
             isOneToOne: false
             referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_table_id_fkey"
+            columns: ["table_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_tables"
             referencedColumns: ["id"]
           },
         ]

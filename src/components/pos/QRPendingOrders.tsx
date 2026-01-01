@@ -53,10 +53,8 @@ export function QRPendingOrders({
     }
   };
 
-  const getTableFromNotes = (notes: string | null): string | null => {
-    if (!notes) return null;
-    const match = notes.match(/table:(\S+)/);
-    return match ? match[1] : null;
+  const hasTable = (order: PendingOrder): boolean => {
+    return !!order.table_id;
   };
 
   if (orders.length === 0) {
@@ -75,7 +73,7 @@ export function QRPendingOrders({
         <div className="p-4 space-y-3">
           {orders.map((order) => {
             const isExpanded = expandedOrderId === order.id;
-            const tableId = getTableFromNotes(order.notes);
+            const tableAssigned = hasTable(order);
             const itemCount = order.order_items.reduce((sum, item) => sum + item.quantity, 0);
 
             return (
@@ -89,7 +87,7 @@ export function QRPendingOrders({
                       <Badge variant="outline" className="text-xs">
                         {itemCount} items
                       </Badge>
-                      {tableId && (
+                      {tableAssigned && (
                         <Badge variant="secondary" className="text-xs">
                           Table
                         </Badge>

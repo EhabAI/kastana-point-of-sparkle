@@ -55,10 +55,11 @@ function parseCustomerInfo(notes: string | null | undefined): CustomerInfo | nul
   return { name: name || "", phone: phone || "" };
 }
 
-// Parse order type from order_notes
-function parseOrderType(notes: string | null | undefined): "DINE-IN" | "TAKEAWAY" {
+// Parse order type from order_notes (now uses table_id on order, but fallback for display)
+function parseOrderType(notes: string | null | undefined, hasTable?: boolean): "DINE-IN" | "TAKEAWAY" {
+  if (hasTable) return "DINE-IN";
   if (!notes) return "TAKEAWAY";
-  if (notes.includes("table:")) return "DINE-IN";
+  if (notes.includes("type:takeaway")) return "TAKEAWAY";
   return "TAKEAWAY";
 }
 

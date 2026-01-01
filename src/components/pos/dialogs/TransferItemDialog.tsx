@@ -14,7 +14,7 @@ import { useState } from "react";
 interface OpenOrder {
   id: string;
   order_number: number;
-  notes: string | null;
+  table_id: string | null;
 }
 
 interface TransferItemDialogProps {
@@ -25,13 +25,6 @@ interface TransferItemDialogProps {
   itemName: string;
   openOrders: OpenOrder[];
   currentOrderId: string;
-}
-
-// Extract table name from notes
-function getTableFromNotes(notes: string | null): string | null {
-  if (!notes) return null;
-  const match = notes.match(/table:([a-f0-9-]+)/i);
-  return match ? match[1] : null;
 }
 
 export function TransferItemDialog({
@@ -132,7 +125,7 @@ export function TransferItemDialog({
           <ScrollArea className="max-h-[300px]">
             <div className="space-y-2">
               {availableOrders.map((order) => {
-                const tableId = getTableFromNotes(order.notes);
+                const hasTable = !!order.table_id;
                 const isSelected = selectedOrderId === order.id;
                 
                 return (
@@ -149,7 +142,7 @@ export function TransferItemDialog({
                       <span className="font-medium">
                         Order #{order.order_number}
                       </span>
-                      {tableId && (
+                      {hasTable && (
                         <span className="text-sm text-muted-foreground">
                           Table assigned
                         </span>

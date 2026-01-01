@@ -86,12 +86,10 @@ export function useCreateOrder() {
       customerInfo?: { name: string; phone: string };
     }) => {
 
-      // Build notes from order type, table, and customer info
+      // Build notes from order type and customer info (NOT table - use table_id column)
       const noteParts: string[] = [];
       
-      if (tableId) {
-        noteParts.push(`table:${tableId}`);
-      } else if (orderType) {
+      if (orderType && !tableId) {
         noteParts.push(`type:${orderType}`);
       }
       
@@ -111,6 +109,7 @@ export function useCreateOrder() {
           status: "open",
           tax_rate: taxRate,
           order_notes: notes,
+          table_id: tableId || null,
         })
         .select()
         .single();
