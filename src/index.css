@@ -127,3 +127,28 @@
     to { opacity: 1; transform: translateY(0); }
   }
 }
+
+/* Print styles for receipt */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  .receipt-print-area,
+  .receipt-print-area * {
+    visibility: visible;
+  }
+  
+  .receipt-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    padding: 4mm;
+    font-size: 12px;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
