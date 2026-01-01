@@ -274,10 +274,15 @@ export default function POS() {
       const afterDiscount = sub - discountAmount;
       const serviceCharge = afterDiscount * serviceChargeRate;
       const taxAmount = (afterDiscount + serviceCharge) * taxRate;
-      const total = afterDiscount + serviceCharge + taxAmount;
+      let total = afterDiscount + serviceCharge + taxAmount;
+      
+      if (settings?.rounding_enabled) {
+        total = Math.ceil(total);
+      }
+      
       return { discountAmount, serviceCharge, taxAmount, total };
     },
-    [serviceChargeRate, taxRate],
+    [serviceChargeRate, taxRate, settings?.rounding_enabled],
   );
 
   const { discountAmount, serviceCharge, taxAmount, total } = calculateTotals(
