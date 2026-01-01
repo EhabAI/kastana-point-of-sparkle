@@ -151,6 +151,132 @@ export function useCloseOrder() {
   });
 }
 
+export function useSplitOrder() {
+  const queryClient = useQueryClient();
+  const { data: restaurant } = useCashierRestaurant();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({
+      originalOrder,
+      itemsToSplit,
+      shiftId,
+      branchId,
+      taxRate,
+    }: {
+      originalOrder: OpenOrder;
+      itemsToSplit: { itemId: string; quantity: number }[];
+      shiftId: string;
+      branchId: string;
+      taxRate: number;
+    }) => {
+      if (!restaurant?.id) throw new Error("Missing restaurant");
+
+      // Extract table info from original order notes
+      const tableMatch = originalOrder.notes?.match(/table:([a-f0-9-]+)/i);
+      const tableId = tableMatch?.[1];
+
+      // 1. Create new order with same table
+      const { data: newOrder, error: orderError } = await supabase
+        .from("orders")
+        .insert({
+          shift_id: shiftId,
+          restaurant_id: restaurant.id,
+          branch_id: branchId,
+          status: "open",
+          tax_rate: taxRate,
+          notes: originalOrder.notes, // Keep same table reference
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // 2. Get full item details from original order
+      const { data: originalItems, error: itemsError } = await supabase
+        .from("order_items")
+        .select("*, order_item_modifiers(*)")
+        .eq("order_id", originalOrder.id)
+        .in("id", itemsToSplit.map((i) => i.itemId));
+
+      if (itemsError) throw itemsError;
+
+      // 3. Process each item to split
+      for (const splitItem of itemsToSplit) {
+        const originalItem = originalItems?.find((i) => i.id === splitItem.itemId);
+        if (!originalItem) continue;
+
+        if (splitItem.quantity >= originalItem.quantity) {
+          // Move entire item: update order_id
+          await supabase
+            .from("order_items")
+            .update({ order_id: newOrder.id })
+            .eq("id", originalItem.id);
+        } else {
+          // Partial split: reduce original, create new
+          await supabase
+            .from("order_items")
+            .update({ quantity: originalItem.quantity - splitItem.quantity })
+            .eq("id", originalItem.id);
+
+          // Create new item in new order
+          const { data: newItem, error: newItemError } = await supabase
+            .from("order_items")
+            .insert({
+              order_id: newOrder.id,
+              restaurant_id: restaurant.id,
+              menu_item_id: originalItem.menu_item_id,
+              name: originalItem.name,
+              price: originalItem.price,
+              quantity: splitItem.quantity,
+              notes: originalItem.notes,
+            })
+            .select()
+            .single();
+
+          if (newItemError) throw newItemError;
+
+          // Copy modifiers if any
+          if (originalItem.order_item_modifiers?.length > 0) {
+            await supabase.from("order_item_modifiers").insert(
+              originalItem.order_item_modifiers.map((mod: any) => ({
+                order_item_id: newItem.id,
+                modifier_option_id: mod.modifier_option_id,
+                modifier_name: mod.modifier_name,
+                option_name: mod.option_name,
+                price_adjustment: mod.price_adjustment,
+              }))
+            );
+          }
+        }
+      }
+
+      return { originalOrderId: originalOrder.id, newOrderId: newOrder.id, tableId };
+    },
+    onSuccess: async (data) => {
+      queryClient.invalidateQueries({ queryKey: ["open-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["branch-tables"] });
+      queryClient.invalidateQueries({ queryKey: ["current-order"] });
+
+      // Log to audit
+      if (user?.id && restaurant?.id) {
+        await supabase.from("audit_logs").insert({
+          user_id: user.id,
+          restaurant_id: restaurant.id,
+          entity_type: "order",
+          entity_id: data.originalOrderId,
+          action: "SPLIT_ORDER",
+          details: {
+            original_order_id: data.originalOrderId,
+            new_order_id: data.newOrderId,
+            table_id: data.tableId || null,
+          } as unknown as Json,
+        });
+      }
+    },
+  });
+}
+
 export function useMergeOrders() {
   const queryClient = useQueryClient();
 
