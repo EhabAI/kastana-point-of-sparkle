@@ -75,6 +75,7 @@ export function useCreateOrder() {
       restaurantId,
       orderType,
       tableId,
+      customerInfo,
     }: { 
       shiftId: string; 
       taxRate: number; 
@@ -82,15 +83,24 @@ export function useCreateOrder() {
       restaurantId: string;
       orderType?: string;
       tableId?: string | null;
+      customerInfo?: { name: string; phone: string };
     }) => {
 
-      // Build notes from order type and table for backwards compatibility
-      let notes: string | null = null;
+      // Build notes from order type, table, and customer info
+      const noteParts: string[] = [];
+      
       if (tableId) {
-        notes = `table:${tableId}`;
+        noteParts.push(`table:${tableId}`);
       } else if (orderType) {
-        notes = `type:${orderType}`;
+        noteParts.push(`type:${orderType}`);
       }
+      
+      // Add customer info for takeaway orders
+      if (customerInfo && (customerInfo.name || customerInfo.phone)) {
+        noteParts.push(`customer:${customerInfo.name}|${customerInfo.phone}`);
+      }
+
+      const notes = noteParts.length > 0 ? noteParts.join(";") : null;
 
       const { data, error } = await supabase
         .from("orders")

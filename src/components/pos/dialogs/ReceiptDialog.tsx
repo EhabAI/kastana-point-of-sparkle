@@ -82,7 +82,18 @@ export function ReceiptDialog({
     return { type: "TAKEAWAY", tableName: null };
   };
 
+  // Parse customer info from order_notes
+  const getCustomerInfo = () => {
+    const notes = order.order_notes || "";
+    const match = notes.match(/customer:([^;]*)/);
+    if (!match) return null;
+    const [name, phone] = match[1].split("|");
+    if (!name && !phone) return null;
+    return { name: name || "", phone: phone || "" };
+  };
+
   const { type: orderType, tableName } = getOrderTypeAndTable();
+  const customerInfo = getCustomerInfo();
 
   const handlePrint = () => {
     window.print();
@@ -140,6 +151,13 @@ export function ReceiptDialog({
             {tableName && (
               <div className="text-sm text-muted-foreground mt-1">
                 Table: {tableName}
+              </div>
+            )}
+            {/* Customer info for takeaway */}
+            {orderType === "TAKEAWAY" && customerInfo && (customerInfo.name || customerInfo.phone) && (
+              <div className="text-sm text-muted-foreground mt-1 space-y-0.5">
+                {customerInfo.name && <div>Customer: {customerInfo.name}</div>}
+                {customerInfo.phone && <div>Phone: {customerInfo.phone}</div>}
               </div>
             )}
           </div>
