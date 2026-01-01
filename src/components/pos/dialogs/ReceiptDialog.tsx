@@ -31,6 +31,7 @@ export interface ReceiptOrder {
   service_charge: number;
   total: number;
   order_notes: string | null;
+  table_id?: string | null;
   order_items: OrderItem[];
   payments: Payment[];
 }
@@ -67,14 +68,15 @@ export function ReceiptDialog({
 }: ReceiptDialogProps) {
   if (!order) return null;
 
-  // Parse order type and table from order_notes
+  // Parse order type and table using table_id column
   const getOrderTypeAndTable = () => {
-    const notes = order.order_notes || "";
-    const tableMatch = notes.match(/table:([a-f0-9-]+)/i);
-    if (tableMatch) {
-      const table = tables.find((t) => t.id === tableMatch[1]);
+    // Use table_id if available
+    if (order.table_id) {
+      const table = tables.find((t) => t.id === order.table_id);
       return { type: "DINE-IN", tableName: table?.table_name || null };
     }
+    // Fallback to notes for order type (for legacy orders)
+    const notes = order.order_notes || "";
     const typeMatch = notes.match(/type:(\w+)/i);
     if (typeMatch) {
       return { type: typeMatch[1].toUpperCase(), tableName: null };

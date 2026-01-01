@@ -216,13 +216,15 @@ export default function POS() {
   const serviceChargeRate = settings?.service_charge_rate || 0;
   const shiftOpen = currentShift?.status === "open";
 
-  // Build map: tableId -> order (using existing openOrders)
+  // Build map: tableId -> order (using table_id column)
   const tableOrderMap = useMemo(() => {
     const map = new Map<string, typeof openOrders[0]>();
     for (const order of openOrders) {
-      const match = order.notes?.match(/table:([a-f0-9-]+)/i);
-      if (match) {
-        map.set(match[1], order);
+      if (order.table_id) {
+        // Keep the latest order for resume functionality
+        if (!map.has(order.table_id)) {
+          map.set(order.table_id, order);
+        }
       }
     }
     return map;
@@ -232,10 +234,8 @@ export default function POS() {
   const tableOrderCountMap = useMemo(() => {
     const map = new Map<string, number>();
     for (const order of openOrders) {
-      const match = order.notes?.match(/table:([a-f0-9-]+)/i);
-      if (match) {
-        const tableId = match[1];
-        map.set(tableId, (map.get(tableId) || 0) + 1);
+      if (order.table_id) {
+        map.set(order.table_id, (map.get(order.table_id) || 0) + 1);
       }
     }
     return map;
@@ -245,12 +245,10 @@ export default function POS() {
   const tableOldestOrderMap = useMemo(() => {
     const map = new Map<string, string>();
     for (const order of openOrders) {
-      const match = order.notes?.match(/table:([a-f0-9-]+)/i);
-      if (match) {
-        const tableId = match[1];
-        const existing = map.get(tableId);
+      if (order.table_id) {
+        const existing = map.get(order.table_id);
         if (!existing || new Date(order.created_at) < new Date(existing)) {
-          map.set(tableId, order.created_at);
+          map.set(order.table_id, order.created_at);
         }
       }
     }

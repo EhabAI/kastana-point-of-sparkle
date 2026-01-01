@@ -43,18 +43,14 @@ export function OpenOrdersList({
   const [selectedOrderForMove, setSelectedOrderForMove] = useState<OpenOrder | null>(null);
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
 
-  const getTableInfo = (notes: string | null): { id: string; name: string } | null => {
-    if (!notes) return null;
-    const match = notes.match(/table:(\S+)/);
-    if (!match) return null;
-    const table = tables.find((t) => t.id === match[1]);
+  const getTableInfo = (order: OpenOrder): { id: string; name: string } | null => {
+    if (!order.table_id) return null;
+    const table = tables.find((t) => t.id === order.table_id);
     return table ? { id: table.id, name: table.table_name } : null;
   };
 
-  const getOrderType = (notes: string | null): "DINE-IN" | "TAKEAWAY" => {
-    if (!notes) return "TAKEAWAY";
-    if (notes.includes("table:")) return "DINE-IN";
-    return "TAKEAWAY";
+  const getOrderType = (order: OpenOrder): "DINE-IN" | "TAKEAWAY" => {
+    return order.table_id ? "DINE-IN" : "TAKEAWAY";
   };
 
   const handleMoveClick = (order: OpenOrder) => {
@@ -65,7 +61,7 @@ export function OpenOrdersList({
 
   const handleMoveConfirm = () => {
     if (selectedOrderForMove && selectedTableId) {
-      const prevTable = getTableInfo(selectedOrderForMove.notes);
+      const prevTable = getTableInfo(selectedOrderForMove);
       const newTable = tables.find((t) => t.id === selectedTableId);
       if (newTable) {
         onMoveToTable(
@@ -97,11 +93,11 @@ export function OpenOrdersList({
         <div className="p-4 space-y-3">
           {orders.map((order) => {
             const isExpanded = expandedOrderId === order.id;
-            const tableInfo = getTableInfo(order.notes);
+            const tableInfo = getTableInfo(order);
             const activeItems = order.order_items.filter((i) => !i.voided);
             const itemCount = activeItems.reduce((sum, item) => sum + item.quantity, 0);
 
-            const orderType = getOrderType(order.notes);
+            const orderType = getOrderType(order);
 
             return (
               <Card key={order.id} className="overflow-hidden">
@@ -225,7 +221,7 @@ export function OpenOrdersList({
             </DialogDescription>
           </DialogHeader>
           <TableSelector
-            tables={tables.filter((t) => !t.hasOpenOrder || getTableInfo(selectedOrderForMove?.notes || null)?.id === t.id)}
+            tables={tables.filter((t) => !t.hasOpenOrder || selectedOrderForMove?.table_id === t.id)}
             selectedTableId={selectedTableId}
             onSelectTable={setSelectedTableId}
           />

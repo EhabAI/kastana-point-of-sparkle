@@ -26,20 +26,21 @@ export function useBranchTables(branchId: string | undefined) {
 
       if (tablesError) throw tablesError;
 
-      // Get open orders to check table status
+      // Get open orders to check table status (using table_id column)
       const { data: openOrders, error: ordersError } = await supabase
         .from("orders")
-        .select("id, notes")
+        .select("id, table_id")
         .eq("branch_id", branchId)
-        .in("status", ["open", "confirmed", "held"]);
+        .in("status", ["open", "confirmed", "held"])
+        .not("table_id", "is", null);
 
       if (ordersError) throw ordersError;
 
       // Map tables with open order status
       const tablesWithStatus = (tables || []).map((table) => {
-        // Check if any open order has this table in notes (format: "table:TABLE_ID")
+        // Check if any open order has this table_id
         const hasOpenOrder = (openOrders || []).some(
-          (order) => order.notes?.includes(`table:${table.id}`)
+          (order) => order.table_id === table.id
         );
         return {
           ...table,

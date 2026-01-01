@@ -13,6 +13,7 @@ export interface OpenOrder {
   created_at: string;
   notes: string | null;
   order_notes: string | null;
+  table_id: string | null;
   order_items: {
     id: string;
     name: string;
@@ -31,7 +32,7 @@ export function useOpenOrders(branchId: string | undefined) {
 
       const { data, error } = await supabase
         .from("orders")
-        .select("id, order_number, status, total, subtotal, created_at, notes, order_notes, order_items(id, name, quantity, price, notes, voided)")
+        .select("id, order_number, status, total, subtotal, created_at, notes, order_notes, table_id, order_items(id, name, quantity, price, notes, voided)")
         .eq("branch_id", branchId)
         .in("status", ["open", "confirmed"])
         .order("created_at", { ascending: false });
@@ -62,11 +63,11 @@ export function useMoveOrderToTable() {
       previousTableId?: string;
       previousTableName?: string;
     }) => {
-      // Update order notes to reflect new table
+      // Update order table_id to reflect new table
       const { data, error } = await supabase
         .from("orders")
         .update({ 
-          notes: `table:${tableId}`,
+          table_id: tableId,
         })
         .eq("id", orderId)
         .select()
@@ -172,9 +173,8 @@ export function useSplitOrder() {
     }) => {
       if (!restaurant?.id) throw new Error("Missing restaurant");
 
-      // Extract table info from original order notes
-      const tableMatch = originalOrder.notes?.match(/table:([a-f0-9-]+)/i);
-      const tableId = tableMatch?.[1];
+      // Use table_id from original order
+      const tableId = originalOrder.table_id;
 
       // 1. Create new order with same table
       const { data: newOrder, error: orderError } = await supabase
@@ -185,7 +185,8 @@ export function useSplitOrder() {
           branch_id: branchId,
           status: "open",
           tax_rate: taxRate,
-          notes: originalOrder.notes, // Keep same table reference
+          notes: originalOrder.notes, // Keep notes for other info
+          table_id: tableId, // Use table_id column
         })
         .select()
         .single();
@@ -349,7 +350,8 @@ export function useMergeOrders() {
         .update({
           status: "cancelled",
           cancelled_reason: "Merged into another order",
-          notes: null, // Clear table assignment
+          notes: null, // Clear notes
+          table_id: null, // Clear table assignment
         })
         .eq("id", secondaryOrderId);
 
