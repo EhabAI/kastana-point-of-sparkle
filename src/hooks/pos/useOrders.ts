@@ -23,6 +23,26 @@ export function useCurrentOrder(shiftId: string | undefined) {
   });
 }
 
+export interface HeldOrder {
+  id: string;
+  order_number: number;
+  status: string;
+  created_at: string;
+  total: number;
+  subtotal: number;
+  notes: string | null;
+  order_notes: string | null;
+  table_id: string | null;
+  order_items: {
+    id: string;
+    name: string;
+    quantity: number;
+    price: number;
+    notes: string | null;
+    voided: boolean;
+  }[];
+}
+
 export function useHeldOrders(shiftId: string | undefined) {
   return useQuery({
     queryKey: ["held-orders", shiftId],
@@ -31,13 +51,13 @@ export function useHeldOrders(shiftId: string | undefined) {
 
       const { data, error } = await supabase
         .from("orders")
-        .select("*, order_items(*)")
+        .select("id, order_number, status, created_at, total, subtotal, notes, order_notes, table_id, order_items(id, name, quantity, price, notes, voided)")
         .eq("shift_id", shiftId)
         .eq("status", "held")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as HeldOrder[];
     },
     enabled: !!shiftId,
   });
@@ -181,6 +201,7 @@ export function useHoldOrder() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["current-order"] });
       queryClient.invalidateQueries({ queryKey: ["held-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["open-orders"] });
     },
   });
 }
@@ -203,6 +224,7 @@ export function useResumeOrder() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["current-order"] });
       queryClient.invalidateQueries({ queryKey: ["held-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["open-orders"] });
     },
   });
 }
@@ -225,6 +247,8 @@ export function useCancelOrder() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["current-order"] });
       queryClient.invalidateQueries({ queryKey: ["held-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["open-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["branch-tables"] });
     },
   });
 }

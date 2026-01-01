@@ -630,8 +630,28 @@ export default function POS() {
 
   const handleHoldOrder = async () => {
     if (!currentOrder) return;
+    
+    // Block if no items
+    if (orderItems.length === 0) {
+      toast.error("Cannot hold empty order");
+      return;
+    }
+    
     try {
       await holdOrderMutation.mutateAsync(currentOrder.id);
+      
+      // Log audit
+      await auditLogMutation.mutateAsync({
+        entityType: "order",
+        entityId: currentOrder.id,
+        action: "order_hold",
+        details: {
+          order_number: currentOrder.order_number,
+          total: total,
+          items_count: orderItems.length,
+        },
+      });
+      
       toast.success("Order held");
     } catch (error) {
       toast.error("Failed to hold order");
@@ -640,11 +660,54 @@ export default function POS() {
 
   const handleResumeOrder = async (orderId: string) => {
     try {
+      // Get order info for audit before resuming
+      const orderToResume = heldOrders.find(o => o.id === orderId);
+      
       await resumeOrderMutation.mutateAsync(orderId);
+      
+      // Log audit
+      if (orderToResume) {
+        await auditLogMutation.mutateAsync({
+          entityType: "order",
+          entityId: orderId,
+          action: "order_resume",
+          details: {
+            order_number: orderToResume.order_number,
+            total: orderToResume.total,
+          },
+        });
+      }
+      
       setActiveTab("new-order");
       toast.success("Order resumed");
     } catch (error) {
       toast.error("Failed to resume order");
+    }
+  };
+
+  const handleCancelHeldOrder = async (orderId: string) => {
+    try {
+      const orderToCancel = heldOrders.find(o => o.id === orderId);
+      
+      await cancelOrderMutation.mutateAsync({ orderId, reason: "Cancelled from held orders" });
+      
+      // Log audit
+      if (orderToCancel) {
+        await auditLogMutation.mutateAsync({
+          entityType: "order",
+          entityId: orderId,
+          action: "order_cancel",
+          details: {
+            order_number: orderToCancel.order_number,
+            total: orderToCancel.total,
+            source: "held_orders",
+          },
+        });
+      }
+      
+      toast.success(`Order #${orderToCancel?.order_number || ""} cancelled`);
+    } catch (error) {
+      toast.error("Failed to cancel order");
     }
   };
 
@@ -1281,8 +1344,11 @@ export default function POS() {
         open={heldOrdersDialogOpen}
         onOpenChange={setHeldOrdersDialogOpen}
         orders={heldOrders}
+        tables={tables}
         currency={currency}
         onResumeOrder={handleResumeOrder}
+        onCancelOrder={handleCancelHeldOrder}
+        isLoading={resumeOrderMutation.isPending || cancelOrderMutation.isPending}
       />
 
       <RecentOrdersDialog
