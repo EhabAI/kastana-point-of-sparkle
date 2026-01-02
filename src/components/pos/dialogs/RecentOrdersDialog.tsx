@@ -82,6 +82,13 @@ export function RecentOrdersDialog({
     return order.status === "paid" && (!order.refunds || order.refunds.length === 0);
   };
 
+  // Check if order can be refunded (paid and not fully refunded)
+  const canRefund = (order: RecentOrder) => {
+    if (order.status !== "paid") return false;
+    const totalRefunded = order.refunds?.reduce((sum, r) => sum + Number(r.amount), 0) || 0;
+    return totalRefunded < Number(order.total);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
@@ -123,7 +130,7 @@ export function RecentOrdersDialog({
                           Reopen
                         </Button>
                       )}
-                      {order.status === "paid" && onRefund && (
+                      {canRefund(order) && onRefund && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -198,6 +205,20 @@ export function RecentOrdersDialog({
                           </div>
                         ))}
                       </div>
+
+                      {order.refunds && order.refunds.length > 0 && (
+                        <>
+                          <p className="text-xs text-muted-foreground mt-3 mb-1">Refunds</p>
+                          <div className="text-sm space-y-1 text-destructive">
+                            {order.refunds.map((refund) => (
+                              <div key={refund.id} className="flex justify-between">
+                                <span className="capitalize">{refund.refund_type}</span>
+                                <span>-{Number(refund.amount).toFixed(2)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

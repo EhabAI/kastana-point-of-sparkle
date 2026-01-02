@@ -19,6 +19,7 @@ interface RefundDialogProps {
   onOpenChange: (open: boolean) => void;
   orderNumber: number;
   totalPaid: number;
+  alreadyRefunded?: number;
   currency: string;
   onConfirm: (data: {
     refundType: "full" | "partial";
@@ -33,6 +34,7 @@ export function RefundDialog({
   onOpenChange,
   orderNumber,
   totalPaid,
+  alreadyRefunded = 0,
   currency,
   onConfirm,
   isProcessing = false,
@@ -43,10 +45,11 @@ export function RefundDialog({
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const refundAmount = refundType === "full" ? totalPaid : parseFloat(partialAmount) || 0;
-  const isValidAmount = refundAmount > 0 && refundAmount <= totalPaid;
+  const maxRefundable = totalPaid - alreadyRefunded;
+  const refundAmount = refundType === "full" ? maxRefundable : parseFloat(partialAmount) || 0;
+  const isValidAmount = refundAmount > 0 && refundAmount <= maxRefundable;
   const hasReason = reason.trim().length > 0;
-  const canSubmit = isValidAmount && hasReason && !isProcessing;
+  const canSubmit = isValidAmount && hasReason && !isProcessing && maxRefundable > 0;
 
   const handleRefundTypeChange = (value: string) => {
     setRefundType(value as "full" | "partial");
@@ -57,8 +60,8 @@ export function RefundDialog({
   const handlePartialAmountChange = (value: string) => {
     setPartialAmount(value);
     const num = parseFloat(value);
-    if (num > totalPaid) {
-      setError(`Amount cannot exceed ${totalPaid.toFixed(2)} ${currency}`);
+    if (num > maxRefundable) {
+      setError(`Amount cannot exceed ${maxRefundable.toFixed(2)} ${currency}`);
     } else {
       setError(null);
     }
@@ -102,6 +105,12 @@ export function RefundDialog({
           </DialogTitle>
           <DialogDescription>
             Order #{orderNumber} • Total Paid: {totalPaid.toFixed(2)} {currency}
+            {alreadyRefunded > 0 && (
+              <span className="block text-destructive">
+                Already Refunded: {alreadyRefunded.toFixed(2)} {currency} • 
+                Remaining: {maxRefundable.toFixed(2)} {currency}
+              </span>
+            )}
           </DialogDescription>
         </DialogHeader>
 
@@ -121,6 +130,7 @@ export function RefundDialog({
                       value="full"
                       id="full"
                       className="peer sr-only"
+                      disabled={maxRefundable <= 0}
                     />
                     <Label
                       htmlFor="full"
@@ -128,7 +138,7 @@ export function RefundDialog({
                     >
                       <span className="text-lg font-semibold">Full Refund</span>
                       <span className="text-sm text-muted-foreground">
-                        {totalPaid.toFixed(2)} {currency}
+                        {maxRefundable.toFixed(2)} {currency}
                       </span>
                     </Label>
                   </div>
@@ -161,7 +171,7 @@ export function RefundDialog({
                       type="number"
                       step="0.01"
                       min="0.01"
-                      max={totalPaid}
+                      max={maxRefundable}
                       value={partialAmount}
                       onChange={(e) => handlePartialAmountChange(e.target.value)}
                       placeholder="0.00"
