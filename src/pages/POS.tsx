@@ -664,18 +664,55 @@ export default function POS() {
   };
 
   // Handler for New Order button in OrderPanel
-  const handleNewOrderButton = () => {
+  const handleNewOrderButton = async () => {
     if (!currentOrder) {
       // No current order - open new order dialog directly
       setNewOrderDialogOpen(true);
-    } else {
-      // There's an active order - show confirmation
-      setConfirmNewOrderDialogOpen(true);
+      return;
     }
+
+    // Check if current order has non-voided items
+    const activeItems = currentOrder.order_items?.filter((i: { voided: boolean }) => !i.voided) || [];
+    
+    if (activeItems.length === 0) {
+      // Order has zero items - auto-discard and open new order dialog
+      try {
+        await cancelOrderMutation.mutateAsync({ 
+          orderId: currentOrder.id, 
+          reason: "Empty order discarded" 
+        });
+        setNewOrderDialogOpen(true);
+      } catch (error) {
+        // Even if cancel fails, proceed to new order
+        setNewOrderDialogOpen(true);
+      }
+      return;
+    }
+
+    // Has items - show confirmation dialog
+    setConfirmNewOrderDialogOpen(true);
   };
 
   const handleConfirmHoldAndNew = async () => {
     if (!currentOrder) return;
+    
+    // Double-check order has items and is open
+    const activeItems = currentOrder.order_items?.filter((i: { voided: boolean }) => !i.voided) || [];
+    
+    if (activeItems.length === 0 || currentOrder.status !== "open") {
+      // Cannot hold empty order or non-open order - auto-discard
+      try {
+        await cancelOrderMutation.mutateAsync({ 
+          orderId: currentOrder.id, 
+          reason: "Empty order discarded" 
+        });
+      } catch {
+        // Ignore cancel failure
+      }
+      setConfirmNewOrderDialogOpen(false);
+      setNewOrderDialogOpen(true);
+      return;
+    }
     
     try {
       // Hold the current order first
@@ -689,7 +726,7 @@ export default function POS() {
         details: {
           order_number: currentOrder.order_number,
           total: total,
-          items_count: orderItems.length,
+          items_count: activeItems.length,
         },
       });
       
@@ -699,7 +736,18 @@ export default function POS() {
       // Open new order dialog
       setNewOrderDialogOpen(true);
     } catch (error) {
-      toast.error("Failed to hold order");
+      // Hold failed - auto-discard and proceed
+      try {
+        await cancelOrderMutation.mutateAsync({ 
+          orderId: currentOrder.id, 
+          reason: "Hold failed - auto discarded" 
+        });
+        toast.info("Order discarded, starting new order");
+      } catch {
+        // Ignore cancel failure
+      }
+      setConfirmNewOrderDialogOpen(false);
+      setNewOrderDialogOpen(true);
     }
   };
 
