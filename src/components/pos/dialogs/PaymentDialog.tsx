@@ -17,9 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Banknote, CreditCard, Wallet, Receipt, Smartphone, Plus, Minus, X } from "lucide-react";
+import { Banknote, CreditCard, Wallet, Receipt, Smartphone, Plus, Minus, X, Hash } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PaymentMethodConfig } from "@/hooks/pos/useCashierPaymentMethods";
+import { NumericKeypad } from "../NumericKeypad";
 
 type PaymentMethodId = string;
 
@@ -60,6 +61,7 @@ export function PaymentDialog({
   ];
 
   const [splitPayments, setSplitPayments] = useState<{ method: PaymentMethodId; amount: string }[]>([]);
+  const [keypadState, setKeypadState] = useState<{ open: boolean; index: number }>({ open: false, index: 0 });
 
   // Initialize with first payment row when dialog opens
   useEffect(() => {
@@ -67,6 +69,10 @@ export function PaymentDialog({
       setSplitPayments([{ method: enabledMethods[0].id, amount: total.toFixed(2) }]);
     }
   }, [open, enabledMethods.length]);
+
+  const handleKeypadConfirm = (value: number) => {
+    updatePaymentAmount(keypadState.index, value.toFixed(2));
+  };
 
   const handleConfirm = () => {
     const payments = splitPayments
@@ -206,6 +212,17 @@ export function PaymentDialog({
                       </span>
                     </div>
 
+                    {/* Numeric keypad button */}
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-12 w-12"
+                      onClick={() => setKeypadState({ open: true, index })}
+                      title="Enter amount"
+                    >
+                      <Hash className="h-5 w-5" />
+                    </Button>
+
                     {/* Fill remaining button */}
                     {!isExactMatch && remaining > 0 && (
                       <Button
@@ -292,6 +309,17 @@ export function PaymentDialog({
             {isLoading ? "Processing..." : `Complete Payment`}
           </Button>
         </DialogFooter>
+
+        <NumericKeypad
+          open={keypadState.open}
+          onOpenChange={(open) => setKeypadState({ ...keypadState, open })}
+          title="Enter Amount"
+          initialValue={splitPayments[keypadState.index]?.amount || ""}
+          allowDecimals={true}
+          minValue={0.01}
+          currency={currency}
+          onConfirm={handleKeypadConfirm}
+        />
       </DialogContent>
     </Dialog>
   );
