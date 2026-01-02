@@ -54,6 +54,7 @@ interface ReceiptDialogProps {
   restaurant?: Restaurant | null;
   currency: string;
   tables?: Table[];
+  cashierEmail?: string | null;
   onRefund?: (order: ReceiptOrder) => void;
 }
 
@@ -64,6 +65,7 @@ export function ReceiptDialog({
   restaurant,
   currency,
   tables = [],
+  cashierEmail,
   onRefund,
 }: ReceiptDialogProps) {
   if (!order) return null;
@@ -142,6 +144,11 @@ export function ReceiptDialog({
             <p className="text-sm text-muted-foreground">
               {format(new Date(order.created_at), "dd/MM/yyyy HH:mm")}
             </p>
+            {cashierEmail && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Cashier: {cashierEmail}
+              </p>
+            )}
           </div>
 
           {/* Order Info */}
