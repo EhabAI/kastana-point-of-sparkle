@@ -4,7 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { OrderItemRow } from "./OrderItemRow";
 import { OrderTotals } from "./OrderTotals";
-import { Percent, CreditCard, Pause, Ban, User, Phone } from "lucide-react";
+import { Percent, CreditCard, Pause, Ban, User, Phone, Plus } from "lucide-react";
 
 interface OrderItem {
   id: string;
@@ -44,6 +44,8 @@ interface OrderPanelProps {
   hasItems: boolean;
   onTransferItem?: (itemId: string) => void;
   showTransfer?: boolean;
+  onNewOrder: () => void;
+  shiftOpen: boolean;
 }
 
 // Parse customer info from order_notes
@@ -88,6 +90,8 @@ export function OrderPanel({
   hasItems,
   onTransferItem,
   showTransfer = false,
+  onNewOrder,
+  shiftOpen,
 }: OrderPanelProps) {
   const activeItems = items.filter((item) => !item.voided);
   const customerInfo = parseCustomerInfo(orderNotes);
@@ -107,9 +111,21 @@ export function OrderPanel({
               {orderType}
             </Badge>
           </div>
-          {orderNumber && (
-            <span className="text-muted-foreground">#{orderNumber}</span>
-          )}
+          <div className="flex items-center gap-2">
+            {orderNumber && (
+              <span className="text-muted-foreground">#{orderNumber}</span>
+            )}
+            {shiftOpen && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={onNewOrder}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                New Order
+              </Button>
+            )}
+          </div>
         </CardTitle>
         {/* Customer info for takeaway */}
         {orderType === "TAKEAWAY" && customerInfo && (customerInfo.name || customerInfo.phone) && (

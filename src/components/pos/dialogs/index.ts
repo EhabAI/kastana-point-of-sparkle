@@ -19,3 +19,4 @@ export * from "./RefundDialog";
 export * from "./ConfirmRemoveLastItemDialog";
 export * from "./ReopenOrderDialog";
 export * from "./TransferItemDialog";
+export * from "./ConfirmNewOrderDialog";
