@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { OrderItemRow } from "./OrderItemRow";
 import { OrderTotals } from "./OrderTotals";
 import { Percent, CreditCard, Pause, Ban, User, Phone, Plus } from "lucide-react";
+import { formatJOD } from "@/lib/utils";
 
 interface OrderItem {
   id: string;
@@ -222,7 +223,7 @@ export function OrderPanel({
             disabled={!hasItems || total <= 0 || !isOpen}
           >
             <CreditCard className="h-4 w-4 mr-1" />
-            Pay {total.toFixed(2)}
+            Pay {formatJOD(total)}
           </Button>
         </div>
       </CardFooter>

@@ -1,4 +1,5 @@
 import { Separator } from "@/components/ui/separator";
+import { formatJOD } from "@/lib/utils";
 
 interface OrderTotalsProps {
   subtotal: number;
@@ -25,40 +26,40 @@ export function OrderTotals({
   const discountDisplay = hasDiscount
     ? discountType === "percentage"
       ? `${discountValue}%`
-      : `${Number(discountValue).toFixed(2)} ${currency}`
+      : `${formatJOD(Number(discountValue))} ${currency}`
     : null;
 
   return (
     <div className="space-y-2 text-sm">
       <div className="flex justify-between">
         <span className="text-muted-foreground">Subtotal</span>
-        <span>{subtotal.toFixed(2)} {currency}</span>
+        <span>{formatJOD(subtotal)} {currency}</span>
       </div>
 
       {hasDiscount && (
         <div className="flex justify-between text-green-600">
           <span>Discount ({discountDisplay})</span>
-          <span>-{Number(discountValue).toFixed(2)} {currency}</span>
+          <span>-{formatJOD(Number(discountValue))} {currency}</span>
         </div>
       )}
 
       {serviceCharge > 0 && (
         <div className="flex justify-between">
           <span className="text-muted-foreground">Service Charge</span>
-          <span>{serviceCharge.toFixed(2)} {currency}</span>
+          <span>{formatJOD(serviceCharge)} {currency}</span>
         </div>
       )}
 
       <div className="flex justify-between">
         <span className="text-muted-foreground">Tax ({(taxRate * 100).toFixed(0)}%)</span>
-        <span>{taxAmount.toFixed(2)} {currency}</span>
+        <span>{formatJOD(taxAmount)} {currency}</span>
       </div>
 
       <Separator />
 
       <div className="flex justify-between text-lg font-bold">
         <span>Total</span>
-        <span className="text-primary">{total.toFixed(2)} {currency}</span>
+        <span className="text-primary">{formatJOD(total)} {currency}</span>
       </div>
     </div>
   );
