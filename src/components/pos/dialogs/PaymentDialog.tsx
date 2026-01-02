@@ -129,6 +129,10 @@ export function PaymentDialog({
   const isExactMatch = Math.abs(remaining) < 0.01;
   const hasOverpayment = remaining < -0.01;
   const hasValidPayments = splitPayments.some((p) => parseFloat(p.amount) > 0);
+  
+  // Check if all payments are cash-only (allows overpayment with change)
+  const allPaymentsCash = splitPayments.every((p) => p.method === "cash");
+  const changeAmount = hasOverpayment ? Math.abs(remaining) : 0;
 
   // Cash quick amounts
   const cashDenominations = [1, 5, 10, 20, 50];
@@ -148,15 +152,20 @@ export function PaymentDialog({
           <div className={cn(
             "p-4 rounded-lg text-center",
             isExactMatch ? "bg-green-500/10 border border-green-500/30" :
+            (hasOverpayment && allPaymentsCash) ? "bg-blue-500/10 border border-blue-500/30" :
             hasOverpayment ? "bg-destructive/10 border border-destructive/30" :
             "bg-muted"
           )}>
             <p className="text-sm text-muted-foreground mb-1">
-              {isExactMatch ? "Payment Complete" : hasOverpayment ? "Overpayment" : "Remaining to Pay"}
+              {isExactMatch ? "Payment Complete" : 
+               (hasOverpayment && allPaymentsCash) ? "Change to Give" :
+               hasOverpayment ? "Card payments must be exact" : 
+               "Remaining to Pay"}
             </p>
             <p className={cn(
               "text-2xl font-bold",
               isExactMatch ? "text-green-600" :
+              (hasOverpayment && allPaymentsCash) ? "text-blue-600" :
               hasOverpayment ? "text-destructive" :
               "text-foreground"
             )}>
@@ -311,7 +320,7 @@ export function PaymentDialog({
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={isLoading || !isExactMatch || !hasValidPayments}
+            disabled={isLoading || !hasValidPayments || !(isExactMatch || (hasOverpayment && allPaymentsCash))}
             className="h-12 min-w-[160px]"
           >
             {isLoading ? "Processing..." : `Complete Payment`}
