@@ -779,6 +779,12 @@ export default function POS() {
       toast.error("Can only refund paid orders");
       return;
     }
+    // Check if already fully refunded
+    const totalRefunded = order.refunds?.reduce((sum, r) => sum + Number(r.amount), 0) || 0;
+    if (totalRefunded >= Number(order.total)) {
+      toast.error("Order has already been fully refunded");
+      return;
+    }
     setSelectedOrderForRefund(order);
     setRefundDialogOpen(true);
   };
@@ -796,12 +802,28 @@ export default function POS() {
         refundType: data.refundType,
         reason: data.reason,
       });
+
+      // Audit log for refund
+      await auditLogMutation.mutateAsync({
+        entityType: "refund",
+        entityId: selectedOrderForRefund.id,
+        action: "refund_create",
+        details: {
+          order_id: selectedOrderForRefund.id,
+          order_number: selectedOrderForRefund.order_number,
+          refund_type: data.refundType,
+          refund_amount: data.amount,
+          reason: data.reason,
+        },
+      });
+
       toast.success("Refund processed successfully");
       setRefundDialogOpen(false);
       setReceiptDialogOpen(false);
       setSelectedOrderForRefund(null);
-    } catch (error) {
-      toast.error("Failed to process refund");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to process refund";
+      toast.error(errorMessage);
       throw error;
     }
   };
@@ -1417,6 +1439,7 @@ export default function POS() {
           }}
           orderNumber={selectedOrderForRefund.order_number}
           totalPaid={Number(selectedOrderForRefund.total)}
+          alreadyRefunded={selectedOrderForRefund.refunds?.reduce((sum, r) => sum + Number(r.amount), 0) || 0}
           currency={currency}
           onConfirm={handleRefundConfirm}
           isProcessing={createRefundMutation.isPending}
