@@ -1232,7 +1232,12 @@ export default function POS() {
           <div className="p-2 border-b bg-card">
             <POSTabControl
               activeTab={activeTab}
-              onTabChange={setActiveTab}
+              onTabChange={(tab) => {
+                setActiveTab(tab);
+                if (tab === "new-order" && !currentOrder) {
+                  setNewOrderDialogOpen(true);
+                }
+              }}
               pendingCount={pendingOrders.length}
               openCount={openOrders.length}
               occupiedTablesCount={occupiedTablesCount}
