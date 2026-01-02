@@ -502,8 +502,34 @@ export default function POS() {
   };
 
   const handleUpdateQuantity = async (itemId: string, quantity: number) => {
+    if (!currentOrder) return;
     try {
       await updateQuantityMutation.mutateAsync({ itemId, quantity });
+      
+      // Recalculate totals from updated items
+      const updatedItems = currentOrder.order_items
+        ?.filter((i: { voided: boolean }) => !i.voided)
+        .map((item: { id: string; price: number; quantity: number }) =>
+          item.id === itemId ? { ...item, quantity: quantity > 0 ? quantity : 0 } : item
+        )
+        .filter((item: { quantity: number }) => item.quantity > 0) || [];
+      
+      const newSubtotal = updatedItems.reduce(
+        (sum: number, item: { price: number; quantity: number }) => 
+          sum + Number(item.price) * item.quantity, 0
+      );
+      const totals = calculateTotals(newSubtotal, currentOrder.discount_type, currentOrder.discount_value);
+      
+      await updateOrderMutation.mutateAsync({
+        orderId: currentOrder.id,
+        updates: {
+          subtotal: newSubtotal,
+          tax_amount: totals.taxAmount,
+          service_charge: totals.serviceCharge,
+          total: totals.total,
+        },
+      });
+      
       await refetchOrder();
     } catch (error) {
       toast.error("Failed to update quantity");
@@ -520,8 +546,30 @@ export default function POS() {
       return;
     }
     
+    if (!currentOrder) return;
     try {
       await removeItemMutation.mutateAsync(itemId);
+      
+      // Recalculate totals from remaining items
+      const remainingItems = activeItems.filter(
+        (item: { id: string }) => item.id !== itemId
+      );
+      const newSubtotal = remainingItems.reduce(
+        (sum: number, item: { price: number; quantity: number }) => 
+          sum + Number(item.price) * item.quantity, 0
+      );
+      const totals = calculateTotals(newSubtotal, currentOrder.discount_type, currentOrder.discount_value);
+      
+      await updateOrderMutation.mutateAsync({
+        orderId: currentOrder.id,
+        updates: {
+          subtotal: newSubtotal,
+          tax_amount: totals.taxAmount,
+          service_charge: totals.serviceCharge,
+          total: totals.total,
+        },
+      });
+      
       await refetchOrder();
     } catch (error) {
       toast.error("Failed to remove item");
@@ -529,9 +577,21 @@ export default function POS() {
   };
 
   const handleConfirmRemoveLastItem = async () => {
-    if (!selectedItemForRemoval) return;
+    if (!selectedItemForRemoval || !currentOrder) return;
     try {
       await removeItemMutation.mutateAsync(selectedItemForRemoval.id);
+      
+      // All items removed, set totals to zero
+      await updateOrderMutation.mutateAsync({
+        orderId: currentOrder.id,
+        updates: {
+          subtotal: 0,
+          tax_amount: 0,
+          service_charge: 0,
+          total: 0,
+        },
+      });
+      
       await refetchOrder();
       setRemoveLastItemDialogOpen(false);
       setSelectedItemForRemoval(null);
@@ -554,11 +614,32 @@ export default function POS() {
   };
 
   const handleVoidConfirm = async (reason: string) => {
-    if (!selectedItemForVoid) return;
+    if (!selectedItemForVoid || !currentOrder) return;
     try {
       await voidItemMutation.mutateAsync({ itemId: selectedItemForVoid.id, reason });
       setVoidDialogOpen(false);
       setSelectedItemForVoid(null);
+      
+      // Recalculate totals excluding voided item
+      const remainingItems = currentOrder.order_items?.filter(
+        (i: { id: string; voided: boolean }) => !i.voided && i.id !== selectedItemForVoid.id
+      ) || [];
+      const newSubtotal = remainingItems.reduce(
+        (sum: number, item: { price: number; quantity: number }) => 
+          sum + Number(item.price) * item.quantity, 0
+      );
+      const totals = calculateTotals(newSubtotal, currentOrder.discount_type, currentOrder.discount_value);
+      
+      await updateOrderMutation.mutateAsync({
+        orderId: currentOrder.id,
+        updates: {
+          subtotal: newSubtotal,
+          tax_amount: totals.taxAmount,
+          service_charge: totals.serviceCharge,
+          total: totals.total,
+        },
+      });
+      
       await refetchOrder();
       toast.success("Item voided");
     } catch (error) {
