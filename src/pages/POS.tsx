@@ -620,6 +620,24 @@ export default function POS() {
   const handlePaymentConfirm = async (payments: { method: string; amount: number }[]) => {
     if (!currentOrder) return;
     try {
+      // Store order data before completing for receipt
+      const orderForReceipt = {
+        id: currentOrder.id,
+        order_number: currentOrder.order_number,
+        created_at: currentOrder.created_at,
+        status: "paid",
+        subtotal: currentOrder.subtotal,
+        discount_type: currentOrder.discount_type,
+        discount_value: currentOrder.discount_value,
+        tax_amount: currentOrder.tax_amount,
+        service_charge: currentOrder.service_charge,
+        total: currentOrder.total,
+        order_notes: currentOrder.order_notes,
+        table_id: currentOrder.table_id,
+        order_items: currentOrder.order_items || [],
+        payments: payments.map((p, idx) => ({ id: `temp-${idx}`, method: p.method, amount: p.amount })),
+      };
+
       for (const payment of payments) {
         await addPaymentMutation.mutateAsync({
           orderId: currentOrder.id,
@@ -630,6 +648,10 @@ export default function POS() {
       await completeOrderMutation.mutateAsync(currentOrder.id);
       setPaymentDialogOpen(false);
       toast.success("Payment complete");
+
+      // Auto-show receipt after successful payment
+      setSelectedOrderForReceipt(orderForReceipt as RecentOrder);
+      setReceiptDialogOpen(true);
     } catch (error) {
       toast.error("Payment failed");
     }
@@ -1382,6 +1404,7 @@ export default function POS() {
         restaurant={restaurant}
         currency={currency}
         tables={tables}
+        cashierEmail={user?.email}
         onRefund={handleRefund}
       />
 
