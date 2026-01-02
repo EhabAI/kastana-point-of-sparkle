@@ -63,6 +63,18 @@ export function useMoveOrderToTable() {
       previousTableId?: string;
       previousTableName?: string;
     }) => {
+      // Business guard: only allow moving OPEN orders
+      const { data: orderCheck, error: checkError } = await supabase
+        .from("orders")
+        .select("status")
+        .eq("id", orderId)
+        .single();
+      
+      if (checkError) throw checkError;
+      if (orderCheck.status !== "open") {
+        throw new Error("Can only move open orders");
+      }
+
       // Update order table_id to reflect new table
       const { data, error } = await supabase
         .from("orders")
@@ -74,25 +86,26 @@ export function useMoveOrderToTable() {
         .single();
 
       if (error) throw error;
-      return { ...data, tableName, previousTableName };
+      return { ...data, tableName, previousTableName, previousTableId };
     },
-    onSuccess: async (data) => {
+    onSuccess: async (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["open-orders"] });
       queryClient.invalidateQueries({ queryKey: ["branch-tables"] });
       queryClient.invalidateQueries({ queryKey: ["current-order"] });
       
-      // Log to audit
+      // Mandatory audit log for order_moved_table
       if (user?.id && restaurant?.id) {
         await supabase.from("audit_logs").insert({
           user_id: user.id,
           restaurant_id: restaurant.id,
           entity_type: "order",
           entity_id: data.id,
-          action: "ORDER_TABLE_CHANGED",
+          action: "order_moved_table",
           details: { 
-            order_number: data.order_number,
-            from_table: data.previousTableName || "None",
-            to_table: data.tableName,
+            from_table_id: data.previousTableId || null,
+            to_table_id: variables.tableId,
+            from_table_name: data.previousTableName || null,
+            to_table_name: data.tableName,
           } as unknown as Json,
         });
       }
