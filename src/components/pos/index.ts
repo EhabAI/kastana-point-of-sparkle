@@ -3,6 +3,7 @@ export * from "./POSTabControl";
 export * from "./CategoryList";
 export * from "./MenuItemCard";
 export * from "./MenuItemGrid";
+export * from "./FavoritesGrid";
 export * from "./OrderItemRow";
 export * from "./OrderTotals";
 export * from "./OrderPanel";
