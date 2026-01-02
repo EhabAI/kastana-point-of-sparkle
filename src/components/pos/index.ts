@@ -12,3 +12,4 @@ export * from "./TableCard";
 export * from "./OrderTypeSelector";
 export * from "./QRPendingOrders";
 export * from "./OpenOrdersList";
+export * from "./NumericKeypad";
