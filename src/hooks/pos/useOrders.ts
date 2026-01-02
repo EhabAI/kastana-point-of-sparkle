@@ -253,6 +253,47 @@ export function useCancelOrder() {
   });
 }
 
+export function useVoidOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ orderId, reason }: { orderId: string; reason: string }) => {
+      if (!reason?.trim()) {
+        throw new Error("Void reason is required");
+      }
+
+      // Check order status - only allow void on open orders
+      const { data: order, error: checkError } = await supabase
+        .from("orders")
+        .select("id, status, order_number, total")
+        .eq("id", orderId)
+        .single();
+
+      if (checkError) throw checkError;
+      if (!order) throw new Error("Order not found");
+      if (order.status !== "open") {
+        throw new Error("Can only void open orders");
+      }
+
+      const { data, error } = await supabase
+        .from("orders")
+        .update({ status: "voided", cancelled_reason: reason.trim() })
+        .eq("id", orderId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { ...data, order_number: order.order_number, total: order.total };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["current-order"] });
+      queryClient.invalidateQueries({ queryKey: ["held-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["open-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["branch-tables"] });
+    },
+  });
+}
+
 export function useReopenOrder() {
   const queryClient = useQueryClient();
 

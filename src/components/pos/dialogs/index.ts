@@ -5,6 +5,7 @@ export * from "./DiscountDialog";
 export * from "./HeldOrdersDialog";
 export * from "./RecentOrdersDialog";
 export * from "./VoidItemDialog";
+export * from "./VoidOrderDialog";
 export * from "./CancelOrderDialog";
 export * from "./CashMovementDialog";
 export * from "./ItemNotesDialog";

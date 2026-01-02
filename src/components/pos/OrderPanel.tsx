@@ -4,7 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { OrderItemRow } from "./OrderItemRow";
 import { OrderTotals } from "./OrderTotals";
-import { Percent, CreditCard, Pause, X, User, Phone } from "lucide-react";
+import { Percent, CreditCard, Pause, Ban, User, Phone } from "lucide-react";
 
 interface OrderItem {
   id: string;
@@ -40,7 +40,7 @@ interface OrderPanelProps {
   onApplyDiscount: () => void;
   onPay: () => void;
   onHoldOrder: () => void;
-  onCancelOrder: () => void;
+  onVoidOrder: () => void;
   hasItems: boolean;
   onTransferItem?: (itemId: string) => void;
   showTransfer?: boolean;
@@ -84,10 +84,10 @@ export function OrderPanel({
   onApplyDiscount,
   onPay,
   onHoldOrder,
-  onCancelOrder,
+  onVoidOrder,
   hasItems,
   onTransferItem,
-  showTransfer,
+  showTransfer = false,
 }: OrderPanelProps) {
   const activeItems = items.filter((item) => !item.voided);
   const customerInfo = parseCustomerInfo(orderNotes);
@@ -193,11 +193,11 @@ export function OrderPanel({
           <Button
             variant="destructive"
             size="sm"
-            onClick={onCancelOrder}
-            disabled={!hasItems}
+            onClick={onVoidOrder}
+            disabled={!hasItems || !isOpen}
           >
-            <X className="h-4 w-4 mr-1" />
-            Cancel
+            <Ban className="h-4 w-4 mr-1" />
+            Void
           </Button>
           <Button
             size="lg"
