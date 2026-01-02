@@ -42,6 +42,11 @@ interface Restaurant {
   logo_url?: string | null;
 }
 
+interface Branch {
+  id: string;
+  name: string;
+}
+
 interface Table {
   id: string;
   table_name: string;
@@ -52,6 +57,7 @@ interface ReceiptDialogProps {
   onOpenChange: (open: boolean) => void;
   order: ReceiptOrder | null;
   restaurant?: Restaurant | null;
+  branch?: Branch | null;
   currency: string;
   tables?: Table[];
   cashierEmail?: string | null;
@@ -63,6 +69,7 @@ export function ReceiptDialog({
   onOpenChange,
   order,
   restaurant,
+  branch,
   currency,
   tables = [],
   cashierEmail,
@@ -141,6 +148,9 @@ export function ReceiptDialog({
               />
             )}
             <h2 className="text-lg font-bold">{restaurant?.name || "Restaurant"}</h2>
+            {branch?.name && (
+              <p className="text-sm text-muted-foreground">{branch.name}</p>
+            )}
             <p className="text-sm text-muted-foreground">
               {format(new Date(order.created_at), "dd/MM/yyyy HH:mm")}
             </p>
