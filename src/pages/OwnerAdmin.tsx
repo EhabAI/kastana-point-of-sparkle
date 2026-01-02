@@ -37,7 +37,8 @@ import {
   Users,
   Settings,
   Building2,
-  ScrollText
+  ScrollText,
+  Star
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -650,6 +651,16 @@ function MenuItemsSection({
                   <p className="text-sm font-medium text-primary mt-1">{currencySymbol} {Number(item.price).toFixed(2)}</p>
                 </div>
                 <div className="flex items-center gap-3">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => updateItem.mutate({ id: item.id, is_favorite: !item.is_favorite })}
+                    title={t("mark_as_favorite")}
+                  >
+                    <Star
+                      className={`h-4 w-4 ${item.is_favorite ? "fill-warning text-warning" : "text-muted-foreground"}`}
+                    />
+                  </Button>
                   <Switch
                     checked={item.is_available}
                     onCheckedChange={(checked) => updateItem.mutate({ id: item.id, is_available: checked })}
