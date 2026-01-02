@@ -1602,6 +1602,7 @@ export default function POS() {
         onOpenChange={setReceiptDialogOpen}
         order={selectedOrderForReceipt}
         restaurant={restaurant}
+        branch={branch}
         currency={currency}
         tables={tables}
         cashierEmail={user?.email}
