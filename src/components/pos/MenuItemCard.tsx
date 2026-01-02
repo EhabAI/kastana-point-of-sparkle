@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn, formatJOD } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
 interface MenuItem {
@@ -43,7 +43,7 @@ export function MenuItemCard({ item, currency, onSelect }: MenuItemCardProps) {
       )}
       <span className="font-medium text-sm mb-1 line-clamp-2">{item.name}</span>
       <span className="text-primary font-bold">
-        {Number(item.price).toFixed(2)} {currency}
+        {formatJOD(Number(item.price))} {currency}
       </span>
     </button>
   );
