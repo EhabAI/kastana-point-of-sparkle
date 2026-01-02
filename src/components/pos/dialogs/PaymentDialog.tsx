@@ -274,6 +274,14 @@ export function PaymentDialog({
                       >
                         Exact
                       </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => updatePaymentAmount(index, "0.00")}
+                        className="h-10"
+                      >
+                        Reset
+                      </Button>
                     </div>
                   )}
                 </div>
