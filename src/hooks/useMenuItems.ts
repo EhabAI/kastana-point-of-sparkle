@@ -10,6 +10,7 @@ export interface MenuItem {
   price: number;
   is_available: boolean;
   is_offer: boolean;
+  is_favorite: boolean;
   sort_order: number;
   created_at: string;
   updated_at: string;

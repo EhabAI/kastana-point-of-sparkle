@@ -24,6 +24,7 @@ import {
   useZReport,
   useCashierCategories,
   useCashierMenuItems,
+  useCashierFavoriteItems,
   useBranchTables,
   usePendingOrders,
   useConfirmPendingOrder,
@@ -114,6 +115,7 @@ export default function POS() {
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>();
   const { data: menuItems = [], isLoading: itemsLoading } = useCashierMenuItems(selectedCategoryId);
+  const { data: favoriteItems = [], isLoading: favoritesLoading } = useCashierFavoriteItems();
 
   // B1: Menu item search
   const [menuSearch, setMenuSearch] = useState("");
@@ -1445,10 +1447,10 @@ export default function POS() {
               {/* Favorites Grid */}
               <div className="flex-1 bg-muted/30">
                 <FavoritesGrid
-                  items={[]} // Empty for now - no is_favorite field in DB
+                  items={favoriteItems}
                   currency={currency}
                   onSelectItem={handleSelectItem}
-                  isLoading={false}
+                  isLoading={favoritesLoading}
                 />
               </div>
 

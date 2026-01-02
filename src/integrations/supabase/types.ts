@@ -291,6 +291,7 @@ export type Database = {
           description: string | null
           id: string
           is_available: boolean
+          is_favorite: boolean
           is_offer: boolean
           name: string
           price: number
@@ -303,6 +304,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_available?: boolean
+          is_favorite?: boolean
           is_offer?: boolean
           name: string
           price?: number
@@ -315,6 +317,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_available?: boolean
+          is_favorite?: boolean
           is_offer?: boolean
           name?: string
           price?: number
