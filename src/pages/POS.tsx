@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Users } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatJOD } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
@@ -342,10 +342,15 @@ export default function POS() {
     };
   }, [shiftOpen, activeTab, orderItems.length, currentOrder]);
 
-  const subtotal = orderItems.reduce(
+  // Helper: round to 3 decimals using HALF-UP (JOD standard)
+  const roundJOD = useCallback((n: number): number => {
+    return Math.round(n * 1000) / 1000;
+  }, []);
+
+  const subtotal = roundJOD(orderItems.reduce(
     (sum: number, item: { price: number; quantity: number }) => sum + Number(item.price) * item.quantity,
     0,
-  );
+  ));
 
   const calculateTotals = useCallback(
     (sub: number, discType?: string | null, discVal?: number | null) => {
@@ -356,15 +361,17 @@ export default function POS() {
       const afterDiscount = sub - discountAmount;
       const serviceCharge = afterDiscount * serviceChargeRate;
       const taxAmount = (afterDiscount + serviceCharge) * taxRate;
-      let total = afterDiscount + serviceCharge + taxAmount;
+      const total = afterDiscount + serviceCharge + taxAmount;
       
-      if (settings?.rounding_enabled) {
-        total = Math.ceil(total);
-      }
-      
-      return { discountAmount, serviceCharge, taxAmount, total };
+      // Round all monetary values to 3 decimals (JOD standard)
+      return { 
+        discountAmount: roundJOD(discountAmount), 
+        serviceCharge: roundJOD(serviceCharge), 
+        taxAmount: roundJOD(taxAmount), 
+        total: roundJOD(total) 
+      };
     },
-    [serviceChargeRate, taxRate, settings?.rounding_enabled],
+    [serviceChargeRate, taxRate, roundJOD],
   );
 
   const { discountAmount, serviceCharge, taxAmount, total } = calculateTotals(
@@ -482,7 +489,7 @@ export default function POS() {
 
       // Update order totals
       const items = [...orderItems, { price: finalPrice, quantity: 1 }];
-      const newSubtotal = items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
+      const newSubtotal = roundJOD(items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0));
       const totals = calculateTotals(newSubtotal, currentOrder?.discount_type, currentOrder?.discount_value);
 
       await updateOrderMutation.mutateAsync({
@@ -514,10 +521,10 @@ export default function POS() {
         )
         .filter((item: { quantity: number }) => item.quantity > 0) || [];
       
-      const newSubtotal = updatedItems.reduce(
+      const newSubtotal = roundJOD(updatedItems.reduce(
         (sum: number, item: { price: number; quantity: number }) => 
           sum + Number(item.price) * item.quantity, 0
-      );
+      ));
       const totals = calculateTotals(newSubtotal, currentOrder.discount_type, currentOrder.discount_value);
       
       await updateOrderMutation.mutateAsync({
@@ -554,10 +561,10 @@ export default function POS() {
       const remainingItems = activeItems.filter(
         (item: { id: string }) => item.id !== itemId
       );
-      const newSubtotal = remainingItems.reduce(
+      const newSubtotal = roundJOD(remainingItems.reduce(
         (sum: number, item: { price: number; quantity: number }) => 
           sum + Number(item.price) * item.quantity, 0
-      );
+      ));
       const totals = calculateTotals(newSubtotal, currentOrder.discount_type, currentOrder.discount_value);
       
       await updateOrderMutation.mutateAsync({
@@ -624,10 +631,10 @@ export default function POS() {
       const remainingItems = currentOrder.order_items?.filter(
         (i: { id: string; voided: boolean }) => !i.voided && i.id !== selectedItemForVoid.id
       ) || [];
-      const newSubtotal = remainingItems.reduce(
+      const newSubtotal = roundJOD(remainingItems.reduce(
         (sum: number, item: { price: number; quantity: number }) => 
           sum + Number(item.price) * item.quantity, 0
-      );
+      ));
       const totals = calculateTotals(newSubtotal, currentOrder.discount_type, currentOrder.discount_value);
       
       await updateOrderMutation.mutateAsync({
