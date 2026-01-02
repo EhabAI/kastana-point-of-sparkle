@@ -63,15 +63,18 @@ export function PaymentDialog({
   const [splitPayments, setSplitPayments] = useState<{ method: PaymentMethodId; amount: string }[]>([]);
   const [keypadState, setKeypadState] = useState<{ open: boolean; index: number }>({ open: false, index: 0 });
 
+  // Helper: round to 3 decimals using HALF-UP (JOD standard)
+  const roundJOD = (n: number): number => Math.round(n * 1000) / 1000;
+
   // Initialize with first payment row when dialog opens
   useEffect(() => {
     if (open && splitPayments.length === 0 && enabledMethods.length > 0) {
-      setSplitPayments([{ method: enabledMethods[0].id, amount: total.toFixed(2) }]);
+      setSplitPayments([{ method: enabledMethods[0].id, amount: formatJOD(total) }]);
     }
   }, [open, enabledMethods.length]);
 
   const handleKeypadConfirm = (value: number) => {
-    updatePaymentAmount(keypadState.index, value.toFixed(2));
+    updatePaymentAmount(keypadState.index, formatJOD(value));
   };
 
   const handleConfirm = () => {
@@ -90,10 +93,10 @@ export function PaymentDialog({
   };
 
   const addPaymentRow = () => {
-    const remaining = total - splitTotal;
+    const remaining = roundJOD(total - splitTotal);
     setSplitPayments([
       ...splitPayments,
-      { method: enabledMethods[0]?.id || "cash", amount: remaining > 0 ? remaining.toFixed(2) : "" },
+      { method: enabledMethods[0]?.id || "cash", amount: remaining > 0 ? formatJOD(remaining) : "" },
     ]);
   };
 
@@ -118,21 +121,21 @@ export function PaymentDialog({
     const otherTotal = splitPayments.reduce((sum, p, i) => 
       i === index ? sum : sum + (parseFloat(p.amount) || 0), 0
     );
-    const remaining = total - otherTotal;
+    const remaining = roundJOD(total - otherTotal);
     if (remaining > 0) {
-      updatePaymentAmount(index, remaining.toFixed(2));
+      updatePaymentAmount(index, formatJOD(remaining));
     }
   };
 
-  const splitTotal = splitPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-  const remaining = total - splitTotal;
-  const isExactMatch = Math.abs(remaining) < 0.01;
-  const hasOverpayment = remaining < -0.01;
+  const splitTotal = roundJOD(splitPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0));
+  const remaining = roundJOD(total - splitTotal);
+  const isExactMatch = Math.abs(remaining) < 0.001; // 3-decimal precision check
+  const hasOverpayment = remaining < -0.001;
   const hasValidPayments = splitPayments.some((p) => parseFloat(p.amount) > 0);
   
   // Check if all payments are cash-only (allows overpayment with change)
   const allPaymentsCash = splitPayments.every((p) => p.method === "cash");
-  const changeAmount = hasOverpayment ? Math.abs(remaining) : 0;
+  const changeAmount = hasOverpayment ? roundJOD(Math.abs(remaining)) : 0;
 
   // Cash quick amounts
   const cashDenominations = [1, 5, 10, 20, 50];
@@ -209,9 +212,9 @@ export function PaymentDialog({
                     <div className="relative flex-1">
                       <Input
                         type="number"
-                        step="0.01"
+                        step="0.001"
                         min="0"
-                        placeholder="0.00"
+                        placeholder="0.000"
                         value={payment.amount}
                         onChange={(e) => updatePaymentAmount(index, e.target.value)}
                         className="h-12 text-lg pr-16"
@@ -268,7 +271,7 @@ export function PaymentDialog({
                           size="sm"
                           onClick={() => {
                             const current = parseFloat(payment.amount) || 0;
-                            updatePaymentAmount(index, (current + denom).toFixed(2));
+                            updatePaymentAmount(index, formatJOD(current + denom));
                           }}
                           className="h-10 min-w-[60px]"
                         >
@@ -278,7 +281,7 @@ export function PaymentDialog({
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => updatePaymentAmount(index, total.toFixed(2))}
+                        onClick={() => updatePaymentAmount(index, formatJOD(total))}
                         className="h-10"
                       >
                         Exact
@@ -286,7 +289,7 @@ export function PaymentDialog({
                       <Button
                         variant="secondary"
                         size="sm"
-                        onClick={() => updatePaymentAmount(index, "0.00")}
+                        onClick={() => updatePaymentAmount(index, "0.000")}
                         className="h-10"
                       >
                         Reset
