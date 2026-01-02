@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, X, MessageSquare, ArrowRightLeft, Hash } from "lucide-react";
 import { NumericKeypad } from "./NumericKeypad";
+import { formatJOD } from "@/lib/utils";
 
 interface OrderItemModifier {
   id: string;
@@ -67,7 +68,7 @@ export function OrderItemRow({
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium flex-1">{item.name}</span>
           <span className="text-sm font-medium">
-            {lineTotal.toFixed(2)} {currency}
+            {formatJOD(lineTotal)} {currency}
           </span>
         </div>
 
@@ -80,7 +81,7 @@ export function OrderItemRow({
                 {mod.price_adjustment !== 0 && (
                   <span>
                     {mod.price_adjustment > 0 ? "+" : ""}
-                    {mod.price_adjustment.toFixed(2)}
+                    {formatJOD(mod.price_adjustment)}
                   </span>
                 )}
               </div>
@@ -156,7 +157,7 @@ export function OrderItemRow({
         )}
 
         <div className="text-xs text-muted-foreground">
-          {Number(item.price).toFixed(2)} × {item.quantity}
+          {formatJOD(Number(item.price))} × {item.quantity}
         </div>
       </div>
 

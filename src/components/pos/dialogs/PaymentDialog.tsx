@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Banknote, CreditCard, Wallet, Receipt, Smartphone, Plus, Minus, X, Hash } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatJOD } from "@/lib/utils";
 import type { PaymentMethodConfig } from "@/hooks/pos/useCashierPaymentMethods";
 import { NumericKeypad } from "../NumericKeypad";
 
@@ -143,7 +143,7 @@ export function PaymentDialog({
         <DialogHeader>
           <DialogTitle>Payment</DialogTitle>
           <DialogDescription>
-            Order Total: <span className="font-bold text-foreground text-lg">{total.toFixed(2)} {currency}</span>
+            Order Total: <span className="font-bold text-foreground text-lg">{formatJOD(total)} {currency}</span>
           </DialogDescription>
         </DialogHeader>
 
@@ -169,7 +169,7 @@ export function PaymentDialog({
               hasOverpayment ? "text-destructive" :
               "text-foreground"
             )}>
-              {Math.abs(remaining).toFixed(2)} {currency}
+              {formatJOD(Math.abs(remaining))} {currency}
             </p>
           </div>
 
