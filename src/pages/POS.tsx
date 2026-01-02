@@ -18,6 +18,7 @@ import {
   useHoldOrder,
   useResumeOrder,
   useCancelOrder,
+  useVoidOrder,
   useReopenOrder,
   useRestaurantSettings,
   useZReport,
@@ -67,6 +68,7 @@ import {
   HeldOrdersDialog,
   RecentOrdersDialog,
   CancelOrderDialog,
+  VoidOrderDialog,
   CashMovementDialog,
   ZReportDialog,
   ItemNotesDialog,
@@ -135,6 +137,7 @@ export default function POS() {
   const holdOrderMutation = useHoldOrder();
   const resumeOrderMutation = useResumeOrder();
   const cancelOrderMutation = useCancelOrder();
+  const voidOrderMutation = useVoidOrder();
   const addItemMutation = useAddOrderItem();
   const updateQuantityMutation = useUpdateOrderItemQuantity();
   const removeItemMutation = useRemoveOrderItem();
@@ -162,6 +165,7 @@ export default function POS() {
   const [heldOrdersDialogOpen, setHeldOrdersDialogOpen] = useState(false);
   const [recentOrdersDialogOpen, setRecentOrdersDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [voidOrderDialogOpen, setVoidOrderDialogOpen] = useState(false);
   const [cashMovementDialogOpen, setCashMovementDialogOpen] = useState(false);
   const [zReportDialogOpen, setZReportDialogOpen] = useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
@@ -757,6 +761,46 @@ export default function POS() {
     }
   };
 
+  const handleVoidOrder = () => {
+    if (!currentOrder) return;
+    
+    // Only allow void on open orders
+    if (currentOrder.status !== "open") {
+      toast.error("Can only void open orders");
+      return;
+    }
+    
+    setVoidOrderDialogOpen(true);
+  };
+
+  const handleVoidOrderConfirm = async (reason: string) => {
+    if (!currentOrder) return;
+    try {
+      const result = await voidOrderMutation.mutateAsync({ 
+        orderId: currentOrder.id, 
+        reason 
+      });
+      
+      // Audit log for void
+      await auditLogMutation.mutateAsync({
+        entityType: "order",
+        entityId: currentOrder.id,
+        action: "order_voided",
+        details: {
+          reason,
+          order_number: result.order_number,
+          total: result.total,
+        },
+      });
+      
+      setVoidOrderDialogOpen(false);
+      toast.success("Order voided");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to void order";
+      toast.error(errorMessage);
+    }
+  };
+
   const handleCashMovement = async (type: "cash_in" | "cash_out", amount: number, reason?: string) => {
     if (!currentShift) return;
     try {
@@ -1252,7 +1296,7 @@ export default function POS() {
                   onApplyDiscount={() => setDiscountDialogOpen(true)}
                   onPay={handlePay}
                   onHoldOrder={handleHoldOrder}
-                  onCancelOrder={() => setCancelDialogOpen(true)}
+                  onVoidOrder={handleVoidOrder}
                   hasItems={orderItems.length > 0}
                   onTransferItem={handleTransferItem}
                   showTransfer={currentOrder?.status === "open" && orderItems.length > 1 && openOrders.length > 1}
@@ -1478,6 +1522,14 @@ export default function POS() {
         orderNumber={currentOrder?.order_number}
         onConfirm={handleCancelOrder}
         isLoading={cancelOrderMutation.isPending}
+      />
+
+      <VoidOrderDialog
+        open={voidOrderDialogOpen}
+        onOpenChange={setVoidOrderDialogOpen}
+        orderNumber={currentOrder?.order_number}
+        onConfirm={handleVoidOrderConfirm}
+        isLoading={voidOrderMutation.isPending}
       />
 
       {selectedItemForRemoval && (
