@@ -83,6 +83,7 @@ import {
   ReopenOrderDialog,
   TransferItemDialog,
   ConfirmNewOrderDialog,
+  TableOrdersDialog,
 } from "@/components/pos/dialogs";
 import type { RecentOrder } from "@/components/pos/dialogs/RecentOrdersDialog";
 import type { OrderType } from "@/components/pos/OrderTypeSelector";
@@ -213,6 +214,14 @@ export default function POS() {
 
   // Merge orders state
   const [mergeSelection, setMergeSelection] = useState<string[]>([]);
+
+  // Table orders dialog state
+  const [tableOrdersDialogOpen, setTableOrdersDialogOpen] = useState(false);
+  const [selectedTableForOrders, setSelectedTableForOrders] = useState<{
+    id: string;
+    name: string;
+    orders: typeof openOrders;
+  } | null>(null);
 
   // Fetch modifiers for selected item
   const { data: itemModifierGroups = [] } = useMenuItemModifiers(selectedItemForModifiers?.id);
@@ -1122,10 +1131,9 @@ export default function POS() {
   };
 
   const handleTableClick = async (tableId: string) => {
-    const existingOrder = tableOrderMap.get(tableId);
-
     // If in merge mode and table is occupied, add to selection
     if (mergeSelection.length > 0 && mergeSelection.length < 2) {
+      const existingOrder = tableOrderMap.get(tableId);
       if (!existingOrder) {
         toast.error("Select an occupied table to merge");
         return;
@@ -1141,15 +1149,18 @@ export default function POS() {
       return;
     }
 
-    if (existingOrder) {
-      // Occupied: Load existing order
-      try {
-        await resumeOrderMutation.mutateAsync(existingOrder.id);
-        setActiveTab("new-order");
-        toast.success("Order loaded");
-      } catch (error) {
-        toast.error("Failed to load order");
-      }
+    // Get all orders for this table (not just first)
+    const tableOrders = openOrders.filter((o) => o.table_id === tableId);
+    const table = tables.find((t) => t.id === tableId);
+
+    if (tableOrders.length > 0) {
+      // Occupied: Open table orders dialog instead of auto-resuming
+      setSelectedTableForOrders({
+        id: tableId,
+        name: table?.table_name || "Unknown",
+        orders: tableOrders,
+      });
+      setTableOrdersDialogOpen(true);
     } else {
       // Available: Create new dine-in order
       if (!currentShift || !branch || !restaurant) return;
@@ -1167,6 +1178,32 @@ export default function POS() {
       } catch (error) {
         toast.error("Failed to create order");
       }
+    }
+  };
+
+  // Handler for resuming order from table orders dialog
+  const handleResumeTableOrder = async (orderId: string) => {
+    try {
+      await resumeOrderMutation.mutateAsync(orderId);
+      setActiveTab("new-order");
+      toast.success("Order loaded");
+    } catch (error) {
+      toast.error("Failed to load order");
+    }
+  };
+
+  // Handler for paying order from table orders dialog
+  const handlePayTableOrder = async (orderId: string) => {
+    // First resume the order to load it
+    try {
+      await resumeOrderMutation.mutateAsync(orderId);
+      setActiveTab("new-order");
+      // Open payment dialog after a short delay to ensure order is loaded
+      setTimeout(() => {
+        setPaymentDialogOpen(true);
+      }, 100);
+    } catch (error) {
+      toast.error("Failed to load order");
     }
   };
 
@@ -1737,6 +1774,22 @@ export default function POS() {
         onOpenChange={setConfirmNewOrderDialogOpen}
         onConfirmHoldAndNew={handleConfirmHoldAndNew}
       />
+
+      {selectedTableForOrders && (
+        <TableOrdersDialog
+          open={tableOrdersDialogOpen}
+          onOpenChange={(open) => {
+            setTableOrdersDialogOpen(open);
+            if (!open) setSelectedTableForOrders(null);
+          }}
+          tableName={selectedTableForOrders.name}
+          orders={selectedTableForOrders.orders}
+          currency={currency}
+          onResumeOrder={handleResumeTableOrder}
+          onPayOrder={handlePayTableOrder}
+          isLoading={resumeOrderMutation.isPending}
+        />
+      )}
     </div>
   );
 }
