@@ -82,6 +82,7 @@ import {
   ConfirmRemoveLastItemDialog,
   ReopenOrderDialog,
   TransferItemDialog,
+  ConfirmNewOrderDialog,
 } from "@/components/pos/dialogs";
 import type { RecentOrder } from "@/components/pos/dialogs/RecentOrdersDialog";
 import type { OrderType } from "@/components/pos/OrderTypeSelector";
@@ -202,6 +203,7 @@ export default function POS() {
     id: string;
     name: string;
   } | null>(null);
+  const [confirmNewOrderDialogOpen, setConfirmNewOrderDialogOpen] = useState(false);
   const [closedShiftData, setClosedShiftData] = useState<{
     openingCash: number;
     openedAt: string;
@@ -658,6 +660,46 @@ export default function POS() {
       setReceiptDialogOpen(true);
     } catch (error) {
       toast.error("Payment failed");
+    }
+  };
+
+  // Handler for New Order button in OrderPanel
+  const handleNewOrderButton = () => {
+    if (!currentOrder) {
+      // No current order - open new order dialog directly
+      setNewOrderDialogOpen(true);
+    } else {
+      // There's an active order - show confirmation
+      setConfirmNewOrderDialogOpen(true);
+    }
+  };
+
+  const handleConfirmHoldAndNew = async () => {
+    if (!currentOrder) return;
+    
+    try {
+      // Hold the current order first
+      await holdOrderMutation.mutateAsync(currentOrder.id);
+      
+      // Log audit for hold
+      await auditLogMutation.mutateAsync({
+        entityType: "order",
+        entityId: currentOrder.id,
+        action: "order_hold",
+        details: {
+          order_number: currentOrder.order_number,
+          total: total,
+          items_count: orderItems.length,
+        },
+      });
+      
+      toast.success("Order held");
+      setConfirmNewOrderDialogOpen(false);
+      
+      // Open new order dialog
+      setNewOrderDialogOpen(true);
+    } catch (error) {
+      toast.error("Failed to hold order");
     }
   };
 
@@ -1305,6 +1347,8 @@ export default function POS() {
                   hasItems={orderItems.length > 0}
                   onTransferItem={handleTransferItem}
                   showTransfer={currentOrder?.status === "open" && orderItems.length > 1 && openOrders.length > 1}
+                  onNewOrder={handleNewOrderButton}
+                  shiftOpen={shiftOpen}
                 />
               </div>
             </div>
@@ -1639,6 +1683,12 @@ export default function POS() {
           isLoading={transferItemMutation.isPending}
         />
       )}
+
+      <ConfirmNewOrderDialog
+        open={confirmNewOrderDialogOpen}
+        onOpenChange={setConfirmNewOrderDialogOpen}
+        onConfirmHoldAndNew={handleConfirmHoldAndNew}
+      />
     </div>
   );
 }
