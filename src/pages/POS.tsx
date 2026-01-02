@@ -54,6 +54,7 @@ import {
   POSTabControl,
   CategoryList,
   MenuItemGrid,
+  FavoritesGrid,
   OrderPanel,
   QRPendingOrders,
   OpenOrdersList,
@@ -1404,6 +1405,51 @@ export default function POS() {
                     isLoading={itemsLoading}
                   />
                 </div>
+              </div>
+
+              {/* Order Panel */}
+              <div className="w-80 border-l">
+                <OrderPanel
+                  orderNumber={currentOrder?.order_number}
+                  orderStatus={currentOrder?.status}
+                  orderNotes={currentOrder?.order_notes}
+                  items={currentOrder?.order_items || []}
+                  subtotal={subtotal}
+                  discountType={currentOrder?.discount_type}
+                  discountValue={currentOrder?.discount_value ? Number(currentOrder.discount_value) : null}
+                  taxRate={taxRate}
+                  taxAmount={taxAmount}
+                  serviceCharge={serviceCharge}
+                  total={total}
+                  currency={currency}
+                  onUpdateQuantity={handleUpdateQuantity}
+                  onRemoveItem={handleRemoveItem}
+                  onVoidItem={handleVoidItem}
+                  onAddNotes={handleAddNotes}
+                  onApplyDiscount={() => setDiscountDialogOpen(true)}
+                  onPay={handlePay}
+                  onHoldOrder={handleHoldOrder}
+                  onVoidOrder={handleVoidOrder}
+                  hasItems={orderItems.length > 0}
+                  onTransferItem={handleTransferItem}
+                  showTransfer={currentOrder?.status === "open" && orderItems.length > 1 && openOrders.length > 1}
+                  onNewOrder={handleNewOrderButton}
+                  shiftOpen={shiftOpen}
+                />
+              </div>
+            </div>
+          )}
+
+          {activeTab === "favorites" && (
+            <div className="flex-1 flex overflow-hidden">
+              {/* Favorites Grid */}
+              <div className="flex-1 bg-muted/30">
+                <FavoritesGrid
+                  items={[]} // Empty for now - no is_favorite field in DB
+                  currency={currency}
+                  onSelectItem={handleSelectItem}
+                  isLoading={false}
+                />
               </div>
 
               {/* Order Panel */}

@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
-import { ShoppingCart, QrCode, ClipboardList, Grid } from "lucide-react";
+import { ShoppingCart, QrCode, ClipboardList, Grid, Star } from "lucide-react";
 
-export type POSTab = "new-order" | "qr-pending" | "open-orders" | "tables";
+export type POSTab = "new-order" | "favorites" | "qr-pending" | "open-orders" | "tables";
 
 interface POSTabControlProps {
   activeTab: POSTab;
@@ -23,6 +23,12 @@ export function POSTabControl({
       id: "new-order" as POSTab, 
       label: "New Order", 
       icon: ShoppingCart,
+      count: 0,
+    },
+    { 
+      id: "favorites" as POSTab, 
+      label: "Favorites", 
+      icon: Star,
       count: 0,
     },
     { 
