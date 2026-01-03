@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Category {
   id: string;
@@ -17,6 +18,8 @@ export function CategoryList({
   selectedCategoryId,
   onSelectCategory,
 }: CategoryListProps) {
+  const { t } = useLanguage();
+  
   return (
     <ScrollArea className="h-full">
       <div className="p-2 space-y-1">
@@ -36,7 +39,7 @@ export function CategoryList({
         ))}
         {categories.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-4">
-            No categories found
+            {t("no_categories_found")}
           </p>
         )}
       </div>

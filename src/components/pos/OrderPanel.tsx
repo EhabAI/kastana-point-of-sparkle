@@ -6,6 +6,7 @@ import { OrderItemRow } from "./OrderItemRow";
 import { OrderTotals } from "./OrderTotals";
 import { Percent, CreditCard, Pause, Ban, User, Phone, Plus } from "lucide-react";
 import { formatJOD } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OrderItem {
   id: string;
@@ -94,6 +95,7 @@ export function OrderPanel({
   onNewOrder,
   shiftOpen,
 }: OrderPanelProps) {
+  const { t } = useLanguage();
   const activeItems = items.filter((item) => !item.voided);
   const customerInfo = parseCustomerInfo(orderNotes);
   const orderType = parseOrderType(orderNotes);
@@ -104,12 +106,12 @@ export function OrderPanel({
       <CardHeader className="py-3 px-4">
         <CardTitle className="text-base flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span>Current Order</span>
+            <span>{t("current_order")}</span>
             <Badge 
               variant={orderType === "DINE-IN" ? "default" : "secondary"}
               className="text-xs"
             >
-              {orderType}
+              {orderType === "DINE-IN" ? t("dine_in") : t("takeaway")}
             </Badge>
           </div>
           <div className="flex items-center gap-2">
@@ -123,7 +125,7 @@ export function OrderPanel({
                 onClick={onNewOrder}
               >
                 <Plus className="h-4 w-4 mr-1" />
-                New Order
+                {t("new_order")}
               </Button>
             )}
           </div>
@@ -151,7 +153,7 @@ export function OrderPanel({
         <ScrollArea className="h-full px-4">
           {activeItems.length === 0 ? (
             <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">
-              No items in order
+              {t("no_items_in_order")}
             </div>
           ) : (
             <div className="space-y-1">
@@ -193,7 +195,7 @@ export function OrderPanel({
             disabled={!hasItems || !isOpen}
           >
             <Percent className="h-4 w-4 mr-1" />
-            Discount
+            {t("discount")}
           </Button>
           <Button
             variant="outline"
@@ -202,7 +204,7 @@ export function OrderPanel({
             disabled={!hasItems || !isOpen}
           >
             <Pause className="h-4 w-4 mr-1" />
-            Hold
+            {t("hold")}
           </Button>
         </div>
 
@@ -214,7 +216,7 @@ export function OrderPanel({
             disabled={!hasItems || !isOpen}
           >
             <Ban className="h-4 w-4 mr-1" />
-            Void
+            {t("void")}
           </Button>
           <Button
             size="lg"
@@ -223,7 +225,7 @@ export function OrderPanel({
             disabled={!hasItems || total <= 0 || !isOpen}
           >
             <CreditCard className="h-4 w-4 mr-1" />
-            Pay {formatJOD(total)}
+            {t("pay")} {formatJOD(total)}
           </Button>
         </div>
       </CardFooter>

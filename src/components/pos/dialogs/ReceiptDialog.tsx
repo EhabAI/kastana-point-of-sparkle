@@ -131,7 +131,7 @@ export function ReceiptDialog({
             {restaurant?.logo_url && (
               <img src={restaurant.logo_url} alt={restaurant.name} className="h-12 mx-auto mb-2 object-contain" />
             )}
-            <h2 className="text-lg font-bold">{restaurant?.name || "Restaurant"}</h2>
+            <h2 className="text-lg font-bold">{restaurant?.name || t("restaurant")}</h2>
             {branch?.name && <p className="text-sm text-muted-foreground">{branch.name}</p>}
             <p className="text-sm text-muted-foreground">{format(new Date(order.created_at), "dd/MM/yyyy HH:mm")}</p>
             {cashierEmail && <p className="text-xs text-muted-foreground mt-1">{t("cashier")}: {cashierEmail}</p>}

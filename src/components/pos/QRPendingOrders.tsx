@@ -84,7 +84,7 @@ export function QRPendingOrders({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <CardTitle className="text-base">
-                        Order #{order.order_number}
+                        {t("order_prefix")} #{order.order_number}
                       </CardTitle>
                       <Badge variant="outline" className="text-xs">
                         {itemCount} {t("qr_items")}

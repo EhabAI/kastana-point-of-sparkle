@@ -50,6 +50,7 @@ export function OpenOrdersList({
   onSplitOrder,
   isLoading,
 }: OpenOrdersListProps) {
+  const { t } = useLanguage();
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
   const [selectedOrderForMove, setSelectedOrderForMove] = useState<OpenOrder | null>(null);
@@ -110,8 +111,8 @@ export function OpenOrdersList({
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
         <Clock className="h-16 w-16 mb-4 opacity-50" />
-        <h3 className="text-lg font-medium mb-1">No Open Orders</h3>
-        <p className="text-sm">Start a new order to see it here</p>
+        <h3 className="text-lg font-medium mb-1">{t("no_open_orders_title")}</h3>
+        <p className="text-sm">{t("start_order_hint")}</p>
       </div>
     );
   }
@@ -134,13 +135,13 @@ export function OpenOrdersList({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <CardTitle className="text-base">
-                        Order #{order.order_number}
+                        {t("order_prefix")} #{order.order_number}
                       </CardTitle>
                       <Badge 
                         variant={orderType === "DINE-IN" ? "default" : "secondary"}
                         className="text-xs"
                       >
-                        {orderType}
+                        {orderType === "DINE-IN" ? t("dine_in") : t("takeaway")}
                       </Badge>
                       {tableInfo && (
                         <Badge variant="outline" className="text-xs">
@@ -160,7 +161,7 @@ export function OpenOrdersList({
                     onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
                     className="w-full flex items-center justify-between py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    <span>{itemCount} items</span>
+                    <span>{itemCount} {t("items")}</span>
                     {isExpanded ? (
                       <ChevronUp className="h-4 w-4" />
                     ) : (
@@ -187,7 +188,7 @@ export function OpenOrdersList({
                   )}
 
                   <div className="flex justify-between items-center py-2 border-t font-medium">
-                    <span>Total</span>
+                    <span>{t("total")}</span>
                     <span className="text-lg">{formatJOD(order.total)} {currency}</span>
                   </div>
                 </CardContent>
@@ -202,7 +203,7 @@ export function OpenOrdersList({
                         disabled={isLoading}
                       >
                         <ArrowRightLeft className="h-5 w-5 mr-2" />
-                        Move
+                        {t("move")}
                       </Button>
                       {activeItems.length > 1 && (
                         <Button
@@ -212,7 +213,7 @@ export function OpenOrdersList({
                           disabled={isLoading}
                         >
                           <Scissors className="h-5 w-5 mr-2" />
-                          Split
+                          {t("split")}
                         </Button>
                       )}
                     </>
@@ -224,7 +225,7 @@ export function OpenOrdersList({
                     disabled={isLoading}
                   >
                     <XCircle className="h-5 w-5 mr-2" />
-                    Close
+                    {t("close")}
                   </Button>
                   <Button
                     className="flex-1 h-12 min-w-[120px]"
@@ -232,7 +233,7 @@ export function OpenOrdersList({
                     disabled={isLoading}
                   >
                     <Edit className="h-5 w-5 mr-2" />
-                    Edit / Pay
+                    {t("edit_pay")}
                   </Button>
                 </CardFooter>
               </Card>
@@ -244,9 +245,9 @@ export function OpenOrdersList({
       <Dialog open={moveDialogOpen} onOpenChange={setMoveDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Move to Table</DialogTitle>
+            <DialogTitle>{t("move_to_table")}</DialogTitle>
             <DialogDescription>
-              Select a new table for order #{selectedOrderForMove?.order_number}
+              {t("select_new_table")} #{selectedOrderForMove?.order_number}
             </DialogDescription>
           </DialogHeader>
           <TableSelector
@@ -256,10 +257,10 @@ export function OpenOrdersList({
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setMoveDialogOpen(false)} className="h-12">
-              Cancel
+              {t("cancel")}
             </Button>
             <Button onClick={handleMoveConfirm} disabled={!selectedTableId} className="h-12">
-              Move Order
+              {t("move_order")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -269,18 +270,18 @@ export function OpenOrdersList({
       <AlertDialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Close Order</AlertDialogTitle>
+            <AlertDialogTitle>{t("close_order")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to close this order? This action cannot be undone.
+              {t("close_order_confirm")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="h-12">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="h-12">{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCloseConfirm}
               className="h-12"
             >
-              Close Order
+              {t("close_order")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Clock } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TableCardProps {
   tableName: string;
@@ -39,6 +40,7 @@ export function TableCard({
   disabled,
   selected,
 }: TableCardProps) {
+  const { t } = useLanguage();
   const effectiveCapacity = capacity || 4;
   const [duration, setDuration] = useState(() => 
     orderCreatedAt ? formatDuration(orderCreatedAt) : "00:00"
@@ -83,7 +85,7 @@ export function TableCard({
       </div>
 
       {/* Capacity */}
-      <span className="text-xs text-muted-foreground">{effectiveCapacity} seats</span>
+      <span className="text-xs text-muted-foreground">{effectiveCapacity} {t("seats")}</span>
 
       {/* Status Badge */}
       <div
@@ -94,13 +96,13 @@ export function TableCard({
             : "bg-emerald-500 text-white"
         )}
       >
-        {isOccupied ? `#${orderNumber}` : "Free"}
+        {isOccupied ? `#${orderNumber}` : t("free")}
       </div>
 
       {/* Multiple Orders Indicator */}
       {orderCount && orderCount > 1 && (
         <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary text-primary-foreground">
-          {orderCount} Orders
+          {orderCount} {t("orders")}
         </div>
       )}
 
