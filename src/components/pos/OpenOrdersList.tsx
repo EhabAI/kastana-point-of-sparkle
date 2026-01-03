@@ -7,6 +7,8 @@ import { Clock, Edit, ArrowRightLeft, ChevronDown, ChevronUp, XCircle, Scissors 
 import { formatDistanceToNow } from "date-fns";
 import type { OpenOrder } from "@/hooks/pos/useOpenOrders";
 import type { BranchTable } from "@/hooks/pos/useBranchTables";
+import { formatJOD } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Dialog,
   DialogContent,
@@ -177,7 +179,7 @@ export function OpenOrdersList({
                             )}
                           </div>
                           <span className="text-muted-foreground">
-                            {(item.price * item.quantity).toFixed(2)} {currency}
+                            {formatJOD(item.price * item.quantity)} {currency}
                           </span>
                         </div>
                       ))}
@@ -186,7 +188,7 @@ export function OpenOrdersList({
 
                   <div className="flex justify-between items-center py-2 border-t font-medium">
                     <span>Total</span>
-                    <span className="text-lg">{order.total.toFixed(2)} {currency}</span>
+                    <span className="text-lg">{formatJOD(order.total)} {currency}</span>
                   </div>
                 </CardContent>
 

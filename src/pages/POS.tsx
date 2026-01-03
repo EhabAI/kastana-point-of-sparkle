@@ -387,6 +387,12 @@ export default function POS() {
   };
 
   const handleCloseShift = () => {
+    // Block shift close if there are held orders
+    if (heldOrders.length > 0) {
+      toast.error("Cannot close shift with held orders. Please resolve them first.");
+      setHeldOrdersDialogOpen(true);
+      return;
+    }
     setShiftDialogMode("close");
     setShiftDialogOpen(true);
   };
@@ -1289,10 +1295,9 @@ export default function POS() {
     try {
       await resumeOrderMutation.mutateAsync(orderId);
       setActiveTab("new-order");
-      // Open payment dialog after a short delay to ensure order is loaded
-      setTimeout(() => {
-        setPaymentDialogOpen(true);
-      }, 100);
+      // Fetch fresh order data before opening payment dialog (no setTimeout race condition)
+      await refetchOrder();
+      setPaymentDialogOpen(true);
     } catch (error) {
       toast.error("Failed to load order");
     }

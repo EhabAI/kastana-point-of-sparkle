@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Check, X, ChevronDown, ChevronUp } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { cn } from "@/lib/utils";
+import { cn, formatJOD } from "@/lib/utils";
 import type { PendingOrder } from "@/hooks/pos/usePendingOrders";
 import {
   AlertDialog,
@@ -121,7 +121,7 @@ export function QRPendingOrders({
                         <div key={item.id} className="flex justify-between text-sm py-1 border-b last:border-0">
                           <span>{item.quantity}× {item.name}</span>
                           <span className="text-muted-foreground">
-                            {(item.price * item.quantity).toFixed(2)} {currency}
+                            {formatJOD(item.price * item.quantity)} {currency}
                           </span>
                         </div>
                       ))}

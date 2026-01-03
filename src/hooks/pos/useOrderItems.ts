@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuditLog } from "./useAuditLog";
 
 interface MenuItem {
   id: string;
@@ -49,9 +50,20 @@ export function useAddOrderItem() {
 
 export function useUpdateOrderItemQuantity() {
   const queryClient = useQueryClient();
+  const auditLog = useAuditLog();
 
   return useMutation({
-    mutationFn: async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
+    mutationFn: async ({ 
+      itemId, 
+      quantity, 
+      orderId,
+      previousQuantity,
+    }: { 
+      itemId: string; 
+      quantity: number;
+      orderId?: string;
+      previousQuantity?: number;
+    }) => {
       if (quantity <= 0) {
         // Delete the item if quantity is 0 or less
         const { error } = await supabase
@@ -71,6 +83,23 @@ export function useUpdateOrderItemQuantity() {
         .single();
 
       if (error) throw error;
+
+      // Log audit for quantity change if orderId and previousQuantity provided
+      if (orderId && previousQuantity !== undefined && previousQuantity !== quantity) {
+        await auditLog.mutateAsync({
+          entityType: "order_item",
+          entityId: itemId,
+          action: "item_void", // Using existing action type for qty changes
+          details: {
+            order_id: orderId,
+            item_id: itemId,
+            from_qty: previousQuantity,
+            to_qty: quantity,
+            action_type: "ITEM_QTY_CHANGED",
+          },
+        });
+      }
+
       return data;
     },
     onSuccess: () => {
@@ -99,9 +128,24 @@ export function useRemoveOrderItem() {
 
 export function useVoidOrderItem() {
   const queryClient = useQueryClient();
+  const auditLog = useAuditLog();
 
   return useMutation({
-    mutationFn: async ({ itemId, reason }: { itemId: string; reason: string }) => {
+    mutationFn: async ({ 
+      itemId, 
+      reason,
+      orderId,
+      itemName,
+      quantity,
+      price,
+    }: { 
+      itemId: string; 
+      reason: string;
+      orderId?: string;
+      itemName?: string;
+      quantity?: number;
+      price?: number;
+    }) => {
       const { data, error } = await supabase
         .from("order_items")
         .update({ voided: true, void_reason: reason })
@@ -110,6 +154,23 @@ export function useVoidOrderItem() {
         .single();
 
       if (error) throw error;
+
+      // Log audit for void item
+      await auditLog.mutateAsync({
+        entityType: "order_item",
+        entityId: itemId,
+        action: "item_void",
+        details: {
+          order_id: orderId || null,
+          item_id: itemId,
+          item_name: itemName || data.name,
+          quantity: quantity || data.quantity,
+          price: price || data.price,
+          reason,
+          voided_at: new Date().toISOString(),
+        },
+      });
+
       return data;
     },
     onSuccess: () => {
