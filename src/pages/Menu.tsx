@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Minus,
   Plus,
@@ -81,8 +82,6 @@ type SelectedItem = {
   quantity: number;
   notes: string;
 };
-
-type Language = "ar" | "en";
 
 /* =======================
    Category Icon Mapping
@@ -325,7 +324,7 @@ const categoryTranslations: Record<string, { en: string; ar: string }> = {
   عروض: { en: "Offers", ar: "عروض" },
 };
 
-const translateCategoryName = (name: string, lang: Language): string => {
+const translateCategoryName = (name: string, lang: "en" | "ar"): string => {
   const lowerName = name.toLowerCase().trim();
   const translation = categoryTranslations[lowerName];
   if (translation) {
@@ -383,7 +382,7 @@ const itemTranslations: Record<string, { en: string; ar: string }> = {
   "happy hour iced latte": { en: "Happy Hour Iced Latte", ar: "لاتيه مثلج الساعة السعيدة" },
 };
 
-const translateItemName = (name: string, lang: Language): string => {
+const translateItemName = (name: string, lang: "en" | "ar"): string => {
   const lowerName = name.toLowerCase().trim();
   const translation = itemTranslations[lowerName];
   if (translation) {
@@ -393,72 +392,11 @@ const translateItemName = (name: string, lang: Language): string => {
 };
 
 /* =======================
-   Translations
-======================= */
-const translations = {
-  ar: {
-    menu: "القائمة",
-    table: "الطاولة",
-    add: "أضف",
-    quantity: "الكمية",
-    notes: "ملاحظات",
-    notesPlaceholder: "بدون سكر، حليب أقل...",
-    confirmOrder: "تأكيد الطلب",
-    orderSummary: "ملخص الطلب",
-    confirm: "تأكيد",
-    cancel: "إلغاء",
-    noItems: "لا يوجد أصناف",
-    orderSent: "تم إرسال طلبك للكاشير",
-    orderError: "حدث خطأ أثناء إرسال الطلب",
-    yourOrder: "طلبك",
-    total: "المجموع",
-    sendToWhatsApp: "تثبيت الطلب",
-    noPhone: "لا يوجد رقم هاتف للكاشير",
-    loadError: "تعذر فتح القائمة",
-    restaurantNotFound: "المطعم غير موجود",
-    invalidRestaurant: "معرف المطعم غير صالح",
-    categoriesError: "فشل تحميل التصنيفات",
-    itemsError: "فشل تحميل الأصناف",
-    close: "إغلاق",
-    currency: "د.أ",
-    items: "أصناف",
-    remove: "إزالة",
-  },
-  en: {
-    menu: "Menu",
-    table: "Table",
-    add: "Add",
-    quantity: "Quantity",
-    notes: "Notes",
-    notesPlaceholder: "No sugar, less milk...",
-    confirmOrder: "Confirm Order",
-    orderSummary: "Order Summary",
-    confirm: "Confirm",
-    cancel: "Cancel",
-    noItems: "No items",
-    orderSent: "Your order has been sent to the cashier",
-    orderError: "Error sending order",
-    yourOrder: "Your Order",
-    total: "Total",
-    sendToWhatsApp: "Place Order",
-    noPhone: "Cashier phone number not found",
-    loadError: "Unable to open menu",
-    restaurantNotFound: "Restaurant not found",
-    invalidRestaurant: "Invalid restaurant",
-    categoriesError: "Failed to load categories",
-    itemsError: "Failed to load items",
-    close: "Close",
-    currency: "JOD",
-    items: "items",
-    remove: "Remove",
-  },
-};
-
-/* =======================
    Component
 ======================= */
 export default function Menu() {
   const { restaurantId, branchId, tableCode } = useParams();
+  const { language, setLanguage, t, isRTL } = useLanguage();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -467,10 +405,6 @@ export default function Menu() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<Item[]>([]);
-
-  // Language state
-  const [lang, setLang] = useState<Language>("ar");
-  const t = translations[lang];
 
   // Cart state (local only) - now tracks quantities per item
   const [cart, setCart] = useState<SelectedItem[]>([]);
@@ -486,7 +420,7 @@ export default function Menu() {
   // Clear cart when language changes to avoid mixed language items
   useEffect(() => {
     setCart([]);
-  }, [lang]);
+  }, [language]);
 
   /* =======================
      Load Data
@@ -497,7 +431,7 @@ export default function Menu() {
       setError(null);
 
       if (!restaurantId || !branchId) {
-        setError(t.invalidRestaurant);
+        setError(t("menu_invalid_restaurant"));
         setLoading(false);
         return;
       }
@@ -508,7 +442,7 @@ export default function Menu() {
       });
 
       if (restaurantError || !restaurantData || restaurantData.length === 0) {
-        setError(t.restaurantNotFound);
+        setError(t("menu_restaurant_not_found"));
         setLoading(false);
         return;
       }
@@ -524,7 +458,7 @@ export default function Menu() {
         .order("sort_order", { ascending: true });
 
       if (categoriesError) {
-        setError(t.categoriesError);
+        setError(t("menu_categories_error"));
         setLoading(false);
         return;
       }
@@ -543,7 +477,7 @@ export default function Menu() {
           .order("name", { ascending: true });
 
         if (itemsError) {
-          setError(t.itemsError);
+          setError(t("menu_items_error"));
           setLoading(false);
           return;
         }
@@ -587,7 +521,7 @@ export default function Menu() {
         ...prev,
         {
           item_id: item.id,
-          name: translateItemName(item.name, lang),
+          name: translateItemName(item.name, language),
           price: item.price,
           quantity: 1,
           notes: "",
@@ -643,7 +577,7 @@ export default function Menu() {
 
       if (orderError || !orderData) {
         console.error("Order insert error:", orderError);
-        setError(t.orderError);
+        setError(t("menu_order_error"));
         setOrderLoading(false);
         return;
       }
@@ -665,7 +599,7 @@ export default function Menu() {
 
       if (itemsError) {
         console.error("Order items insert error:", itemsError);
-        setError(t.orderError);
+        setError(t("menu_order_error"));
         setOrderLoading(false);
         return;
       }
@@ -682,7 +616,7 @@ export default function Menu() {
       }, 3000);
     } catch (err) {
       console.error("Order error:", err);
-      setError(t.orderError);
+      setError(t("menu_order_error"));
     } finally {
       setOrderLoading(false);
     }
@@ -693,7 +627,7 @@ export default function Menu() {
   ======================= */
   if (loading) {
     return (
-      <div className="p-6 max-w-3xl mx-auto" dir={lang === "ar" ? "rtl" : "ltr"}>
+      <div className="p-6 max-w-3xl mx-auto" dir={isRTL ? "rtl" : "ltr"}>
         <Skeleton className="h-12 w-48 mb-4" />
         <Skeleton className="h-24 w-full mb-4" />
         <Skeleton className="h-24 w-full" />
@@ -703,9 +637,9 @@ export default function Menu() {
 
   if (error) {
     return (
-      <div className="p-6 max-w-3xl mx-auto text-center" dir={lang === "ar" ? "rtl" : "ltr"}>
+      <div className="p-6 max-w-3xl mx-auto text-center" dir={isRTL ? "rtl" : "ltr"}>
         <Card className="p-6">
-          <h2 className="font-bold text-lg mb-2">{t.loadError}</h2>
+          <h2 className="font-bold text-lg mb-2">{t("menu_load_error")}</h2>
           <p className="text-sm text-muted-foreground">{error}</p>
         </Card>
       </div>
@@ -716,7 +650,7 @@ export default function Menu() {
      Success UI
   ======================= */
   return (
-    <div className="min-h-screen bg-background pb-24" dir={lang === "ar" ? "rtl" : "ltr"}>
+    <div className="min-h-screen bg-background pb-24" dir={isRTL ? "rtl" : "ltr"}>
       <div className="max-w-3xl mx-auto p-4">
         {/* Header */}
         <div className="mb-6 flex justify-between items-start">
@@ -731,7 +665,7 @@ export default function Menu() {
             <div>
               <h1 className="text-xl font-bold">{restaurant?.name ?? "Restaurant"}</h1>
               <p className="text-sm text-muted-foreground">
-                {t.table}: {tableCode}
+                {t("menu_table")}: {tableCode}
               </p>
             </div>
           </div>
@@ -740,11 +674,11 @@ export default function Menu() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setLang(lang === "ar" ? "en" : "ar")}
+            onClick={() => setLanguage(language === "ar" ? "en" : "ar")}
             className="flex items-center gap-1"
           >
             <Globe className="h-4 w-4" />
-            <span>{lang === "ar" ? "EN" : "عربي"}</span>
+            <span>{language === "ar" ? "EN" : "عربي"}</span>
           </Button>
         </div>
 
@@ -752,7 +686,7 @@ export default function Menu() {
         {orderSuccess && (
           <div className="mb-4 p-4 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded-lg flex items-center gap-2">
             <Check className="h-5 w-5" />
-            <span>{t.orderSent}</span>
+            <span>{t("menu_order_sent")}</span>
           </div>
         )}
 
@@ -774,7 +708,7 @@ export default function Menu() {
                     <div className={`p-2 rounded-lg ${iconInfo.bgColor}`}>
                       <IconComponent className={`h-5 w-5 ${iconInfo.color}`} />
                     </div>
-                    <span>{translateCategoryName(category.name, lang)}</span>
+                    <span>{translateCategoryName(category.name, language)}</span>
                   </div>
                   <span className="text-lg">{isOpen ? "−" : "+"}</span>
                 </button>
@@ -782,7 +716,7 @@ export default function Menu() {
                 {isOpen && (
                   <div className="p-4">
                     {category.items.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">{t.noItems}</p>
+                      <p className="text-sm text-muted-foreground">{t("menu_no_items")}</p>
                     ) : (
                       <div className="space-y-3">
                         {category.items.map((item) => {
@@ -791,11 +725,11 @@ export default function Menu() {
                             <div key={item.id} className="flex justify-between items-center p-2 rounded-lg bg-muted/30">
                               <div className="flex-1">
                                 <p className="font-medium">
-                                  {translateItemName(item.name, lang)}{" "}
-                                  {item.is_offer && <span className={lang === "ar" ? "mr-1" : "ml-1"}>🔥</span>}
+                                  {translateItemName(item.name, language)}{" "}
+                                  {item.is_offer && <span className={isRTL ? "mr-1" : "ml-1"}>🔥</span>}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                  {formatJOD(item.price)} {t.currency}
+                                  {formatJOD(item.price)} {t("menu_currency")}
                                 </p>
                               </div>
                               <div className="flex items-center gap-2">
@@ -821,8 +755,8 @@ export default function Menu() {
                                   </>
                                 ) : (
                                   <Button variant="default" size="sm" onClick={() => incrementItem(item)}>
-                                    <Plus className={`h-4 w-4 ${lang === "ar" ? "ml-1" : "mr-1"}`} />
-                                    {t.add}
+                                    <Plus className={`h-4 w-4 ${isRTL ? "ml-1" : "mr-1"}`} />
+                                    {t("add")}
                                   </Button>
                                 )}
                               </div>
@@ -844,12 +778,12 @@ export default function Menu() {
         <SheetContent
           side="bottom"
           className="rounded-t-2xl max-h-[80vh] overflow-auto"
-          dir={lang === "ar" ? "rtl" : "ltr"}
+          dir={isRTL ? "rtl" : "ltr"}
         >
           <SheetHeader>
-            <SheetTitle>{t.orderSummary}</SheetTitle>
+            <SheetTitle>{t("menu_order_summary")}</SheetTitle>
             <SheetDescription>
-              {t.table}: {tableCode}
+              {t("menu_table")}: {tableCode}
             </SheetDescription>
           </SheetHeader>
 
@@ -864,7 +798,7 @@ export default function Menu() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-semibold">
-                    {formatJOD(item.price * item.quantity)} {t.currency}
+                    {formatJOD(item.price * item.quantity)} {t("menu_currency")}
                   </span>
                   <Button
                     variant="ghost"
@@ -880,11 +814,11 @@ export default function Menu() {
 
             {/* Order-level notes */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">{lang === "ar" ? "ملاحظات على الطلب" : "Order Notes"}</label>
+              <label className="text-sm font-medium">{t("menu_order_notes")}</label>
               <Textarea
                 value={orderNotes}
                 onChange={(e) => setOrderNotes(e.target.value.slice(0, 250))}
-                placeholder={lang === "ar" ? "مثال: شاي بالنعنع، القهوة سادة" : "E.g., tea with mint, coffee black"}
+                placeholder={t("menu_order_notes_placeholder")}
                 className="resize-none"
                 rows={2}
                 maxLength={250}
@@ -893,15 +827,15 @@ export default function Menu() {
             </div>
 
             <div className="border-t pt-3 flex justify-between items-center font-bold text-lg">
-              <span>{t.total}</span>
+              <span>{t("total")}</span>
               <span>
-                {formatJOD(cartTotal)} {t.currency}
+                {formatJOD(cartTotal)} {t("menu_currency")}
               </span>
             </div>
 
             <Button className="w-full gap-2" onClick={handleConfirmOrder} disabled={orderLoading}>
               <Send className="h-4 w-4" />
-              {t.sendToWhatsApp}
+              {t("menu_send_to_cashier")}
             </Button>
           </div>
         </SheetContent>
@@ -913,7 +847,7 @@ export default function Menu() {
           <div className="max-w-3xl mx-auto">
             <Button className="w-full gap-2" size="lg" onClick={() => setShowConfirm(true)}>
               <ShoppingCart className="h-5 w-5" />
-              {t.confirmOrder} ({cart.length}) - {formatJOD(cartTotal)} {t.currency}
+              {t("menu_confirm_order")} ({cart.length}) - {formatJOD(cartTotal)} {t("menu_currency")}
             </Button>
           </div>
         </div>
