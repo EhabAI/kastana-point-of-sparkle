@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { formatJOD } from "@/lib/utils";
 
 interface DiscountDialogProps {
   open: boolean;
@@ -71,7 +72,7 @@ export function DiscountDialog({
         <DialogHeader>
           <DialogTitle>Apply Discount</DialogTitle>
           <DialogDescription>
-            Subtotal: {currentSubtotal.toFixed(2)} {currency}
+            Subtotal: {formatJOD(currentSubtotal)} {currency}
           </DialogDescription>
         </DialogHeader>
 
@@ -97,7 +98,7 @@ export function DiscountDialog({
             <Input
               id="discountValue"
               type="number"
-              step="0.01"
+              step="0.001"
               min="0"
               max={discountType === "percentage" ? 100 : currentSubtotal}
               placeholder={discountType === "percentage" ? "10" : "5.00"}
@@ -111,7 +112,7 @@ export function DiscountDialog({
             <div className="p-3 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">Discount Preview</p>
               <p className="text-lg font-bold text-green-600">
-                -{previewDiscount.toFixed(2)} {currency}
+                -{formatJOD(previewDiscount)} {currency}
               </p>
             </div>
           )}

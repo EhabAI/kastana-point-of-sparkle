@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, ArrowRight, X, MapPin, ShoppingBag } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
+import { formatJOD } from "@/lib/utils";
 
 interface OrderItem {
   id: string;
@@ -159,7 +160,7 @@ export function HeldOrdersDialog({
 
                     {/* Total */}
                     <div className="text-lg font-bold text-primary mb-3">
-                      {Number(order.total).toFixed(2)} {currency}
+                      {formatJOD(Number(order.total))} {currency}
                     </div>
 
                     {/* Actions */}

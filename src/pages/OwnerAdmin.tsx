@@ -64,6 +64,7 @@ import { AuditLogViewer } from "@/components/owner/AuditLogViewer";
 import { useRestaurantTables } from "@/hooks/useRestaurantTables";
 import { useCashiers } from "@/hooks/useCashiers";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
+import { formatJOD } from "@/lib/utils";
 
 export default function OwnerAdmin() {
   const { role } = useAuth();
@@ -648,7 +649,7 @@ function MenuItemsSection({
                     )}
                   </div>
                   {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
-                  <p className="text-sm font-medium text-primary mt-1">{currencySymbol} {Number(item.price).toFixed(2)}</p>
+                  <p className="text-sm font-medium text-primary mt-1">{currencySymbol} {formatJOD(Number(item.price))}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <Button
@@ -699,7 +700,7 @@ function MenuItemsSection({
                           <Label>{t("price")}</Label>
                           <Input
                             type="number"
-                            step="0.01"
+                            step="0.001"
                             value={editingItem?.price || 0}
                             onChange={(e) =>
                               setEditingItem((prev) =>

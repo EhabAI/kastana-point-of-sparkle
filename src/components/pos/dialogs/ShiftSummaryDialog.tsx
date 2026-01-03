@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { formatJOD } from "@/lib/utils";
 
 interface ShiftSummaryDialogProps {
   open: boolean;
@@ -44,7 +45,7 @@ export function ShiftSummaryDialog({
             <div className="p-3 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">Opening Cash</p>
               <p className="text-lg font-bold">
-                {shiftData.openingCash.toFixed(2)} {currency}
+                {formatJOD(shiftData.openingCash)} {currency}
               </p>
             </div>
 

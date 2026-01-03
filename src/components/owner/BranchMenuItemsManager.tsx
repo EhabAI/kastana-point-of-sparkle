@@ -39,6 +39,7 @@ import {
   DollarSign,
   AlertCircle
 } from "lucide-react";
+import { formatJOD } from "@/lib/utils";
 
 interface BranchMenuItemsManagerProps {
   restaurantId: string;
@@ -337,11 +338,11 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 {item.is_promo_active ? (
                                   <>
-                                    <span className="line-through">{(item.price ?? (item.menu_item?.price || 0)).toFixed(2)}</span>
-                                    <span className="text-destructive font-semibold">{item.promo_price?.toFixed(2)} {currency}</span>
+                                    <span className="line-through">{formatJOD(item.price ?? (item.menu_item?.price || 0))}</span>
+                                    <span className="text-destructive font-semibold">{formatJOD(item.promo_price || 0)} {currency}</span>
                                   </>
                                 ) : (
-                                  <span>{item.effective_price.toFixed(2)} {currency}</span>
+                                  <span>{formatJOD(item.effective_price)} {currency}</span>
                                 )}
                                 {item.price !== null && item.price !== item.menu_item?.price && (
                                   <Badge variant="outline" className="text-xs">{t("custom_price")}</Badge>
@@ -396,7 +397,7 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
           <DialogHeader>
             <DialogTitle>{t("edit_item")} - {editingItem?.base_name}</DialogTitle>
             <DialogDescription>
-              {t("base_price")}: {editingItem?.menu_item?.price?.toFixed(2)} {currency}
+              {t("base_price")}: {formatJOD(editingItem?.menu_item?.price || 0)} {currency}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -407,7 +408,7 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
               </Label>
               <Input
                 type="number"
-                step="0.01"
+                step="0.001"
                 value={editFormData.price}
                 onChange={(e) => setEditFormData({ ...editFormData, price: e.target.value })}
                 placeholder={editingItem?.menu_item?.price?.toString()}
@@ -423,7 +424,7 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                   <Label>{t("promo_price")}</Label>
                   <Input
                     type="number"
-                    step="0.01"
+                    step="0.001"
                     value={editFormData.promo_price}
                     onChange={(e) => setEditFormData({ ...editFormData, promo_price: e.target.value })}
                     placeholder={t("promo_price")}

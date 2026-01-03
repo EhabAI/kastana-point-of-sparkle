@@ -49,6 +49,7 @@ import {
   CakeSlice,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { formatJOD } from "@/lib/utils";
 
 /* =======================
    Types
@@ -794,7 +795,7 @@ export default function Menu() {
                                   {item.is_offer && <span className={lang === "ar" ? "mr-1" : "ml-1"}>🔥</span>}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                  {item.price.toFixed(2)} {t.currency}
+                                  {formatJOD(item.price)} {t.currency}
                                 </p>
                               </div>
                               <div className="flex items-center gap-2">
@@ -863,7 +864,7 @@ export default function Menu() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-semibold">
-                    {(item.price * item.quantity).toFixed(2)} {t.currency}
+                    {formatJOD(item.price * item.quantity)} {t.currency}
                   </span>
                   <Button
                     variant="ghost"
@@ -894,7 +895,7 @@ export default function Menu() {
             <div className="border-t pt-3 flex justify-between items-center font-bold text-lg">
               <span>{t.total}</span>
               <span>
-                {cartTotal.toFixed(2)} {t.currency}
+                {formatJOD(cartTotal)} {t.currency}
               </span>
             </div>
 
@@ -912,7 +913,7 @@ export default function Menu() {
           <div className="max-w-3xl mx-auto">
             <Button className="w-full gap-2" size="lg" onClick={() => setShowConfirm(true)}>
               <ShoppingCart className="h-5 w-5" />
-              {t.confirmOrder} ({cart.length}) - {cartTotal.toFixed(2)} {t.currency}
+              {t.confirmOrder} ({cart.length}) - {formatJOD(cartTotal)} {t.currency}
             </Button>
           </div>
         </div>

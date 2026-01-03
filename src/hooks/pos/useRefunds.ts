@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCashierRestaurant } from "./useCashierRestaurant";
 import { useCashierBranch } from "./useCashierBranch";
+import { formatJOD } from "@/lib/utils";
 
 export function useCreateRefund() {
   const { data: restaurant } = useCashierRestaurant();
@@ -46,7 +47,7 @@ export function useCreateRefund() {
       const maxRefundable = Number(order.total) - totalRefunded;
 
       if (amount > maxRefundable) {
-        throw new Error(`Cannot refund more than ${maxRefundable.toFixed(2)}. Already refunded: ${totalRefunded.toFixed(2)}`);
+        throw new Error(`Cannot refund more than ${formatJOD(maxRefundable)}. Already refunded: ${formatJOD(totalRefunded)}`);
       }
 
       if (amount <= 0) {
