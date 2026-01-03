@@ -89,13 +89,12 @@ export function useUpdateOrderItemQuantity() {
         await auditLog.mutateAsync({
           entityType: "order_item",
           entityId: itemId,
-          action: "item_void", // Using existing action type for qty changes
+          action: "ITEM_QTY_CHANGED",
           details: {
             order_id: orderId,
             item_id: itemId,
             from_qty: previousQuantity,
             to_qty: quantity,
-            action_type: "ITEM_QTY_CHANGED",
           },
         });
       }
@@ -159,13 +158,17 @@ export function useVoidOrderItem() {
       await auditLog.mutateAsync({
         entityType: "order_item",
         entityId: itemId,
-        action: "item_void",
+        action: "VOID_ITEM",
         details: {
           order_id: orderId || null,
           item_id: itemId,
           item_name: itemName || data.name,
           quantity: quantity || data.quantity,
-          price: price || data.price,
+          previous_values: {
+            price: price || data.price,
+            quantity: quantity || data.quantity,
+            voided: false,
+          },
           reason,
           voided_at: new Date().toISOString(),
         },
