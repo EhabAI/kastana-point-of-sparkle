@@ -5,26 +5,28 @@ import { useCashierRestaurant } from "./useCashierRestaurant";
 import type { Json } from "@/integrations/supabase/types";
 
 export type AuditAction = 
-  | "shift_open"
-  | "shift_close"
-  | "order_create"
-  | "order_cancel"
-  | "order_voided"
-  | "order_hold"
-  | "order_resume"
-  | "order_complete"
-  | "order_reopen"
-  | "order_confirmed"
-  | "order_moved_table"
-  | "item_void"
-  | "discount_apply"
-  | "payment_add"
-  | "refund_create"
-  | "cash_in"
-  | "cash_out"
+  | "SHIFT_OPEN"
+  | "SHIFT_CLOSE"
+  | "ORDER_CREATE"
+  | "ORDER_CANCEL"
+  | "ORDER_VOIDED"
+  | "ORDER_HOLD"
+  | "ORDER_RESUME"
+  | "ORDER_COMPLETE"
+  | "ORDER_REOPEN"
+  | "ORDER_CONFIRMED"
+  | "ORDER_REJECTED"
+  | "ORDER_MOVED_TABLE"
+  | "ITEM_VOID"
+  | "DISCOUNT_APPLY"
+  | "PAYMENT_ADD"
+  | "REFUND_CREATE"
   | "CASH_MOVEMENT"
   | "VOID_ITEM"
-  | "ITEM_QTY_CHANGED";
+  | "ITEM_QTY_CHANGED"
+  | "CLOSE_ORDER"
+  | "SPLIT_ORDER"
+  | "TRANSFER_ORDER_ITEM";
 
 export type EntityType = "shift" | "order" | "order_item" | "payment" | "refund" | "shift_transaction";
 

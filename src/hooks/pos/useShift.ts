@@ -56,7 +56,7 @@ export function useOpenShift() {
       await auditLog.mutateAsync({
         entityType: "shift",
         entityId: data.id,
-        action: "shift_open",
+        action: "SHIFT_OPEN",
         details: {
           opening_cash: openingCash,
           branch_id: session.branch.id,
@@ -97,7 +97,7 @@ export function useCloseShift() {
         await auditLog.mutateAsync({
           entityType: "shift",
           entityId: shiftId,
-          action: "shift_close",
+          action: "SHIFT_CLOSE",
           details: {
             closing_cash: closingCash,
             opening_cash: data.opening_cash,

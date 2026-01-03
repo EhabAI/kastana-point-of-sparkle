@@ -93,14 +93,14 @@ export function useMoveOrderToTable() {
       queryClient.invalidateQueries({ queryKey: ["branch-tables"] });
       queryClient.invalidateQueries({ queryKey: ["current-order"] });
       
-      // Mandatory audit log for order_moved_table
+      // Mandatory audit log for ORDER_MOVED_TABLE
       if (user?.id && restaurant?.id) {
         await supabase.from("audit_logs").insert({
           user_id: user.id,
           restaurant_id: restaurant.id,
           entity_type: "order",
           entity_id: data.id,
-          action: "order_moved_table",
+          action: "ORDER_MOVED_TABLE",
           details: { 
             from_table_id: data.previousTableId || null,
             to_table_id: variables.tableId,

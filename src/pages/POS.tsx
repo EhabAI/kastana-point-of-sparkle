@@ -831,7 +831,7 @@ export default function POS() {
       await auditLogMutation.mutateAsync({
         entityType: "order",
         entityId: currentOrder.id,
-        action: "order_hold",
+        action: "ORDER_HOLD",
         details: {
           order_number: currentOrder.order_number,
           total: total,
@@ -882,7 +882,7 @@ export default function POS() {
       await auditLogMutation.mutateAsync({
         entityType: "order",
         entityId: currentOrder.id,
-        action: "order_hold",
+        action: "ORDER_HOLD",
         details: {
           order_number: currentOrder.order_number,
           total: total,
@@ -908,7 +908,7 @@ export default function POS() {
         await auditLogMutation.mutateAsync({
           entityType: "order",
           entityId: orderId,
-          action: "order_resume",
+          action: "ORDER_RESUME",
           details: {
             order_number: orderToResume.order_number,
             total: orderToResume.total,
@@ -934,7 +934,7 @@ export default function POS() {
         await auditLogMutation.mutateAsync({
           entityType: "order",
           entityId: orderId,
-          action: "order_cancel",
+          action: "ORDER_CANCEL",
           details: {
             order_number: orderToCancel.order_number,
             total: orderToCancel.total,
@@ -984,7 +984,7 @@ export default function POS() {
       await auditLogMutation.mutateAsync({
         entityType: "order",
         entityId: currentOrder.id,
-        action: "order_voided",
+        action: "ORDER_VOIDED",
         details: {
           reason,
           order_number: result.order_number,
@@ -1050,7 +1050,7 @@ export default function POS() {
       await auditLogMutation.mutateAsync({
         entityType: "refund",
         entityId: selectedOrderForRefund.id,
-        action: "refund_create",
+        action: "REFUND_CREATE",
         details: {
           order_id: selectedOrderForRefund.id,
           order_number: selectedOrderForRefund.order_number,
@@ -1094,7 +1094,7 @@ export default function POS() {
       await auditLogMutation.mutateAsync({
         entityType: "order",
         entityId: selectedOrderForReopen.id,
-        action: "order_reopen",
+        action: "ORDER_REOPEN",
         details: {
           order_number: selectedOrderForReopen.order_number,
           total: selectedOrderForReopen.total,
