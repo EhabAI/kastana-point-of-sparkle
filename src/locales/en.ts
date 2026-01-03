@@ -52,6 +52,9 @@ export default {
   "exact": "Exact",
   "reset": "Reset",
   "fill": "Fill",
+  "fill_remaining": "Fill remaining amount",
+  "remaining_must_be_zero": "Remaining must be 0.000 to complete",
+  "overpayment_cash_only": "Overpayment allowed only for cash (change)",
 
   // Owner Dashboard
   "owner_dashboard": "Owner Dashboard",
