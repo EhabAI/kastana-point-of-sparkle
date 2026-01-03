@@ -153,12 +153,12 @@ export function useCashMovement() {
       await auditLog.mutateAsync({
         entityType: "shift_transaction",
         entityId: data.id,
-        action: type === "cash_in" ? "cash_in" : "cash_out",
+        action: "CASH_MOVEMENT",
         details: {
           shift_id: shiftId,
           cashier_id: user?.id,
           amount,
-          type,
+          type: type === "cash_in" ? "IN" : "OUT",
           reason: reason || null,
         },
       });

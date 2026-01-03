@@ -21,7 +21,10 @@ export type AuditAction =
   | "payment_add"
   | "refund_create"
   | "cash_in"
-  | "cash_out";
+  | "cash_out"
+  | "CASH_MOVEMENT"
+  | "VOID_ITEM"
+  | "ITEM_QTY_CHANGED";
 
 export type EntityType = "shift" | "order" | "order_item" | "payment" | "refund" | "shift_transaction";
 
