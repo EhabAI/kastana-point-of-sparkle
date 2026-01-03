@@ -547,6 +547,8 @@ export default {
   "already_fully_refunded": "تم استرداد الطلب بالكامل مسبقاً",
   "can_only_reopen_paid": "يمكن فقط إعادة فتح الطلبات المدفوعة",
   "cannot_reopen_refunded": "لا يمكن إعادة فتح الطلبات المستردة",
+  "select_occupied_table": "اختر طاولة مشغولة",
+  "select_second_table": "اختر الطاولة الثانية للدمج",
 
   // POS - Held Orders
   "held_orders": "الطلبات المعلقة",
@@ -626,4 +628,6 @@ export default {
   "failed_record_cash": "فشل تسجيل حركة النقد",
   "missing_user_restaurant": "بيانات المستخدم أو المطعم مفقودة",
   "order_not_found": "الطلب غير موجود",
+  "failed_open_shift": "فشل فتح الوردية",
+  "failed_close_shift": "فشل إغلاق الوردية",
 } as const;

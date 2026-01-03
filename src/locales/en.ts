@@ -547,6 +547,8 @@ export default {
   "already_fully_refunded": "Order has already been fully refunded",
   "can_only_reopen_paid": "Can only reopen paid orders",
   "cannot_reopen_refunded": "Cannot reopen refunded orders",
+  "select_occupied_table": "Select an occupied table",
+  "select_second_table": "Select second table to merge",
 
   // POS - Held Orders
   "held_orders": "Held Orders",
@@ -626,4 +628,6 @@ export default {
   "failed_record_cash": "Failed to record cash movement",
   "missing_user_restaurant": "Missing user or restaurant",
   "order_not_found": "Order not found",
+  "failed_open_shift": "Failed to open shift",
+  "failed_close_shift": "Failed to close shift",
 } as const;

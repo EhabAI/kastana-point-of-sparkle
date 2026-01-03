@@ -21,6 +21,7 @@ import { Banknote, CreditCard, Wallet, Receipt, Smartphone, Plus, Minus, X, Hash
 import { cn, formatJOD } from "@/lib/utils";
 import type { PaymentMethodConfig } from "@/hooks/pos/useCashierPaymentMethods";
 import { NumericKeypad } from "../NumericKeypad";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type PaymentMethodId = string;
 
@@ -29,7 +30,7 @@ interface PaymentDialogProps {
   onOpenChange: (open: boolean) => void;
   total: number;
   currency: string;
-  onConfirm: (payments: { method: string; amount: number }[]) => void;
+  onConfirm: (payments: { method: string; amount: number }[]) => Promise<void>;
   isLoading?: boolean;
   paymentMethods?: PaymentMethodConfig[];
 }
@@ -53,11 +54,13 @@ export function PaymentDialog({
   isLoading,
   paymentMethods,
 }: PaymentDialogProps) {
+  const { t } = useLanguage();
+  
   // Get enabled methods or default to cash/card/mobile
   const enabledMethods = paymentMethods?.filter((m) => m.enabled) || [
-    { id: "cash", label: "Cash", enabled: true },
-    { id: "card", label: "Card", enabled: true },
-    { id: "mobile", label: "Mobile", enabled: true },
+    { id: "cash", label: t("cash"), enabled: true },
+    { id: "card", label: t("card"), enabled: true },
+    { id: "mobile", label: t("mobile"), enabled: true },
   ];
 
   const [splitPayments, setSplitPayments] = useState<{ method: PaymentMethodId; amount: string }[]>([]);
@@ -86,7 +89,7 @@ export function PaymentDialog({
     updatePaymentAmount(keypadState.index, formatJOD(value));
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     // Double-submit protection: check and set flag immediately
     if (submitRef.current || isSubmitting) return;
     submitRef.current = true;
@@ -102,8 +105,15 @@ export function PaymentDialog({
       return;
     }
     
-    onConfirm(payments);
-    resetState();
+    try {
+      await onConfirm(payments);
+      // Only reset state AFTER successful payment
+      resetState();
+    } catch (error) {
+      // Reset on error to allow retry
+      setIsSubmitting(false);
+      submitRef.current = false;
+    }
   };
 
   const resetState = () => {
@@ -161,12 +171,12 @@ export function PaymentDialog({
   const cashDenominations = [1, 5, 10, 20, 50];
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) resetState(); }}>
+    <Dialog open={open} onOpenChange={(o) => { if (!isSubmitting) { onOpenChange(o); if (!o) resetState(); } }}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Payment</DialogTitle>
+          <DialogTitle>{t("payment")}</DialogTitle>
           <DialogDescription>
-            Order Total: <span className="font-bold text-foreground text-lg">{formatJOD(total)} {currency}</span>
+            {t("order_total")}: <span className="font-bold text-foreground text-lg">{formatJOD(total)} {currency}</span>
           </DialogDescription>
         </DialogHeader>
 
@@ -180,10 +190,10 @@ export function PaymentDialog({
             "bg-muted"
           )}>
             <p className="text-sm text-muted-foreground mb-1">
-              {isExactMatch ? "Payment Complete" : 
-               (hasOverpayment && allPaymentsCash) ? "Change to Give" :
-               hasOverpayment ? "Card payments must be exact" : 
-               "Remaining to Pay"}
+              {isExactMatch ? t("payment_complete") : 
+               (hasOverpayment && allPaymentsCash) ? t("change_to_give") :
+               hasOverpayment ? t("card_must_be_exact") : 
+               t("remaining_to_pay")}
             </p>
             <p className={cn(
               "text-2xl font-bold",
@@ -304,7 +314,7 @@ export function PaymentDialog({
                         onClick={() => updatePaymentAmount(index, formatJOD(total))}
                         className="h-10"
                       >
-                        Exact
+                        {t("exact")}
                       </Button>
                       <Button
                         variant="secondary"
@@ -312,7 +322,7 @@ export function PaymentDialog({
                         onClick={() => updatePaymentAmount(index, "0.000")}
                         className="h-10"
                       >
-                        Reset
+                        {t("reset")}
                       </Button>
                     </div>
                   )}
@@ -326,9 +336,10 @@ export function PaymentDialog({
             variant="outline"
             className="w-full h-12"
             onClick={addPaymentRow}
+            disabled={isSubmitting}
           >
             <Plus className="h-5 w-5 mr-2" />
-            Add Payment Method
+            {t("add_payment_method")}
           </Button>
         </div>
 
@@ -339,21 +350,21 @@ export function PaymentDialog({
             className="h-12"
             disabled={isLoading || isSubmitting}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={isLoading || isSubmitting || !hasValidPayments || !(isExactMatch || (hasOverpayment && allPaymentsCash))}
             className="h-12 min-w-[160px]"
           >
-            {isLoading || isSubmitting ? "Processing..." : `Complete Payment`}
+            {isLoading || isSubmitting ? t("processing") : t("complete_payment")}
           </Button>
         </DialogFooter>
 
         <NumericKeypad
           open={keypadState.open}
           onOpenChange={(open) => setKeypadState({ ...keypadState, open })}
-          title="Enter Amount"
+          title={t("amount")}
           initialValue={splitPayments[keypadState.index]?.amount || ""}
           allowDecimals={true}
           minValue={0.01}
