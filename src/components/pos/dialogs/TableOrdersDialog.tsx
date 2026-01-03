@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, CreditCard, PlayCircle, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useState, useEffect } from "react";
-import { cn } from "@/lib/utils";
+import { cn, formatJOD } from "@/lib/utils";
 
 interface OrderItem {
   id: string;
@@ -180,7 +180,7 @@ export function TableOrdersDialog({
 
                   {/* Total */}
                   <div className="text-lg font-bold text-primary">
-                    {Number(order.total).toFixed(2)} {currency}
+                    {formatJOD(Number(order.total))} {currency}
                   </div>
                 </button>
               );

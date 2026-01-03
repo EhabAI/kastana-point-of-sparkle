@@ -11,6 +11,8 @@ import { Separator } from "@/components/ui/separator";
 import { FileText, Printer } from "lucide-react";
 import { format } from "date-fns";
 import type { ZReportData } from "@/hooks/pos/useZReport";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { formatJOD } from "@/lib/utils";
 
 interface ZReportDialogProps {
   open: boolean;
@@ -27,6 +29,8 @@ export function ZReportDialog({
   currency,
   isLoading,
 }: ZReportDialogProps) {
+  const { t } = useLanguage();
+
   const handlePrint = () => {
     window.print();
   };
@@ -48,10 +52,10 @@ export function ZReportDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Z Report</DialogTitle>
+            <DialogTitle>{t("z_report")}</DialogTitle>
           </DialogHeader>
           <div className="text-center py-8 text-muted-foreground">
-            No report data available
+            {t("no_report_data")}
           </div>
         </DialogContent>
       </Dialog>
@@ -64,14 +68,14 @@ export function ZReportDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Z Report
+            {t("z_report")}
           </DialogTitle>
           <DialogDescription>
-            Shift opened: {format(new Date(report.openedAt), "PPp")}
+            {t("shift_opened_at")}: {format(new Date(report.openedAt), "PPp")}
             {report.closedAt && (
               <>
                 <br />
-                Shift closed: {format(new Date(report.closedAt), "PPp")}
+                {t("shift_closed_at")}: {format(new Date(report.closedAt), "PPp")}
               </>
             )}
           </DialogDescription>
@@ -80,32 +84,32 @@ export function ZReportDialog({
         <div className="space-y-4 py-4 text-sm">
           {/* Sales Summary */}
           <div>
-            <h4 className="font-semibold mb-2">Sales Summary</h4>
+            <h4 className="font-semibold mb-2">{t("sales_summary")}</h4>
             <div className="space-y-1">
               <div className="flex justify-between">
-                <span>Total Orders</span>
+                <span>{t("total_orders")}</span>
                 <span>{report.totalOrders}</span>
               </div>
               <div className="flex justify-between">
-                <span>Net Sales</span>
-                <span>{report.netSales.toFixed(2)} {currency}</span>
+                <span>{t("net_sales")}</span>
+                <span>{formatJOD(report.netSales)} {currency}</span>
               </div>
               <div className="flex justify-between">
-                <span>Discounts</span>
-                <span className="text-green-600">-{report.totalDiscounts.toFixed(2)} {currency}</span>
+                <span>{t("total_discounts")}</span>
+                <span className="text-green-600">-{formatJOD(report.totalDiscounts)} {currency}</span>
               </div>
               <div className="flex justify-between">
-                <span>Service Charge</span>
-                <span>{report.totalServiceCharge.toFixed(2)} {currency}</span>
+                <span>{t("service_charge")}</span>
+                <span>{formatJOD(report.totalServiceCharge)} {currency}</span>
               </div>
               <div className="flex justify-between">
-                <span>Tax</span>
-                <span>{report.totalTax.toFixed(2)} {currency}</span>
+                <span>{t("tax")}</span>
+                <span>{formatJOD(report.totalTax)} {currency}</span>
               </div>
               <Separator className="my-2" />
               <div className="flex justify-between font-bold">
-                <span>Total Sales</span>
-                <span>{report.totalSales.toFixed(2)} {currency}</span>
+                <span>{t("total_sales")}</span>
+                <span>{formatJOD(report.totalSales)} {currency}</span>
               </div>
             </div>
           </div>
@@ -114,19 +118,19 @@ export function ZReportDialog({
 
           {/* Payment Breakdown */}
           <div>
-            <h4 className="font-semibold mb-2">Payment Breakdown</h4>
+            <h4 className="font-semibold mb-2">{t("payment_breakdown")}</h4>
             <div className="space-y-1">
               <div className="flex justify-between">
-                <span>Cash</span>
-                <span>{report.cashPayments.toFixed(2)} {currency}</span>
+                <span>{t("cash")}</span>
+                <span>{formatJOD(report.cashPayments)} {currency}</span>
               </div>
               <div className="flex justify-between">
-                <span>Card</span>
-                <span>{report.cardPayments.toFixed(2)} {currency}</span>
+                <span>{t("card")}</span>
+                <span>{formatJOD(report.cardPayments)} {currency}</span>
               </div>
               <div className="flex justify-between">
-                <span>Mobile</span>
-                <span>{report.mobilePayments.toFixed(2)} {currency}</span>
+                <span>{t("mobile")}</span>
+                <span>{formatJOD(report.mobilePayments)} {currency}</span>
               </div>
             </div>
           </div>
@@ -135,42 +139,42 @@ export function ZReportDialog({
 
           {/* Cash Reconciliation */}
           <div>
-            <h4 className="font-semibold mb-2">Cash Reconciliation</h4>
+            <h4 className="font-semibold mb-2">{t("cash_reconciliation")}</h4>
             <div className="space-y-1">
               <div className="flex justify-between">
-                <span>Opening Cash</span>
-                <span>{report.openingCash.toFixed(2)} {currency}</span>
+                <span>{t("opening_cash")}</span>
+                <span>{formatJOD(report.openingCash)} {currency}</span>
               </div>
               <div className="flex justify-between">
-                <span>+ Cash Sales</span>
-                <span>{report.cashPayments.toFixed(2)} {currency}</span>
+                <span>+ {t("cash_sales")}</span>
+                <span>{formatJOD(report.cashPayments)} {currency}</span>
               </div>
               <div className="flex justify-between">
-                <span>+ Cash In</span>
-                <span>{report.cashIn.toFixed(2)} {currency}</span>
+                <span>+ {t("cash_in")}</span>
+                <span>{formatJOD(report.cashIn)} {currency}</span>
               </div>
               <div className="flex justify-between">
-                <span>- Cash Out</span>
-                <span>{report.cashOut.toFixed(2)} {currency}</span>
+                <span>- {t("cash_out")}</span>
+                <span>{formatJOD(report.cashOut)} {currency}</span>
               </div>
               <div className="flex justify-between">
-                <span>- Refunds</span>
-                <span>{report.refundsTotal.toFixed(2)} {currency}</span>
+                <span>- {t("refunds")}</span>
+                <span>{formatJOD(report.refundsTotal)} {currency}</span>
               </div>
               <Separator className="my-2" />
               <div className="flex justify-between font-bold">
-                <span>Expected Cash</span>
-                <span>{report.expectedCash.toFixed(2)} {currency}</span>
+                <span>{t("expected_cash")}</span>
+                <span>{formatJOD(report.expectedCash)} {currency}</span>
               </div>
               {report.closingCash !== null && (
                 <>
                   <div className="flex justify-between">
-                    <span>Actual Cash</span>
-                    <span>{report.closingCash.toFixed(2)} {currency}</span>
+                    <span>{t("actual_cash")}</span>
+                    <span>{formatJOD(report.closingCash)} {currency}</span>
                   </div>
                   <div className={`flex justify-between font-bold ${report.cashDifference < 0 ? 'text-destructive' : 'text-green-600'}`}>
-                    <span>Difference</span>
-                    <span>{report.cashDifference >= 0 ? '+' : ''}{report.cashDifference.toFixed(2)} {currency}</span>
+                    <span>{t("difference")}</span>
+                    <span>{report.cashDifference >= 0 ? '+' : ''}{formatJOD(report.cashDifference)} {currency}</span>
                   </div>
                 </>
               )}
@@ -181,27 +185,27 @@ export function ZReportDialog({
 
           {/* Other */}
           <div>
-            <h4 className="font-semibold mb-2">Other</h4>
+            <h4 className="font-semibold mb-2">{t("other")}</h4>
             <div className="space-y-1">
               <div className="flex justify-between">
-                <span>Cancelled Orders</span>
+                <span>{t("cancelled_orders")}</span>
                 <span>{report.cancelledOrders}</span>
               </div>
               <div className="flex justify-between">
-                <span>Refunds</span>
-                <span>{report.refundsTotal.toFixed(2)} {currency}</span>
+                <span>{t("refunds")}</span>
+                <span>{formatJOD(report.refundsTotal)} {currency}</span>
               </div>
             </div>
           </div>
         </div>
 
         <DialogFooter className="print:hidden">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="h-12">
+            {t("close")}
           </Button>
-          <Button onClick={handlePrint}>
+          <Button onClick={handlePrint} className="h-12">
             <Printer className="h-4 w-4 mr-2" />
-            Print
+            {t("print")}
           </Button>
         </DialogFooter>
       </DialogContent>

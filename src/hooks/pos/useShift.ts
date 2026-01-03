@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCashierSession } from "./useCashierSession";
+import { useAuditLog } from "./useAuditLog";
 
 export function useCurrentShift() {
   const { user } = useAuth();
@@ -29,6 +30,7 @@ export function useOpenShift() {
   const { user } = useAuth();
   const { data: session } = useCashierSession();
   const queryClient = useQueryClient();
+  const auditLog = useAuditLog();
 
   return useMutation({
     mutationFn: async (openingCash: number) => {
@@ -49,6 +51,18 @@ export function useOpenShift() {
         .single();
 
       if (error) throw error;
+
+      // Log audit for shift open
+      await auditLog.mutateAsync({
+        entityType: "shift",
+        entityId: data.id,
+        action: "shift_open",
+        details: {
+          opening_cash: openingCash,
+          branch_id: session.branch.id,
+        },
+      });
+
       return data;
     },
     onSuccess: () => {
@@ -58,7 +72,10 @@ export function useOpenShift() {
 }
 
 export function useCloseShift() {
+  const { user } = useAuth();
+  const { data: session } = useCashierSession();
   const queryClient = useQueryClient();
+  const auditLog = useAuditLog();
 
   return useMutation({
     mutationFn: async ({ shiftId, closingCash }: { shiftId: string; closingCash: number }) => {
@@ -74,6 +91,21 @@ export function useCloseShift() {
         .single();
 
       if (error) throw error;
+
+      // Log audit for shift close
+      if (session?.restaurant?.id) {
+        await auditLog.mutateAsync({
+          entityType: "shift",
+          entityId: shiftId,
+          action: "shift_close",
+          details: {
+            closing_cash: closingCash,
+            opening_cash: data.opening_cash,
+            user_id: user?.id,
+          },
+        });
+      }
+
       return data;
     },
     onSuccess: () => {
@@ -83,8 +115,10 @@ export function useCloseShift() {
 }
 
 export function useCashMovement() {
+  const { user } = useAuth();
   const { data: session } = useCashierSession();
   const queryClient = useQueryClient();
+  const auditLog = useAuditLog();
 
   return useMutation({
     mutationFn: async ({
@@ -114,6 +148,21 @@ export function useCashMovement() {
         .single();
 
       if (error) throw error;
+
+      // Log audit for cash movement
+      await auditLog.mutateAsync({
+        entityType: "shift_transaction",
+        entityId: data.id,
+        action: type === "cash_in" ? "cash_in" : "cash_out",
+        details: {
+          shift_id: shiftId,
+          cashier_id: user?.id,
+          amount,
+          type,
+          reason: reason || null,
+        },
+      });
+
       return data;
     },
     onSuccess: () => {

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatJOD } from "@/lib/utils";
 
 interface ShiftDialogProps {
   open: boolean;
@@ -68,7 +69,7 @@ export function ShiftDialog({
         <div className="space-y-4 py-4">
           {mode === "open" && (
             <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground">Shift Start Time</p>
+              <p className="text-sm text-muted-foreground">{t("shift_start_time")}</p>
               <p className="text-lg font-bold">{format(shiftTime, "MMM d, yyyy 'at' h:mm a")}</p>
             </div>
           )}
@@ -76,7 +77,7 @@ export function ShiftDialog({
           {mode === "close" && expectedCash !== undefined && (
             <div className="p-3 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">{t("expected_cash")}</p>
-              <p className="text-lg font-bold">{expectedCash.toFixed(2)} {currency}</p>
+              <p className="text-lg font-bold">{formatJOD(expectedCash)} {currency}</p>
             </div>
           )}
 
@@ -85,22 +86,23 @@ export function ShiftDialog({
             <Input
               id="amount"
               type="number"
-              step="0.01"
+              step="0.001"
               min="0"
-              placeholder="0.00"
+              placeholder="0.000"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               autoFocus
+              className="h-12 text-lg"
             />
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="h-12">
+            {t("cancel")}
           </Button>
-          <Button onClick={handleConfirm} disabled={isLoading || !amount}>
-            {isLoading ? "Processing..." : `Confirm ${title}`}
+          <Button onClick={handleConfirm} disabled={isLoading || !amount} className="h-12 min-w-[140px]">
+            {isLoading ? t("processing") : `${t("confirm")} ${title}`}
           </Button>
         </DialogFooter>
       </DialogContent>
