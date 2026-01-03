@@ -29,12 +29,28 @@ git clone <YOUR_GIT_URL>
 # Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
+# Step 3: Set up environment variables.
+cp .env.example .env
+# Then edit .env with your Supabase credentials
+
+# Step 4: Install the necessary dependencies.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 5: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
+
+## Environment Variables
+
+This project requires the following environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `VITE_SUPABASE_PROJECT_ID` | Your Supabase project ID |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Your Supabase anon/public key |
+| `VITE_SUPABASE_URL` | Your Supabase project URL |
+
+Copy `.env.example` to `.env` and fill in your values. The `.env` file should never be committed to version control.
 
 **Edit a file directly in GitHub**
 
