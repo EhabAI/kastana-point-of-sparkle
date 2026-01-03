@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowRightLeft, AlertTriangle } from "lucide-react";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OpenOrder {
   id: string;
@@ -36,6 +37,7 @@ export function TransferItemDialog({
   openOrders,
   currentOrderId,
 }: TransferItemDialogProps) {
+  const { t } = useLanguage();
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
@@ -75,11 +77,11 @@ export function TransferItemDialog({
           <DialogHeader>
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-500" />
-              <DialogTitle>Confirm Transfer</DialogTitle>
+              <DialogTitle>{t("confirm_transfer")}</DialogTitle>
             </div>
             <DialogDescription className="pt-2">
-              You are about to transfer <strong>{itemName}</strong> to Order #{selectedOrder.order_number}.
-              This action will move the entire item (including notes and modifiers).
+              {t("about_to_transfer")} <strong>{itemName}</strong> {t("to_order")} #{selectedOrder.order_number}.
+              {t("transfer_note")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
@@ -89,14 +91,14 @@ export function TransferItemDialog({
               disabled={isLoading}
               className="min-h-[44px]"
             >
-              Back
+              {t("back")}
             </Button>
             <Button
               onClick={handleConfirm}
               disabled={isLoading}
               className="min-h-[44px]"
             >
-              {isLoading ? "Transferring..." : "Confirm Transfer"}
+              {isLoading ? t("transferring") : t("confirm_transfer")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -110,16 +112,16 @@ export function TransferItemDialog({
         <DialogHeader>
           <div className="flex items-center gap-2">
             <ArrowRightLeft className="h-5 w-5 text-primary" />
-            <DialogTitle>Transfer Item</DialogTitle>
+            <DialogTitle>{t("transfer_item")}</DialogTitle>
           </div>
           <DialogDescription>
-            Select the target order for <strong>{itemName}</strong>
+            {t("transfer_item_desc")} <strong>{itemName}</strong>
           </DialogDescription>
         </DialogHeader>
 
         {availableOrders.length === 0 ? (
           <div className="py-8 text-center text-muted-foreground">
-            No other open orders available
+            {t("no_other_open_orders")}
           </div>
         ) : (
           <ScrollArea className="max-h-[300px]">
@@ -140,11 +142,11 @@ export function TransferItemDialog({
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-medium">
-                        Order #{order.order_number}
+                        {t("order_prefix")} #{order.order_number}
                       </span>
                       {hasTable && (
                         <span className="text-sm text-muted-foreground">
-                          Table assigned
+                          {t("table_assigned")}
                         </span>
                       )}
                     </div>
@@ -161,14 +163,14 @@ export function TransferItemDialog({
             onClick={handleClose}
             className="min-h-[44px]"
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleProceed}
             disabled={!selectedOrderId || availableOrders.length === 0}
             className="min-h-[44px]"
           >
-            Next
+            {t("next")}
           </Button>
         </DialogFooter>
       </DialogContent>

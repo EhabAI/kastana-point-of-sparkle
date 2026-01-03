@@ -12,6 +12,7 @@ import { Clock, ArrowRight, X, MapPin, ShoppingBag } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
 import { formatJOD } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OrderItem {
   id: string;
@@ -70,6 +71,7 @@ export function HeldOrdersDialog({
   onCancelOrder,
   isLoading,
 }: HeldOrdersDialogProps) {
+  const { t } = useLanguage();
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
 
   const handleCancelClick = (orderId: string) => {
@@ -94,10 +96,10 @@ export function HeldOrdersDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-primary" />
-            Held Orders
+            {t("held_orders")}
           </DialogTitle>
           <DialogDescription>
-            {orders.length} order(s) on hold. Resume to continue or cancel to void.
+            {orders.length} {t("orders_on_hold")}
           </DialogDescription>
         </DialogHeader>
 
@@ -105,8 +107,8 @@ export function HeldOrdersDialog({
           {orders.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Clock className="h-12 w-12 mx-auto mb-3 opacity-30" />
-              <p className="font-medium">No held orders</p>
-              <p className="text-sm">Orders you hold will appear here</p>
+              <p className="font-medium">{t("no_held_orders")}</p>
+              <p className="text-sm">{t("orders_you_hold")}</p>
             </div>
           ) : (
             <div className="space-y-3 pr-2">
@@ -134,9 +136,9 @@ export function HeldOrdersDialog({
                           className="text-xs"
                         >
                           {isDineIn ? (
-                            <><MapPin className="h-3 w-3 mr-1" />{tableName || "Table"}</>
+                            <><MapPin className="h-3 w-3 mr-1" />{tableName || t("table")}</>
                           ) : (
-                            <><ShoppingBag className="h-3 w-3 mr-1" />Takeaway</>
+                            <><ShoppingBag className="h-3 w-3 mr-1" />{t("takeaway_label")}</>
                           )}
                         </Badge>
                       </div>
@@ -154,7 +156,7 @@ export function HeldOrdersDialog({
                         </span>
                       ))}
                       {activeItems.length > 3 && (
-                        <span className="text-primary"> +{activeItems.length - 3} more</span>
+                        <span className="text-primary"> +{activeItems.length - 3} {t("more")}</span>
                       )}
                     </div>
 
@@ -167,7 +169,7 @@ export function HeldOrdersDialog({
                     {isConfirmingCancel ? (
                       <div className="space-y-2">
                         <p className="text-sm text-destructive font-medium">
-                          Cancel this order? This action cannot be undone.
+                          {t("cancel_order_question")}
                         </p>
                         <div className="flex gap-2">
                           <Button
@@ -177,7 +179,7 @@ export function HeldOrdersDialog({
                             onClick={() => setConfirmCancelId(null)}
                             disabled={isLoading}
                           >
-                            Keep Order
+                            {t("keep_order")}
                           </Button>
                           <Button
                             size="sm"
@@ -186,7 +188,7 @@ export function HeldOrdersDialog({
                             onClick={handleConfirmCancel}
                             disabled={isLoading}
                           >
-                            {isLoading ? "Cancelling..." : "Yes, Cancel"}
+                            {isLoading ? t("cancelling") : t("yes_cancel")}
                           </Button>
                         </div>
                       </div>
@@ -200,7 +202,7 @@ export function HeldOrdersDialog({
                           disabled={isLoading}
                         >
                           <X className="h-4 w-4 mr-1" />
-                          Cancel
+                          {t("cancel")}
                         </Button>
                         <Button
                           size="sm"
@@ -211,7 +213,7 @@ export function HeldOrdersDialog({
                           }}
                           disabled={isLoading}
                         >
-                          Resume
+                          {t("resume")}
                           <ArrowRight className="h-4 w-4 ml-1" />
                         </Button>
                       </div>

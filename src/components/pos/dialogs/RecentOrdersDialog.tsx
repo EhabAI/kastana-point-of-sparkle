@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Receipt, Undo2, RotateCcw } from "lucide-react";
 import { format } from "date-fns";
 import { formatJOD } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OrderItem {
   id: string;
@@ -67,6 +68,8 @@ export function RecentOrdersDialog({
   onViewReceipt,
   onReopen,
 }: RecentOrdersDialogProps) {
+  const { t } = useLanguage();
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "paid":
@@ -96,17 +99,17 @@ export function RecentOrdersDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Recent Orders
+            {t("recent_orders")}
           </DialogTitle>
           <DialogDescription>
-            View completed orders from this shift
+            {t("view_completed_orders")}
           </DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="max-h-[500px]">
           {orders.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No completed orders yet
+              {t("no_completed_orders")}
             </div>
           ) : (
             <div className="space-y-4">
@@ -114,7 +117,7 @@ export function RecentOrdersDialog({
                 <div key={order.id} className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">Order #{order.order_number}</span>
+                      <span className="font-medium">{t("order_prefix")} #{order.order_number}</span>
                       <Badge className={getStatusColor(order.status)}>
                         {order.status}
                       </Badge>
@@ -128,7 +131,7 @@ export function RecentOrdersDialog({
                           className="h-8"
                         >
                           <RotateCcw className="h-4 w-4 mr-1" />
-                          Reopen
+                          {t("reopen")}
                         </Button>
                       )}
                       {canRefund(order) && onRefund && (
@@ -139,7 +142,7 @@ export function RecentOrdersDialog({
                           className="h-8"
                         >
                           <Undo2 className="h-4 w-4 mr-1" />
-                          Refund
+                          {t("refund")}
                         </Button>
                       )}
                       {order.status === "paid" && onViewReceipt && (
@@ -150,7 +153,7 @@ export function RecentOrdersDialog({
                           className="h-8"
                         >
                           <Receipt className="h-4 w-4 mr-1" />
-                          Receipt
+                          {t("receipt")}
                         </Button>
                       )}
                       <span className="text-sm text-muted-foreground">
@@ -161,7 +164,7 @@ export function RecentOrdersDialog({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">Items</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t("items")}</p>
                       <div className="text-sm space-y-1">
                         {order.order_items.map((item) => (
                           <div key={item.id} className="flex justify-between">
@@ -175,29 +178,29 @@ export function RecentOrdersDialog({
                     </div>
 
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">Summary</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t("summary")}</p>
                       <div className="text-sm space-y-1">
                         <div className="flex justify-between">
-                          <span>Subtotal</span>
+                          <span>{t("subtotal")}</span>
                           <span>{formatJOD(Number(order.subtotal))}</span>
                         </div>
                         {order.discount_value && Number(order.discount_value) > 0 && (
                           <div className="flex justify-between text-green-600">
-                            <span>Discount</span>
+                            <span>{t("discount")}</span>
                             <span>-{formatJOD(Number(order.discount_value))}</span>
                           </div>
                         )}
                         <div className="flex justify-between">
-                          <span>Tax</span>
+                          <span>{t("tax")}</span>
                           <span>{formatJOD(Number(order.tax_amount))}</span>
                         </div>
                         <div className="flex justify-between font-bold">
-                          <span>Total</span>
+                          <span>{t("total")}</span>
                           <span>{formatJOD(Number(order.total))} {currency}</span>
                         </div>
                       </div>
 
-                      <p className="text-xs text-muted-foreground mt-3 mb-1">Payments</p>
+                      <p className="text-xs text-muted-foreground mt-3 mb-1">{t("payments")}</p>
                       <div className="text-sm space-y-1">
                         {order.payments.map((payment) => (
                           <div key={payment.id} className="flex justify-between">
@@ -209,7 +212,7 @@ export function RecentOrdersDialog({
 
                       {order.refunds && order.refunds.length > 0 && (
                         <>
-                          <p className="text-xs text-muted-foreground mt-3 mb-1">Refunds</p>
+                          <p className="text-xs text-muted-foreground mt-3 mb-1">{t("refunds")}</p>
                           <div className="text-sm space-y-1 text-destructive">
                             {order.refunds.map((refund) => (
                               <div key={refund.id} className="flex justify-between">

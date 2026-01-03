@@ -7,6 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface POSHeaderProps {
   restaurantName: string;
@@ -37,6 +38,8 @@ export function POSHeader({
   onViewZReport,
   heldOrdersCount,
 }: POSHeaderProps) {
+  const { t } = useLanguage();
+
   return (
     <header className="flex items-center justify-between p-3 bg-card border-b">
       <div className="flex items-center gap-3">
@@ -58,7 +61,7 @@ export function POSHeader({
               : "bg-muted text-muted-foreground"
           }`}
         >
-          {shiftStatus === "open" ? "Shift Open" : "Shift Closed"}
+          {shiftStatus === "open" ? t("shift_status_open") : t("shift_status_closed")}
         </div>
       </div>
 
@@ -72,7 +75,7 @@ export function POSHeader({
               className="relative"
             >
               <Clock className="h-4 w-4 mr-1" />
-              Held
+              {t("held")}
               {heldOrdersCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
                   {heldOrdersCount}
@@ -89,21 +92,21 @@ export function POSHeader({
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={onViewRecentOrders}>
                   <FileText className="h-4 w-4 mr-2" />
-                  Recent Orders
+                  {t("recent_orders")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={onCashMovement}>
                   <DollarSign className="h-4 w-4 mr-2" />
-                  Cash In/Out
+                  {t("cash_in_out")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onViewZReport}>
                   <FileText className="h-4 w-4 mr-2" />
-                  Z Report
+                  {t("z_report")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onCloseShift} className="text-destructive">
                   <Clock className="h-4 w-4 mr-2" />
-                  Close Shift
+                  {t("close_shift")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -111,7 +114,7 @@ export function POSHeader({
         ) : (
           <Button onClick={onOpenShift} size="sm">
             <Clock className="h-4 w-4 mr-1" />
-            Open Shift
+            {t("open_shift")}
           </Button>
         )}
 
