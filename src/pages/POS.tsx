@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Users } from "lucide-react";
 import { cn, formatJOD } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import {
   useCashierSession,
@@ -98,6 +99,7 @@ interface MenuItemWithModifiers {
 
 export default function POS() {
   const { signOut, user } = useAuth();
+  const { t } = useLanguage();
   const { data: session, isLoading: sessionLoading, error: sessionError } = useCashierSession();
   const restaurant = session?.restaurant;
   const branch = session?.branch;
@@ -389,7 +391,7 @@ export default function POS() {
   const handleCloseShift = () => {
     // Block shift close if there are held orders
     if (heldOrders.length > 0) {
-      toast.error("Cannot close shift with held orders. Please resolve them first.");
+      toast.error(t("cannot_close_held_orders"));
       setHeldOrdersDialogOpen(true);
       return;
     }
@@ -401,7 +403,7 @@ export default function POS() {
     try {
       if (shiftDialogMode === "open") {
         await openShiftMutation.mutateAsync(amount);
-        toast.success("Shift opened");
+        toast.success(t("shift_opened"));
       } else {
         if (currentShift) {
           const closedAt = new Date().toISOString();
@@ -416,12 +418,12 @@ export default function POS() {
             orderCount,
           });
           setSummaryDialogOpen(true);
-          toast.success("Shift closed");
+          toast.success(t("shift_closed_msg"));
         }
       }
       setShiftDialogOpen(false);
     } catch (error) {
-      toast.error("Failed to " + shiftDialogMode + " shift");
+      toast.error(shiftDialogMode === "open" ? t("failed_open_shift") : t("failed_close_shift"));
     }
   };
 
@@ -444,9 +446,9 @@ export default function POS() {
       });
       setNewOrderDialogOpen(false);
       setActiveTab("new-order");
-      toast.success("Order created");
+      toast.success(t("order_created"));
     } catch (error) {
-      toast.error("Failed to create order");
+      toast.error(t("failed_create_order"));
     }
   };
 
@@ -510,7 +512,7 @@ export default function POS() {
 
       setSelectedItemForModifiers(null);
     } catch (error) {
-      toast.error("Failed to add item");
+      toast.error(t("failed_add_item"));
     }
   };
 
@@ -545,7 +547,7 @@ export default function POS() {
       
       await refetchOrder();
     } catch (error) {
-      toast.error("Failed to update quantity");
+      toast.error(t("failed_update_quantity"));
     }
   };
 
@@ -585,7 +587,7 @@ export default function POS() {
       
       await refetchOrder();
     } catch (error) {
-      toast.error("Failed to remove item");
+      toast.error(t("failed_remove_item"));
     }
   };
 
@@ -654,9 +656,9 @@ export default function POS() {
       });
       
       await refetchOrder();
-      toast.success("Item voided");
+      toast.success(t("item_voided"));
     } catch (error) {
-      toast.error("Failed to void item");
+      toast.error(t("failed_void_item"));
     }
   };
 
@@ -676,7 +678,7 @@ export default function POS() {
       setSelectedItemForNotes(null);
       await refetchOrder();
     } catch (error) {
-      toast.error("Failed to save notes");
+      toast.error(t("failed_save_notes"));
     }
   };
 
@@ -694,9 +696,9 @@ export default function POS() {
           total: totals.total,
         },
       });
-      toast.success("Discount applied");
+      toast.success(t("discount_applied"));
     } catch (error) {
-      toast.error("Failed to apply discount");
+      toast.error(t("failed_apply_discount"));
     }
   };
 
@@ -714,22 +716,22 @@ export default function POS() {
           total: totals.total,
         },
       });
-      toast.success("Discount removed");
+      toast.success(t("discount_removed"));
     } catch (error) {
-      toast.error("Failed to remove discount");
+      toast.error(t("failed_remove_discount"));
     }
   };
 
   const handlePay = () => {
     // Payment guard: only allow for OPEN orders
     if (!currentOrder || currentOrder.status !== "open") {
-      toast.error("Cannot pay - order must be open");
+      toast.error(t("cannot_pay_not_open"));
       return;
     }
     setPaymentDialogOpen(true);
   };
 
-  const handlePaymentConfirm = async (payments: { method: string; amount: number }[]) => {
+  const handlePaymentConfirm = async (payments: { method: string; amount: number }[]): Promise<void> => {
     if (!currentOrder) return;
     try {
       // Store order data before completing for receipt
@@ -759,13 +761,14 @@ export default function POS() {
       }
       await completeOrderMutation.mutateAsync({ orderId: currentOrder.id, payments });
       setPaymentDialogOpen(false);
-      toast.success("Payment complete");
+      toast.success(t("payment_success"));
 
       // Auto-show receipt after successful payment
       setSelectedOrderForReceipt(orderForReceipt as RecentOrder);
       setReceiptDialogOpen(true);
     } catch (error) {
-      toast.error("Payment failed");
+      toast.error(t("payment_failed"));
+      throw error; // Re-throw to signal failure to PaymentDialog
     }
   };
 
@@ -836,7 +839,7 @@ export default function POS() {
         },
       });
       
-      toast.success("Order held");
+      toast.success(t("order_held"));
       setConfirmNewOrderDialogOpen(false);
       
       // Open new order dialog
@@ -846,9 +849,9 @@ export default function POS() {
       try {
         await cancelOrderMutation.mutateAsync({ 
           orderId: currentOrder.id, 
-          reason: "Hold failed - auto discarded" 
+          reason: t("hold_failed_discarded")
         });
-        toast.info("Order discarded, starting new order");
+        toast.info(t("hold_failed_discarded"));
       } catch {
         // Ignore cancel failure
       }
@@ -862,13 +865,13 @@ export default function POS() {
     
     // Block if no items
     if (orderItems.length === 0) {
-      toast.error("Cannot hold empty order");
+      toast.error(t("cannot_hold_empty"));
       return;
     }
     
     // Only allow hold on OPEN orders
     if (currentOrder.status !== "open") {
-      toast.error("Can only hold open orders");
+      toast.error(t("can_only_hold_open"));
       return;
     }
     
@@ -887,9 +890,9 @@ export default function POS() {
         },
       });
       
-      toast.success("Order held");
+      toast.success(t("order_held"));
     } catch (error) {
-      toast.error("Failed to hold order");
+      toast.error(t("failed_hold_order"));
     }
   };
 
@@ -914,9 +917,9 @@ export default function POS() {
       }
       
       setActiveTab("new-order");
-      toast.success("Order resumed");
+      toast.success(t("order_loaded"));
     } catch (error) {
-      toast.error("Failed to resume order");
+      toast.error(t("failed_load_order"));
     }
   };
 
@@ -940,9 +943,9 @@ export default function POS() {
         });
       }
       
-      toast.success(`Order #${orderToCancel?.order_number || ""} cancelled`);
+      toast.success(t("order_cancelled"));
     } catch (error) {
-      toast.error("Failed to cancel order");
+      toast.error(t("failed_cancel_order"));
     }
   };
 
@@ -951,9 +954,9 @@ export default function POS() {
     try {
       await cancelOrderMutation.mutateAsync({ orderId: currentOrder.id, reason });
       setCancelDialogOpen(false);
-      toast.success("Order cancelled");
+      toast.success(t("order_cancelled"));
     } catch (error) {
-      toast.error("Failed to cancel order");
+      toast.error(t("failed_cancel_order"));
     }
   };
 
@@ -962,7 +965,7 @@ export default function POS() {
     
     // Only allow void on open orders
     if (currentOrder.status !== "open") {
-      toast.error("Can only void open orders");
+      toast.error(t("can_only_void_open"));
       return;
     }
     
@@ -990,9 +993,9 @@ export default function POS() {
       });
       
       setVoidOrderDialogOpen(false);
-      toast.success("Order voided");
+      toast.success(t("order_voided"));
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to void order";
+      const errorMessage = error instanceof Error ? error.message : t("failed_void_order");
       toast.error(errorMessage);
     }
   };
@@ -1002,9 +1005,9 @@ export default function POS() {
     try {
       await cashMovementMutation.mutateAsync({ shiftId: currentShift.id, type, amount, reason });
       setCashMovementDialogOpen(false);
-      toast.success(`Cash ${type === "cash_in" ? "added" : "removed"}`);
+      toast.success(type === "cash_in" ? t("cash_added") : t("cash_removed"));
     } catch (error) {
-      toast.error("Failed to record cash movement");
+      toast.error(t("failed_record_cash"));
     }
   };
 
@@ -1016,13 +1019,13 @@ export default function POS() {
   const handleRefund = (order: RecentOrder) => {
     // Only allow refunds on paid orders
     if (order.status !== "paid") {
-      toast.error("Can only refund paid orders");
+      toast.error(t("can_only_refund_paid"));
       return;
     }
     // Check if already fully refunded
     const totalRefunded = order.refunds?.reduce((sum, r) => sum + Number(r.amount), 0) || 0;
     if (totalRefunded >= Number(order.total)) {
-      toast.error("Order has already been fully refunded");
+      toast.error(t("already_fully_refunded"));
       return;
     }
     setSelectedOrderForRefund(order);
@@ -1057,12 +1060,12 @@ export default function POS() {
         },
       });
 
-      toast.success("Refund processed successfully");
+      toast.success(t("refund_processed"));
       setRefundDialogOpen(false);
       setReceiptDialogOpen(false);
       setSelectedOrderForRefund(null);
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to process refund";
+      const errorMessage = error instanceof Error ? error.message : t("refund_failed");
       toast.error(errorMessage);
       throw error;
     }
@@ -1071,11 +1074,11 @@ export default function POS() {
   const handleReopen = (order: RecentOrder) => {
     // Only allow reopen on paid orders without refunds
     if (order.status !== "paid") {
-      toast.error("Can only reopen paid orders");
+      toast.error(t("can_only_reopen_paid"));
       return;
     }
     if (order.refunds && order.refunds.length > 0) {
-      toast.error("Cannot reopen refunded orders");
+      toast.error(t("cannot_reopen_refunded"));
       return;
     }
     setSelectedOrderForReopen(order);
@@ -1098,29 +1101,29 @@ export default function POS() {
         },
       });
 
-      toast.success(`Order #${selectedOrderForReopen.order_number} reopened`);
+      toast.success(t("order_reopened"));
       setReopenDialogOpen(false);
       setRecentOrdersDialogOpen(false);
       setSelectedOrderForReopen(null);
     } catch (error) {
-      toast.error("Failed to reopen order");
+      toast.error(t("failed_reopen_order"));
     }
   };
 
   const handleTransferItem = (itemId: string) => {
     // Only allow on open orders with more than 1 item
     if (currentOrder?.status !== "open") {
-      toast.error("Can only transfer items from open orders");
+      toast.error(t("cannot_transfer_from_open"));
       return;
     }
     const activeItems = currentOrder?.order_items?.filter((i: { voided: boolean }) => !i.voided) || [];
     if (activeItems.length <= 1) {
-      toast.error("Order must have at least 2 items to transfer");
+      toast.error(t("need_two_items"));
       return;
     }
     const item = currentOrder?.order_items?.find((i: { id: string }) => i.id === itemId);
     if (item?.voided) {
-      toast.error("Cannot transfer voided items");
+      toast.error(t("cannot_transfer_voided"));
       return;
     }
     if (item) {
@@ -1137,30 +1140,30 @@ export default function POS() {
         sourceOrderId: currentOrder.id,
         targetOrderId,
       });
-      toast.success(`${selectedItemForTransfer.name} transferred`);
+      toast.success(`${selectedItemForTransfer.name} ${t("item_transferred")}`);
       setTransferDialogOpen(false);
       setSelectedItemForTransfer(null);
       await refetchOrder();
     } catch (error) {
-      toast.error("Failed to transfer item");
+      toast.error(t("failed_transfer_item"));
     }
   };
 
   const handleConfirmPending = async (orderId: string) => {
     try {
       await confirmPendingMutation.mutateAsync(orderId);
-      toast.success("Order confirmed");
+      toast.success(t("order_confirmed"));
     } catch (error) {
-      toast.error("Failed to confirm order");
+      toast.error(t("failed_confirm_order"));
     }
   };
 
   const handleRejectPending = async (orderId: string, reason?: string) => {
     try {
       await rejectPendingMutation.mutateAsync({ orderId, reason });
-      toast.success("Order rejected");
+      toast.success(t("order_rejected"));
     } catch (error) {
-      toast.error("Failed to reject order");
+      toast.error(t("failed_reject_order"));
     }
   };
 
@@ -1168,9 +1171,9 @@ export default function POS() {
     try {
       await resumeOrderMutation.mutateAsync(orderId);
       setActiveTab("new-order");
-      toast.success("Order loaded");
+      toast.success(t("order_loaded"));
     } catch (error) {
-      toast.error("Failed to load order");
+      toast.error(t("failed_load_order"));
     }
   };
 
@@ -1189,18 +1192,18 @@ export default function POS() {
         previousTableId: prevTableId,
         previousTableName: prevTableName,
       });
-      toast.success(`Order moved to ${tableName}`);
+      toast.success(t("order_moved"));
     } catch (error) {
-      toast.error("Failed to move order");
+      toast.error(t("failed_move_order"));
     }
   };
 
   const handleCloseOrder = async (orderId: string, tableId?: string, tableName?: string) => {
     try {
       await closeOrderMutation.mutateAsync({ orderId, tableId, tableName });
-      toast.success("Order closed");
+      toast.success(t("order_closed"));
     } catch (error) {
-      toast.error("Failed to close order");
+      toast.error(t("failed_close_order"));
     }
   };
 
@@ -1221,9 +1224,9 @@ export default function POS() {
       });
       setSplitDialogOpen(false);
       setSelectedOrderForSplit(null);
-      toast.success("Order split successfully");
+      toast.success(t("order_split"));
     } catch (error) {
-      toast.error("Failed to split order");
+      toast.error(t("failed_split_order"));
     }
   };
 
@@ -1232,7 +1235,7 @@ export default function POS() {
     if (mergeSelection.length > 0 && mergeSelection.length < 2) {
       const existingOrder = tableOrderMap.get(tableId);
       if (!existingOrder) {
-        toast.error("Select an occupied table to merge");
+        toast.error(t("select_occupied_table"));
         return;
       }
       if (mergeSelection.includes(tableId)) {
@@ -1254,7 +1257,7 @@ export default function POS() {
       // Occupied: Open table orders dialog instead of auto-resuming
       setSelectedTableForOrders({
         id: tableId,
-        name: table?.table_name || "Unknown",
+        name: table?.table_name || t("unknown"),
         orders: tableOrders,
       });
       setTableOrdersDialogOpen(true);
@@ -1271,9 +1274,9 @@ export default function POS() {
           tableId,
         });
         setActiveTab("new-order");
-        toast.success("Order created");
+        toast.success(t("order_created"));
       } catch (error) {
-        toast.error("Failed to create order");
+        toast.error(t("failed_create_order"));
       }
     }
   };
@@ -1283,9 +1286,9 @@ export default function POS() {
     try {
       await resumeOrderMutation.mutateAsync(orderId);
       setActiveTab("new-order");
-      toast.success("Order loaded");
+      toast.success(t("order_loaded"));
     } catch (error) {
-      toast.error("Failed to load order");
+      toast.error(t("failed_load_order"));
     }
   };
 
@@ -1299,18 +1302,18 @@ export default function POS() {
       await refetchOrder();
       setPaymentDialogOpen(true);
     } catch (error) {
-      toast.error("Failed to load order");
+      toast.error(t("failed_load_order"));
     }
   };
 
   const handleStartMerge = (tableId: string) => {
     const order = tableOrderMap.get(tableId);
     if (!order) {
-      toast.error("Select an occupied table first");
+      toast.error(t("select_occupied_table"));
       return;
     }
     setMergeSelection([tableId]);
-    toast.info("Select second table to merge");
+    toast.info(t("select_second_table"));
   };
 
   const handleCancelMerge = () => {
@@ -1325,7 +1328,7 @@ export default function POS() {
     const order2 = tableOrderMap.get(mergeSelection[1]);
 
     if (!order1 || !order2) {
-      toast.error("Orders not found");
+      toast.error(t("order_not_found"));
       handleCancelMerge();
       return;
     }
@@ -1342,10 +1345,10 @@ export default function POS() {
         secondaryOrderId: secondaryOrder.id,
         restaurantId: restaurant.id,
       });
-      toast.success(`Orders merged into #${primaryOrder.order_number}`);
+      toast.success(t("order_merged"));
       handleCancelMerge();
     } catch (error) {
-      toast.error("Failed to merge orders");
+      toast.error(t("failed_merge_orders"));
     }
   };
 

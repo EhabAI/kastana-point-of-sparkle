@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AlertTriangle, Undo2 } from "lucide-react";
+import { formatJOD } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface RefundDialogProps {
   open: boolean;
@@ -39,6 +41,7 @@ export function RefundDialog({
   onConfirm,
   isProcessing = false,
 }: RefundDialogProps) {
+  const { t } = useLanguage();
   const [refundType, setRefundType] = useState<"full" | "partial">("full");
   const [partialAmount, setPartialAmount] = useState("");
   const [reason, setReason] = useState("");
@@ -61,7 +64,7 @@ export function RefundDialog({
     setPartialAmount(value);
     const num = parseFloat(value);
     if (num > maxRefundable) {
-      setError(`Amount cannot exceed ${maxRefundable.toFixed(2)} ${currency}`);
+      setError(`${t("amount")} > ${formatJOD(maxRefundable)} ${currency}`);
     } else {
       setError(null);
     }
@@ -101,14 +104,14 @@ export function RefundDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Undo2 className="h-5 w-5" />
-            {showConfirmation ? "Confirm Refund" : "Process Refund"}
+            {showConfirmation ? t("confirm_refund") : t("process_refund")}
           </DialogTitle>
           <DialogDescription>
-            Order #{orderNumber} • Total Paid: {totalPaid.toFixed(2)} {currency}
+            {t("order")} #{orderNumber} • {t("total_paid")}: {formatJOD(totalPaid)} {currency}
             {alreadyRefunded > 0 && (
               <span className="block text-destructive">
-                Already Refunded: {alreadyRefunded.toFixed(2)} {currency} • 
-                Remaining: {maxRefundable.toFixed(2)} {currency}
+                {t("already_refunded")}: {formatJOD(alreadyRefunded)} {currency} • 
+                {t("remaining")}: {formatJOD(maxRefundable)} {currency}
               </span>
             )}
           </DialogDescription>
@@ -119,7 +122,7 @@ export function RefundDialog({
             <div className="space-y-6 py-4">
               {/* Refund Type */}
               <div className="space-y-3">
-                <Label className="text-base">Refund Type</Label>
+                <Label className="text-base">{t("refund_type")}</Label>
                 <RadioGroup
                   value={refundType}
                   onValueChange={handleRefundTypeChange}
@@ -136,9 +139,9 @@ export function RefundDialog({
                       htmlFor="full"
                       className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer h-20"
                     >
-                      <span className="text-lg font-semibold">Full Refund</span>
+                      <span className="text-lg font-semibold">{t("full_refund")}</span>
                       <span className="text-sm text-muted-foreground">
-                        {maxRefundable.toFixed(2)} {currency}
+                        {formatJOD(maxRefundable)} {currency}
                       </span>
                     </Label>
                   </div>
@@ -152,9 +155,9 @@ export function RefundDialog({
                       htmlFor="partial"
                       className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer h-20"
                     >
-                      <span className="text-lg font-semibold">Partial</span>
+                      <span className="text-lg font-semibold">{t("partial_refund")}</span>
                       <span className="text-sm text-muted-foreground">
-                        Custom amount
+                        {t("custom_amount")}
                       </span>
                     </Label>
                   </div>
@@ -164,17 +167,17 @@ export function RefundDialog({
               {/* Partial Amount Input */}
               {refundType === "partial" && (
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Refund Amount</Label>
+                  <Label htmlFor="amount">{t("refund_amount")}</Label>
                   <div className="relative">
                     <Input
                       id="amount"
                       type="number"
-                      step="0.01"
-                      min="0.01"
+                      step="0.001"
+                      min="0.001"
                       max={maxRefundable}
                       value={partialAmount}
                       onChange={(e) => handlePartialAmountChange(e.target.value)}
-                      placeholder="0.00"
+                      placeholder="0.000"
                       className="text-lg h-12 pr-16"
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -190,17 +193,17 @@ export function RefundDialog({
               {/* Reason */}
               <div className="space-y-2">
                 <Label htmlFor="reason">
-                  Reason <span className="text-destructive">*</span>
+                  {t("reason")} <span className="text-destructive">*</span>
                 </Label>
                 <Textarea
                   id="reason"
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder="Enter the reason for this refund..."
+                  placeholder={t("void_reason_placeholder")}
                   className="min-h-[100px] resize-none"
                 />
                 {!hasReason && reason !== "" && (
-                  <p className="text-sm text-destructive">Reason is required</p>
+                  <p className="text-sm text-destructive">{t("reason_required")}</p>
                 )}
               </div>
             </div>
@@ -212,14 +215,14 @@ export function RefundDialog({
                 className="h-12"
                 disabled={isProcessing}
               >
-                Cancel
+                {t("cancel")}
               </Button>
               <Button
                 onClick={handleProceed}
                 disabled={!canSubmit}
                 className="h-12"
               >
-                Review Refund
+                {t("review_refund")}
               </Button>
             </DialogFooter>
           </>
@@ -235,16 +238,16 @@ export function RefundDialog({
 
               <div className="text-center space-y-4">
                 <p className="text-lg font-medium">
-                  You are about to refund
+                  {t("about_to_refund")}
                 </p>
                 <p className="text-3xl font-bold text-destructive">
-                  {refundAmount.toFixed(2)} {currency}
+                  {formatJOD(refundAmount)} {currency}
                 </p>
                 <p className="text-muted-foreground">
-                  {refundType === "full" ? "Full refund" : "Partial refund"} for Order #{orderNumber}
+                  {refundType === "full" ? t("full_refund") : t("partial_refund")} {t("refund_for_order")} #{orderNumber}
                 </p>
                 <div className="bg-muted rounded-lg p-3 text-left">
-                  <p className="text-xs text-muted-foreground mb-1">Reason:</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t("reason")}:</p>
                   <p className="text-sm">{reason}</p>
                 </div>
               </div>
@@ -257,7 +260,7 @@ export function RefundDialog({
                 className="h-12"
                 disabled={isProcessing}
               >
-                Back
+                {t("back")}
               </Button>
               <Button
                 variant="destructive"
@@ -265,7 +268,7 @@ export function RefundDialog({
                 disabled={isProcessing}
                 className="h-12"
               >
-                {isProcessing ? "Processing..." : "Confirm Refund"}
+                {isProcessing ? t("processing") : t("confirm_refund")}
               </Button>
             </DialogFooter>
           </>
