@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { cn } from "@/lib/utils";
 
 interface POSHeaderProps {
   restaurantName: string;
@@ -38,7 +39,7 @@ export function POSHeader({
   onViewZReport,
   heldOrdersCount,
 }: POSHeaderProps) {
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
 
   return (
     <header className="flex items-center justify-between p-3 bg-card border-b">
@@ -62,6 +63,32 @@ export function POSHeader({
           }`}
         >
           {shiftStatus === "open" ? t("shift_status_open") : t("shift_status_closed")}
+        </div>
+
+        {/* Compact Language Toggle */}
+        <div className="flex items-center border rounded-md overflow-hidden text-xs">
+          <button
+            onClick={() => setLanguage("en")}
+            className={cn(
+              "px-2 py-1 transition-colors font-medium",
+              language === "en" 
+                ? "bg-primary text-primary-foreground" 
+                : "bg-muted/50 text-muted-foreground hover:bg-muted"
+            )}
+          >
+            EN
+          </button>
+          <button
+            onClick={() => setLanguage("ar")}
+            className={cn(
+              "px-2 py-1 transition-colors font-medium",
+              language === "ar" 
+                ? "bg-primary text-primary-foreground" 
+                : "bg-muted/50 text-muted-foreground hover:bg-muted"
+            )}
+          >
+            AR
+          </button>
         </div>
       </div>
 
