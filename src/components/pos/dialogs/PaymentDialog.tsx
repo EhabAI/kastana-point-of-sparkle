@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -62,6 +62,10 @@ export function PaymentDialog({
 
   const [splitPayments, setSplitPayments] = useState<{ method: PaymentMethodId; amount: string }[]>([]);
   const [keypadState, setKeypadState] = useState<{ open: boolean; index: number }>({ open: false, index: 0 });
+  
+  // Double-submit protection
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitRef = useRef(false);
 
   // Helper: round to 3 decimals using HALF-UP (JOD standard)
   const roundJOD = (n: number): number => Math.round(n * 1000) / 1000;
@@ -71,6 +75,11 @@ export function PaymentDialog({
     if (open && splitPayments.length === 0 && enabledMethods.length > 0) {
       setSplitPayments([{ method: enabledMethods[0].id, amount: formatJOD(total) }]);
     }
+    // Reset submitting state when dialog opens
+    if (open) {
+      setIsSubmitting(false);
+      submitRef.current = false;
+    }
   }, [open, enabledMethods.length]);
 
   const handleKeypadConfirm = (value: number) => {
@@ -78,11 +87,20 @@ export function PaymentDialog({
   };
 
   const handleConfirm = () => {
+    // Double-submit protection: check and set flag immediately
+    if (submitRef.current || isSubmitting) return;
+    submitRef.current = true;
+    setIsSubmitting(true);
+
     const payments = splitPayments
       .filter((p) => parseFloat(p.amount) > 0)
       .map((p) => ({ method: p.method, amount: parseFloat(p.amount) }));
     
-    if (payments.length === 0) return;
+    if (payments.length === 0) {
+      setIsSubmitting(false);
+      submitRef.current = false;
+      return;
+    }
     
     onConfirm(payments);
     resetState();
@@ -90,6 +108,8 @@ export function PaymentDialog({
 
   const resetState = () => {
     setSplitPayments([]);
+    setIsSubmitting(false);
+    submitRef.current = false;
   };
 
   const addPaymentRow = () => {
@@ -317,16 +337,16 @@ export function PaymentDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
             className="h-12"
-            disabled={isLoading}
+            disabled={isLoading || isSubmitting}
           >
             Cancel
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={isLoading || !hasValidPayments || !(isExactMatch || (hasOverpayment && allPaymentsCash))}
+            disabled={isLoading || isSubmitting || !hasValidPayments || !(isExactMatch || (hasOverpayment && allPaymentsCash))}
             className="h-12 min-w-[160px]"
           >
-            {isLoading ? "Processing..." : `Complete Payment`}
+            {isLoading || isSubmitting ? "Processing..." : `Complete Payment`}
           </Button>
         </DialogFooter>
 

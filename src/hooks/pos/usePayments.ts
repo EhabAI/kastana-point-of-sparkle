@@ -4,6 +4,9 @@ import { useCashierRestaurant } from "./useCashierRestaurant";
 
 export type PaymentMethod = string;
 
+// Helper: round to 3 decimals using HALF-UP (JOD standard)
+const roundJOD = (n: number): number => Math.round(n * 1000) / 1000;
+
 export function useAddPayment() {
   const { data: restaurant } = useCashierRestaurant();
   const queryClient = useQueryClient();
@@ -45,7 +48,44 @@ export function useCompleteOrder() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (orderId: string) => {
+    mutationFn: async ({ 
+      orderId, 
+      payments 
+    }: { 
+      orderId: string; 
+      payments: { method: string; amount: number }[] 
+    }) => {
+      // Fetch order to validate
+      const { data: order, error: orderError } = await supabase
+        .from("orders")
+        .select("total")
+        .eq("id", orderId)
+        .single();
+
+      if (orderError) throw orderError;
+      if (!order) throw new Error("Order not found");
+
+      const orderTotal = roundJOD(order.total);
+      const paymentTotal = roundJOD(payments.reduce((sum, p) => sum + p.amount, 0));
+      const allCash = payments.every(p => p.method === "cash");
+
+      // BACKEND VALIDATION (CRITICAL)
+      // 1. Card payments must be exact (no overpayment)
+      if (!allCash && paymentTotal > orderTotal + 0.001) {
+        throw new Error("Card payments must be exact. No overpayment allowed.");
+      }
+
+      // 2. Total payments must cover the order (within 3-decimal precision)
+      if (paymentTotal < orderTotal - 0.001) {
+        throw new Error("Payment total is less than order total.");
+      }
+
+      // 3. If there's overpayment, ALL methods must be cash
+      if (paymentTotal > orderTotal + 0.001 && !allCash) {
+        throw new Error("Overpayment is only allowed when all payment methods are cash.");
+      }
+
+      // All validations passed - complete the order
       const { data, error } = await supabase
         .from("orders")
         .update({ status: "paid" })

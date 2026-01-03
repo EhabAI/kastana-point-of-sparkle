@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface QRPendingOrdersProps {
   orders: PendingOrder[];
@@ -34,6 +35,7 @@ export function QRPendingOrders({
   onReject,
   isLoading,
 }: QRPendingOrdersProps) {
+  const { t } = useLanguage();
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -61,8 +63,8 @@ export function QRPendingOrders({
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
         <Clock className="h-16 w-16 mb-4 opacity-50" />
-        <h3 className="text-lg font-medium mb-1">No Pending QR Orders</h3>
-        <p className="text-sm">New QR orders will appear here</p>
+        <h3 className="text-lg font-medium mb-1">{t("qr_no_pending_orders")}</h3>
+        <p className="text-sm">{t("qr_orders_appear_here")}</p>
       </div>
     );
   }
@@ -85,11 +87,11 @@ export function QRPendingOrders({
                         Order #{order.order_number}
                       </CardTitle>
                       <Badge variant="outline" className="text-xs">
-                        {itemCount} items
+                        {itemCount} {t("qr_items")}
                       </Badge>
                       {tableAssigned && (
                         <Badge variant="secondary" className="text-xs">
-                          Table
+                          {t("qr_table")}
                         </Badge>
                       )}
                     </div>
@@ -105,7 +107,7 @@ export function QRPendingOrders({
                     onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
                     className="w-full flex items-center justify-between py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    <span>View items</span>
+                    <span>{t("qr_view_items")}</span>
                     {isExpanded ? (
                       <ChevronUp className="h-4 w-4" />
                     ) : (
@@ -127,8 +129,8 @@ export function QRPendingOrders({
                   )}
 
                   <div className="flex justify-between items-center py-2 border-t font-medium">
-                    <span>Total</span>
-                    <span className="text-lg">{order.total.toFixed(2)} {currency}</span>
+                    <span>{t("qr_total")}</span>
+                    <span className="text-lg">{order.total.toFixed(3)} {currency}</span>
                   </div>
                 </CardContent>
 
@@ -140,7 +142,7 @@ export function QRPendingOrders({
                     disabled={isLoading}
                   >
                     <X className="h-5 w-5 mr-2" />
-                    Reject
+                    {t("qr_reject")}
                   </Button>
                   <Button
                     className="flex-1 h-12"
@@ -148,7 +150,7 @@ export function QRPendingOrders({
                     disabled={isLoading}
                   >
                     <Check className="h-5 w-5 mr-2" />
-                    Confirm
+                    {t("qr_confirm")}
                   </Button>
                 </CardFooter>
               </Card>
@@ -160,26 +162,26 @@ export function QRPendingOrders({
       <AlertDialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Reject Order</AlertDialogTitle>
+            <AlertDialogTitle>{t("qr_reject_order")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to reject this order? This action cannot be undone.
+              {t("qr_reject_confirm_msg")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
             <Textarea
-              placeholder="Reason for rejection (optional)"
+              placeholder={t("qr_reject_reason_placeholder")}
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               className="min-h-[80px]"
             />
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel className="h-12">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="h-12">{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRejectConfirm}
               className="h-12 bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Reject Order
+              {t("qr_reject_order")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
