@@ -9,6 +9,7 @@ import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { DateRangeFilter, DateRange, DateRangePreset, getDateRangeForPreset } from "./DateRangeFilter";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatJOD } from "@/lib/utils";
 
 interface ItemSalesData {
   menuItemId: string;
@@ -142,7 +143,7 @@ export function BestWorstSellers() {
                             <p className="text-sm text-muted-foreground">{item.quantity} {t("sold")}</p>
                           </div>
                         </div>
-                        <p className="font-semibold text-foreground">{item.revenue.toFixed(2)} {currency}</p>
+                        <p className="font-semibold text-foreground">{formatJOD(item.revenue)} {currency}</p>
                       </div>
                     ))}
                   </div>
@@ -172,7 +173,7 @@ export function BestWorstSellers() {
                               <p className="text-sm text-muted-foreground">{item.quantity} {t("sold")}</p>
                             </div>
                           </div>
-                          <p className="font-semibold text-foreground">{item.revenue.toFixed(2)} {currency}</p>
+                          <p className="font-semibold text-foreground">{formatJOD(item.revenue)} {currency}</p>
                         </div>
                       ))
                     )}

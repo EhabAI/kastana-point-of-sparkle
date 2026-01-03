@@ -19,6 +19,7 @@ import {
 import { Clock, ChevronDown, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { DateRangeFilter, DateRange, DateRangePreset, getDateRangeForPreset } from "./DateRangeFilter";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatJOD } from "@/lib/utils";
 
 interface ShiftWithCashier {
   id: string;
@@ -104,8 +105,8 @@ export function ShiftsView() {
       format(new Date(shift.opened_at), "PPp"),
       shift.closed_at ? format(new Date(shift.closed_at), "PPp") : "—",
       shift.status,
-      `${Number(shift.opening_cash).toFixed(2)} ${currency}`,
-      shift.closing_cash ? `${Number(shift.closing_cash).toFixed(2)} ${currency}` : "—",
+      `${formatJOD(Number(shift.opening_cash))} ${currency}`,
+      shift.closing_cash ? `${formatJOD(Number(shift.closing_cash))} ${currency}` : "—",
     ]);
 
     const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
@@ -206,11 +207,11 @@ export function ShiftsView() {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
-                            {Number(shift.opening_cash).toFixed(2)} {currency}
+                            {formatJOD(Number(shift.opening_cash))} {currency}
                           </TableCell>
                           <TableCell className="text-right">
                             {shift.closing_cash 
-                              ? `${Number(shift.closing_cash).toFixed(2)} ${currency}`
+                              ? `${formatJOD(Number(shift.closing_cash))} ${currency}`
                               : "—"
                             }
                           </TableCell>

@@ -11,6 +11,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Minus, Plus } from "lucide-react";
+import { formatJOD } from "@/lib/utils";
 
 interface OrderItem {
   id: string;
@@ -131,7 +132,7 @@ export function SplitOrderDialog({
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{item.name}</div>
                     <div className="text-sm text-muted-foreground">
-                      {item.price.toFixed(2)} {currency} × {item.quantity}
+                      {formatJOD(item.price)} {currency} × {item.quantity}
                     </div>
                     {item.notes && (
                       <div className="text-xs text-muted-foreground italic truncate">
@@ -181,7 +182,7 @@ export function SplitOrderDialog({
           </div>
           <div className="flex justify-between text-base font-medium pt-2 border-t">
             <span>New order total:</span>
-            <span>{splitTotal.toFixed(2)} {currency}</span>
+            <span>{formatJOD(splitTotal)} {currency}</span>
           </div>
         </div>
 

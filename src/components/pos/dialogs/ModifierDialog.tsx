@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ModifierGroup, SelectedModifier } from "@/hooks/pos/useModifiers";
+import { formatJOD } from "@/lib/utils";
 
 interface MenuItem {
   id: string;
@@ -132,7 +133,7 @@ export function ModifierDialog({
         <DialogHeader>
           <DialogTitle>Customize: {menuItem.name}</DialogTitle>
           <DialogDescription>
-            Base price: {menuItem.price.toFixed(2)} {currency}
+            Base price: {formatJOD(menuItem.price)} {currency}
           </DialogDescription>
         </DialogHeader>
 
@@ -177,7 +178,7 @@ export function ModifierDialog({
                           {option.price_adjustment !== 0 && (
                             <span className="text-sm text-muted-foreground">
                               {option.price_adjustment > 0 ? "+" : ""}
-                              {option.price_adjustment.toFixed(2)} {currency}
+                              {formatJOD(option.price_adjustment)} {currency}
                             </span>
                           )}
                         </div>
@@ -205,7 +206,7 @@ export function ModifierDialog({
                             {option.price_adjustment !== 0 && (
                               <span className="text-sm text-muted-foreground">
                                 {option.price_adjustment > 0 ? "+" : ""}
-                                {option.price_adjustment.toFixed(2)} {currency}
+                                {formatJOD(option.price_adjustment)} {currency}
                               </span>
                             )}
                           </div>
@@ -225,12 +226,12 @@ export function ModifierDialog({
               <span>Modifiers</span>
               <span>
                 {modifierTotal > 0 ? "+" : ""}
-                {modifierTotal.toFixed(2)} {currency}
+                {formatJOD(modifierTotal)} {currency}
               </span>
             </div>
             <div className="flex justify-between font-medium mt-1">
               <span>Item Total</span>
-              <span>{itemTotal.toFixed(2)} {currency}</span>
+              <span>{formatJOD(itemTotal)} {currency}</span>
             </div>
           </div>
         )}

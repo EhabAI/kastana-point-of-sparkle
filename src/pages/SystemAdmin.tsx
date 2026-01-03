@@ -23,6 +23,7 @@ import { Store, Users, Plus, Link, Eye, Loader2, Upload, Image } from "lucide-re
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { formatJOD } from "@/lib/utils";
 
 const emailSchema = z.string().email("Please enter a valid email");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -578,7 +579,7 @@ function ViewMenuDialog({
                               Unavailable
                             </span>
                           )}
-                          <span className="font-medium text-foreground">${Number(item.price).toFixed(2)}</span>
+                          <span className="font-medium text-foreground">${formatJOD(Number(item.price))}</span>
                         </div>
                       </div>
                     ))}

@@ -10,6 +10,7 @@ import { DateRangeFilter, DateRange, DateRangePreset, getDateRangeForPreset } fr
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatJOD } from "@/lib/utils";
 
 interface CashierMetrics {
   cashierId: string;
@@ -185,7 +186,7 @@ export function CashierPerformance() {
                         <p className="text-sm text-muted-foreground">{cashier.orderCount} {t("orders").toLowerCase()}</p>
                       </div>
                     </div>
-                    <p className="text-lg font-bold text-foreground">{cashier.totalSales.toFixed(2)} {currency}</p>
+                    <p className="text-lg font-bold text-foreground">{formatJOD(cashier.totalSales)} {currency}</p>
                   </div>
                   
                   {/* Sales Progress Bar */}
@@ -197,11 +198,11 @@ export function CashierPerformance() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                     <div className="p-2 bg-background rounded">
                       <p className="text-muted-foreground">{t("avg_order")}</p>
-                      <p className="font-semibold text-foreground">{cashier.averageOrderValue.toFixed(2)} {currency}</p>
+                      <p className="font-semibold text-foreground">{formatJOD(cashier.averageOrderValue)} {currency}</p>
                     </div>
                     <div className="p-2 bg-background rounded">
                       <p className="text-muted-foreground">{t("discounts_given")}</p>
-                      <p className="font-semibold text-foreground">{cashier.discountGiven.toFixed(2)} {currency}</p>
+                      <p className="font-semibold text-foreground">{formatJOD(cashier.discountGiven)} {currency}</p>
                     </div>
                     <div className="p-2 bg-background rounded">
                       <p className="text-muted-foreground">{t("voided_items")}</p>

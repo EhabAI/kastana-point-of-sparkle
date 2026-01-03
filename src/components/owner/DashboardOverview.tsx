@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfDay, endOfDay, format } from "date-fns";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatJOD } from "@/lib/utils";
 
 interface DashboardOverviewProps {
   restaurantId: string;
@@ -129,7 +130,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
               <div>
                 <p className="text-xs text-muted-foreground">{t("todays_sales")}</p>
                 <p className="font-semibold text-foreground">
-                  {todayStats?.todaySales.toFixed(2) || "0.00"} {currencySymbol}
+                  {formatJOD(todayStats?.todaySales || 0)} {currencySymbol}
                 </p>
               </div>
             </div>

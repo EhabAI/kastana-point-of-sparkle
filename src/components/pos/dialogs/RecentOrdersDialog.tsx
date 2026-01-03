@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FileText, Receipt, Undo2, RotateCcw } from "lucide-react";
 import { format } from "date-fns";
+import { formatJOD } from "@/lib/utils";
 
 interface OrderItem {
   id: string;
@@ -167,7 +168,7 @@ export function RecentOrdersDialog({
                             <span>
                               {item.quantity}× {item.name}
                             </span>
-                            <span>{(Number(item.price) * item.quantity).toFixed(2)}</span>
+                            <span>{formatJOD(Number(item.price) * item.quantity)}</span>
                           </div>
                         ))}
                       </div>
@@ -178,21 +179,21 @@ export function RecentOrdersDialog({
                       <div className="text-sm space-y-1">
                         <div className="flex justify-between">
                           <span>Subtotal</span>
-                          <span>{Number(order.subtotal).toFixed(2)}</span>
+                          <span>{formatJOD(Number(order.subtotal))}</span>
                         </div>
                         {order.discount_value && Number(order.discount_value) > 0 && (
                           <div className="flex justify-between text-green-600">
                             <span>Discount</span>
-                            <span>-{Number(order.discount_value).toFixed(2)}</span>
+                            <span>-{formatJOD(Number(order.discount_value))}</span>
                           </div>
                         )}
                         <div className="flex justify-between">
                           <span>Tax</span>
-                          <span>{Number(order.tax_amount).toFixed(2)}</span>
+                          <span>{formatJOD(Number(order.tax_amount))}</span>
                         </div>
                         <div className="flex justify-between font-bold">
                           <span>Total</span>
-                          <span>{Number(order.total).toFixed(2)} {currency}</span>
+                          <span>{formatJOD(Number(order.total))} {currency}</span>
                         </div>
                       </div>
 
@@ -201,7 +202,7 @@ export function RecentOrdersDialog({
                         {order.payments.map((payment) => (
                           <div key={payment.id} className="flex justify-between">
                             <span className="capitalize">{payment.method}</span>
-                            <span>{Number(payment.amount).toFixed(2)}</span>
+                            <span>{formatJOD(Number(payment.amount))}</span>
                           </div>
                         ))}
                       </div>
@@ -213,7 +214,7 @@ export function RecentOrdersDialog({
                             {order.refunds.map((refund) => (
                               <div key={refund.id} className="flex justify-between">
                                 <span className="capitalize">{refund.refund_type}</span>
-                                <span>-{Number(refund.amount).toFixed(2)}</span>
+                                <span>-{formatJOD(Number(refund.amount))}</span>
                               </div>
                             ))}
                           </div>

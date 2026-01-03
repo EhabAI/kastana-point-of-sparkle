@@ -9,6 +9,7 @@ import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { DateRangeFilter, DateRange, DateRangePreset, getDateRangeForPreset } from "./DateRangeFilter";
 import { format, eachDayOfInterval, startOfDay, endOfDay } from "date-fns";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatJOD } from "@/lib/utils";
 import { 
   AreaChart, 
   Area, 
@@ -242,7 +243,7 @@ export function AnalyticsCharts() {
                               borderRadius: '8px',
                               fontSize: '12px'
                             }}
-                            formatter={(value: number) => [`${value.toFixed(2)} ${currencySymbol}`, t("sales")]}
+                            formatter={(value: number) => [`${formatJOD(value)} ${currencySymbol}`, t("sales")]}
                           />
                           <Area 
                             type="monotone" 
@@ -285,7 +286,7 @@ export function AnalyticsCharts() {
                               fontSize: '12px'
                             }}
                             formatter={(value: number, name: string) => [
-                              name === 'orders' ? value : `${value.toFixed(2)} ${currencySymbol}`,
+                              name === 'orders' ? value : `${formatJOD(value)} ${currencySymbol}`,
                               name === 'orders' ? t("orders") : t("sales")
                             ]}
                           />
@@ -326,7 +327,7 @@ export function AnalyticsCharts() {
                                 borderRadius: '8px',
                                 fontSize: '12px'
                               }}
-                              formatter={(value: number) => [`${value.toFixed(2)} ${currencySymbol}`, t("sales")]}
+                              formatter={(value: number) => [`${formatJOD(value)} ${currencySymbol}`, t("sales")]}
                             />
                           </PieChart>
                         </ResponsiveContainer>
@@ -342,7 +343,7 @@ export function AnalyticsCharts() {
                               <span className="text-sm font-medium text-foreground">{cat.name}</span>
                             </div>
                             <div className="text-right">
-                              <p className="text-sm font-semibold text-foreground">{cat.value.toFixed(2)} {currencySymbol}</p>
+                              <p className="text-sm font-semibold text-foreground">{formatJOD(cat.value)} {currencySymbol}</p>
                               <p className="text-xs text-muted-foreground">
                                 {totalCategorySales > 0 ? ((cat.value / totalCategorySales) * 100).toFixed(1) : 0}%
                               </p>

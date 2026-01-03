@@ -9,6 +9,7 @@ import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { startOfDay, endOfDay, subDays, format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatJOD } from "@/lib/utils";
 
 interface Alert {
   id: string;
@@ -101,8 +102,8 @@ export function NotificationsAlerts() {
             title: t("sales_up"),
             message: t("sales_up_msg")
               .replace("{percent}", salesChange.toFixed(0))
-              .replace("{today}", todaySales.toFixed(2))
-              .replace("{yesterday}", yesterdaySales.toFixed(2))
+              .replace("{today}", formatJOD(todaySales))
+              .replace("{yesterday}", formatJOD(yesterdaySales))
               .replace("{currency}", currencySymbol),
             timestamp: new Date(),
           });
@@ -113,8 +114,8 @@ export function NotificationsAlerts() {
             title: t("sales_down"),
             message: t("sales_down_msg")
               .replace("{percent}", Math.abs(salesChange).toFixed(0))
-              .replace("{today}", todaySales.toFixed(2))
-              .replace("{yesterday}", yesterdaySales.toFixed(2))
+              .replace("{today}", formatJOD(todaySales))
+              .replace("{yesterday}", formatJOD(yesterdaySales))
               .replace("{currency}", currencySymbol),
             timestamp: new Date(),
           });
@@ -171,7 +172,7 @@ export function NotificationsAlerts() {
           title: t("high_discounts"),
           message: t("high_discounts_msg")
             .replace("{percent}", ((todayDiscounts / todaySales) * 100).toFixed(0))
-            .replace("{amount}", todayDiscounts.toFixed(2))
+            .replace("{amount}", formatJOD(todayDiscounts))
             .replace("{currency}", currencySymbol),
           timestamp: new Date(),
         });
