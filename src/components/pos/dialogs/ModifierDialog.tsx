@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ModifierGroup, SelectedModifier } from "@/hooks/pos/useModifiers";
 import { formatJOD } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MenuItem {
   id: string;
@@ -40,6 +41,7 @@ export function ModifierDialog({
   onConfirm,
   isLoading,
 }: ModifierDialogProps) {
+  const { t } = useLanguage();
   // Track selected options per group: { groupId: [optionId, ...] }
   const [selections, setSelections] = useState<Record<string, string[]>>({});
 
@@ -131,9 +133,9 @@ export function ModifierDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Customize: {menuItem.name}</DialogTitle>
+          <DialogTitle>{t("customize_item")}: {menuItem.name}</DialogTitle>
           <DialogDescription>
-            Base price: {formatJOD(menuItem.price)} {currency}
+            {t("base_price")}: {formatJOD(menuItem.price)} {currency}
           </DialogDescription>
         </DialogHeader>
 
@@ -141,7 +143,7 @@ export function ModifierDialog({
           <div className="space-y-6 py-4">
             {modifierGroups.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No modifiers available for this item
+                {t("no_modifiers_available")}
               </p>
             ) : (
               modifierGroups.map((group) => (
@@ -157,7 +159,7 @@ export function ModifierDialog({
                       <p className="text-xs text-muted-foreground">{group.description}</p>
                     )}
                     {group.max_selections === 1 && (
-                      <p className="text-xs text-muted-foreground">Select one</p>
+                      <p className="text-xs text-muted-foreground">{t("select_one")}</p>
                     )}
                   </div>
 
@@ -223,14 +225,14 @@ export function ModifierDialog({
         {modifierTotal !== 0 && (
           <div className="p-3 bg-muted rounded-lg">
             <div className="flex justify-between text-sm">
-              <span>Modifiers</span>
+              <span>{t("modifiers_label")}</span>
               <span>
                 {modifierTotal > 0 ? "+" : ""}
                 {formatJOD(modifierTotal)} {currency}
               </span>
             </div>
             <div className="flex justify-between font-medium mt-1">
-              <span>Item Total</span>
+              <span>{t("item_total")}</span>
               <span>{formatJOD(itemTotal)} {currency}</span>
             </div>
           </div>
@@ -238,19 +240,19 @@ export function ModifierDialog({
 
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("cancel")}
           </Button>
           {modifierGroups.length === 0 ? (
             <Button onClick={handleSkip} disabled={isLoading}>
-              Add to Order
+              {t("add_to_order")}
             </Button>
           ) : (
             <>
               <Button variant="ghost" onClick={handleSkip} disabled={isLoading}>
-                Skip
+                {t("skip")}
               </Button>
               <Button onClick={handleConfirm} disabled={!isValid || isLoading}>
-                {isLoading ? "Adding..." : "Add with Modifiers"}
+                {isLoading ? t("adding") : t("add_with_modifiers")}
               </Button>
             </>
           )}

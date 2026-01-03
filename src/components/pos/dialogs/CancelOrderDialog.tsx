@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { AlertTriangle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CancelOrderDialogProps {
   open: boolean;
@@ -27,6 +28,7 @@ export function CancelOrderDialog({
   onConfirm,
   isLoading,
 }: CancelOrderDialogProps) {
+  const { t } = useLanguage();
   const [reason, setReason] = useState("");
 
   const handleConfirm = () => {
@@ -47,10 +49,10 @@ export function CancelOrderDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-destructive">
             <AlertTriangle className="h-5 w-5" />
-            Cancel Order
+            {t("cancel_order_title")}
           </DialogTitle>
           <DialogDescription>
-            Cancel Order #{orderNumber || ""}. All items will be removed and this action will be logged.
+            {t("cancel_order")} #{orderNumber || ""}. {t("void_item_audit_note")}
           </DialogDescription>
         </DialogHeader>
 
@@ -58,9 +60,9 @@ export function CancelOrderDialog({
         <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 flex items-start gap-3">
           <AlertTriangle className="h-6 w-6 text-destructive flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-medium text-destructive">This action cannot be undone</p>
+            <p className="font-medium text-destructive">{t("cancel_order_warning")}</p>
             <p className="text-sm text-muted-foreground mt-1">
-              The order will be permanently cancelled and removed from the active orders list.
+              {t("cancel_order_warning_desc")}
             </p>
           </div>
         </div>
@@ -68,11 +70,11 @@ export function CancelOrderDialog({
         <div className="space-y-4 py-2">
           <div className="space-y-2">
             <Label htmlFor="cancelReason">
-              Reason for cancellation <span className="text-destructive">*</span>
+              {t("reason_for_cancellation")} <span className="text-destructive">*</span>
             </Label>
             <Textarea
               id="cancelReason"
-              placeholder="Enter reason for cancelling this order..."
+              placeholder={t("cancel_reason_input_placeholder")}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={3}
@@ -88,7 +90,7 @@ export function CancelOrderDialog({
             className="h-12"
             disabled={isLoading}
           >
-            Keep Order
+            {t("keep_order")}
           </Button>
           <Button
             variant="destructive"
@@ -96,7 +98,7 @@ export function CancelOrderDialog({
             disabled={isLoading || !reason.trim()}
             className="h-12"
           >
-            {isLoading ? "Cancelling..." : "Cancel Order"}
+            {isLoading ? t("cancelling") : t("cancel_order")}
           </Button>
         </DialogFooter>
       </DialogContent>

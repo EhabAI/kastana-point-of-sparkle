@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { formatJOD } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ShiftSummaryDialogProps {
   open: boolean;
@@ -28,42 +29,44 @@ export function ShiftSummaryDialog({
   shiftData,
   currency,
 }: ShiftSummaryDialogProps) {
+  const { t } = useLanguage();
+
   if (!shiftData) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Shift Closed</DialogTitle>
+          <DialogTitle>{t("shift_closed_title")}</DialogTitle>
           <DialogDescription>
-            Your shift has been closed successfully.
+            {t("shift_closed_success")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground">Opening Cash</p>
+              <p className="text-sm text-muted-foreground">{t("opening_cash")}</p>
               <p className="text-lg font-bold">
                 {formatJOD(shiftData.openingCash)} {currency}
               </p>
             </div>
 
             <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground">Orders</p>
+              <p className="text-sm text-muted-foreground">{t("orders")}</p>
               <p className="text-lg font-bold">{shiftData.orderCount}</p>
             </div>
           </div>
 
           <div className="p-3 bg-muted rounded-lg">
-            <p className="text-sm text-muted-foreground">Shift Start</p>
+            <p className="text-sm text-muted-foreground">{t("shift_opened_at")}</p>
             <p className="font-medium">
               {format(new Date(shiftData.openedAt), "PPp")}
             </p>
           </div>
 
           <div className="p-3 bg-muted rounded-lg">
-            <p className="text-sm text-muted-foreground">Shift End</p>
+            <p className="text-sm text-muted-foreground">{t("shift_closed_at")}</p>
             <p className="font-medium">
               {format(new Date(shiftData.closedAt), "PPp")}
             </p>
@@ -72,7 +75,7 @@ export function ShiftSummaryDialog({
 
         <DialogFooter>
           <Button onClick={() => onOpenChange(false)} className="w-full">
-            Done
+            {t("done")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { AlertTriangle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface VoidItemDialogProps {
   open: boolean;
@@ -27,6 +28,7 @@ export function VoidItemDialog({
   onConfirm,
   isLoading,
 }: VoidItemDialogProps) {
+  const { t } = useLanguage();
   const [reason, setReason] = useState("");
 
   const handleConfirm = () => {
@@ -47,35 +49,35 @@ export function VoidItemDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-destructive" />
-            Void Item
+            {t("void_item_title")}
           </DialogTitle>
           <DialogDescription>
-            This action will be logged for audit purposes.
+            {t("void_item_audit_note")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           {/* Item info */}
           <div className="p-3 bg-muted rounded-lg">
-            <p className="text-sm text-muted-foreground">Item to void:</p>
+            <p className="text-sm text-muted-foreground">{t("item_to_void")}:</p>
             <p className="font-medium text-lg">{itemName}</p>
           </div>
 
           {/* Reason input */}
           <div className="space-y-2">
             <Label htmlFor="voidReason">
-              Reason for voiding <span className="text-destructive">*</span>
+              {t("reason_for_voiding")} <span className="text-destructive">*</span>
             </Label>
             <Textarea
               id="voidReason"
-              placeholder="Enter reason for voiding this item..."
+              placeholder={t("void_item_input_placeholder")}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               className="min-h-[100px] resize-none"
             />
             {reason === "" && (
               <p className="text-xs text-muted-foreground">
-                A reason is required to void an item
+                {t("reason_required_to_void")}
               </p>
             )}
           </div>
@@ -88,7 +90,7 @@ export function VoidItemDialog({
             className="h-12"
             disabled={isLoading}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             variant="destructive"
@@ -96,7 +98,7 @@ export function VoidItemDialog({
             disabled={isLoading || !reason.trim()}
             className="h-12"
           >
-            {isLoading ? "Voiding..." : "Void Item"}
+            {isLoading ? t("voiding") : t("void_item")}
           </Button>
         </DialogFooter>
       </DialogContent>
