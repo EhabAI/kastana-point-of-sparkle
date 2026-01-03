@@ -265,16 +265,28 @@ export function PaymentDialog({
                       <Hash className="h-5 w-5" />
                     </Button>
 
-                    {/* Fill remaining button */}
-                    {!isExactMatch && remaining > 0 && (
+                    {/* Fill remaining button - always show for first row when remaining > 0 */}
+                    {remaining > 0 && index === 0 && (
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => fillRemaining(index)}
                         className="h-12 px-3 whitespace-nowrap"
-                        title="Fill remaining amount"
+                        title={t("fill_remaining")}
                       >
-                        Fill
+                        {t("fill")}
+                      </Button>
+                    )}
+                    {/* Fill button for other rows when not exact and remaining > 0 */}
+                    {remaining > 0 && index > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fillRemaining(index)}
+                        className="h-12 px-3 whitespace-nowrap"
+                        title={t("fill_remaining")}
+                      >
+                        {t("fill")}
                       </Button>
                     )}
 
@@ -352,13 +364,25 @@ export function PaymentDialog({
           >
             {t("cancel")}
           </Button>
-          <Button
-            onClick={handleConfirm}
-            disabled={isLoading || isSubmitting || !hasValidPayments || !(isExactMatch || (hasOverpayment && allPaymentsCash))}
-            className="h-12 min-w-[160px]"
-          >
-            {isLoading || isSubmitting ? t("processing") : t("complete_payment")}
-          </Button>
+          <div className="flex flex-col items-end gap-1">
+            <Button
+              onClick={handleConfirm}
+              disabled={isLoading || isSubmitting || !hasValidPayments || !(isExactMatch || (hasOverpayment && allPaymentsCash))}
+              className="h-12 min-w-[160px]"
+            >
+              {isLoading || isSubmitting ? t("processing") : t("complete_payment")}
+            </Button>
+            {/* Helper text explaining why button is disabled */}
+            {!isExactMatch && !isLoading && !isSubmitting && hasValidPayments && (
+              <p className="text-xs text-muted-foreground">
+                {remaining > 0 
+                  ? t("remaining_must_be_zero")
+                  : hasOverpayment && !allPaymentsCash 
+                    ? t("overpayment_cash_only")
+                    : null}
+              </p>
+            )}
+          </div>
         </DialogFooter>
 
         <NumericKeypad

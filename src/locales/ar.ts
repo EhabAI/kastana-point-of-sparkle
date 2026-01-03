@@ -52,6 +52,9 @@ export default {
   "exact": "المبلغ بالضبط",
   "reset": "إعادة تعيين",
   "fill": "ملء",
+  "fill_remaining": "ملء المبلغ المتبقي",
+  "remaining_must_be_zero": "يجب أن يكون المتبقي 0.000 للإكمال",
+  "overpayment_cash_only": "الدفع الزائد مسموح فقط للنقد (الباقي)",
 
   // Owner Dashboard
   "owner_dashboard": "لوحة تحكم المالك",
