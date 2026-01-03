@@ -15,6 +15,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { TableSelector } from "./TableSelector";
 
 interface OpenOrdersListProps {
@@ -42,6 +52,10 @@ export function OpenOrdersList({
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
   const [selectedOrderForMove, setSelectedOrderForMove] = useState<OpenOrder | null>(null);
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
+  
+  // Close order confirmation state
+  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
+  const [orderToClose, setOrderToClose] = useState<{ id: string; tableId?: string; tableName?: string } | null>(null);
 
   const getTableInfo = (order: OpenOrder): { id: string; name: string } | null => {
     if (!order.table_id) return null;
@@ -74,6 +88,19 @@ export function OpenOrdersList({
       }
       setMoveDialogOpen(false);
       setSelectedOrderForMove(null);
+    }
+  };
+
+  const handleCloseClick = (orderId: string, tableId?: string, tableName?: string) => {
+    setOrderToClose({ id: orderId, tableId, tableName });
+    setCloseDialogOpen(true);
+  };
+
+  const handleCloseConfirm = () => {
+    if (orderToClose) {
+      onCloseOrder(orderToClose.id, orderToClose.tableId, orderToClose.tableName);
+      setCloseDialogOpen(false);
+      setOrderToClose(null);
     }
   };
 
@@ -191,7 +218,7 @@ export function OpenOrdersList({
                   <Button
                     variant="outline"
                     className="flex-1 h-12 min-w-[120px]"
-                    onClick={() => onCloseOrder(order.id, tableInfo?.id, tableInfo?.name)}
+                    onClick={() => handleCloseClick(order.id, tableInfo?.id, tableInfo?.name)}
                     disabled={isLoading}
                   >
                     <XCircle className="h-5 w-5 mr-2" />
@@ -235,6 +262,27 @@ export function OpenOrdersList({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Close Order Confirmation Dialog */}
+      <AlertDialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Close Order</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to close this order? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-12">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCloseConfirm}
+              className="h-12"
+            >
+              Close Order
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

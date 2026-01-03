@@ -751,7 +751,7 @@ export default function POS() {
           amount: payment.amount,
         });
       }
-      await completeOrderMutation.mutateAsync(currentOrder.id);
+      await completeOrderMutation.mutateAsync({ orderId: currentOrder.id, payments });
       setPaymentDialogOpen(false);
       toast.success("Payment complete");
 
