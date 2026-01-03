@@ -12,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Minus, Plus } from "lucide-react";
 import { formatJOD } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OrderItem {
   id: string;
@@ -40,6 +41,7 @@ export function SplitOrderDialog({
   onConfirm,
   isLoading,
 }: SplitOrderDialogProps) {
+  const { t } = useLanguage();
   // Track quantities to split for each item
   const [splitQuantities, setSplitQuantities] = useState<Record<string, number>>({});
 
@@ -108,9 +110,9 @@ export function SplitOrderDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Split Order #{orderNumber}</DialogTitle>
+          <DialogTitle>{t("split_order_title")} #{orderNumber}</DialogTitle>
           <DialogDescription>
-            Select items to move to a new order. Both orders will stay on the same table.
+            {t("split_order_hint")}
           </DialogDescription>
         </DialogHeader>
 
@@ -173,35 +175,35 @@ export function SplitOrderDialog({
 
         <div className="border-t pt-3 space-y-1 text-sm">
           <div className="flex justify-between">
-            <span>Items to new order:</span>
+            <span>{t("items_to_new_order")}:</span>
             <span className="font-medium">{totalItemsToSplit}</span>
           </div>
           <div className="flex justify-between">
-            <span>Items remaining:</span>
+            <span>{t("items_remaining")}:</span>
             <span className="font-medium">{remainingItems}</span>
           </div>
           <div className="flex justify-between text-base font-medium pt-2 border-t">
-            <span>New order total:</span>
+            <span>{t("new_order_total")}:</span>
             <span>{formatJOD(splitTotal)} {currency}</span>
           </div>
         </div>
 
         {!canSplit && totalItemsToSplit > 0 && (
           <p className="text-sm text-destructive">
-            At least 1 item must remain in the original order.
+            {t("at_least_one_item")}
           </p>
         )}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} className="h-12">
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={!canSplit || isLoading}
             className="h-12"
           >
-            {isLoading ? "Splitting..." : "Split Order"}
+            {isLoading ? t("splitting") : t("split_order")}
           </Button>
         </DialogFooter>
       </DialogContent>

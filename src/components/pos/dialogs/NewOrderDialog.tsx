@@ -14,6 +14,7 @@ import { User, Phone } from "lucide-react";
 import { OrderTypeSelector, type OrderType } from "../OrderTypeSelector";
 import { TableSelector } from "../TableSelector";
 import type { BranchTable } from "@/hooks/pos/useBranchTables";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CustomerInfo {
   name: string;
@@ -37,6 +38,7 @@ export function NewOrderDialog({
   onConfirm,
   isLoading,
 }: NewOrderDialogProps) {
+  const { t } = useLanguage();
   const [orderType, setOrderType] = useState<OrderType | null>(null);
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [customerName, setCustomerName] = useState("");
@@ -71,9 +73,9 @@ export function NewOrderDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>New Order</DialogTitle>
+          <DialogTitle>{t("new_order")}</DialogTitle>
           <DialogDescription>
-            Select order type to begin
+            {t("select_order_type")}
           </DialogDescription>
         </DialogHeader>
 
@@ -85,7 +87,7 @@ export function NewOrderDialog({
 
           {orderType === "dine-in" && (
             <div className="space-y-2">
-              <h4 className="font-medium text-sm">Select Table</h4>
+              <h4 className="font-medium text-sm">{t("select_table")}</h4>
               <TableSelector
                 tables={tables}
                 selectedTableId={selectedTableId}
@@ -97,17 +99,17 @@ export function NewOrderDialog({
 
           {orderType === "takeaway" && (
             <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-              <h4 className="font-medium text-sm">Customer Info (Optional)</h4>
+              <h4 className="font-medium text-sm">{t("customer_info_optional")}</h4>
               <div className="space-y-3">
                 <div className="space-y-1">
                   <Label htmlFor="customerName" className="text-xs text-muted-foreground">
-                    Customer Name
+                    {t("customer_name")}
                   </Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="customerName"
-                      placeholder="Enter name..."
+                      placeholder={t("enter_name")}
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
                       className="h-12 pl-10"
@@ -116,14 +118,14 @@ export function NewOrderDialog({
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="customerPhone" className="text-xs text-muted-foreground">
-                    Phone Number
+                    {t("phone_number")}
                   </Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="customerPhone"
                       type="tel"
-                      placeholder="Enter phone..."
+                      placeholder={t("enter_phone")}
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
                       className="h-12 pl-10"
@@ -137,14 +139,14 @@ export function NewOrderDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={handleClose} className="h-12">
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={!canConfirm || isLoading}
             className="h-12 min-w-[120px]"
           >
-            {isLoading ? "Creating..." : "Start Order"}
+            {isLoading ? t("creating") : t("start_order")}
           </Button>
         </DialogFooter>
       </DialogContent>

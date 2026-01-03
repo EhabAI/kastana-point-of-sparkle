@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, RotateCcw } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ReopenOrderDialogProps {
   open: boolean;
@@ -24,6 +25,8 @@ export function ReopenOrderDialog({
   onConfirm,
   isLoading,
 }: ReopenOrderDialogProps) {
+  const { t } = useLanguage();
+
   const handleConfirm = () => {
     onConfirm();
   };
@@ -34,10 +37,10 @@ export function ReopenOrderDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <RotateCcw className="h-5 w-5" />
-            Reopen Order
+            {t("reopen_order_title")}
           </DialogTitle>
           <DialogDescription>
-            Reopen Order #{orderNumber} for correction
+            {t("reopen_order")} #{orderNumber} {t("reopen_for_correction")}
           </DialogDescription>
         </DialogHeader>
 
@@ -45,15 +48,15 @@ export function ReopenOrderDialog({
         <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 flex items-start gap-3">
           <AlertTriangle className="h-6 w-6 text-amber-600 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-medium text-amber-700 dark:text-amber-400">Order will be reopened</p>
+            <p className="font-medium text-amber-700 dark:text-amber-400">{t("order_will_be_reopened")}</p>
             <p className="text-sm text-muted-foreground mt-1">
-              This order will be moved back to open status. You will be able to:
+              {t("reopening_allows")}
             </p>
             <ul className="text-sm text-muted-foreground mt-2 list-disc list-inside space-y-1">
-              <li>Edit items and quantities</li>
-              <li>Apply or modify discounts</li>
-              <li>Process additional payments</li>
-              <li>Close the order again when ready</li>
+              <li>{t("edit_items_quantities")}</li>
+              <li>{t("apply_modify_discounts")}</li>
+              <li>{t("process_additional_payments")}</li>
+              <li>{t("close_order_again")}</li>
             </ul>
           </div>
         </div>
@@ -65,14 +68,14 @@ export function ReopenOrderDialog({
             className="h-12"
             disabled={isLoading}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={isLoading}
             className="h-12"
           >
-            {isLoading ? "Reopening..." : "Reopen Order"}
+            {isLoading ? t("reopening") : t("reopen_order")}
           </Button>
         </DialogFooter>
       </DialogContent>

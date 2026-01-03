@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ConfirmRemoveLastItemDialogProps {
   open: boolean;
@@ -24,6 +25,8 @@ export function ConfirmRemoveLastItemDialog({
   onConfirm,
   isLoading,
 }: ConfirmRemoveLastItemDialogProps) {
+  const { t } = useLanguage();
+
   const handleConfirm = () => {
     onConfirm();
     onOpenChange(false);
@@ -35,10 +38,10 @@ export function ConfirmRemoveLastItemDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-destructive">
             <AlertTriangle className="h-5 w-5" />
-            Remove Last Item
+            {t("remove_last_item")}
           </DialogTitle>
           <DialogDescription>
-            You are about to remove the last item from this order.
+            {t("remove_last_item_desc")}
           </DialogDescription>
         </DialogHeader>
 
@@ -46,10 +49,9 @@ export function ConfirmRemoveLastItemDialog({
         <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 flex items-start gap-3">
           <AlertTriangle className="h-6 w-6 text-destructive flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-medium text-destructive">Order will be empty</p>
+            <p className="font-medium text-destructive">{t("order_will_be_empty")}</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Removing "<strong>{itemName}</strong>" will leave this order with no items.
-              Consider cancelling the order instead if you want to close it.
+              "<strong>{itemName}</strong>" {t("removing_last_item_warning")}
             </p>
           </div>
         </div>
@@ -61,7 +63,7 @@ export function ConfirmRemoveLastItemDialog({
             className="h-12"
             disabled={isLoading}
           >
-            Keep Item
+            {t("keep_item")}
           </Button>
           <Button
             variant="destructive"
@@ -69,7 +71,7 @@ export function ConfirmRemoveLastItemDialog({
             disabled={isLoading}
             className="h-12"
           >
-            {isLoading ? "Removing..." : "Remove Item"}
+            {isLoading ? t("removing") : t("remove_item")}
           </Button>
         </DialogFooter>
       </DialogContent>

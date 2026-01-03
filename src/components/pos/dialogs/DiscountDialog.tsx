@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { formatJOD } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DiscountDialogProps {
   open: boolean;
@@ -34,6 +35,7 @@ export function DiscountDialog({
   currentDiscountType,
   currentDiscountValue,
 }: DiscountDialogProps) {
+  const { t } = useLanguage();
   const [discountType, setDiscountType] = useState<"percentage" | "fixed">(
     (currentDiscountType as "percentage" | "fixed") || "percentage"
   );
@@ -70,9 +72,9 @@ export function DiscountDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Apply Discount</DialogTitle>
+          <DialogTitle>{t("discount_dialog_title")}</DialogTitle>
           <DialogDescription>
-            Subtotal: {formatJOD(currentSubtotal)} {currency}
+            {t("subtotal")}: {formatJOD(currentSubtotal)} {currency}
           </DialogDescription>
         </DialogHeader>
 
@@ -83,17 +85,17 @@ export function DiscountDialog({
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="percentage" id="percentage" />
-              <Label htmlFor="percentage">Percentage (%)</Label>
+              <Label htmlFor="percentage">{t("percentage")}</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="fixed" id="fixed" />
-              <Label htmlFor="fixed">Fixed Amount ({currency})</Label>
+              <Label htmlFor="fixed">{t("fixed_amount")} ({currency})</Label>
             </div>
           </RadioGroup>
 
           <div className="space-y-2">
             <Label htmlFor="discountValue">
-              {discountType === "percentage" ? "Percentage" : "Amount"}
+              {discountType === "percentage" ? t("percentage") : t("amount")}
             </Label>
             <Input
               id="discountValue"
@@ -110,7 +112,7 @@ export function DiscountDialog({
 
           {parseFloat(value) > 0 && (
             <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground">Discount Preview</p>
+              <p className="text-sm text-muted-foreground">{t("discount_preview")}</p>
               <p className="text-lg font-bold text-green-600">
                 -{formatJOD(previewDiscount)} {currency}
               </p>
@@ -121,14 +123,14 @@ export function DiscountDialog({
         <DialogFooter className="flex gap-2">
           {(currentDiscountValue ?? 0) > 0 && (
             <Button variant="destructive" onClick={handleClear}>
-              Clear Discount
+              {t("clear_discount")}
             </Button>
           )}
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button onClick={handleApply} disabled={!value || parseFloat(value) <= 0}>
-            Apply Discount
+            {t("apply_discount")}
           </Button>
         </DialogFooter>
       </DialogContent>

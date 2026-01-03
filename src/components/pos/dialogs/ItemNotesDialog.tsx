@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { MessageSquare } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemNotesDialogProps {
   open: boolean;
@@ -29,6 +30,7 @@ export function ItemNotesDialog({
   onSave,
   isLoading,
 }: ItemNotesDialogProps) {
+  const { t } = useLanguage();
   const [notes, setNotes] = useState(currentNotes || "");
 
   const handleSave = () => {
@@ -42,19 +44,19 @@ export function ItemNotesDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            Item Notes
+            {t("item_notes")}
           </DialogTitle>
           <DialogDescription>
-            Add notes for "{itemName}"
+            {t("notes_placeholder")} "{itemName}"
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="itemNotes">Notes</Label>
+            <Label htmlFor="itemNotes">{t("notes")}</Label>
             <Textarea
               id="itemNotes"
-              placeholder="e.g., No onions, extra spicy..."
+              placeholder={t("notes_placeholder")}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
@@ -65,10 +67,10 @@ export function ItemNotesDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button onClick={handleSave} disabled={isLoading}>
-            {isLoading ? "Saving..." : "Save Notes"}
+            {isLoading ? t("processing") : t("save")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -12,6 +12,7 @@ import { Clock, CreditCard, PlayCircle, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useState, useEffect } from "react";
 import { cn, formatJOD } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OrderItem {
   id: string;
@@ -46,30 +47,6 @@ interface TableOrdersDialogProps {
   isLoading?: boolean;
 }
 
-function getStatusLabel(status: string): string {
-  switch (status) {
-    case "open":
-      return "OPEN";
-    case "held":
-      return "ON_HOLD";
-    case "confirmed":
-      return "CONFIRMED";
-    default:
-      return status.toUpperCase();
-  }
-}
-
-function getStatusVariant(status: string): "default" | "secondary" | "outline" {
-  switch (status) {
-    case "open":
-      return "default";
-    case "held":
-      return "secondary";
-    default:
-      return "outline";
-  }
-}
-
 export function TableOrdersDialog({
   open,
   onOpenChange,
@@ -80,7 +57,32 @@ export function TableOrdersDialog({
   onPayOrder,
   isLoading,
 }: TableOrdersDialogProps) {
+  const { t } = useLanguage();
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
+  const getStatusLabel = (status: string): string => {
+    switch (status) {
+      case "open":
+        return t("open").toUpperCase();
+      case "held":
+        return t("on_hold");
+      case "confirmed":
+        return t("confirmed");
+      default:
+        return status.toUpperCase();
+    }
+  };
+
+  const getStatusVariant = (status: string): "default" | "secondary" | "outline" => {
+    switch (status) {
+      case "open":
+        return "default";
+      case "held":
+        return "secondary";
+      default:
+        return "outline";
+    }
+  };
 
   // Auto-select if only one order
   useEffect(() => {
@@ -121,12 +123,12 @@ export function TableOrdersDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-primary" />
-            Table {tableName} – Active Orders
+            {t("table")} {tableName} – {t("table_active_orders")}
           </DialogTitle>
           <DialogDescription>
             {orders.length === 1
-              ? "1 active order on this table."
-              : `${orders.length} active orders on this table. Select one to continue.`}
+              ? `1 ${t("active_order_count")}`
+              : `${orders.length} ${t("active_orders_count")}`}
           </DialogDescription>
         </DialogHeader>
 
@@ -171,10 +173,10 @@ export function TableOrdersDialog({
                       </span>
                     ))}
                     {activeItems.length > 3 && (
-                      <span className="text-primary"> +{activeItems.length - 3} more</span>
+                      <span className="text-primary"> +{activeItems.length - 3} {t("more")}</span>
                     )}
                     {activeItems.length === 0 && (
-                      <span className="italic">No items</span>
+                      <span className="italic">{t("no_items_label")}</span>
                     )}
                   </div>
 
@@ -197,7 +199,7 @@ export function TableOrdersDialog({
             disabled={isLoading}
           >
             <X className="h-4 w-4 mr-1" />
-            Cancel
+            {t("cancel")}
           </Button>
 
           {showDirectActions ? (
@@ -210,7 +212,7 @@ export function TableOrdersDialog({
                 disabled={isLoading || !selectedOrderId}
               >
                 <PlayCircle className="h-4 w-4 mr-1" />
-                Resume / Add Items
+                {t("resume_add_items")}
               </Button>
               <Button
                 className="flex-1"
@@ -218,7 +220,7 @@ export function TableOrdersDialog({
                 disabled={isLoading || !selectedOrderId || selectedOrder?.status !== "open"}
               >
                 <CreditCard className="h-4 w-4 mr-1" />
-                Pay & Close
+                {t("pay_close")}
               </Button>
             </>
           ) : (
@@ -231,7 +233,7 @@ export function TableOrdersDialog({
                 disabled={isLoading || !selectedOrderId}
               >
                 <PlayCircle className="h-4 w-4 mr-1" />
-                Resume / Add Items
+                {t("resume_add_items")}
               </Button>
               <Button
                 className="flex-1"
@@ -239,7 +241,7 @@ export function TableOrdersDialog({
                 disabled={isLoading || !selectedOrderId || selectedOrder?.status !== "open"}
               >
                 <CreditCard className="h-4 w-4 mr-1" />
-                Pay & Close
+                {t("pay_close")}
               </Button>
             </>
           )}
