@@ -578,10 +578,10 @@ function MenuItemsSection({
                   <Input
                     id="item-price"
                     type="number"
-                    step="0.01"
+                    step="0.001"
                     value={newItem.price}
                     onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
-                    placeholder="0.00"
+                    placeholder="0.000"
                   />
                 </div>
                 <div className="flex items-center gap-2">
