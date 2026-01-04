@@ -760,6 +760,28 @@ export default function POS() {
         });
       }
       await completeOrderMutation.mutateAsync({ orderId: currentOrder.id, payments });
+      
+      // Determine payment mode and breakdown for audit
+      const cashAmount = roundJOD(payments.filter(p => p.method === "cash").reduce((sum, p) => sum + p.amount, 0));
+      const cardAmount = roundJOD(payments.filter(p => p.method !== "cash").reduce((sum, p) => sum + p.amount, 0));
+      const paymentMode = payments.length > 1 ? "split" : "single";
+      
+      // Audit log for payment completion
+      auditLogMutation.mutate({
+        entityType: "order",
+        entityId: currentOrder.id,
+        action: "ORDER_COMPLETE",
+        details: {
+          order_id: currentOrder.id,
+          order_number: currentOrder.order_number,
+          total: currentOrder.total,
+          cashAmount,
+          cardAmount,
+          mode: paymentMode,
+          payments: payments.map(p => ({ method: p.method, amount: p.amount })),
+        },
+      });
+      
       setPaymentDialogOpen(false);
       toast.success(t("payment_success"));
 
