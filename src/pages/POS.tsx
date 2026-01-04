@@ -1074,10 +1074,10 @@ export default function POS() {
         entityId: selectedOrderForRefund.id,
         action: "REFUND_CREATE",
         details: {
+          event_name: "ORDER_REFUNDED",
           order_id: selectedOrderForRefund.id,
           order_number: selectedOrderForRefund.order_number,
-          refund_type: data.refundType,
-          refund_amount: data.amount,
+          amount: data.amount,
           reason: data.reason,
         },
       });

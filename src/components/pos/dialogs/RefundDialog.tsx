@@ -8,13 +8,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { AlertTriangle, Undo2 } from "lucide-react";
 import { formatJOD } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+
+type RefundReason = "customer_request" | "order_mistake" | "system_error" | "other";
 
 interface RefundDialogProps {
   open: boolean;
@@ -42,32 +49,26 @@ export function RefundDialog({
   isProcessing = false,
 }: RefundDialogProps) {
   const { t } = useLanguage();
-  const [refundType, setRefundType] = useState<"full" | "partial">("full");
-  const [partialAmount, setPartialAmount] = useState("");
-  const [reason, setReason] = useState("");
+  const [selectedReason, setSelectedReason] = useState<RefundReason | "">("");
+  const [notes, setNotes] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const maxRefundable = totalPaid - alreadyRefunded;
-  const refundAmount = refundType === "full" ? maxRefundable : parseFloat(partialAmount) || 0;
-  const isValidAmount = refundAmount > 0 && refundAmount <= maxRefundable;
-  const hasReason = reason.trim().length > 0;
-  const canSubmit = isValidAmount && hasReason && !isProcessing && maxRefundable > 0;
+  const refundAmount = maxRefundable; // Full refund only in Phase 1
+  const hasReason = selectedReason !== "";
+  const canSubmit = refundAmount > 0 && hasReason && !isProcessing && maxRefundable > 0;
 
-  const handleRefundTypeChange = (value: string) => {
-    setRefundType(value as "full" | "partial");
-    setPartialAmount("");
-    setError(null);
-  };
+  const refundReasons: { value: RefundReason; label: string }[] = [
+    { value: "customer_request", label: t("refund_reason_customer_request") },
+    { value: "order_mistake", label: t("refund_reason_order_mistake") },
+    { value: "system_error", label: t("refund_reason_system_error") },
+    { value: "other", label: t("refund_reason_other") },
+  ];
 
-  const handlePartialAmountChange = (value: string) => {
-    setPartialAmount(value);
-    const num = parseFloat(value);
-    if (num > maxRefundable) {
-      setError(`${t("amount")} > ${formatJOD(maxRefundable)} ${currency}`);
-    } else {
-      setError(null);
-    }
+  const getReasonLabel = (value: RefundReason | "") => {
+    if (!value) return "";
+    const found = refundReasons.find(r => r.value === value);
+    return found?.label || value;
   };
 
   const handleProceed = () => {
@@ -77,10 +78,13 @@ export function RefundDialog({
 
   const handleConfirm = async () => {
     if (!canSubmit) return;
+    const reasonText = notes.trim() 
+      ? `${getReasonLabel(selectedReason)}: ${notes.trim()}`
+      : getReasonLabel(selectedReason);
     await onConfirm({
-      refundType,
+      refundType: "full",
       amount: refundAmount,
-      reason: reason.trim(),
+      reason: reasonText,
     });
     handleClose();
   };
@@ -90,11 +94,9 @@ export function RefundDialog({
   };
 
   const handleClose = () => {
-    setRefundType("full");
-    setPartialAmount("");
-    setReason("");
+    setSelectedReason("");
+    setNotes("");
     setShowConfirmation(false);
-    setError(null);
     onOpenChange(false);
   };
 
@@ -120,91 +122,51 @@ export function RefundDialog({
         {!showConfirmation ? (
           <>
             <div className="space-y-6 py-4">
-              {/* Refund Type */}
+              {/* Full Refund Amount Display */}
               <div className="space-y-3">
-                <Label className="text-base">{t("refund_type")}</Label>
-                <RadioGroup
-                  value={refundType}
-                  onValueChange={handleRefundTypeChange}
-                  className="grid grid-cols-2 gap-4"
-                >
-                  <div>
-                    <RadioGroupItem
-                      value="full"
-                      id="full"
-                      className="peer sr-only"
-                      disabled={maxRefundable <= 0}
-                    />
-                    <Label
-                      htmlFor="full"
-                      className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer h-20"
-                    >
-                      <span className="text-lg font-semibold">{t("full_refund")}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {formatJOD(maxRefundable)} {currency}
-                      </span>
-                    </Label>
-                  </div>
-                  <div>
-                    <RadioGroupItem
-                      value="partial"
-                      id="partial"
-                      className="peer sr-only"
-                    />
-                    <Label
-                      htmlFor="partial"
-                      className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer h-20"
-                    >
-                      <span className="text-lg font-semibold">{t("partial_refund")}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {t("custom_amount")}
-                      </span>
-                    </Label>
-                  </div>
-                </RadioGroup>
+                <Label className="text-base">{t("full_refund")}</Label>
+                <div className="flex flex-col items-center justify-center rounded-lg border-2 border-primary bg-popover p-4 h-20">
+                  <span className="text-lg font-semibold">{t("refund_amount")}</span>
+                  <span className="text-2xl font-bold text-destructive">
+                    {formatJOD(maxRefundable)} {currency}
+                  </span>
+                </div>
               </div>
 
-              {/* Partial Amount Input */}
-              {refundType === "partial" && (
-                <div className="space-y-2">
-                  <Label htmlFor="amount">{t("refund_amount")}</Label>
-                  <div className="relative">
-                    <Input
-                      id="amount"
-                      type="number"
-                      step="0.001"
-                      min="0.001"
-                      max={maxRefundable}
-                      value={partialAmount}
-                      onChange={(e) => handlePartialAmountChange(e.target.value)}
-                      placeholder="0.000"
-                      className="text-lg h-12 pr-16"
-                    />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                      {currency}
-                    </span>
-                  </div>
-                  {error && (
-                    <p className="text-sm text-destructive">{error}</p>
-                  )}
-                </div>
-              )}
-
-              {/* Reason */}
+              {/* Reason Dropdown */}
               <div className="space-y-2">
-                <Label htmlFor="reason">
+                <Label>
                   {t("reason")} <span className="text-destructive">*</span>
                 </Label>
+                <Select 
+                  value={selectedReason} 
+                  onValueChange={(value) => setSelectedReason(value as RefundReason)}
+                >
+                  <SelectTrigger className="h-12 bg-background">
+                    <SelectValue placeholder={t("select_refund_reason")} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    {refundReasons.map((reason) => (
+                      <SelectItem key={reason.value} value={reason.value}>
+                        {reason.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Optional Notes */}
+              <div className="space-y-2">
+                <Label htmlFor="notes">
+                  {t("notes")} ({t("optional")})
+                </Label>
                 <Textarea
-                  id="reason"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  placeholder={t("void_reason_placeholder")}
-                  className="min-h-[100px] resize-none"
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder={t("refund_notes_placeholder")}
+                  className="min-h-[80px] resize-none"
                 />
-                {!hasReason && reason !== "" && (
-                  <p className="text-sm text-destructive">{t("reason_required")}</p>
-                )}
               </div>
             </div>
 
@@ -244,11 +206,14 @@ export function RefundDialog({
                   {formatJOD(refundAmount)} {currency}
                 </p>
                 <p className="text-muted-foreground">
-                  {refundType === "full" ? t("full_refund") : t("partial_refund")} {t("refund_for_order")} #{orderNumber}
+                  {t("full_refund")} {t("refund_for_order")} #{orderNumber}
                 </p>
                 <div className="bg-muted rounded-lg p-3 text-left">
                   <p className="text-xs text-muted-foreground mb-1">{t("reason")}:</p>
-                  <p className="text-sm">{reason}</p>
+                  <p className="text-sm font-medium">{getReasonLabel(selectedReason)}</p>
+                  {notes.trim() && (
+                    <p className="text-sm text-muted-foreground mt-1">{notes.trim()}</p>
+                  )}
                 </div>
               </div>
             </div>
