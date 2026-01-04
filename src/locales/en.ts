@@ -446,6 +446,12 @@ export default {
   "refund_for_order": "refund for Order",
   "refund_processed": "Refund processed successfully",
   "refund_failed": "Failed to process refund",
+  "select_refund_reason": "Select a reason",
+  "refund_reason_customer_request": "Customer Request",
+  "refund_reason_order_mistake": "Order Mistake",
+  "refund_reason_system_error": "System Error",
+  "refund_reason_other": "Other",
+  "refund_notes_placeholder": "Additional notes (optional)...",
 
   // POS - Z Report
   "z_report": "Z Report",

@@ -446,6 +446,12 @@ export default {
   "refund_for_order": "استرداد للطلب",
   "refund_processed": "تم معالجة الاسترداد بنجاح",
   "refund_failed": "فشل معالجة الاسترداد",
+  "select_refund_reason": "اختر سبباً",
+  "refund_reason_customer_request": "طلب العميل",
+  "refund_reason_order_mistake": "خطأ في الطلب",
+  "refund_reason_system_error": "خطأ في النظام",
+  "refund_reason_other": "أخرى",
+  "refund_notes_placeholder": "ملاحظات إضافية (اختياري)...",
 
   // POS - Z Report
   "z_report": "تقرير Z",
