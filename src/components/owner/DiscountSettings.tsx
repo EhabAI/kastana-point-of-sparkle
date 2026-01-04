@@ -142,11 +142,11 @@ export function DiscountSettings() {
           <Label>{t("max_discount_value")}</Label>
           <Input
             type="number"
-            placeholder={discountType === "percentage" ? "e.g., 20 for 20%" : "e.g., 10.00"}
+            placeholder={discountType === "percentage" ? "e.g., 20 for 20%" : "e.g., 10.000"}
             value={maxDiscountValue}
             onChange={(e) => setMaxDiscountValue(e.target.value)}
             min="0"
-            step="0.01"
+            step="0.001"
           />
           <p className="text-sm text-muted-foreground">
             {discountType === "percentage" 
