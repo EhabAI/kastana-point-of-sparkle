@@ -452,6 +452,8 @@ export default {
   "refund_reason_system_error": "System Error",
   "refund_reason_other": "Other",
   "refund_notes_placeholder": "Additional notes (optional)...",
+  "max": "Max",
+  "amount_exceeds_refundable": "Amount exceeds refundable balance",
 
   // POS - Z Report
   "z_report": "Z Report",
