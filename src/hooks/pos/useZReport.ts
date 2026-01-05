@@ -72,29 +72,101 @@ export function useZReport(shiftId: string | undefined) {
 
       if (transError) throw transError;
 
+      // Mobile payment methods
+      const mobileMethods = ["cliq", "zain_cash", "orange_money", "umniah_wallet", "wallet", "efawateer", "mobile"];
+      // Card payment methods
+      const cardMethods = ["visa", "mastercard", "card"];
+
+      const getPaymentBucket = (method: string): "cash" | "card" | "mobile" => {
+        if (method === "cash") return "cash";
+        if (mobileMethods.includes(method)) return "mobile";
+        return "card"; // Default unknown non-cash to card
+      };
+
       // Calculate totals
-      const paidOrders = orders?.filter(o => o.status === "paid") || [];
+      const paidOrders = orders?.filter(o => o.status === "paid" || o.status === "refunded") || [];
       const cancelledOrders = orders?.filter(o => o.status === "cancelled") || [];
 
-      const totalSales = paidOrders.reduce((sum, o) => sum + Number(o.total), 0);
-      const totalTax = paidOrders.reduce((sum, o) => sum + Number(o.tax_amount), 0);
-      const totalServiceCharge = paidOrders.reduce((sum, o) => sum + Number(o.service_charge), 0);
+      // Gross totals (before refunds)
+      const grossTotalSales = paidOrders.reduce((sum, o) => sum + Number(o.total), 0);
+      const grossTotalTax = paidOrders.reduce((sum, o) => sum + Number(o.tax_amount), 0);
+      const grossTotalServiceCharge = paidOrders.reduce((sum, o) => sum + Number(o.service_charge), 0);
       const totalDiscounts = paidOrders.reduce((sum, o) => sum + Number(o.discount_value || 0), 0);
-      const netSales = paidOrders.reduce((sum, o) => sum + Number(o.subtotal), 0);
+      const grossNetSales = paidOrders.reduce((sum, o) => sum + Number(o.subtotal), 0);
 
-      // Payment breakdown
+      // Gross payment breakdown
       const allPayments = paidOrders.flatMap(o => o.payments || []);
-      const cashPayments = allPayments
-        .filter(p => p.method === "cash")
+      const grossCashPayments = allPayments
+        .filter(p => getPaymentBucket(p.method) === "cash")
         .reduce((sum, p) => sum + Number(p.amount), 0);
-      const cardPayments = allPayments
-        .filter(p => p.method === "card")
+      const grossCardPayments = allPayments
+        .filter(p => getPaymentBucket(p.method) === "card")
         .reduce((sum, p) => sum + Number(p.amount), 0);
-      const mobilePayments = allPayments
-        .filter(p => p.method === "mobile")
+      const grossMobilePayments = allPayments
+        .filter(p => getPaymentBucket(p.method) === "mobile")
         .reduce((sum, p) => sum + Number(p.amount), 0);
 
+      // Build order map for refund allocation
+      const orderMap = new Map(paidOrders.map(o => [o.id, o]));
+
+      // Calculate refund allocations
       const refundsTotal = refunds?.reduce((sum, r) => sum + Number(r.amount), 0) || 0;
+      let cashRefundsAllocated = 0;
+      let cardRefundsAllocated = 0;
+      let mobileRefundsAllocated = 0;
+      let refundTaxTotal = 0;
+      let refundServiceTotal = 0;
+      let refundSubtotalTotal = 0;
+
+      (refunds || []).forEach(refund => {
+        const order = orderMap.get(refund.order_id);
+        if (!order) return; // Ignore refunds for orders not in this shift
+
+        const refundAmount = Number(refund.amount);
+        const orderTotal = Number(order.total);
+        const orderPayments = order.payments || [];
+        const paymentSum = orderPayments.reduce((s, p) => s + Number(p.amount), 0);
+
+        // Allocate refund to payment methods proportionally
+        if (orderPayments.length === 0 || paymentSum === 0) {
+          // Fallback: allocate to cash
+          cashRefundsAllocated += refundAmount;
+        } else if (orderPayments.length === 1) {
+          // Single payment: full refund to that method
+          const bucket = getPaymentBucket(orderPayments[0].method);
+          if (bucket === "cash") cashRefundsAllocated += refundAmount;
+          else if (bucket === "card") cardRefundsAllocated += refundAmount;
+          else mobileRefundsAllocated += refundAmount;
+        } else {
+          // Multiple payments: proportional allocation
+          orderPayments.forEach(p => {
+            const proportion = Number(p.amount) / paymentSum;
+            const allocated = refundAmount * proportion;
+            const bucket = getPaymentBucket(p.method);
+            if (bucket === "cash") cashRefundsAllocated += allocated;
+            else if (bucket === "card") cardRefundsAllocated += allocated;
+            else mobileRefundsAllocated += allocated;
+          });
+        }
+
+        // Estimate refund parts for tax, service charge, subtotal
+        if (orderTotal > 0) {
+          refundTaxTotal += refundAmount * (Number(order.tax_amount) / orderTotal);
+          refundServiceTotal += refundAmount * (Number(order.service_charge) / orderTotal);
+          refundSubtotalTotal += refundAmount * (Number(order.subtotal) / orderTotal);
+        }
+      });
+
+      // Net payment totals (after refunds)
+      const cashPayments = Math.max(0, grossCashPayments - cashRefundsAllocated);
+      const cardPayments = Math.max(0, grossCardPayments - cardRefundsAllocated);
+      const mobilePayments = Math.max(0, grossMobilePayments - mobileRefundsAllocated);
+
+      // Net sales totals (after refunds)
+      const totalSales = Math.max(0, grossTotalSales - refundsTotal);
+      const totalTax = Math.max(0, grossTotalTax - refundTaxTotal);
+      const totalServiceCharge = Math.max(0, grossTotalServiceCharge - refundServiceTotal);
+      const netSales = Math.max(0, grossNetSales - refundSubtotalTotal);
 
       const cashIn = transactions
         ?.filter(t => t.type === "cash_in")
@@ -103,7 +175,8 @@ export function useZReport(shiftId: string | undefined) {
         ?.filter(t => t.type === "cash_out")
         .reduce((sum, t) => sum + Number(t.amount), 0) || 0;
 
-      const expectedCash = Number(shift.opening_cash) + cashPayments + cashIn - cashOut - refundsTotal;
+      // Expected cash uses net cash payments (after refunds allocated to cash)
+      const expectedCash = Number(shift.opening_cash) + cashPayments + cashIn - cashOut;
       const closingCash = shift.closing_cash ? Number(shift.closing_cash) : null;
       const cashDifference = closingCash !== null ? closingCash - expectedCash : 0;
 
