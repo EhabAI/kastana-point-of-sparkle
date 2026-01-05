@@ -452,6 +452,8 @@ export default {
   "refund_reason_system_error": "خطأ في النظام",
   "refund_reason_other": "أخرى",
   "refund_notes_placeholder": "ملاحظات إضافية (اختياري)...",
+  "max": "الحد الأقصى",
+  "amount_exceeds_refundable": "المبلغ يتجاوز الرصيد القابل للاسترداد",
 
   // POS - Z Report
   "z_report": "تقرير Z",

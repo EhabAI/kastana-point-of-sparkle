@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -22,6 +23,7 @@ import { formatJOD } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 type RefundReason = "customer_request" | "order_mistake" | "system_error" | "other";
+type RefundType = "full" | "partial";
 
 interface RefundDialogProps {
   open: boolean;
@@ -31,7 +33,7 @@ interface RefundDialogProps {
   alreadyRefunded?: number;
   currency: string;
   onConfirm: (data: {
-    refundType: "full" | "partial";
+    refundType: RefundType;
     amount: number;
     reason: string;
   }) => Promise<void>;
@@ -49,14 +51,29 @@ export function RefundDialog({
   isProcessing = false,
 }: RefundDialogProps) {
   const { t } = useLanguage();
+  const [refundType, setRefundType] = useState<RefundType>("full");
+  const [customAmount, setCustomAmount] = useState("");
   const [selectedReason, setSelectedReason] = useState<RefundReason | "">("");
   const [notes, setNotes] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
 
-  const maxRefundable = totalPaid - alreadyRefunded;
-  const refundAmount = maxRefundable; // Full refund only in Phase 1
+  const maxRefundable = Math.max(0, totalPaid - alreadyRefunded);
+  
+  // Calculate refund amount based on type
+  const refundAmount = refundType === "full" 
+    ? maxRefundable 
+    : Math.min(Number(customAmount) || 0, maxRefundable);
+
   const hasReason = selectedReason !== "";
-  const canSubmit = refundAmount > 0 && hasReason && !isProcessing && maxRefundable > 0;
+  const isValidAmount = refundAmount > 0 && refundAmount <= maxRefundable;
+  const canSubmit = isValidAmount && hasReason && !isProcessing && maxRefundable > 0;
+
+  // Reset custom amount when dialog opens or type changes
+  useEffect(() => {
+    if (open) {
+      setCustomAmount(maxRefundable.toFixed(3));
+    }
+  }, [open, maxRefundable]);
 
   const refundReasons: { value: RefundReason; label: string }[] = [
     { value: "customer_request", label: t("refund_reason_customer_request") },
@@ -71,6 +88,15 @@ export function RefundDialog({
     return found?.label || value;
   };
 
+  const handleAmountChange = (value: string) => {
+    // Allow only valid decimal input
+    const cleaned = value.replace(/[^\d.]/g, "");
+    const parts = cleaned.split(".");
+    if (parts.length > 2) return;
+    if (parts[1] && parts[1].length > 3) return;
+    setCustomAmount(cleaned);
+  };
+
   const handleProceed = () => {
     if (!canSubmit) return;
     setShowConfirmation(true);
@@ -82,7 +108,7 @@ export function RefundDialog({
       ? `${getReasonLabel(selectedReason)}: ${notes.trim()}`
       : getReasonLabel(selectedReason);
     await onConfirm({
-      refundType: "full",
+      refundType,
       amount: refundAmount,
       reason: reasonText,
     });
@@ -94,6 +120,8 @@ export function RefundDialog({
   };
 
   const handleClose = () => {
+    setRefundType("full");
+    setCustomAmount("");
     setSelectedReason("");
     setNotes("");
     setShowConfirmation(false);
@@ -121,16 +149,65 @@ export function RefundDialog({
 
         {!showConfirmation ? (
           <>
-            <div className="space-y-6 py-4">
-              {/* Full Refund Amount Display */}
-              <div className="space-y-3">
-                <Label className="text-base">{t("full_refund")}</Label>
-                <div className="flex flex-col items-center justify-center rounded-lg border-2 border-primary bg-popover p-4 h-20">
-                  <span className="text-lg font-semibold">{t("refund_amount")}</span>
-                  <span className="text-2xl font-bold text-destructive">
-                    {formatJOD(maxRefundable)} {currency}
-                  </span>
+            <div className="space-y-5 py-4">
+              {/* Refund Type Toggle */}
+              <div className="space-y-2">
+                <Label className="text-base">{t("refund_type")}</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant={refundType === "full" ? "default" : "outline"}
+                    className="h-12"
+                    onClick={() => setRefundType("full")}
+                  >
+                    {t("full_refund")}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={refundType === "partial" ? "default" : "outline"}
+                    className="h-12"
+                    onClick={() => setRefundType("partial")}
+                  >
+                    {t("partial_refund")}
+                  </Button>
                 </div>
+              </div>
+
+              {/* Refund Amount */}
+              <div className="space-y-2">
+                <Label>{t("refund_amount")}</Label>
+                {refundType === "full" ? (
+                  <div className="flex items-center justify-center rounded-lg border-2 border-primary bg-muted p-4 h-14">
+                    <span className="text-xl font-bold text-destructive">
+                      {formatJOD(maxRefundable)} {currency}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <Input
+                        type="text"
+                        inputMode="decimal"
+                        value={customAmount}
+                        onChange={(e) => handleAmountChange(e.target.value)}
+                        className="h-14 text-xl font-bold text-center pr-16"
+                        placeholder="0.000"
+                        step="0.001"
+                      />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                        {currency}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground text-center">
+                      {t("max")}: {formatJOD(maxRefundable)} {currency}
+                    </p>
+                    {Number(customAmount) > maxRefundable && (
+                      <p className="text-xs text-destructive text-center font-medium">
+                        {t("amount_exceeds_refundable")}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Reason Dropdown */}
@@ -165,7 +242,7 @@ export function RefundDialog({
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder={t("refund_notes_placeholder")}
-                  className="min-h-[80px] resize-none"
+                  className="min-h-[70px] resize-none"
                 />
               </div>
             </div>
@@ -206,7 +283,7 @@ export function RefundDialog({
                   {formatJOD(refundAmount)} {currency}
                 </p>
                 <p className="text-muted-foreground">
-                  {t("full_refund")} {t("refund_for_order")} #{orderNumber}
+                  {refundType === "full" ? t("full_refund") : t("partial_refund")} {t("refund_for_order")} #{orderNumber}
                 </p>
                 <div className="bg-muted rounded-lg p-3 text-left">
                   <p className="text-xs text-muted-foreground mb-1">{t("reason")}:</p>
