@@ -72,15 +72,19 @@ export function useZReport(shiftId: string | undefined) {
 
       if (transError) throw transError;
 
-      // Mobile payment methods
-      const mobileMethods = ["cliq", "zain_cash", "orange_money", "umniah_wallet", "wallet", "efawateer", "mobile"];
-      // Card payment methods
-      const cardMethods = ["visa", "mastercard", "card"];
+      // Supported payment methods only (Phase 1)
+      // cash → cash bucket
+      // visa → card bucket
+      // cliq, zain_cash, orange_money, umniah_wallet → mobile bucket
+      const SUPPORTED_METHODS = ["cash", "visa", "cliq", "zain_cash", "orange_money", "umniah_wallet"] as const;
+      const MOBILE_METHODS = ["cliq", "zain_cash", "orange_money", "umniah_wallet"];
 
-      const getPaymentBucket = (method: string): "cash" | "card" | "mobile" => {
+      const getPaymentBucket = (method: string): "cash" | "card" | "mobile" | null => {
         if (method === "cash") return "cash";
-        if (mobileMethods.includes(method)) return "mobile";
-        return "card"; // Default unknown non-cash to card
+        if (method === "visa") return "card";
+        if (MOBILE_METHODS.includes(method)) return "mobile";
+        // Unsupported method - ignore safely
+        return null;
       };
 
       // Calculate totals
@@ -96,13 +100,16 @@ export function useZReport(shiftId: string | undefined) {
 
       // Gross payment breakdown
       const allPayments = paidOrders.flatMap(o => o.payments || []);
-      const grossCashPayments = allPayments
+      // Filter to only supported payment methods
+      const supportedPayments = allPayments.filter(p => getPaymentBucket(p.method) !== null);
+      
+      const grossCashPayments = supportedPayments
         .filter(p => getPaymentBucket(p.method) === "cash")
         .reduce((sum, p) => sum + Number(p.amount), 0);
-      const grossCardPayments = allPayments
+      const grossCardPayments = supportedPayments
         .filter(p => getPaymentBucket(p.method) === "card")
         .reduce((sum, p) => sum + Number(p.amount), 0);
-      const grossMobilePayments = allPayments
+      const grossMobilePayments = supportedPayments
         .filter(p => getPaymentBucket(p.method) === "mobile")
         .reduce((sum, p) => sum + Number(p.amount), 0);
 
@@ -125,27 +132,30 @@ export function useZReport(shiftId: string | undefined) {
         const refundAmount = Number(refund.amount);
         const orderTotal = Number(order.total);
         const orderPayments = order.payments || [];
-        const paymentSum = orderPayments.reduce((s, p) => s + Number(p.amount), 0);
+
+        // Filter to only supported payment methods for this order
+        const supportedOrderPayments = orderPayments.filter(p => getPaymentBucket(p.method) !== null);
+        const supportedPaymentSum = supportedOrderPayments.reduce((s, p) => s + Number(p.amount), 0);
 
         // Allocate refund to payment methods proportionally
-        if (orderPayments.length === 0 || paymentSum === 0) {
+        if (supportedOrderPayments.length === 0 || supportedPaymentSum === 0) {
           // Fallback: allocate to cash
           cashRefundsAllocated += refundAmount;
-        } else if (orderPayments.length === 1) {
+        } else if (supportedOrderPayments.length === 1) {
           // Single payment: full refund to that method
-          const bucket = getPaymentBucket(orderPayments[0].method);
+          const bucket = getPaymentBucket(supportedOrderPayments[0].method);
           if (bucket === "cash") cashRefundsAllocated += refundAmount;
           else if (bucket === "card") cardRefundsAllocated += refundAmount;
-          else mobileRefundsAllocated += refundAmount;
+          else if (bucket === "mobile") mobileRefundsAllocated += refundAmount;
         } else {
           // Multiple payments: proportional allocation
-          orderPayments.forEach(p => {
-            const proportion = Number(p.amount) / paymentSum;
+          supportedOrderPayments.forEach(p => {
+            const proportion = Number(p.amount) / supportedPaymentSum;
             const allocated = refundAmount * proportion;
             const bucket = getPaymentBucket(p.method);
             if (bucket === "cash") cashRefundsAllocated += allocated;
             else if (bucket === "card") cardRefundsAllocated += allocated;
-            else mobileRefundsAllocated += allocated;
+            else if (bucket === "mobile") mobileRefundsAllocated += allocated;
           });
         }
 
