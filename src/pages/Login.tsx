@@ -101,7 +101,6 @@ export default function Login() {
       Smart. Secure. Profitable.
     </CardDescription>
   </div>
-</CardHeader>
 
         </CardHeader>
         <CardContent>
