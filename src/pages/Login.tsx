@@ -85,11 +85,24 @@ export default function Login() {
 
           </div>
           <div>
-            <CardTitle className="text-3xl font-bold tracking-tight">
-            <CardDescription className="mt-1 text-xs tracking-widest uppercase text-gray-500">
-              Smart. Secure. Profitable.
-            </CardDescription>
-          </div>
+            <CardHeader className="text-center space-y-6">
+  <img
+    src={kastanaLogo}
+    alt="Kastana POS"
+    className="h-32 w-auto mx-auto object-contain"
+  />
+
+  <div>
+    <CardTitle className="text-3xl font-bold tracking-tight">
+      Kastana POS System
+    </CardTitle>
+
+    <CardDescription className="mt-1 text-xs tracking-widest uppercase text-gray-500">
+      Smart. Secure. Profitable.
+    </CardDescription>
+  </div>
+</CardHeader>
+
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
