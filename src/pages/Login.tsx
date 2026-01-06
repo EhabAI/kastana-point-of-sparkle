@@ -101,8 +101,7 @@ export default function Login() {
       Smart. Secure. Profitable.
     </CardDescription>
   </div>
-
-        </CardHeader>
+        
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
