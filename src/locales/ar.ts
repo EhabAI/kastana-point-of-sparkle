@@ -320,8 +320,12 @@ export default {
   "accept_mastercard_payments": "قبول بطاقات ماستركارد",
   "efawateer": "إي فواتيركم",
   "accept_efawateer_payments": "قبول دفع فواتير إي فواتيركم",
+  "cliq": "كليك",
+  "accept_cliq_payments": "قبول الدفع الفوري عبر كليك",
   "wallet": "المحفظة",
   "accept_wallet_payments": "قبول الدفع بالمحفظة الرقمية",
+  "zain_cash": "زين كاش",
+  "accept_zain_cash_payments": "قبول الدفع عبر زين كاش",
   "card": "بطاقة",
   "mobile": "موبايل",
 
