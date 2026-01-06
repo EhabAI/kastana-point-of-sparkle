@@ -35,14 +35,14 @@ interface PaymentDialogProps {
   paymentMethods?: PaymentMethodConfig[];
 }
 
+// Icons for DB-allowed payment methods only
 const methodIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   cash: Banknote,
   visa: CreditCard,
-  mastercard: CreditCard,
-  efawateer: Receipt,
-  wallet: Wallet,
-  card: CreditCard,
-  mobile: Smartphone,
+  cliq: Smartphone,
+  zain_cash: Smartphone,
+  orange_money: Smartphone,
+  umniah_wallet: Smartphone,
 };
 
 export function PaymentDialog({
@@ -56,11 +56,10 @@ export function PaymentDialog({
 }: PaymentDialogProps) {
   const { t } = useLanguage();
   
-  // Get enabled methods or default to cash/card/mobile
+  // Get enabled methods - only DB-allowed values
   const enabledMethods = paymentMethods?.filter((m) => m.enabled) || [
-    { id: "cash", label: t("cash"), enabled: true },
-    { id: "card", label: t("card"), enabled: true },
-    { id: "mobile", label: t("mobile"), enabled: true },
+    { id: "cash" as const, label: t("cash"), enabled: true },
+    { id: "visa" as const, label: t("card"), enabled: true },
   ];
 
   const [splitPayments, setSplitPayments] = useState<{ method: PaymentMethodId; amount: string }[]>([]);

@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCashierRestaurant } from "./useCashierRestaurant";
+import { ALLOWED_PAYMENT_METHODS, isValidPaymentMethod, type AllowedPaymentMethod } from "./useCashierPaymentMethods";
 
-export type PaymentMethod = string;
+export type PaymentMethod = AllowedPaymentMethod;
 
 // Helper: round to 3 decimals using HALF-UP (JOD standard)
 const roundJOD = (n: number): number => Math.round(n * 1000) / 1000;
@@ -18,10 +19,15 @@ export function useAddPayment() {
       amount,
     }: {
       orderId: string;
-      method: PaymentMethod;
+      method: string;
       amount: number;
     }) => {
       if (!restaurant?.id) throw new Error("Missing restaurant");
+
+      // CRITICAL: Validate payment method before insert
+      if (!isValidPaymentMethod(method)) {
+        throw new Error(`Invalid payment method: ${method}. Allowed: ${ALLOWED_PAYMENT_METHODS.join(", ")}`);
+      }
 
       const { data, error } = await supabase
         .from("payments")
