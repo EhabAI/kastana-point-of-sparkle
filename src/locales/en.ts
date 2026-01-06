@@ -320,8 +320,12 @@ export default {
   "accept_mastercard_payments": "Accept Mastercard payments",
   "efawateer": "eFAWATEERcom",
   "accept_efawateer_payments": "Accept eFAWATEERcom bill payments",
+  "cliq": "CliQ",
+  "accept_cliq_payments": "Accept CliQ instant payments",
   "wallet": "Wallet",
   "accept_wallet_payments": "Accept digital wallet payments",
+  "zain_cash": "Zain Cash",
+  "accept_zain_cash_payments": "Accept Zain Cash mobile payments",
   "card": "Card",
   "mobile": "Mobile",
 

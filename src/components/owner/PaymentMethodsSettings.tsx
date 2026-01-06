@@ -33,7 +33,6 @@ export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsP
   const [localMethods, setLocalMethods] = useState({
     cash: true,
     visa: true,
-    mastercard: true,
     efawateer: false,
     wallet: false,
   });
@@ -45,7 +44,6 @@ export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsP
       setLocalMethods({
         cash: paymentMethods.cash_enabled,
         visa: paymentMethods.visa_enabled,
-        mastercard: paymentMethods.mastercard_enabled,
         efawateer: paymentMethods.efawateer_enabled,
         wallet: paymentMethods.wallet_enabled,
       });
@@ -64,7 +62,7 @@ export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsP
       branchId: selectedBranchId,
       cashEnabled: localMethods.cash,
       visaEnabled: localMethods.visa,
-      mastercardEnabled: localMethods.mastercard,
+      mastercardEnabled: false, // Mastercard not supported in Phase 1
       efawateerEnabled: localMethods.efawateer,
       walletEnabled: localMethods.wallet,
     });
@@ -173,32 +171,15 @@ export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsP
                   />
                 </div>
 
-                {/* Mastercard */}
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
-                      <CreditCard className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium">Mastercard</Label>
-                      <p className="text-xs text-muted-foreground">{t("accept_mastercard_payments")}</p>
-                    </div>
-                  </div>
-                  <Switch
-                    checked={localMethods.mastercard}
-                    onCheckedChange={(checked) => handleToggle("mastercard", checked)}
-                  />
-                </div>
-
-                {/* eFawateer */}
+                {/* CliQ (uses efawateer_enabled column) */}
                 <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
                       <Building2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                     </div>
                     <div>
-                      <Label className="text-sm font-medium">eFawateer</Label>
-                      <p className="text-xs text-muted-foreground">{t("accept_efawateer_payments")}</p>
+                      <Label className="text-sm font-medium">CliQ</Label>
+                      <p className="text-xs text-muted-foreground">{t("accept_cliq_payments")}</p>
                     </div>
                   </div>
                   <Switch
@@ -207,15 +188,15 @@ export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsP
                   />
                 </div>
 
-                {/* Wallet */}
+                {/* Zain Cash (uses wallet_enabled column) */}
                 <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center">
                       <Wallet className="h-5 w-5 text-teal-600 dark:text-teal-400" />
                     </div>
                     <div>
-                      <Label className="text-sm font-medium">{t("wallet")}</Label>
-                      <p className="text-xs text-muted-foreground">{t("accept_wallet_payments")}</p>
+                      <Label className="text-sm font-medium">Zain Cash</Label>
+                      <p className="text-xs text-muted-foreground">{t("accept_zain_cash_payments")}</p>
                     </div>
                   </div>
                   <Switch
