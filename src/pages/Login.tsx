@@ -74,23 +74,28 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md shadow-card animate-fade-in">
+      <Card className="w-full max-w-lg rounded-2xl shadow-xl border border-gray-200 animate-fade-in">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto">
-            <img src={kastanaLogo} alt="Kastana POS" className="h-28 w-auto mx-auto mb-4 object-contain" />
+            <img
+                src={kastanaLogo}
+                alt="Kastana POS"
+                className="h-32 w-auto mx-auto mb-6 object-contain"
+            />
+
           </div>
           <div>
-            <CardTitle className="text-2xl font-semibold">Kastana POS System</CardTitle>
-            <CardDescription className="mt-1 text-xs tracking-widest uppercase">
+            <CardTitle className="text-3xl font-bold tracking-tight">
+            <CardDescription className="mt-1 text-xs tracking-widest uppercase text-gray-500">
               Smart. Secure. Profitable.
             </CardDescription>
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input
+              <Input className="h-12 rounded-xl text-base"
                 id="email"
                 type="email"
                 placeholder="you@example.com"
@@ -112,7 +117,11 @@ export default function Login() {
                 autoComplete="current-password"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button
+  type="submit"
+  className="w-full h-12 rounded-xl text-base font-semibold"
+  disabled={isLoading}
+>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
