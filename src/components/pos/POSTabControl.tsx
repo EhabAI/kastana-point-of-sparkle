@@ -24,31 +24,31 @@ export function POSTabControl({
   const tabs = [
     {
       id: "new-order" as POSTab,
-      label: t("pos.new_order"),
+      label: t("pos_new_order"),
       icon: ShoppingCart,
       count: 0,
     },
     {
       id: "favorites" as POSTab,
-      label: t("pos.favorites"),
+      label: t("pos_favorites"),
       icon: Star,
       count: 0,
     },
     {
       id: "qr-pending" as POSTab,
-      label: t("pos.qr_pending"),
+      label: t("pos_qr_pending"),
       icon: QrCode,
       count: pendingCount,
     },
     {
       id: "open-orders" as POSTab,
-      label: t("pos.open_orders"),
+      label: t("pos_open_orders"),
       icon: ClipboardList,
       count: openCount,
     },
     {
       id: "tables" as POSTab,
-      label: t("pos.tables"),
+      label: t("pos_tables"),
       icon: Grid,
       count: occupiedTablesCount,
     },
