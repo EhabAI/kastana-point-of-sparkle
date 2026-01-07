@@ -539,6 +539,7 @@ export type Database = {
           branch_id: string | null
           cancelled_reason: string | null
           created_at: string
+          customer_phone: string | null
           discount_type: string | null
           discount_value: number | null
           id: string
@@ -549,6 +550,7 @@ export type Database = {
           restaurant_id: string
           service_charge: number
           shift_id: string | null
+          source: string
           status: string
           subtotal: number
           table_id: string | null
@@ -561,6 +563,7 @@ export type Database = {
           branch_id?: string | null
           cancelled_reason?: string | null
           created_at?: string
+          customer_phone?: string | null
           discount_type?: string | null
           discount_value?: number | null
           id?: string
@@ -571,6 +574,7 @@ export type Database = {
           restaurant_id: string
           service_charge?: number
           shift_id?: string | null
+          source?: string
           status?: string
           subtotal?: number
           table_id?: string | null
@@ -583,6 +587,7 @@ export type Database = {
           branch_id?: string | null
           cancelled_reason?: string | null
           created_at?: string
+          customer_phone?: string | null
           discount_type?: string | null
           discount_value?: number | null
           id?: string
@@ -593,6 +598,7 @@ export type Database = {
           restaurant_id?: string
           service_charge?: number
           shift_id?: string | null
+          source?: string
           status?: string
           subtotal?: number
           table_id?: string | null

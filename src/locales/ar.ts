@@ -1,5 +1,11 @@
 // Arabic translations for Kastana POS
 export default {
+  // Menu page - phone & table
+  menu_phone_label: "رقم الهاتف (اختياري)",
+  menu_phone_placeholder: "+962 7XX XXX XXX",
+  menu_phone_error: "الرجاء إدخال رقم هاتف صحيح (7-15 رقم)",
+  menu_table_not_found: "الطاولة غير موجودة",
+  menu_table_inactive: "الطاولة غير نشطة",
   // Common
   sign_out: "تسجيل الخروج",
   save: "حفظ",

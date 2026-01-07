@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
@@ -48,6 +49,7 @@ import {
   Star,
   Package,
   CakeSlice,
+  Phone,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { formatJOD } from "@/lib/utils";
@@ -81,6 +83,11 @@ type SelectedItem = {
   price: number;
   quantity: number;
   notes: string;
+};
+
+type TableInfo = {
+  id: string;
+  branch_id: string | null;
 };
 
 /* =======================
@@ -392,10 +399,20 @@ const translateItemName = (name: string, lang: "en" | "ar"): string => {
 };
 
 /* =======================
+   Phone Validation
+======================= */
+const validatePhone = (phone: string): boolean => {
+  if (!phone.trim()) return true; // Empty is valid (optional)
+  const cleaned = phone.replace(/[\s-]/g, "");
+  const phoneRegex = /^\+?[\d]{7,15}$/;
+  return phoneRegex.test(cleaned);
+};
+
+/* =======================
    Component
 ======================= */
 export default function Menu() {
-  const { restaurantId, branchId, tableCode } = useParams();
+  const { restaurantId, branchId: branchIdParam, tableCode } = useParams();
   const { language, setLanguage, t, isRTL } = useLanguage();
 
   const [loading, setLoading] = useState(true);
@@ -405,6 +422,9 @@ export default function Menu() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<Item[]>([]);
+  
+  // Table info derived from table_code lookup
+  const [tableInfo, setTableInfo] = useState<TableInfo | null>(null);
 
   // Cart state (local only) - now tracks quantities per item
   const [cart, setCart] = useState<SelectedItem[]>([]);
@@ -416,6 +436,10 @@ export default function Menu() {
 
   // Order-level notes (not item notes)
   const [orderNotes, setOrderNotes] = useState("");
+  
+  // Customer phone (optional, for marketing)
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [phoneError, setPhoneError] = useState(false);
 
   // Clear cart when language changes to avoid mixed language items
   useEffect(() => {
@@ -430,7 +454,7 @@ export default function Menu() {
       setLoading(true);
       setError(null);
 
-      if (!restaurantId || !branchId) {
+      if (!restaurantId) {
         setError(t("menu_invalid_restaurant"));
         setLoading(false);
         return;
@@ -449,7 +473,35 @@ export default function Menu() {
 
       setRestaurant(restaurantData[0]);
 
-      /* 2️⃣ Categories */
+      /* 2️⃣ Table lookup - derive branch_id from table_code if branchIdParam is missing */
+      let effectiveBranchId = branchIdParam || null;
+      
+      if (tableCode) {
+        const { data: tableData, error: tableError } = await supabase
+          .from("restaurant_tables")
+          .select("id, branch_id, is_active")
+          .eq("restaurant_id", restaurantId)
+          .eq("table_code", tableCode)
+          .single();
+
+        if (tableError || !tableData) {
+          console.error("Table lookup error:", tableError);
+          setError(t("menu_table_not_found") || "Table not found");
+          setLoading(false);
+          return;
+        }
+
+        if (!tableData.is_active) {
+          setError(t("menu_table_inactive") || "Table is not active");
+          setLoading(false);
+          return;
+        }
+
+        setTableInfo({ id: tableData.id, branch_id: tableData.branch_id });
+        effectiveBranchId = tableData.branch_id || effectiveBranchId;
+      }
+
+      /* 3️⃣ Categories */
       const { data: categoriesData, error: categoriesError } = await supabase
         .from("menu_categories")
         .select("id, name, sort_order")
@@ -465,7 +517,7 @@ export default function Menu() {
 
       setCategories(categoriesData || []);
 
-      /* 3️⃣ Items - get by category IDs */
+      /* 4️⃣ Items - get by category IDs */
       const categoryIds = (categoriesData || []).map((c) => c.id);
 
       if (categoryIds.length > 0) {
@@ -491,7 +543,7 @@ export default function Menu() {
     }
 
     load();
-  }, [restaurantId, branchId]);
+  }, [restaurantId, branchIdParam, tableCode]);
 
   /* =======================
      Group Items
@@ -550,56 +602,47 @@ export default function Menu() {
   };
 
   /* =======================
-     Order Submission
+     Order Submission via Edge Function
   ======================= */
   const handleConfirmOrder = async () => {
-    if (cart.length === 0 || !restaurantId || !branchId) return;
+    if (cart.length === 0 || !restaurantId || !tableCode) return;
+
+    // Validate phone if provided
+    if (customerPhone && !validatePhone(customerPhone)) {
+      setPhoneError(true);
+      return;
+    }
+    setPhoneError(false);
 
     setOrderLoading(true);
 
     try {
-      // Calculate subtotal
-      const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-      // Insert order into database
-      const { data: orderData, error: orderError } = await supabase
-        .from("orders")
-        .insert({
+      // Call edge function instead of direct inserts
+      const { data, error: fnError } = await supabase.functions.invoke("qr-create-order", {
+        body: {
           restaurant_id: restaurantId,
-          branch_id: branchId,
-          status: "pending",
-          subtotal: subtotal,
-          total: subtotal,
+          table_code: tableCode,
+          items: cart.map((item) => ({
+            menu_item_id: item.item_id,
+            quantity: item.quantity,
+            notes: item.notes || null,
+          })),
           order_notes: orderNotes.trim() || null,
-        })
-        .select()
-        .single();
+          customer_phone: customerPhone.trim() || null,
+          language,
+        },
+      });
 
-      if (orderError || !orderData) {
-        console.error("Order insert error:", orderError);
+      if (fnError) {
+        console.error("QR order edge function error:", fnError);
         setError(t("menu_order_error"));
         setOrderLoading(false);
         return;
       }
 
-      // Insert order items
-      const orderItems = cart.map((item) => ({
-        order_id: orderData.id,
-        restaurant_id: restaurantId,
-        menu_item_id: item.item_id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        notes: item.notes || null,
-      }));
-
-      const { error: itemsError } = await supabase
-        .from("order_items")
-        .insert(orderItems);
-
-      if (itemsError) {
-        console.error("Order items insert error:", itemsError);
-        setError(t("menu_order_error"));
+      if (data?.error) {
+        console.error("QR order error:", data.error);
+        setError(data.error);
         setOrderLoading(false);
         return;
       }
@@ -607,6 +650,7 @@ export default function Menu() {
       // Success - clear cart and show success
       setCart([]);
       setOrderNotes("");
+      setCustomerPhone("");
       setShowConfirm(false);
       setOrderSuccess(true);
 
@@ -811,6 +855,30 @@ export default function Menu() {
                 </div>
               </div>
             ))}
+
+            {/* Customer phone input (optional) */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                {t("menu_phone_label") || "Phone Number (Optional)"}
+              </label>
+              <Input
+                type="tel"
+                value={customerPhone}
+                onChange={(e) => {
+                  setCustomerPhone(e.target.value);
+                  setPhoneError(false);
+                }}
+                placeholder={t("menu_phone_placeholder") || "+962 7XX XXX XXX"}
+                className={phoneError ? "border-destructive" : ""}
+                dir="ltr"
+              />
+              {phoneError && (
+                <p className="text-xs text-destructive">
+                  {t("menu_phone_error") || "Please enter a valid phone number (7-15 digits)"}
+                </p>
+              )}
+            </div>
 
             {/* Order-level notes */}
             <div className="space-y-2">
