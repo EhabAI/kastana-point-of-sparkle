@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.admin-reset-password]
 verify_jwt = true
+
+[functions.qr-create-order]
+verify_jwt = false

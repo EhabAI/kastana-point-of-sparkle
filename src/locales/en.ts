@@ -1,5 +1,11 @@
 // English translations for Kastana POS
 export default {
+  // Menu page - phone & table
+  menu_phone_label: "Phone Number (Optional)",
+  menu_phone_placeholder: "+962 7XX XXX XXX",
+  menu_phone_error: "Please enter a valid phone number (7-15 digits)",
+  menu_table_not_found: "Table not found",
+  menu_table_inactive: "Table is not active",
   // Common
   sign_out: "Sign Out",
   save: "Save",
