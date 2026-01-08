@@ -50,12 +50,12 @@ export function useConfirmPendingOrder() {
 
   return useMutation({
     mutationFn: async (orderId: string) => {
-      const { data, error } = await supabase
-        .from("orders")
-        .update({ status: "confirmed" })
-        .eq("id", orderId)
-        .select()
-        .single();
+      const { data, error } = await supabase.functions.invoke("confirm-qr-order", {
+        body: { order_id: orderId },
+      });
+
+      if (error) throw error;
+      return data;
 
       if (error) throw error;
       return data;
@@ -63,7 +63,7 @@ export function useConfirmPendingOrder() {
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["pending-orders"] });
       queryClient.invalidateQueries({ queryKey: ["open-orders"] });
-      
+
       // Log to audit
       if (user?.id && restaurant?.id) {
         await supabase.from("audit_logs").insert({
@@ -88,7 +88,7 @@ export function useRejectPendingOrder() {
     mutationFn: async ({ orderId, reason }: { orderId: string; reason?: string }) => {
       const { data, error } = await supabase
         .from("orders")
-        .update({ 
+        .update({
           status: "cancelled",
           cancelled_reason: reason || "Rejected by cashier",
         })
@@ -101,7 +101,7 @@ export function useRejectPendingOrder() {
     },
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["pending-orders"] });
-      
+
       // Log to audit
       if (user?.id && restaurant?.id) {
         await supabase.from("audit_logs").insert({
@@ -110,7 +110,7 @@ export function useRejectPendingOrder() {
           entity_type: "order",
           entity_id: data.id,
           action: "ORDER_REJECTED",
-          details: { 
+          details: {
             order_number: data.order_number,
             reason: data.cancelled_reason,
           } as unknown as Json,
