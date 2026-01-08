@@ -473,7 +473,8 @@ export default function Menu() {
 
       setRestaurant(restaurantData[0]);
 
-      /* 2️⃣ Table lookup - derive branch_id from table_code if branchIdParam is missing */
+      /* 2️⃣ Table lookup - derive branch_id from table_code (case-sensitive, exact match)
+         Uses maybeSingle() to avoid throwing when no rows are found */
       let effectiveBranchId = branchIdParam || null;
       
       if (tableCode) {
@@ -482,17 +483,38 @@ export default function Menu() {
           .select("id, branch_id, is_active")
           .eq("restaurant_id", restaurantId)
           .eq("table_code", tableCode)
-          .single();
+          .limit(1)
+          .maybeSingle();
 
-        if (tableError || !tableData) {
-          console.error("Table lookup error:", tableError);
-          setError(t("menu_table_not_found") || "Table not found");
+        // Log lookup details for debugging
+        if (tableError) {
+          console.error("Table lookup failed:", {
+            restaurant_id: restaurantId,
+            table_code: tableCode,
+            error: tableError.message,
+          });
+          setError(t("menu_table_not_found") || "This table is not registered or inactive. Please contact staff.");
+          setLoading(false);
+          return;
+        }
+
+        if (!tableData) {
+          console.warn("Table not found:", {
+            restaurant_id: restaurantId,
+            table_code: tableCode,
+          });
+          setError(t("menu_table_not_found") || "This table is not registered or inactive. Please contact staff.");
           setLoading(false);
           return;
         }
 
         if (!tableData.is_active) {
-          setError(t("menu_table_inactive") || "Table is not active");
+          console.warn("Table inactive:", {
+            restaurant_id: restaurantId,
+            table_code: tableCode,
+            table_id: tableData.id,
+          });
+          setError(t("menu_table_inactive") || "This table is currently inactive. Please contact staff.");
           setLoading(false);
           return;
         }
