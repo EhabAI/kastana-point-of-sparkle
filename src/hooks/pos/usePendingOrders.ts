@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuditLog } from "./useAuditLog";
 import { useCashierRestaurant } from "./useCashierRestaurant";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Json } from "@/integrations/supabase/types";
@@ -44,7 +43,6 @@ export function usePendingOrders(branchId: string | undefined) {
 
 export function useConfirmPendingOrder() {
   const queryClient = useQueryClient();
-  const auditLog = useAuditLog();
   const { data: restaurant } = useCashierRestaurant();
   const { user } = useAuth();
 
@@ -56,13 +54,12 @@ export function useConfirmPendingOrder() {
 
       if (error) throw error;
       return data;
-
-      if (error) throw error;
-      return data;
     },
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["pending-orders"] });
       queryClient.invalidateQueries({ queryKey: ["open-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["branch-tables"] });
+      queryClient.invalidateQueries({ queryKey: ["current-order"] });
 
       // Log to audit
       if (user?.id && restaurant?.id) {

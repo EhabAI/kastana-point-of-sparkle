@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { Users } from "lucide-react";
+import { Users, AlertCircle } from "lucide-react";
 import { cn, formatJOD } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   useCashierSession,
@@ -228,6 +229,12 @@ export default function POS() {
     orders: typeof openOrders;
   } | null>(null);
 
+  // Draft order state (create-on-first-item pattern)
+  const [draftOrder, setDraftOrder] = useState<{
+    orderType: "dine-in" | "takeaway";
+    tableId?: string | null;
+    customerInfo?: { name: string; phone: string };
+  } | null>(null);
   // Fetch modifiers for selected item
   const { data: itemModifierGroups = [] } = useMenuItemModifiers(selectedItemForModifiers?.id);
 
@@ -276,6 +283,11 @@ export default function POS() {
   }, [openOrders]);
 
   const occupiedTablesCount = tableOrderMap.size;
+
+  // Derived: Open orders without table (for Open Orders tab only)
+  const openOrdersNoTable = useMemo(() => {
+    return openOrders.filter(o => !o.table_id);
+  }, [openOrders]);
 
   // Auto-select first category
   useEffect(() => {
@@ -452,11 +464,33 @@ export default function POS() {
     }
   };
 
-  const handleSelectItem = (menuItem: { id: string; name: string; price: number }) => {
-    if (!currentShift || !branch) return;
+  const handleSelectItem = async (menuItem: { id: string; name: string; price: number }) => {
+    if (!currentShift || !branch || !restaurant) return;
 
-    if (!currentOrder?.id) {
-      // Open new order dialog if no current order
+    // If we have a draft order but no DB order yet, create it first
+    if (!currentOrder?.id && draftOrder) {
+      try {
+        await createOrderMutation.mutateAsync({
+          shiftId: currentShift.id,
+          taxRate,
+          branchId: branch.id,
+          restaurantId: restaurant.id,
+          orderType: draftOrder.orderType,
+          tableId: draftOrder.orderType === "takeaway" ? null : draftOrder.tableId,
+          customerInfo: draftOrder.customerInfo,
+        });
+        setDraftOrder(null);
+        // After order is created, we proceed to add item via modifier dialog
+        // The refetch will happen, so we use a slight delay to ensure order is available
+        await refetchOrder();
+      } catch (error) {
+        toast.error(t("failed_create_order"));
+        return;
+      }
+    }
+
+    if (!currentOrder?.id && !draftOrder) {
+      // Open new order dialog if no current order and no draft
       setNewOrderDialogOpen(true);
       return;
     }
@@ -1174,7 +1208,51 @@ export default function POS() {
   const handleConfirmPending = async (orderId: string) => {
     try {
       await confirmPendingMutation.mutateAsync(orderId);
-      toast.success(t("order_confirmed"));
+      
+      // Fetch the confirmed order to get table_id and route correctly
+      const { data: confirmedOrder, error: fetchError } = await supabase
+        .from("orders")
+        .select("id, order_number, status, table_id, branch_id, total")
+        .eq("id", orderId)
+        .single();
+      
+      if (fetchError) {
+        console.error("Failed to fetch confirmed order:", fetchError);
+        toast.success(t("order_confirmed"));
+        return;
+      }
+
+      if (confirmedOrder.table_id) {
+        // Order has a table - switch to Tables tab and open TableOrdersDialog
+        const tableOrders = await supabase
+          .from("orders")
+          .select("id, order_number, status, total, subtotal, created_at, notes, order_notes, table_id, order_items(id, name, quantity, price, notes, voided)")
+          .eq("table_id", confirmedOrder.table_id)
+          .in("status", ["open", "confirmed", "held"])
+          .order("created_at", { ascending: false });
+        
+        const table = tables.find(t => t.id === confirmedOrder.table_id);
+        
+        setActiveTab("tables");
+        setSelectedTableForOrders({
+          id: confirmedOrder.table_id,
+          name: table?.table_name || t("unknown"),
+          orders: (tableOrders.data || []) as typeof openOrders,
+        });
+        setTableOrdersDialogOpen(true);
+        toast.success(t("order_confirmed"));
+      } else {
+        // Order has no table - switch to Open Orders tab and auto-resume
+        setActiveTab("open-orders");
+        try {
+          await resumeOrderMutation.mutateAsync(orderId);
+          setActiveTab("new-order");
+          toast.success(t("order_confirmed"));
+        } catch (resumeError) {
+          console.error("Failed to resume confirmed order:", resumeError);
+          toast.success(t("order_confirmed"));
+        }
+      }
     } catch (error) {
       toast.error(t("failed_confirm_order"));
     }
@@ -1284,22 +1362,15 @@ export default function POS() {
       });
       setTableOrdersDialogOpen(true);
     } else {
-      // Available: Create new dine-in order
+      // Available: Set up draft order (create-on-first-item pattern)
       if (!currentShift || !branch || !restaurant) return;
-      try {
-        await createOrderMutation.mutateAsync({
-          shiftId: currentShift.id,
-          taxRate,
-          branchId: branch.id,
-          restaurantId: restaurant.id,
-          orderType: "dine-in",
-          tableId,
-        });
-        setActiveTab("new-order");
-        toast.success(t("order_created"));
-      } catch (error) {
-        toast.error(t("failed_create_order"));
-      }
+      const tableName = table?.table_name || t("unknown");
+      setDraftOrder({
+        orderType: "dine-in",
+        tableId,
+      });
+      setActiveTab("new-order");
+      toast.info(`${t("draft_for_table")} ${tableName}`);
     }
   };
 
@@ -1311,6 +1382,34 @@ export default function POS() {
       toast.success(t("order_loaded"));
     } catch (error) {
       toast.error(t("failed_load_order"));
+    }
+  };
+
+  // Handler for canceling empty orders from table orders dialog
+  const handleCancelEmptyTableOrder = async (orderId: string) => {
+    try {
+      await cancelOrderMutation.mutateAsync({ 
+        orderId, 
+        reason: "Empty order cancelled by cashier" 
+      });
+      
+      // Update the selectedTableForOrders to remove the cancelled order
+      if (selectedTableForOrders) {
+        const remainingOrders = selectedTableForOrders.orders.filter(o => o.id !== orderId);
+        if (remainingOrders.length === 0) {
+          setTableOrdersDialogOpen(false);
+          setSelectedTableForOrders(null);
+        } else {
+          setSelectedTableForOrders({
+            ...selectedTableForOrders,
+            orders: remainingOrders,
+          });
+        }
+      }
+      
+      toast.success(t("empty_order_cancelled"));
+    } catch (error) {
+      toast.error(t("failed_cancel_order"));
     }
   };
 
@@ -1487,7 +1586,7 @@ export default function POS() {
                 }
               }}
               pendingCount={pendingOrders.length}
-              openCount={openOrders.length}
+              openCount={openOrdersNoTable.length}
               occupiedTablesCount={occupiedTablesCount}
             />
           </div>
@@ -1506,6 +1605,25 @@ export default function POS() {
 
               {/* Menu Items */}
               <div className="flex-1 bg-muted/30 flex flex-col">
+                {/* Draft order banner */}
+                {draftOrder && !currentOrder && (
+                  <div className="p-2 bg-amber-100 dark:bg-amber-900/30 border-b border-amber-300 dark:border-amber-700 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm text-amber-800 dark:text-amber-200">
+                      <AlertCircle className="h-4 w-4" />
+                      <span>
+                        {draftOrder.orderType === "dine-in" 
+                          ? `${t("draft_order_for_table")} – ${t("will_create_on_first_item")}`
+                          : `${t("draft_takeaway_order")} – ${t("will_create_on_first_item")}`}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => setDraftOrder(null)}
+                      className="text-xs text-amber-600 dark:text-amber-400 hover:underline"
+                    >
+                      {t("discard")}
+                    </button>
+                  </div>
+                )}
                 {/* B1: Search Input */}
                 <div className="p-2 border-b bg-card">
                   <input
@@ -1617,7 +1735,7 @@ export default function POS() {
 
           {activeTab === "open-orders" && (
             <OpenOrdersList
-              orders={openOrders}
+              orders={openOrdersNoTable}
               tables={tables}
               currency={currency}
               onSelectOrder={handleSelectOpenOrder}
@@ -1954,7 +2072,8 @@ export default function POS() {
           currency={currency}
           onResumeOrder={handleResumeTableOrder}
           onPayOrder={handlePayTableOrder}
-          isLoading={resumeOrderMutation.isPending}
+          onCancelEmptyOrder={handleCancelEmptyTableOrder}
+          isLoading={resumeOrderMutation.isPending || cancelOrderMutation.isPending}
         />
       )}
     </div>

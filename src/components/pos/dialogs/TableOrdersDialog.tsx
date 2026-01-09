@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Clock, CreditCard, PlayCircle, X } from "lucide-react";
+import { Clock, CreditCard, PlayCircle, X, AlertTriangle, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useState, useEffect } from "react";
 import { cn, formatJOD } from "@/lib/utils";
@@ -44,6 +44,7 @@ interface TableOrdersDialogProps {
   currency: string;
   onResumeOrder: (orderId: string) => void;
   onPayOrder: (orderId: string) => void;
+  onCancelEmptyOrder?: (orderId: string) => void;
   isLoading?: boolean;
 }
 
@@ -55,6 +56,7 @@ export function TableOrdersDialog({
   currency,
   onResumeOrder,
   onPayOrder,
+  onCancelEmptyOrder,
   isLoading,
 }: TableOrdersDialogProps) {
   const { t } = useLanguage();
@@ -117,6 +119,16 @@ export function TableOrdersDialog({
     }
   };
 
+  const handleCancelEmptyClick = (orderId: string) => {
+    if (onCancelEmptyOrder) {
+      onCancelEmptyOrder(orderId);
+    }
+  };
+
+  // Check if selected order is empty
+  const isSelectedOrderEmpty = selectedOrder && 
+    selectedOrder.order_items.filter((i) => !i.voided).length === 0;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
@@ -137,6 +149,7 @@ export function TableOrdersDialog({
             {orders.map((order) => {
               const activeItems = order.order_items.filter((i) => !i.voided);
               const isSelected = selectedOrderId === order.id;
+              const isEmpty = activeItems.length === 0;
 
               return (
                 <button
@@ -148,7 +161,8 @@ export function TableOrdersDialog({
                     "w-full p-4 border rounded-lg text-left transition-all",
                     isSelected
                       ? "border-primary bg-primary/5 ring-2 ring-primary ring-offset-1"
-                      : "hover:border-primary/50 hover:bg-muted/50"
+                      : "hover:border-primary/50 hover:bg-muted/50",
+                    isEmpty && "border-destructive/50 bg-destructive/5"
                   )}
                 >
                   {/* Header */}
@@ -158,6 +172,12 @@ export function TableOrdersDialog({
                       <Badge variant={getStatusVariant(order.status)} className="text-xs">
                         {getStatusLabel(order.status)}
                       </Badge>
+                      {isEmpty && (
+                        <Badge variant="destructive" className="text-xs">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          {t("empty")}
+                        </Badge>
+                      )}
                     </div>
                     <span className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}
@@ -175,8 +195,8 @@ export function TableOrdersDialog({
                     {activeItems.length > 3 && (
                       <span className="text-primary"> +{activeItems.length - 3} {t("more")}</span>
                     )}
-                    {activeItems.length === 0 && (
-                      <span className="italic">{t("no_items_label")}</span>
+                    {isEmpty && (
+                      <span className="italic text-destructive">{t("no_items_empty_order")}</span>
                     )}
                   </div>
 
@@ -184,6 +204,23 @@ export function TableOrdersDialog({
                   <div className="text-lg font-bold text-primary">
                     {formatJOD(Number(order.total))} {currency}
                   </div>
+
+                  {/* Cancel empty order button */}
+                  {isEmpty && onCancelEmptyOrder && isSelected && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="mt-2 w-full"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCancelEmptyClick(order.id);
+                      }}
+                      disabled={isLoading}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      {t("cancel_empty_order")}
+                    </Button>
+                  )}
                 </button>
               );
             })}
@@ -217,7 +254,7 @@ export function TableOrdersDialog({
               <Button
                 className="flex-1"
                 onClick={handlePayClick}
-                disabled={isLoading || !selectedOrderId || selectedOrder?.status !== "open"}
+                disabled={isLoading || !selectedOrderId || selectedOrder?.status !== "open" || isSelectedOrderEmpty}
               >
                 <CreditCard className="h-4 w-4 mr-1" />
                 {t("pay_close")}
@@ -238,7 +275,7 @@ export function TableOrdersDialog({
               <Button
                 className="flex-1"
                 onClick={handlePayClick}
-                disabled={isLoading || !selectedOrderId || selectedOrder?.status !== "open"}
+                disabled={isLoading || !selectedOrderId || selectedOrder?.status !== "open" || isSelectedOrderEmpty}
               >
                 <CreditCard className="h-4 w-4 mr-1" />
                 {t("pay_close")}
