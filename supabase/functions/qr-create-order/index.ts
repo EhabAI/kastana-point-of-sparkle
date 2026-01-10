@@ -196,6 +196,37 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // ═══════════════════════════════════════════════════════════════════
+    // 2.5. RESTAURANT ACTIVE CHECK (KILL-SWITCH)
+    // ═══════════════════════════════════════════════════════════════════
+    const { data: restaurantData, error: restaurantError } = await supabase
+      .from("restaurants")
+      .select("is_active")
+      .eq("id", restaurant_id)
+      .maybeSingle();
+
+    if (restaurantError) {
+      console.error("Restaurant lookup error:", restaurantError.message);
+      return new Response(
+        JSON.stringify({ error: "Failed to verify restaurant" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!restaurantData) {
+      return new Response(
+        JSON.stringify({ error: "Restaurant not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!restaurantData.is_active) {
+      return new Response(
+        JSON.stringify({ error: "Restaurant is inactive", code: "RESTAURANT_INACTIVE" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
     // 3. RESOLVE TABLE AND BRANCH
     // ═══════════════════════════════════════════════════════════════════
     let table_id: string | null = providedTableId || null;

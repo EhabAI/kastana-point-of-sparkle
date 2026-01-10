@@ -7,6 +7,7 @@ export interface Restaurant {
   name: string;
   owner_id: string | null;
   logo_url: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }

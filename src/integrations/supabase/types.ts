@@ -918,6 +918,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_active: boolean
           logo_url: string | null
           name: string
           owner_id: string | null
@@ -926,6 +927,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_active?: boolean
           logo_url?: string | null
           name: string
           owner_id?: string | null
@@ -934,6 +936,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_active?: boolean
           logo_url?: string | null
           name?: string
           owner_id?: string | null
@@ -1117,6 +1120,10 @@ export type Database = {
         Args: { p_restaurant_id: string }
         Returns: string
       }
+      get_restaurant_id_from_branch: {
+        Args: { p_branch_id: string }
+        Returns: string
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -1126,6 +1133,14 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_branch_restaurant_active: {
+        Args: { p_branch_id: string }
+        Returns: boolean
+      }
+      is_restaurant_active: {
+        Args: { p_restaurant_id: string }
         Returns: boolean
       }
       public_get_table_by_code: {
