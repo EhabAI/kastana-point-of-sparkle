@@ -99,7 +99,7 @@ export default function Login() {
           {/* Left Section - Logo & Login Form */}
           <div className="w-full lg:w-1/2 p-8 sm:p-10 lg:p-12">
             {/* Logo */}
-            <div className="flex items-center gap-4 mb-12">
+            <div className="flex items-center gap-4 mb-3">
               <img 
                 src={kastanaLogo} 
                 alt="Kastana" 
@@ -110,6 +110,11 @@ export default function Login() {
                 <p className="text-base text-muted-foreground">POS System</p>
               </div>
             </div>
+            
+            {/* Slogan */}
+            <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground mb-10">
+              Smart. Secure. Profitable.
+            </p>
 
             {/* Login Form */}
             <div className="max-w-sm">
