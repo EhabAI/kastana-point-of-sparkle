@@ -1537,12 +1537,17 @@ export default function POS() {
 
   const mergeData = getMergeData();
 
-  if (sessionLoading || shiftLoading) {
+  if (sessionLoading || shiftLoading || activeLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     );
+  }
+
+  // Restaurant inactive guard - block ALL POS interactions
+  if (isRestaurantActive === false) {
+    return <RestaurantInactiveScreen />;
   }
 
   if (sessionError instanceof NoCashierRoleError || !session || !restaurant || !branch) {
