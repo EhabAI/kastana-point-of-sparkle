@@ -473,18 +473,19 @@ export default function Menu() {
 
       setRestaurant(restaurantData[0]);
 
-      /* 2️⃣ Table lookup - derive branch_id from table_code (case-sensitive, exact match)
-         Uses maybeSingle() to avoid throwing when no rows are found */
+      /* 2️⃣ Table lookup - uses SECURITY DEFINER function for safe public access
+         This prevents exposing internal IDs via direct table SELECT */
       let effectiveBranchId = branchIdParam || null;
       
       if (tableCode) {
-        const { data: tableData, error: tableError } = await supabase
-          .from("restaurant_tables")
-          .select("id, branch_id, is_active")
-          .eq("restaurant_id", restaurantId)
-          .eq("table_code", tableCode)
-          .limit(1)
-          .maybeSingle();
+        // Use secure RPC function instead of direct table query
+        const { data: tableData, error: tableError } = await supabase.rpc(
+          "public_get_table_by_code",
+          {
+            p_restaurant_id: restaurantId,
+            p_table_code: tableCode,
+          }
+        );
 
         // Log lookup details for debugging
         if (tableError) {
@@ -498,7 +499,10 @@ export default function Menu() {
           return;
         }
 
-        if (!tableData) {
+        // RPC returns array, check if empty
+        const table = Array.isArray(tableData) ? tableData[0] : tableData;
+        
+        if (!table) {
           console.warn("Table not found:", {
             restaurant_id: restaurantId,
             table_code: tableCode,
@@ -508,19 +512,20 @@ export default function Menu() {
           return;
         }
 
-        if (!tableData.is_active) {
+        // Function already filters is_active=true, but double-check for safety
+        if (!table.is_active) {
           console.warn("Table inactive:", {
             restaurant_id: restaurantId,
             table_code: tableCode,
-            table_id: tableData.id,
+            table_id: table.id,
           });
           setError(t("menu_table_inactive") || "This table is currently inactive. Please contact staff.");
           setLoading(false);
           return;
         }
 
-        setTableInfo({ id: tableData.id, branch_id: tableData.branch_id });
-        effectiveBranchId = tableData.branch_id || effectiveBranchId;
+        setTableInfo({ id: table.id, branch_id: table.branch_id });
+        effectiveBranchId = table.branch_id || effectiveBranchId;
       }
 
       /* 3️⃣ Categories */

@@ -1128,6 +1128,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      public_get_table_by_code: {
+        Args: { p_restaurant_id: string; p_table_code: string }
+        Returns: {
+          branch_id: string
+          id: string
+          is_active: boolean
+          table_code: string
+          table_name: string
+        }[]
+      }
     }
     Enums: {
       app_role: "system_admin" | "owner" | "cashier"
