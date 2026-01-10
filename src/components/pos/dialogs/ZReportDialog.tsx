@@ -170,22 +170,24 @@ export function ZReportDialog({
           {/* ADJUSTED TOTALS (After Refunds) - What business keeps */}
           {/* ═══════════════════════════════════════════════════════════════════ */}
           <div>
-            <h4 className="font-semibold mb-2 text-green-600">{t("adjusted_totals")} ({t("after_refunds")})</h4>
-            <div className="space-y-1 bg-green-500/5 p-3 rounded-lg border border-green-500/20">
+            <h4 className={`font-semibold mb-2 ${report.adjustedSales < 0 ? 'text-destructive' : 'text-green-600'}`}>
+              {t("adjusted_totals")} ({t("after_refunds")})
+            </h4>
+            <div className={`space-y-1 p-3 rounded-lg border ${report.adjustedSales < 0 ? 'bg-destructive/5 border-destructive/20' : 'bg-green-500/5 border-green-500/20'}`}>
               <div className="flex justify-between">
                 <span>{t("net_sales")}</span>
-                <span>{formatJOD(report.adjustedNetSales)} {currency}</span>
+                <span className={report.adjustedNetSales < 0 ? 'text-destructive' : ''}>{formatJOD(report.adjustedNetSales)} {currency}</span>
               </div>
               <div className="flex justify-between">
                 <span>{t("service_charge")}</span>
-                <span>{formatJOD(report.adjustedServiceCharge)} {currency}</span>
+                <span className={report.adjustedServiceCharge < 0 ? 'text-destructive' : ''}>{formatJOD(report.adjustedServiceCharge)} {currency}</span>
               </div>
               <div className="flex justify-between">
                 <span>{t("tax")}</span>
-                <span>{formatJOD(report.adjustedTax)} {currency}</span>
+                <span className={report.adjustedTax < 0 ? 'text-destructive' : ''}>{formatJOD(report.adjustedTax)} {currency}</span>
               </div>
               <Separator className="my-2" />
-              <div className="flex justify-between font-bold text-green-600">
+              <div className={`flex justify-between font-bold ${report.adjustedSales < 0 ? 'text-destructive' : 'text-green-600'}`}>
                 <span>{t("adjusted_total_sales")}</span>
                 <span>{formatJOD(report.adjustedSales)} {currency}</span>
               </div>
@@ -202,21 +204,26 @@ export function ZReportDialog({
             <div className="space-y-1">
               <div className="flex justify-between">
                 <span>{t("cash")}</span>
-                <span>{formatJOD(report.netCashPayments)} {currency}</span>
+                <span className={report.netCashPayments < 0 ? 'text-destructive' : ''}>{formatJOD(report.netCashPayments)} {currency}</span>
               </div>
               <div className="flex justify-between">
                 <span>{t("card")}</span>
-                <span>{formatJOD(report.netCardPayments)} {currency}</span>
+                <span className={report.netCardPayments < 0 ? 'text-destructive' : ''}>{formatJOD(report.netCardPayments)} {currency}</span>
               </div>
               <div className="flex justify-between">
                 <span>{t("mobile")}</span>
-                <span>{formatJOD(report.netMobilePayments)} {currency}</span>
+                <span className={report.netMobilePayments < 0 ? 'text-destructive' : ''}>{formatJOD(report.netMobilePayments)} {currency}</span>
               </div>
               <Separator className="my-2" />
-              <div className="flex justify-between font-bold">
-                <span>{t("total_collected")}</span>
-                <span>{formatJOD(report.netCashPayments + report.netCardPayments + report.netMobilePayments)} {currency}</span>
-              </div>
+              {(() => {
+                const netTotal = report.netCashPayments + report.netCardPayments + report.netMobilePayments;
+                return (
+                  <div className={`flex justify-between font-bold ${netTotal < 0 ? 'text-destructive' : ''}`}>
+                    <span>{t("total_collected")}</span>
+                    <span>{formatJOD(netTotal)} {currency}</span>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
