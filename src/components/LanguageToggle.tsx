@@ -1,43 +1,41 @@
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Button } from "@/components/ui/button";
 import { Globe } from "lucide-react";
 
 export function LanguageToggle() {
   const { language, setLanguage } = useLanguage();
 
-  const toggleLanguage = () => {
-    setLanguage(language === "en" ? "ar" : "en");
-  };
-
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={toggleLanguage}
-      className="gap-2 px-3 py-1.5 h-9 rounded-full border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all duration-200 hover-scale"
-    >
-      <Globe className="h-4 w-4 text-primary" />
-      <div className="flex items-center gap-1.5">
-        <span 
-          className={`text-sm font-semibold transition-colors ${
-            language === "en" 
-              ? "text-primary" 
-              : "text-muted-foreground"
+    <div className="flex items-center gap-1.5 h-9 px-2 rounded-md border border-border/50 bg-background hover:border-border transition-colors">
+      <Globe className="h-4 w-4 text-muted-foreground" />
+      <div className="flex items-center">
+        <button
+          type="button"
+          onClick={() => setLanguage("en")}
+          className={`px-1.5 py-1 text-sm font-medium rounded-sm transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${
+            language === "en"
+              ? "text-foreground"
+              : "text-muted-foreground/60 hover:text-muted-foreground"
           }`}
+          aria-pressed={language === "en"}
+          aria-label="Switch to English"
         >
           EN
-        </span>
-        <span className="text-muted-foreground/50">|</span>
-        <span 
-          className={`text-sm font-semibold transition-colors ${
-            language === "ar" 
-              ? "text-primary" 
-              : "text-muted-foreground"
+        </button>
+        <span className="text-border mx-0.5 select-none">|</span>
+        <button
+          type="button"
+          onClick={() => setLanguage("ar")}
+          className={`px-1.5 py-1 text-sm font-medium rounded-sm transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${
+            language === "ar"
+              ? "text-foreground"
+              : "text-muted-foreground/60 hover:text-muted-foreground"
           }`}
+          aria-pressed={language === "ar"}
+          aria-label="التبديل إلى العربية"
         >
           عربي
-        </span>
+        </button>
       </div>
-    </Button>
+    </div>
   );
 }
