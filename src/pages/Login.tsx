@@ -104,10 +104,14 @@ export default function Login() {
       <div className="fixed top-4 right-4 z-50">
         <button
           onClick={() => setIsDark(!isDark)}
-          className="p-2 rounded-lg border bg-card hover:bg-muted transition-colors shadow-sm"
+          className="flex items-center justify-center h-10 w-10 p-2 rounded-full bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-100 dark:hover:bg-neutral-700 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 shadow-sm"
           aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
         >
-          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          {isDark ? (
+            <Sun className="h-5 w-5 text-gray-200" />
+          ) : (
+            <Moon className="h-5 w-5 text-gray-800" />
+          )}
         </button>
       </div>
 
