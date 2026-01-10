@@ -99,15 +99,15 @@ export default function Login() {
           {/* Left Section - Logo & Login Form */}
           <div className="w-full lg:w-1/2 p-8 sm:p-10 lg:p-12">
             {/* Logo */}
-            <div className="flex items-center gap-3 mb-10">
+            <div className="flex items-center gap-4 mb-12">
               <img 
                 src={kastanaLogo} 
                 alt="Kastana" 
-                className="h-14 w-auto object-contain"
+                className="h-20 w-auto object-contain"
               />
               <div>
-                <h1 className="text-2xl font-bold text-foreground tracking-tight">Kastana</h1>
-                <p className="text-sm text-muted-foreground">POS System</p>
+                <h1 className="text-3xl font-bold text-foreground tracking-tight">Kastana</h1>
+                <p className="text-base text-muted-foreground">POS System</p>
               </div>
             </div>
 
