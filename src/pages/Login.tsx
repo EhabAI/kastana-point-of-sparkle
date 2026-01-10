@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail, Lock } from "lucide-react";
 import { z } from "zod";
 import kastanaLogo from "@/assets/kastana-logo.png";
-import posIllustration from "@/assets/pos-illustration.png";
+import cashierIllustration from "@/assets/cashier-illustration.png";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -18,6 +18,7 @@ const loginSchema = z.object({
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const {
     signIn,
@@ -85,102 +86,107 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex bg-muted/30">
-      {/* Left Section - Login Card */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8 lg:p-12">
-        <div className="w-full max-w-md animate-fade-in">
-          {/* Login Card */}
-          <div className="bg-card rounded-2xl border border-border/50 shadow-xl p-8 sm:p-10">
-            {/* Logo */}
-            <div className="flex justify-center mb-4">
-              <img 
-                src={kastanaLogo} 
-                alt="Kastana POS" 
-                className="w-[280px] sm:w-[320px] h-auto object-contain"
-              />
-            </div>
-
-            {/* Slogan */}
-            <p className="text-center text-xs tracking-[0.25em] uppercase text-muted-foreground mb-6">
-              Smart. Secure. Profitable.
-            </p>
-
-            {/* Title */}
-            <h1 className="text-xl sm:text-2xl font-semibold text-center text-foreground mb-8">
-              Kastana POS System
-            </h1>
-
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium">
-                  Email
-                </Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="you@example.com" 
-                  value={email} 
-                  onChange={e => setEmail(e.target.value)} 
-                  required 
-                  autoComplete="email"
-                  className="h-11 px-4 rounded-lg border-border focus:border-primary transition-colors"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">
-                  Password
-                </Label>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  placeholder="••••••••" 
-                  value={password} 
-                  onChange={e => setPassword(e.target.value)} 
-                  required 
-                  autoComplete="current-password"
-                  className="h-11 px-4 rounded-lg border-border focus:border-primary transition-colors"
-                />
-              </div>
-
-              <Button 
-                type="submit" 
-                className="w-full h-11 rounded-lg text-base font-medium mt-2 transition-all duration-200 hover:shadow-md" 
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  "Sign In"
-                )}
-              </Button>
-            </form>
-          </div>
-
-          {/* Footer */}
-          <p className="text-center text-xs text-muted-foreground mt-6">
-            © {new Date().getFullYear()} Kastana POS. All rights reserved.
-          </p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4 sm:p-6 lg:p-8">
+      {/* Decorative background shapes */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute -top-20 -right-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
       </div>
 
-      {/* Right Section - POS Illustration (Hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center bg-gradient-to-br from-primary/5 via-background to-muted/50 p-12">
-        <div className="relative w-full max-w-lg animate-fade-in">
-          {/* Decorative background elements */}
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-primary/5 rounded-full blur-2xl" />
-          
-          {/* Illustration */}
-          <img 
-            src={posIllustration} 
-            alt="POS System" 
-            className="relative z-10 w-full h-auto object-contain drop-shadow-lg"
-          />
+      {/* Main Card Container */}
+      <div className="relative w-full max-w-5xl bg-card rounded-3xl shadow-2xl overflow-hidden animate-fade-in">
+        <div className="flex flex-col lg:flex-row">
+          {/* Left Section - Logo & Login Form */}
+          <div className="w-full lg:w-1/2 p-8 sm:p-10 lg:p-12">
+            {/* Logo */}
+            <div className="flex items-center gap-3 mb-10">
+              <img 
+                src={kastanaLogo} 
+                alt="Kastana" 
+                className="h-14 w-auto object-contain"
+              />
+              <div>
+                <h1 className="text-2xl font-bold text-foreground tracking-tight">Kastana</h1>
+                <p className="text-sm text-muted-foreground">POS System</p>
+              </div>
+            </div>
+
+            {/* Login Form */}
+            <div className="max-w-sm">
+              <h2 className="text-2xl font-bold text-foreground mb-8">Login</h2>
+
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Email Input */}
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary/60" />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="you@example.com" 
+                    value={email} 
+                    onChange={e => setEmail(e.target.value)} 
+                    required 
+                    autoComplete="email"
+                    className="h-12 pl-12 pr-4 rounded-xl border-border bg-muted/30 focus:bg-background transition-colors"
+                  />
+                </div>
+                
+                {/* Password Input */}
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-amber-600/70" />
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    placeholder="Password" 
+                    value={password} 
+                    onChange={e => setPassword(e.target.value)} 
+                    required 
+                    autoComplete="current-password"
+                    className="h-12 pl-12 pr-4 rounded-xl border-border bg-muted/30 focus:bg-background transition-colors"
+                  />
+                </div>
+
+                {/* Remember Me */}
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-foreground">Remember me</span>
+                  <Switch 
+                    checked={rememberMe}
+                    onCheckedChange={setRememberMe}
+                  />
+                </div>
+
+                {/* Sign In Button */}
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 rounded-xl text-base font-semibold transition-all duration-200 hover:shadow-lg" 
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : (
+                    "Sign In"
+                  )}
+                </Button>
+              </form>
+            </div>
+          </div>
+
+          {/* Right Section - Illustration (Hidden on mobile) */}
+          <div className="hidden lg:flex lg:w-1/2 items-end justify-center bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 relative overflow-hidden">
+            {/* Decorative curved shapes */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full -translate-y-1/2 translate-x-1/4" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary/10 rounded-full translate-y-1/4 -translate-x-1/4" />
+            
+            {/* Illustration */}
+            <img 
+              src={cashierIllustration} 
+              alt="Cashier at POS" 
+              className="relative z-10 w-full max-w-md h-auto object-contain"
+            />
+          </div>
         </div>
       </div>
     </div>
