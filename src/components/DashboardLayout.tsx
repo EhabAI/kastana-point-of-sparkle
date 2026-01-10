@@ -5,6 +5,7 @@ import { LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import kastanaLogo from '@/assets/kastana-logo.png';
 import { LanguageToggle } from '@/components/LanguageToggle';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DashboardLayoutProps {
@@ -36,6 +37,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <ThemeToggle />
               <LanguageToggle />
               <span className="text-sm text-muted-foreground hidden sm:block">{user?.email}</span>
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
