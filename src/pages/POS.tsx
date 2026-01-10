@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useCashierSession,
   NoCashierRoleError,
@@ -235,6 +236,16 @@ export default function POS() {
     tableId?: string | null;
     customerInfo?: { name: string; phone: string };
   } | null>(null);
+
+  // Pending item after draft order creation (to avoid race condition)
+  const [pendingItemAfterDraft, setPendingItemAfterDraft] = useState<{
+    menuItem: { id: string; name: string; price: number };
+    orderId: string;
+  } | null>(null);
+
+  // Query client for manual cache invalidation
+  const queryClient = useQueryClient();
+
   // Fetch modifiers for selected item
   const { data: itemModifierGroups = [] } = useMenuItemModifiers(selectedItemForModifiers?.id);
 
@@ -470,7 +481,8 @@ export default function POS() {
     // If we have a draft order but no DB order yet, create it first
     if (!currentOrder?.id && draftOrder) {
       try {
-        await createOrderMutation.mutateAsync({
+        // Create order and capture the returned order data
+        const createdOrder = await createOrderMutation.mutateAsync({
           shiftId: currentShift.id,
           taxRate,
           branchId: branch.id,
@@ -479,10 +491,23 @@ export default function POS() {
           tableId: draftOrder.orderType === "takeaway" ? null : draftOrder.tableId,
           customerInfo: draftOrder.customerInfo,
         });
+
+        // Immediately resume to ensure it's the active current order in cache
+        // This also triggers proper query invalidation
+        await resumeOrderMutation.mutateAsync(createdOrder.id);
+
+        // Clear draft state
         setDraftOrder(null);
-        // After order is created, we proceed to add item via modifier dialog
-        // The refetch will happen, so we use a slight delay to ensure order is available
-        await refetchOrder();
+
+        // Invalidate additional queries for complete sync
+        queryClient.invalidateQueries({ queryKey: ["branch-tables"] });
+
+        // Now proceed with adding the item - use the createdOrder directly
+        // Store the item and order info, then open modifier dialog
+        setPendingItemAfterDraft({ menuItem, orderId: createdOrder.id });
+        setSelectedItemForModifiers(menuItem);
+        setModifierDialogOpen(true);
+        return;
       } catch (error) {
         toast.error(t("failed_create_order"));
         return;
@@ -504,7 +529,11 @@ export default function POS() {
     menuItem: MenuItemWithModifiers,
     modifiers: SelectedModifier[]
   ) => {
-    if (!currentOrder?.id || !restaurant) return;
+    // Use pendingItemAfterDraft order ID if available (draft order just created)
+    // Otherwise use currentOrder ID
+    const orderId = pendingItemAfterDraft?.orderId || currentOrder?.id;
+    
+    if (!orderId || !restaurant) return;
 
     try {
       // Calculate price with modifiers
@@ -514,7 +543,7 @@ export default function POS() {
 
       // Add item to order
       const orderItem = await addItemMutation.mutateAsync({
-        orderId: currentOrder.id,
+        orderId: orderId,
         restaurantId: restaurant.id,
         menuItem: menuItemWithPrice,
       });
@@ -527,15 +556,23 @@ export default function POS() {
         });
       }
 
+      // Clear pending item state if it was used
+      if (pendingItemAfterDraft) {
+        setPendingItemAfterDraft(null);
+      }
+
       await refetchOrder();
 
       // Update order totals
       const items = [...orderItems, { price: finalPrice, quantity: 1 }];
       const newSubtotal = roundJOD(items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0));
-      const totals = calculateTotals(newSubtotal, currentOrder?.discount_type, currentOrder?.discount_value);
+      // Use discount from currentOrder if available (may still be null for fresh draft orders)
+      const discountType = currentOrder?.discount_type || null;
+      const discountValue = currentOrder?.discount_value || null;
+      const totals = calculateTotals(newSubtotal, discountType, discountValue);
 
       await updateOrderMutation.mutateAsync({
-        orderId: currentOrder.id,
+        orderId: orderId,
         updates: {
           subtotal: newSubtotal,
           tax_amount: totals.taxAmount,
