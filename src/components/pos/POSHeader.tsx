@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, Clock, FileText, DollarSign, MoreHorizontal } from "lucide-react";
+import { LogOut, Clock, FileText, DollarSign, MoreHorizontal, Moon, Sun } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 interface POSHeaderProps {
   restaurantName: string;
@@ -40,6 +41,18 @@ export function POSHeader({
   heldOrdersCount,
 }: POSHeaderProps) {
   const { t, language, setLanguage } = useLanguage();
+  const [isDark, setIsDark] = useState(() => localStorage.getItem('kastana-theme') === 'dark');
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDark) {
+      root.classList.add('dark');
+      localStorage.setItem('kastana-theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('kastana-theme', 'light');
+    }
+  }, [isDark]);
 
   return (
     <header className="flex items-center justify-between p-3 bg-card border-b">
@@ -64,6 +77,15 @@ export function POSHeader({
         >
           {shiftStatus === "open" ? t("shift_status_open") : t("shift_status_closed")}
         </div>
+
+        {/* Theme Toggle */}
+        <button
+          onClick={() => setIsDark(!isDark)}
+          className="p-1.5 rounded-md border bg-muted/50 hover:bg-muted transition-colors"
+          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </button>
 
         {/* Compact Language Toggle */}
         <div className="flex items-center border rounded-md overflow-hidden text-xs">

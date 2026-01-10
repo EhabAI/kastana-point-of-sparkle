@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Lock } from "lucide-react";
+import { Loader2, Mail, Lock, Moon, Sun } from "lucide-react";
 import { z } from "zod";
 import kastanaLogo from "@/assets/kastana-logo.png";
 import cashierIllustration from "@/assets/cashier-illustration.png";
@@ -20,6 +20,18 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDark, setIsDark] = useState(() => localStorage.getItem('kastana-theme') === 'dark');
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDark) {
+      root.classList.add('dark');
+      localStorage.setItem('kastana-theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('kastana-theme', 'light');
+    }
+  }, [isDark]);
   const {
     signIn,
     user,
@@ -87,6 +99,17 @@ export default function Login() {
 
   return (
     <div dir="ltr" className="min-h-screen flex flex-col items-center justify-center bg-muted/40 p-4 sm:p-6 lg:p-8">
+      {/* Theme Toggle - Top Right */}
+      <div className="fixed top-4 right-4 z-50">
+        <button
+          onClick={() => setIsDark(!isDark)}
+          className="p-2 rounded-lg border bg-card hover:bg-muted transition-colors shadow-sm"
+          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </button>
+      </div>
+
       {/* Decorative background shapes */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
