@@ -52,6 +52,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
             {/* RIGHT – User Area */}
             <div className="flex items-center gap-1.5 sm:gap-2">
               <ThemeToggle />
+              <div className="w-1" /> {/* Separator gap */}
               <LanguageToggle />
               
               {/* Divider */}
