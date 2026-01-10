@@ -54,7 +54,7 @@ export function POSHeader({
   }, [isDark]);
 
   return (
-    <header className="flex items-center justify-between p-3 bg-card border-b">
+    <header className="flex items-center justify-between p-3 bg-slate-50 dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800">
       <div className="flex items-center gap-3">
         {restaurantLogo && (
           <img 
