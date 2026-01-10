@@ -4,15 +4,16 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 /**
  * Edge Function: reject-qr-order
  * 
- * MARKET-GRADE QR Order Rejection
+ * MARKET-GRADE QR Order Rejection with Hardened Validation
  * 
- * Security:
+ * Security Guarantees:
  * - Requires valid JWT (cashier authentication)
  * - Validates cashier role and branch assignment
  * - Requires open shift
- * - Validates order is pending QR order in same branch
- * - Prevents double-rejection via optimistic locking
- * - Full audit logging
+ * - STRICTLY validates order status = 'pending'
+ * - CANNOT reject already cancelled/confirmed orders
+ * - Atomic update with WHERE status = 'pending'
+ * - Full audit logging (action: QR_ORDER_REJECTED)
  */
 
 const corsHeaders = {
@@ -20,6 +21,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+// Terminal statuses that cannot be rejected
+const TERMINAL_STATUSES = ["cancelled", "closed", "refunded", "voided"];
+const ALREADY_CONFIRMED_STATUSES = ["open", "confirmed", "paid"];
 
 serve(async (req) => {
   // CORS preflight
@@ -146,11 +151,22 @@ serve(async (req) => {
     }
 
     const orderId = body.order_id;
-    const reason = body.reason?.trim() || "Rejected by cashier";
+    const rawReason = body.reason?.trim() || "Rejected by cashier";
+    // Sanitize reason - limit length
+    const reason = rawReason.slice(0, 500);
 
     if (!orderId || typeof orderId !== "string") {
       return new Response(
         JSON.stringify({ error: "order_id is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(orderId)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid order_id format" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -180,25 +196,57 @@ serve(async (req) => {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // 7. ORDER VALIDATION
+    // 7. HARDENED ORDER VALIDATION
     // ═══════════════════════════════════════════════════════════════════
+    
+    // Must be a QR order
     if (order.source !== "qr") {
       return new Response(
-        JSON.stringify({ error: "Invalid order: Not a QR order" }),
+        JSON.stringify({ 
+          error: "Invalid order type",
+          details: "Only QR orders can be rejected through this endpoint"
+        }),
         { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    if (order.status !== "pending") {
+    // HARDENED: Check if order is already in terminal state
+    if (TERMINAL_STATUSES.includes(order.status)) {
       return new Response(
         JSON.stringify({ 
-          error: "Order already processed",
-          details: `Order is '${order.status}', not 'pending'`
+          error: "Order already in terminal state",
+          details: `Order is '${order.status}' and cannot be modified`,
+          status: order.status
         }),
         { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    // HARDENED: Cannot reject confirmed orders
+    if (ALREADY_CONFIRMED_STATUSES.includes(order.status)) {
+      return new Response(
+        JSON.stringify({ 
+          error: "Cannot reject confirmed order",
+          details: `Order is '${order.status}' - use void/cancel instead`,
+          status: order.status
+        }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // STRICT: Must be pending
+    if (order.status !== "pending") {
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid order status",
+          details: `Expected 'pending', got '${order.status}'`,
+          status: order.status
+        }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Branch validation
     if (order.branch_id !== cashierBranchId) {
       return new Response(
         JSON.stringify({ error: "Forbidden: Order belongs to a different branch" }),
@@ -206,6 +254,7 @@ serve(async (req) => {
       );
     }
 
+    // Restaurant validation
     if (order.restaurant_id !== cashierRestaurantId) {
       return new Response(
         JSON.stringify({ error: "Forbidden: Order belongs to a different restaurant" }),
@@ -214,7 +263,7 @@ serve(async (req) => {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // 8. ATOMIC UPDATE (Reject)
+    // 8. ATOMIC UPDATE with WHERE status = 'pending'
     // ═══════════════════════════════════════════════════════════════════
     const { data: updatedOrder, error: updateError } = await supabase
       .from("orders")
@@ -224,8 +273,8 @@ serve(async (req) => {
         updated_at: new Date().toISOString(),
       })
       .eq("id", orderId)
-      .eq("status", "pending") // Optimistic lock
-      .eq("source", "qr")
+      .eq("status", "pending") // ATOMIC: Only if still pending
+      .eq("source", "qr")      // Extra safety
       .select("id, order_number, status, cancelled_reason")
       .maybeSingle();
 
@@ -239,13 +288,16 @@ serve(async (req) => {
 
     if (!updatedOrder) {
       return new Response(
-        JSON.stringify({ error: "Order was already processed by another cashier" }),
+        JSON.stringify({ 
+          error: "Order rejection failed",
+          details: "Order status changed during rejection (race condition)"
+        }),
         { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // 9. AUDIT LOG
+    // 9. AUDIT LOG (action: QR_ORDER_REJECTED - UPPER_SNAKE_CASE)
     // ═══════════════════════════════════════════════════════════════════
     const { error: auditError } = await supabase
       .from("audit_logs")
@@ -254,13 +306,15 @@ serve(async (req) => {
         restaurant_id: cashierRestaurantId,
         entity_type: "order",
         entity_id: orderId,
-        action: "QR_ORDER_REJECTED",
+        action: "QR_ORDER_REJECTED", // UPPER_SNAKE_CASE normalized
         details: {
           source: "qr",
           order_number: order.order_number,
           shift_id: openShift.id,
           branch_id: cashierBranchId,
           reason: reason,
+          previous_status: "pending",
+          new_status: "cancelled",
           rejected_at: new Date().toISOString(),
         },
       });
