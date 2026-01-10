@@ -60,7 +60,7 @@ export function POSHeader({
           <img 
             src={restaurantLogo} 
             alt={`${restaurantName} logo`}
-            className="w-10 h-10 object-contain rounded-lg"
+            className="h-10 sm:h-12 w-auto object-contain rounded-lg"
           />
         )}
         <div>
