@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import Login from "./pages/Login";
 import SystemAdmin from "./pages/SystemAdmin";
 import OwnerAdmin from "./pages/OwnerAdmin";
@@ -16,6 +17,10 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => (
+  <>
+    <div className="fixed top-4 right-4 z-[9999]">
+      <ThemeToggle />
+    </div>
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>
       <TooltipProvider>
@@ -59,6 +64,7 @@ const App = () => (
       </TooltipProvider>
     </LanguageProvider>
   </QueryClientProvider>
+  </>
 );
 
 export default App;
