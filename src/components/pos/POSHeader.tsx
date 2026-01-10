@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, Clock, FileText, DollarSign, MoreHorizontal, Moon, Sun } from "lucide-react";
+import { LogOut, Clock, FileText, DollarSign, MoreHorizontal, Moon, Sun, Globe } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,7 +8,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
 interface POSHeaderProps {
@@ -91,30 +90,41 @@ export function POSHeader({
           )}
         </button>
 
-        {/* Compact Language Toggle */}
-        <div className="flex items-center border rounded-md overflow-hidden text-xs">
-          <button
-            onClick={() => setLanguage("en")}
-            className={cn(
-              "px-2 py-1 transition-colors font-medium",
-              language === "en" 
-                ? "bg-primary text-primary-foreground" 
-                : "bg-muted/50 text-muted-foreground hover:bg-muted"
-            )}
-          >
-            EN
-          </button>
-          <button
-            onClick={() => setLanguage("ar")}
-            className={cn(
-              "px-2 py-1 transition-colors font-medium",
-              language === "ar" 
-                ? "bg-primary text-primary-foreground" 
-                : "bg-muted/50 text-muted-foreground hover:bg-muted"
-            )}
-          >
-            AR
-          </button>
+        {/* Separator gap */}
+        <div className="w-1" />
+
+        {/* Compact Language Toggle - matching DashboardLayout style */}
+        <div className="flex items-center gap-1.5 h-9 px-2 rounded-md border border-border/50 bg-background hover:border-border transition-colors">
+          <Globe className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center">
+            <button
+              type="button"
+              onClick={() => setLanguage("en")}
+              className={`px-1.5 py-1 text-sm font-medium rounded-sm transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${
+                language === "en"
+                  ? "text-foreground"
+                  : "text-muted-foreground/60 hover:text-muted-foreground"
+              }`}
+              aria-pressed={language === "en"}
+              aria-label="Switch to English"
+            >
+              EN
+            </button>
+            <span className="text-border mx-0.5 select-none">|</span>
+            <button
+              type="button"
+              onClick={() => setLanguage("ar")}
+              className={`px-1.5 py-1 text-sm font-medium rounded-sm transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${
+                language === "ar"
+                  ? "text-foreground"
+                  : "text-muted-foreground/60 hover:text-muted-foreground"
+              }`}
+              aria-pressed={language === "ar"}
+              aria-label="التبديل إلى العربية"
+            >
+              عربي
+            </button>
+          </div>
         </div>
       </div>
 
