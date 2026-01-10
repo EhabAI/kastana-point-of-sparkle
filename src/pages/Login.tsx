@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Lock, Moon, Sun } from "lucide-react";
+import { Loader2, Mail, Lock, Moon, Sun, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 import kastanaLogo from "@/assets/kastana-logo.png";
 import cashierIllustration from "@/assets/cashier-illustration.png";
@@ -19,6 +19,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDark, setIsDark] = useState(() => localStorage.getItem('kastana-theme') === 'dark');
 
@@ -164,14 +165,22 @@ export default function Login() {
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-amber-600/70" />
                   <Input 
                     id="password" 
-                    type="password" 
+                    type={showPassword ? "text" : "password"}
                     placeholder="Password" 
                     value={password} 
                     onChange={e => setPassword(e.target.value)} 
                     required 
                     autoComplete="current-password"
-                    className="h-12 pl-12 pr-4 rounded-xl border-border bg-muted/30 focus:bg-background transition-colors"
+                    className="h-12 pl-12 pr-12 rounded-xl border-border bg-muted/30 focus:bg-background transition-colors"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
 
                 {/* Remember Me */}
