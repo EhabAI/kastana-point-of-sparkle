@@ -86,7 +86,7 @@ export default function Login() {
   }
 
   return (
-    <div dir="ltr" className="min-h-screen flex items-center justify-center bg-muted/40 p-4 sm:p-6 lg:p-8">
+    <div dir="ltr" className="min-h-screen flex flex-col items-center justify-center bg-muted/40 p-4 sm:p-6 lg:p-8">
       {/* Decorative background shapes */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
@@ -194,6 +194,18 @@ export default function Login() {
           </div>
         </div>
       </div>
+
+      {/* Attribution Footer */}
+      <footer className="mt-6 text-center">
+        <a
+          href="https://www.kastana.net/home"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors"
+        >
+          Done by Kastana
+        </a>
+      </footer>
     </div>
   );
 }
