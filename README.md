@@ -87,3 +87,44 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+---
+
+## 🔒 Security Configuration Checklist (CRITICAL)
+
+Before deploying to production, ensure the following security settings are configured:
+
+### 1. Enable Leaked Password Protection (REQUIRED)
+
+**This is a Supabase Dashboard setting that MUST be enabled manually.**
+
+1. Go to your [Supabase Dashboard](https://supabase.com/dashboard)
+2. Navigate to: **Authentication** → **Providers** → **Email**
+3. Enable: **"Leaked Password Protection"**
+4. This prevents users from signing up with passwords that have been exposed in data breaches
+
+📚 Documentation: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+
+### 2. Security Best Practices Implemented
+
+This project implements the following security measures:
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Row Level Security (RLS) | ✅ Enabled | All tables have RLS enabled with strict policies |
+| Role-based Access | ✅ Implemented | Roles stored in `user_roles` table (not profiles) |
+| Secure Functions | ✅ Implemented | Security definer functions for sensitive operations |
+| Audit Logging | ✅ Implemented | All sensitive actions logged via Edge Functions |
+| QR Table Lookup | ✅ Secured | Uses `public_get_table_by_code()` function (no public USING(true)) |
+| Profile Protection | ✅ Secured | Email addresses only visible to authorized users |
+
+### 3. Production Deployment Checklist
+
+- [ ] Enable Leaked Password Protection in Supabase Dashboard
+- [ ] Verify all environment variables are set correctly
+- [ ] Test QR menu functionality after deployment
+- [ ] Verify cashier login and shift operations work
+- [ ] Verify owner admin panel access
+- [ ] Run security scan via Lovable Cloud
+
+---
