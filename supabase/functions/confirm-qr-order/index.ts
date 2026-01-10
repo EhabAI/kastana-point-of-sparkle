@@ -1,11 +1,35 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+/**
+ * Edge Function: confirm-qr-order
+ * 
+ * MARKET-GRADE QR Order Confirmation with Hardened Validation
+ * 
+ * Security Guarantees:
+ * - Requires valid JWT (cashier authentication)
+ * - Validates cashier role and branch assignment
+ * - Requires open shift
+ * - STRICTLY validates order status = 'pending' (rejects cancelled/open/closed)
+ * - Atomic update with WHERE status = 'pending' (prevents race conditions)
+ * - Full audit logging (action: QR_ORDER_CONFIRMED)
+ * 
+ * Hardened Confirmation Rules:
+ * - CANNOT confirm if status != 'pending'
+ * - CANNOT confirm if order is already 'cancelled'
+ * - CANNOT confirm if order is already 'open' or 'closed'
+ * - Atomic WHERE clause prevents double-confirmation
+ */
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+// Valid terminal statuses that cannot be confirmed
+const TERMINAL_STATUSES = ["cancelled", "closed", "refunded", "voided"];
+const ALREADY_CONFIRMED_STATUSES = ["open", "confirmed", "paid"];
 
 serve(async (req) => {
   // CORS preflight
@@ -140,8 +164,17 @@ serve(async (req) => {
       );
     }
 
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(orderId)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid order_id format" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // ═══════════════════════════════════════════════════════════════════
-    // 6. FETCH ORDER: Validate it exists and matches criteria
+    // 6. FETCH ORDER: Validate it exists and check current status
     // ═══════════════════════════════════════════════════════════════════
     const { data: order, error: orderFetchError } = await supabase
       .from("orders")
@@ -165,23 +198,51 @@ serve(async (req) => {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // 7. ORDER VALIDATION: Check all conditions
+    // 7. HARDENED ORDER VALIDATION
     // ═══════════════════════════════════════════════════════════════════
     
     // Must be a QR order
     if (order.source !== "qr") {
       return new Response(
-        JSON.stringify({ error: "Invalid order: Not a QR order" }),
+        JSON.stringify({ 
+          error: "Invalid order type",
+          details: "Only QR orders can be confirmed through this endpoint"
+        }),
         { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Must be pending (prevents double-accept)
+    // HARDENED: Check if order is in a terminal state (cannot be confirmed)
+    if (TERMINAL_STATUSES.includes(order.status)) {
+      return new Response(
+        JSON.stringify({ 
+          error: "Order cannot be confirmed",
+          details: `Order is '${order.status}' and cannot be modified`,
+          status: order.status
+        }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // HARDENED: Check if order was already confirmed
+    if (ALREADY_CONFIRMED_STATUSES.includes(order.status)) {
+      return new Response(
+        JSON.stringify({ 
+          error: "Order already confirmed",
+          details: `Order is already '${order.status}'`,
+          status: order.status
+        }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // STRICT: Must be pending
     if (order.status !== "pending") {
       return new Response(
         JSON.stringify({ 
-          error: "Order already processed",
-          details: `Order is currently '${order.status}', not 'pending'`
+          error: "Invalid order status",
+          details: `Expected 'pending', got '${order.status}'`,
+          status: order.status
         }),
         { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -204,7 +265,7 @@ serve(async (req) => {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // 8. ATOMIC UPDATE: Confirm order and link to shift
+    // 8. ATOMIC UPDATE: Confirm order with WHERE status = 'pending'
     // ═══════════════════════════════════════════════════════════════════
     const { data: updatedOrder, error: updateError } = await supabase
       .from("orders")
@@ -214,8 +275,8 @@ serve(async (req) => {
         updated_at: new Date().toISOString(),
       })
       .eq("id", orderId)
-      .eq("status", "pending") // Optimistic lock - prevents race condition
-      .eq("source", "qr")
+      .eq("status", "pending") // ATOMIC: Only update if still pending
+      .eq("source", "qr")      // Extra safety
       .select("id, order_number, status, shift_id")
       .maybeSingle();
 
@@ -227,16 +288,19 @@ serve(async (req) => {
       );
     }
 
-    // If no row was updated, another cashier confirmed it first
+    // If no row was updated, race condition occurred
     if (!updatedOrder) {
       return new Response(
-        JSON.stringify({ error: "Order was already confirmed by another cashier" }),
+        JSON.stringify({ 
+          error: "Order confirmation failed",
+          details: "Order status changed during confirmation (race condition)"
+        }),
         { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // 9. AUDIT LOG: Record the acceptance for accountability
+    // 9. AUDIT LOG (action: QR_ORDER_CONFIRMED - UPPER_SNAKE_CASE)
     // ═══════════════════════════════════════════════════════════════════
     const { error: auditError } = await supabase
       .from("audit_logs")
@@ -245,12 +309,14 @@ serve(async (req) => {
         restaurant_id: cashierRestaurantId,
         entity_type: "order",
         entity_id: orderId,
-        action: "ORDER_CONFIRMED",
+        action: "QR_ORDER_CONFIRMED", // UPPER_SNAKE_CASE
         details: {
           source: "qr",
           order_number: order.order_number,
           shift_id: openShift.id,
           branch_id: cashierBranchId,
+          previous_status: "pending",
+          new_status: "open",
           confirmed_at: new Date().toISOString(),
         },
       });
