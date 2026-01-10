@@ -203,7 +203,7 @@ export default function Login() {
           rel="noopener noreferrer"
           className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors"
         >
-          Done by Kastana
+          © 2025 Done by Kastana
         </a>
       </footer>
     </div>
