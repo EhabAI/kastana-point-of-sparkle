@@ -231,14 +231,17 @@ export function useZReport(shiftId: string | undefined) {
       // ═══════════════════════════════════════════════════════════════════
       // ADJUSTED CALCULATIONS (After Refunds)
       // ═══════════════════════════════════════════════════════════════════
-      const adjustedSales = Math.max(0, grossSales - refundsTotal);
-      const adjustedNetSales = Math.max(0, grossNetSales - refundSubtotal);
-      const adjustedTax = Math.max(0, grossTax - refundTax);
-      const adjustedServiceCharge = Math.max(0, grossServiceCharge - refundServiceCharge);
+      // IMPORTANT: Do NOT clamp to zero - negative values reveal data mismatches
+      // that accounting must surface for investigation
+      const adjustedSales = grossSales - refundsTotal;
+      const adjustedNetSales = grossNetSales - refundSubtotal;
+      const adjustedTax = grossTax - refundTax;
+      const adjustedServiceCharge = grossServiceCharge - refundServiceCharge;
 
-      const netCashPayments = Math.max(0, grossCashPayments - cashRefunds);
-      const netCardPayments = Math.max(0, grossCardPayments - cardRefunds);
-      const netMobilePayments = Math.max(0, grossMobilePayments - mobileRefunds);
+      // Net payment totals - allow negative to reveal over-refund situations
+      const netCashPayments = grossCashPayments - cashRefunds;
+      const netCardPayments = grossCardPayments - cardRefunds;
+      const netMobilePayments = grossMobilePayments - mobileRefunds;
 
       // ═══════════════════════════════════════════════════════════════════
       // CASH DRAWER RECONCILIATION
