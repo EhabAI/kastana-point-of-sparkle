@@ -8,3 +8,9 @@ verify_jwt = true
 
 [functions.qr-create-order]
 verify_jwt = false
+
+[functions.confirm-qr-order]
+verify_jwt = false
+
+[functions.reject-qr-order]
+verify_jwt = false
