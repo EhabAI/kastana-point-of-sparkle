@@ -119,6 +119,30 @@ serve(async (req) => {
     }
 
     // ═══════════════════════════════════════════════════════════════════
+    // 3.5. RESTAURANT ACTIVE CHECK (KILL-SWITCH)
+    // ═══════════════════════════════════════════════════════════════════
+    const { data: restaurantData, error: restaurantError } = await supabase
+      .from("restaurants")
+      .select("is_active")
+      .eq("id", cashierRestaurantId)
+      .maybeSingle();
+
+    if (restaurantError) {
+      console.error("Restaurant lookup error:", restaurantError.message);
+      return new Response(
+        JSON.stringify({ error: "Failed to verify restaurant status" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!restaurantData?.is_active) {
+      return new Response(
+        JSON.stringify({ error: "Restaurant is inactive", code: "RESTAURANT_INACTIVE" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
     // 4. SHIFT VALIDATION: Cashier must have an open shift
     // ═══════════════════════════════════════════════════════════════════
     const { data: openShift, error: shiftError } = await supabase

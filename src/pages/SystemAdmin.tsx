@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -15,11 +17,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useRestaurants, useCreateRestaurant, useAssignOwner, useUpdateRestaurant } from "@/hooks/useRestaurants";
 import { useOwners, useCreateOwner } from "@/hooks/useOwners";
 import { useMenuCategories } from "@/hooks/useMenuCategories";
 import { useAllMenuItems } from "@/hooks/useMenuItems";
-import { Store, Users, Plus, Link, Eye, Loader2, Upload, Image } from "lucide-react";
+import { useToggleRestaurantActive } from "@/hooks/useToggleRestaurantActive";
+import { Store, Users, Plus, Link, Eye, Loader2, Upload, Image, Power } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,6 +48,7 @@ export default function SystemAdmin() {
   const updateRestaurant = useUpdateRestaurant();
   const createOwner = useCreateOwner();
   const assignOwner = useAssignOwner();
+  const toggleActive = useToggleRestaurantActive();
   const { toast } = useToast();
   const logoInputRef = useRef<HTMLInputElement>(null);
 
@@ -56,6 +70,10 @@ export default function SystemAdmin() {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editLogoDialogOpen, setEditLogoDialogOpen] = useState(false);
+  
+  // Deactivation confirmation dialog
+  const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
+  const [restaurantToDeactivate, setRestaurantToDeactivate] = useState<{id: string; name: string} | null>(null);
 
   const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -162,6 +180,25 @@ export default function SystemAdmin() {
     setSelectedRestaurant("");
     setSelectedOwner("");
     setAssignDialogOpen(false);
+  };
+
+  const handleToggleActive = (restaurantId: string, restaurantName: string, currentlyActive: boolean) => {
+    if (currentlyActive) {
+      // Show confirmation dialog before deactivating
+      setRestaurantToDeactivate({ id: restaurantId, name: restaurantName });
+      setDeactivateDialogOpen(true);
+    } else {
+      // Activate immediately without confirmation
+      toggleActive.mutate({ restaurantId, isActive: true });
+    }
+  };
+
+  const confirmDeactivate = () => {
+    if (restaurantToDeactivate) {
+      toggleActive.mutate({ restaurantId: restaurantToDeactivate.id, isActive: false });
+      setDeactivateDialogOpen(false);
+      setRestaurantToDeactivate(null);
+    }
   };
 
   const unassignedRestaurants = restaurants.filter((r) => !r.owner_id);
@@ -419,6 +456,18 @@ export default function SystemAdmin() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      {/* Active/Inactive Badge */}
+                      <Badge variant={restaurant.is_active ? "default" : "destructive"} className="text-xs">
+                        {restaurant.is_active ? "ACTIVE" : "INACTIVE"}
+                      </Badge>
+                      {/* Active Toggle */}
+                      <div className="flex items-center gap-1">
+                        <Switch
+                          checked={restaurant.is_active}
+                          onCheckedChange={() => handleToggleActive(restaurant.id, restaurant.name, restaurant.is_active)}
+                          disabled={toggleActive.isPending}
+                        />
+                      </div>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -449,6 +498,25 @@ export default function SystemAdmin() {
             )}
           </CardContent>
         </Card>
+
+        {/* Deactivate Confirmation Dialog */}
+        <AlertDialog open={deactivateDialogOpen} onOpenChange={setDeactivateDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Deactivate Restaurant?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will block POS, QR orders, and staff access immediately for <strong>{restaurantToDeactivate?.name}</strong>.
+                All owners and cashiers will be signed out and unable to access the system.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDeactivate} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Deactivate
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* View Menu Dialog */}
         <ViewMenuDialog

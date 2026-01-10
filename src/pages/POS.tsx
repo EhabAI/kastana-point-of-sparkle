@@ -45,6 +45,8 @@ import {
 import type { SelectedModifier } from "@/hooks/pos/useModifiers";
 import { useCreateRefund } from "@/hooks/pos/useRefunds";
 import { useAuditLog } from "@/hooks/pos/useAuditLog";
+import { useRestaurantActiveStatus } from "@/hooks/useRestaurantActiveStatus";
+import { RestaurantInactiveScreen } from "@/components/RestaurantInactiveScreen";
 import {
   useAddOrderItem,
   useUpdateOrderItemQuantity,
@@ -105,6 +107,7 @@ export default function POS() {
   const { data: session, isLoading: sessionLoading, error: sessionError } = useCashierSession();
   const restaurant = session?.restaurant;
   const branch = session?.branch;
+  const { data: isRestaurantActive, isLoading: activeLoading } = useRestaurantActiveStatus(restaurant?.id);
   const { data: currentShift, isLoading: shiftLoading } = useCurrentShift();
   const { data: settings } = useRestaurantSettings();
   const { data: categories = [] } = useCashierCategories();

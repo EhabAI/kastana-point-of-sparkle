@@ -471,6 +471,17 @@ export default function Menu() {
         return;
       }
 
+      // Check if restaurant is active
+      const { data: isActive } = await supabase.rpc("is_restaurant_active", {
+        p_restaurant_id: restaurantId,
+      });
+
+      if (!isActive) {
+        setError(t("menu_restaurant_inactive") || "Restaurant is temporarily unavailable. Please try again later.");
+        setLoading(false);
+        return;
+      }
+
       setRestaurant(restaurantData[0]);
 
       /* 2️⃣ Table lookup - uses SECURITY DEFINER function for safe public access
