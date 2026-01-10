@@ -1,6 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+/**
+ * Z Report Data Structure - Market-Correct Accounting
+ * 
+ * Accounting Logic:
+ * - Gross = All paid/refunded orders BEFORE deducting refunds
+ * - Net/Adjusted = Gross MINUS refunds (what actually stays in business)
+ * 
+ * Example Sanity Check:
+ * - 3 orders: 10 JOD, 20 JOD, 30 JOD (total 60 JOD gross)
+ * - 1 refund of 15 JOD on the 20 JOD order
+ * - Adjusted total = 60 - 15 = 45 JOD
+ * - If all paid by cash: Gross cash = 60, Refund allocated to cash = 15, Net cash = 45
+ */
 export interface ZReportData {
   shiftId: string;
   openedAt: string;
@@ -8,26 +21,56 @@ export interface ZReportData {
   openingCash: number;
   closingCash: number | null;
   
-  // Sales summary
+  // Orders count
   totalOrders: number;
-  totalSales: number;
-  totalTax: number;
-  totalServiceCharge: number;
-  totalDiscounts: number;
-  netSales: number;
-  
-  // Payment breakdown
-  cashPayments: number;
-  cardPayments: number;
-  mobilePayments: number;
-  
-  // Other
   cancelledOrders: number;
-  refundsTotal: number;
+  refundCount: number;
+  
+  // ═══════════════════════════════════════════════════════════════════
+  // GROSS SALES (Before Refunds) - What was originally sold
+  // ═══════════════════════════════════════════════════════════════════
+  grossSales: number;          // Sum of all order totals (before refunds)
+  grossNetSales: number;       // Sum of order subtotals (before tax/service)
+  grossTax: number;            // Sum of order tax amounts
+  grossServiceCharge: number;  // Sum of order service charges
+  totalDiscounts: number;      // Sum of order discounts (already applied in order totals)
+  
+  // Gross payment breakdown
+  grossCashPayments: number;
+  grossCardPayments: number;
+  grossMobilePayments: number;
+  
+  // ═══════════════════════════════════════════════════════════════════
+  // REFUNDS SECTION - What was returned
+  // ═══════════════════════════════════════════════════════════════════
+  refundsTotal: number;        // Total refunded amount
+  refundTax: number;           // Estimated tax portion of refunds
+  refundServiceCharge: number; // Estimated service charge portion
+  refundSubtotal: number;      // Estimated subtotal portion
+  
+  // Refund allocation by payment method
+  cashRefunds: number;
+  cardRefunds: number;
+  mobileRefunds: number;
+  
+  // ═══════════════════════════════════════════════════════════════════
+  // ADJUSTED TOTALS (After Refunds) - What business actually keeps
+  // ═══════════════════════════════════════════════════════════════════
+  adjustedSales: number;       // Gross sales - refunds total
+  adjustedNetSales: number;    // Gross net sales - refund subtotal
+  adjustedTax: number;         // Gross tax - refund tax
+  adjustedServiceCharge: number;
+  
+  // Net payment totals (after refunds)
+  netCashPayments: number;
+  netCardPayments: number;
+  netMobilePayments: number;
+  
+  // ═══════════════════════════════════════════════════════════════════
+  // CASH DRAWER
+  // ═══════════════════════════════════════════════════════════════════
   cashIn: number;
   cashOut: number;
-  
-  // Expected vs actual
   expectedCash: number;
   cashDifference: number;
 }
@@ -72,35 +115,37 @@ export function useZReport(shiftId: string | undefined) {
 
       if (transError) throw transError;
 
-      // Supported payment methods only (Phase 1)
-      // cash → cash bucket
-      // visa → card bucket
-      // cliq, zain_cash, orange_money, umniah_wallet → mobile bucket
-      const SUPPORTED_METHODS = ["cash", "visa", "cliq", "zain_cash", "orange_money", "umniah_wallet"] as const;
+      // ═══════════════════════════════════════════════════════════════════
+      // PAYMENT METHOD BUCKETING
+      // ═══════════════════════════════════════════════════════════════════
       const MOBILE_METHODS = ["cliq", "zain_cash", "orange_money", "umniah_wallet"];
 
       const getPaymentBucket = (method: string): "cash" | "card" | "mobile" | null => {
         if (method === "cash") return "cash";
         if (method === "visa") return "card";
         if (MOBILE_METHODS.includes(method)) return "mobile";
-        // Unsupported method - ignore safely
         return null;
       };
 
-      // Calculate totals
+      // ═══════════════════════════════════════════════════════════════════
+      // ORDER CATEGORIZATION
+      // ═══════════════════════════════════════════════════════════════════
+      // Include both "paid" and "refunded" orders in gross calculations
+      // "refunded" status means full refund was processed on that order
       const paidOrders = orders?.filter(o => o.status === "paid" || o.status === "refunded") || [];
       const cancelledOrders = orders?.filter(o => o.status === "cancelled") || [];
 
-      // Gross totals (before refunds)
-      const grossTotalSales = paidOrders.reduce((sum, o) => sum + Number(o.total), 0);
-      const grossTotalTax = paidOrders.reduce((sum, o) => sum + Number(o.tax_amount), 0);
-      const grossTotalServiceCharge = paidOrders.reduce((sum, o) => sum + Number(o.service_charge), 0);
+      // ═══════════════════════════════════════════════════════════════════
+      // GROSS CALCULATIONS (Before Refunds)
+      // ═══════════════════════════════════════════════════════════════════
+      const grossSales = paidOrders.reduce((sum, o) => sum + Number(o.total), 0);
+      const grossTax = paidOrders.reduce((sum, o) => sum + Number(o.tax_amount), 0);
+      const grossServiceCharge = paidOrders.reduce((sum, o) => sum + Number(o.service_charge), 0);
       const totalDiscounts = paidOrders.reduce((sum, o) => sum + Number(o.discount_value || 0), 0);
       const grossNetSales = paidOrders.reduce((sum, o) => sum + Number(o.subtotal), 0);
 
-      // Gross payment breakdown
+      // Gross payment breakdown by method
       const allPayments = paidOrders.flatMap(o => o.payments || []);
-      // Filter to only supported payment methods
       const supportedPayments = allPayments.filter(p => getPaymentBucket(p.method) !== null);
       
       const grossCashPayments = supportedPayments
@@ -113,71 +158,91 @@ export function useZReport(shiftId: string | undefined) {
         .filter(p => getPaymentBucket(p.method) === "mobile")
         .reduce((sum, p) => sum + Number(p.amount), 0);
 
+      // ═══════════════════════════════════════════════════════════════════
+      // REFUND ALLOCATION
+      // ═══════════════════════════════════════════════════════════════════
       // Build order map for refund allocation
       const orderMap = new Map(paidOrders.map(o => [o.id, o]));
 
-      // Calculate refund allocations
+      const refundCount = refunds?.length || 0;
       const refundsTotal = refunds?.reduce((sum, r) => sum + Number(r.amount), 0) || 0;
-      let cashRefundsAllocated = 0;
-      let cardRefundsAllocated = 0;
-      let mobileRefundsAllocated = 0;
-      let refundTaxTotal = 0;
-      let refundServiceTotal = 0;
-      let refundSubtotalTotal = 0;
+      
+      let cashRefunds = 0;
+      let cardRefunds = 0;
+      let mobileRefunds = 0;
+      let refundTax = 0;
+      let refundServiceCharge = 0;
+      let refundSubtotal = 0;
 
+      /**
+       * Refund Allocation Logic:
+       * 
+       * Since refunds table doesn't store payment_method, we derive it from the
+       * original order's payment(s):
+       * - Single payment: allocate full refund to that method
+       * - Multiple payments: proportional allocation by payment amount
+       * 
+       * Tax/Service/Subtotal estimation:
+       * - Use ratio of refund amount to order total to estimate portions
+       * - Example: Order 100 JOD (Tax 16 JOD), Refund 50 JOD → Refund tax ≈ 8 JOD
+       */
       (refunds || []).forEach(refund => {
         const order = orderMap.get(refund.order_id);
-        if (!order) return; // Ignore refunds for orders not in this shift
+        if (!order) return;
 
         const refundAmount = Number(refund.amount);
         const orderTotal = Number(order.total);
         const orderPayments = order.payments || [];
 
-        // Filter to only supported payment methods for this order
         const supportedOrderPayments = orderPayments.filter(p => getPaymentBucket(p.method) !== null);
         const supportedPaymentSum = supportedOrderPayments.reduce((s, p) => s + Number(p.amount), 0);
 
-        // Allocate refund to payment methods proportionally
+        // Allocate refund to payment methods
         if (supportedOrderPayments.length === 0 || supportedPaymentSum === 0) {
-          // Fallback: allocate to cash
-          cashRefundsAllocated += refundAmount;
+          // Fallback: assume cash (conservative for drawer calculation)
+          cashRefunds += refundAmount;
         } else if (supportedOrderPayments.length === 1) {
-          // Single payment: full refund to that method
           const bucket = getPaymentBucket(supportedOrderPayments[0].method);
-          if (bucket === "cash") cashRefundsAllocated += refundAmount;
-          else if (bucket === "card") cardRefundsAllocated += refundAmount;
-          else if (bucket === "mobile") mobileRefundsAllocated += refundAmount;
+          if (bucket === "cash") cashRefunds += refundAmount;
+          else if (bucket === "card") cardRefunds += refundAmount;
+          else if (bucket === "mobile") mobileRefunds += refundAmount;
         } else {
-          // Multiple payments: proportional allocation
+          // Proportional allocation for split payments
           supportedOrderPayments.forEach(p => {
             const proportion = Number(p.amount) / supportedPaymentSum;
             const allocated = refundAmount * proportion;
             const bucket = getPaymentBucket(p.method);
-            if (bucket === "cash") cashRefundsAllocated += allocated;
-            else if (bucket === "card") cardRefundsAllocated += allocated;
-            else if (bucket === "mobile") mobileRefundsAllocated += allocated;
+            if (bucket === "cash") cashRefunds += allocated;
+            else if (bucket === "card") cardRefunds += allocated;
+            else if (bucket === "mobile") mobileRefunds += allocated;
           });
         }
 
-        // Estimate refund parts for tax, service charge, subtotal
+        // Estimate refund breakdown (tax, service, subtotal) proportionally
+        // This is the best-available method without schema changes
         if (orderTotal > 0) {
-          refundTaxTotal += refundAmount * (Number(order.tax_amount) / orderTotal);
-          refundServiceTotal += refundAmount * (Number(order.service_charge) / orderTotal);
-          refundSubtotalTotal += refundAmount * (Number(order.subtotal) / orderTotal);
+          const ratio = refundAmount / orderTotal;
+          refundTax += Number(order.tax_amount) * ratio;
+          refundServiceCharge += Number(order.service_charge) * ratio;
+          refundSubtotal += Number(order.subtotal) * ratio;
         }
       });
 
-      // Net payment totals (after refunds)
-      const cashPayments = Math.max(0, grossCashPayments - cashRefundsAllocated);
-      const cardPayments = Math.max(0, grossCardPayments - cardRefundsAllocated);
-      const mobilePayments = Math.max(0, grossMobilePayments - mobileRefundsAllocated);
+      // ═══════════════════════════════════════════════════════════════════
+      // ADJUSTED CALCULATIONS (After Refunds)
+      // ═══════════════════════════════════════════════════════════════════
+      const adjustedSales = Math.max(0, grossSales - refundsTotal);
+      const adjustedNetSales = Math.max(0, grossNetSales - refundSubtotal);
+      const adjustedTax = Math.max(0, grossTax - refundTax);
+      const adjustedServiceCharge = Math.max(0, grossServiceCharge - refundServiceCharge);
 
-      // Net sales totals (after refunds)
-      const totalSales = Math.max(0, grossTotalSales - refundsTotal);
-      const totalTax = Math.max(0, grossTotalTax - refundTaxTotal);
-      const totalServiceCharge = Math.max(0, grossTotalServiceCharge - refundServiceTotal);
-      const netSales = Math.max(0, grossNetSales - refundSubtotalTotal);
+      const netCashPayments = Math.max(0, grossCashPayments - cashRefunds);
+      const netCardPayments = Math.max(0, grossCardPayments - cardRefunds);
+      const netMobilePayments = Math.max(0, grossMobilePayments - mobileRefunds);
 
+      // ═══════════════════════════════════════════════════════════════════
+      // CASH DRAWER RECONCILIATION
+      // ═══════════════════════════════════════════════════════════════════
       const cashIn = transactions
         ?.filter(t => t.type === "cash_in")
         .reduce((sum, t) => sum + Number(t.amount), 0) || 0;
@@ -185,9 +250,15 @@ export function useZReport(shiftId: string | undefined) {
         ?.filter(t => t.type === "cash_out")
         .reduce((sum, t) => sum + Number(t.amount), 0) || 0;
 
-      // Expected cash uses net cash payments (after refunds allocated to cash)
-      const expectedCash = Number(shift.opening_cash) + cashPayments + cashIn - cashOut;
-      const closingCash = shift.closing_cash ? Number(shift.closing_cash) : null;
+      /**
+       * Expected Cash Calculation (Market Standard):
+       * Opening + Net Cash Sales (after refunds) + Cash In - Cash Out
+       * 
+       * Note: cashRefunds are already subtracted from netCashPayments,
+       * so we use netCashPayments directly (not double-subtract).
+       */
+      const expectedCash = Number(shift.opening_cash) + netCashPayments + cashIn - cashOut;
+      const closingCash = shift.closing_cash !== null ? Number(shift.closing_cash) : null;
       const cashDifference = closingCash !== null ? closingCash - expectedCash : 0;
 
       return {
@@ -196,17 +267,40 @@ export function useZReport(shiftId: string | undefined) {
         closedAt: shift.closed_at,
         openingCash: Number(shift.opening_cash),
         closingCash,
+        
         totalOrders: paidOrders.length,
-        totalSales,
-        totalTax,
-        totalServiceCharge,
-        totalDiscounts,
-        netSales,
-        cashPayments,
-        cardPayments,
-        mobilePayments,
         cancelledOrders: cancelledOrders.length,
+        refundCount,
+        
+        // Gross
+        grossSales,
+        grossNetSales,
+        grossTax,
+        grossServiceCharge,
+        totalDiscounts,
+        grossCashPayments,
+        grossCardPayments,
+        grossMobilePayments,
+        
+        // Refunds
         refundsTotal,
+        refundTax,
+        refundServiceCharge,
+        refundSubtotal,
+        cashRefunds,
+        cardRefunds,
+        mobileRefunds,
+        
+        // Adjusted
+        adjustedSales,
+        adjustedNetSales,
+        adjustedTax,
+        adjustedServiceCharge,
+        netCashPayments,
+        netCardPayments,
+        netMobilePayments,
+        
+        // Cash drawer
         cashIn,
         cashOut,
         expectedCash,
