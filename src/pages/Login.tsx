@@ -86,7 +86,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4 sm:p-6 lg:p-8">
+    <div dir="ltr" className="min-h-screen flex items-center justify-center bg-muted/40 p-4 sm:p-6 lg:p-8">
       {/* Decorative background shapes */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
