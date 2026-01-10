@@ -1,8 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCashierRestaurant } from "./useCashierRestaurant";
-import { useAuth } from "@/contexts/AuthContext";
-import type { Json } from "@/integrations/supabase/types";
 
 export interface PendingOrder {
   id: string;
@@ -43,76 +40,46 @@ export function usePendingOrders(branchId: string | undefined) {
 
 export function useConfirmPendingOrder() {
   const queryClient = useQueryClient();
-  const { data: restaurant } = useCashierRestaurant();
-  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (orderId: string) => {
+      // Use secure edge function - handles JWT auth, shift validation, and audit logging
       const { data, error } = await supabase.functions.invoke("confirm-qr-order", {
         body: { order_id: orderId },
       });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
       return data;
     },
-    onSuccess: async (data) => {
+    onSuccess: () => {
+      // Audit logging is handled by edge function
       queryClient.invalidateQueries({ queryKey: ["pending-orders"] });
       queryClient.invalidateQueries({ queryKey: ["open-orders"] });
       queryClient.invalidateQueries({ queryKey: ["branch-tables"] });
       queryClient.invalidateQueries({ queryKey: ["current-order"] });
-
-      // Log to audit
-      if (user?.id && restaurant?.id) {
-        await supabase.from("audit_logs").insert({
-          user_id: user.id,
-          restaurant_id: restaurant.id,
-          entity_type: "order",
-          entity_id: data.id,
-          action: "ORDER_CONFIRMED",
-          details: { order_number: data.order_number } as unknown as Json,
-        });
-      }
     },
   });
 }
 
 export function useRejectPendingOrder() {
   const queryClient = useQueryClient();
-  const { data: restaurant } = useCashierRestaurant();
-  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ orderId, reason }: { orderId: string; reason?: string }) => {
-      const { data, error } = await supabase
-        .from("orders")
-        .update({
-          status: "cancelled",
-          cancelled_reason: reason || "Rejected by cashier",
-        })
-        .eq("id", orderId)
-        .select()
-        .single();
+      // Use secure edge function instead of direct update
+      const { data, error } = await supabase.functions.invoke("reject-qr-order", {
+        body: { order_id: orderId, reason },
+      });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
       return data;
     },
-    onSuccess: async (data) => {
+    onSuccess: () => {
+      // Audit logging is handled by edge function
       queryClient.invalidateQueries({ queryKey: ["pending-orders"] });
-
-      // Log to audit
-      if (user?.id && restaurant?.id) {
-        await supabase.from("audit_logs").insert({
-          user_id: user.id,
-          restaurant_id: restaurant.id,
-          entity_type: "order",
-          entity_id: data.id,
-          action: "ORDER_REJECTED",
-          details: {
-            order_number: data.order_number,
-            reason: data.cancelled_reason,
-          } as unknown as Json,
-        });
-      }
+      queryClient.invalidateQueries({ queryKey: ["branch-tables"] });
     },
   });
 }
