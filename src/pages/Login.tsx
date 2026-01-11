@@ -44,11 +44,11 @@ export default function Login() {
     toast
   } = useToast();
 
-  // Check for restaurant inactive logout flag
+  // Check for logout reason flag
   useEffect(() => {
-    const inactiveLogout = sessionStorage.getItem("restaurant_inactive_logout");
-    if (inactiveLogout === "true") {
-      sessionStorage.removeItem("restaurant_inactive_logout");
+    const logoutReason = sessionStorage.getItem("logout_reason");
+    if (logoutReason === "RESTAURANT_INACTIVE") {
+      sessionStorage.removeItem("logout_reason");
       toast({
         title: "Session Ended",
         description: "This restaurant has been deactivated by system administration.",

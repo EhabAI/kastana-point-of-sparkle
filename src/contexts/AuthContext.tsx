@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleInactiveRestaurant = useCallback(async () => {
     // Set flag so Login page can show message
-    sessionStorage.setItem("restaurant_inactive_logout", "true");
+    sessionStorage.setItem("logout_reason", "RESTAURANT_INACTIVE");
     
     // Force sign out
     await supabase.auth.signOut();
