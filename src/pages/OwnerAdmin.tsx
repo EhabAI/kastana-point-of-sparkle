@@ -121,27 +121,27 @@ export default function OwnerAdmin() {
   return (
     <BranchProvider>
       <DashboardLayout title={t("owner_dashboard")}>
-        <div className="space-y-4 animate-fade-in">
-        {/* Restaurant Header - Compact */}
-        <div className="flex items-center justify-between py-2">
+        <div className="space-y-5 animate-fade-in">
+        {/* Restaurant Header - Minimal & Professional */}
+        <div className="flex items-center justify-between pb-3 border-b border-border/30">
           <div className="flex items-center gap-3">
             {restaurant.logo_url ? (
               <img
                 src={restaurant.logo_url}
                 alt={`${restaurant.name} logo`}
-                className="w-9 h-9 object-contain rounded-lg"
+                className="w-8 h-8 object-contain rounded-lg ring-1 ring-border/30"
               />
             ) : (
-              <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
-                <Store className="h-5 w-5 text-muted-foreground" />
+              <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center ring-1 ring-border/30">
+                <Store className="h-4 w-4 text-muted-foreground" />
               </div>
             )}
-            <h2 className="text-lg font-semibold text-foreground">{restaurant.name}</h2>
+            <h2 className="text-base font-semibold text-foreground tracking-tight">{restaurant.name}</h2>
           </div>
           <Dialog open={editingRestaurantName} onOpenChange={setEditingRestaurantName}>
             <DialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-muted-foreground h-8" onClick={() => setRestaurantName(restaurant.name)}>
-                <Edit2 className="h-3.5 w-3.5" />
+              <Button variant="ghost" size="sm" className="text-muted-foreground/60 hover:text-muted-foreground h-7 w-7 p-0" onClick={() => setRestaurantName(restaurant.name)}>
+                <Edit2 className="h-3 w-3" />
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -172,54 +172,54 @@ export default function OwnerAdmin() {
           </Dialog>
         </div>
 
-        {/* Tabbed Navigation - Neutral, minimal */}
+        {/* Tabbed Navigation - Premium underline style */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="flex items-center gap-1 bg-transparent p-0 h-auto flex-wrap border-b border-border/40 pb-2">
+          <TabsList className="flex items-center gap-0.5 bg-transparent p-0 h-auto flex-wrap">
             <TabsTrigger 
               value="overview" 
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all duration-150"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
             >
               <LayoutDashboard className="h-3.5 w-3.5" />
               <span>{t("overview")}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="analytics" 
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all duration-150"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
             >
               <BarChart3 className="h-3.5 w-3.5" />
               <span>{t("analytics")}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="reports" 
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all duration-150"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
             >
               <FileText className="h-3.5 w-3.5" />
               <span>{t("reports")}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="menu" 
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all duration-150"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
             >
               <UtensilsCrossed className="h-3.5 w-3.5" />
               <span>{t("menu")}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="management" 
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all duration-150"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
             >
               <Users className="h-3.5 w-3.5" />
               <span>{t("manage")}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="branches" 
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all duration-150"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
             >
               <Building2 className="h-3.5 w-3.5" />
               <span>{t("branches")}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="settings" 
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all duration-150"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
             >
               <Settings className="h-3.5 w-3.5" />
               <span>{t("settings")}</span>

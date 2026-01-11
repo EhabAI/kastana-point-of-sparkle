@@ -126,61 +126,66 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
   const nextOpenTime = !isOpen ? getNextOpenTime(settings?.business_hours || null, t) : null;
   
   return (
-    <div className="border-b border-border/40 pb-4">
-      {/* Horizontal KPI Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 md:gap-6">
-        {/* Restaurant Status */}
-        <div className="flex flex-col">
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{t("status")}</span>
-          <div className="flex items-center gap-2">
-            <span className={`inline-block w-2 h-2 rounded-full ${isOpen ? 'bg-emerald-500' : 'bg-muted-foreground'}`} />
-            <span className="text-lg font-bold text-foreground">{isOpen ? t("open") : t("closed")}</span>
-          </div>
-          {nextOpenTime && (
-            <span className="text-[10px] text-muted-foreground mt-0.5">{nextOpenTime}</span>
-          )}
-        </div>
-
-        {/* Today's Sales */}
-        <div className="flex flex-col">
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{t("todays_sales")}</span>
-          <span className="text-2xl font-bold text-foreground tabular-nums">
-            {formatJOD(todayStats?.todaySales || 0)}
-          </span>
-          <span className="text-[10px] text-muted-foreground">{currencySymbol}</span>
-        </div>
-        
-        {/* Today's Orders */}
-        <div className="flex flex-col">
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{t("todays_orders")}</span>
-          <span className="text-2xl font-bold text-foreground tabular-nums">{todayStats?.todayOrders || 0}</span>
-        </div>
-        
-        {/* Open Shifts */}
-        <div className="flex flex-col">
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{t("open_shifts")}</span>
-          <div className="flex items-baseline gap-2">
-            <span className={`text-2xl font-bold tabular-nums ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-amber-600 dark:text-amber-500' : 'text-foreground'}`}>
-              {todayStats?.openShifts || 0}
-            </span>
-            {(todayStats?.openShifts || 0) > 0 && (todayStats?.oldestShiftMinutes || 0) > 0 && (
-              <span className={`text-xs ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-amber-600 dark:text-amber-500' : 'text-muted-foreground'}`}>
-                {formatShiftDuration(todayStats?.oldestShiftMinutes || 0, language)}
-              </span>
+    <div className="space-y-1">
+      {/* Section Label */}
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">{t("daily_snapshot") || "Daily Snapshot"}</p>
+      
+      {/* Premium KPI Bar with subtle depth */}
+      <div className="bg-card border border-border/50 rounded-xl p-4 shadow-kpi">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 md:gap-8">
+          {/* Restaurant Status */}
+          <div className="flex flex-col space-y-1">
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{t("status")}</span>
+            <div className="flex items-center gap-2">
+              <span className={`inline-block w-2 h-2 rounded-full ${isOpen ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50' : 'bg-muted-foreground/50'}`} />
+              <span className="text-xl font-extrabold text-foreground tracking-tight">{isOpen ? t("open") : t("closed")}</span>
+            </div>
+            {nextOpenTime && (
+              <span className="text-[10px] text-muted-foreground/60">{nextOpenTime}</span>
             )}
           </div>
-        </div>
-        
-        {/* Tables */}
-        <div className="flex flex-col">
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{t("tables")}</span>
-          <span className="text-2xl font-bold text-foreground tabular-nums">{tableCount}</span>
-        </div>
-        
-        {/* Staff */}
-        <div className="flex flex-col">
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{t("staff")}</span>
-          <span className="text-2xl font-bold text-foreground tabular-nums">{staffCount}</span>
+
+          {/* Today's Sales */}
+          <div className="flex flex-col space-y-1">
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{t("todays_sales")}</span>
+            <span className="text-2xl font-extrabold text-foreground tabular-nums tracking-tight">
+              {formatJOD(todayStats?.todaySales || 0)}
+            </span>
+            <span className="text-[10px] text-muted-foreground/60">{currencySymbol}</span>
+          </div>
+          
+          {/* Today's Orders */}
+          <div className="flex flex-col space-y-1">
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{t("todays_orders")}</span>
+            <span className="text-2xl font-extrabold text-foreground tabular-nums tracking-tight">{todayStats?.todayOrders || 0}</span>
+          </div>
+          
+          {/* Open Shifts */}
+          <div className="flex flex-col space-y-1">
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{t("open_shifts")}</span>
+            <div className="flex items-baseline gap-2">
+              <span className={`text-2xl font-extrabold tabular-nums tracking-tight ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
+                {todayStats?.openShifts || 0}
+              </span>
+              {(todayStats?.openShifts || 0) > 0 && (todayStats?.oldestShiftMinutes || 0) > 0 && (
+                <span className={`text-xs font-medium ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground/60'}`}>
+                  {formatShiftDuration(todayStats?.oldestShiftMinutes || 0, language)}
+                </span>
+              )}
+            </div>
+          </div>
+          
+          {/* Tables */}
+          <div className="flex flex-col space-y-1">
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{t("tables")}</span>
+            <span className="text-2xl font-extrabold text-foreground tabular-nums tracking-tight">{tableCount}</span>
+          </div>
+          
+          {/* Staff */}
+          <div className="flex flex-col space-y-1">
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{t("staff")}</span>
+            <span className="text-2xl font-extrabold text-foreground tabular-nums tracking-tight">{staffCount}</span>
+          </div>
         </div>
       </div>
     </div>

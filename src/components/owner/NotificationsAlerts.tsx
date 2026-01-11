@@ -356,13 +356,13 @@ export function NotificationsAlerts() {
   const getAlertStyles = (type: Alert["type"]) => {
     switch (type) {
       case "error":
-        return "bg-destructive/[0.03] border-destructive/15";
+        return "bg-destructive/[0.04] border-l-destructive";
       case "warning":
-        return "bg-warning/[0.03] border-warning/15";
+        return "bg-amber-50 dark:bg-amber-950/20 border-l-amber-500";
       case "success":
-        return "bg-success/[0.03] border-success/15";
+        return "bg-emerald-50/50 dark:bg-emerald-950/20 border-l-emerald-500";
       default:
-        return "bg-primary/[0.03] border-primary/15";
+        return "bg-primary/[0.03] border-l-primary/50";
     }
   };
 
@@ -377,48 +377,53 @@ export function NotificationsAlerts() {
   };
 
   return (
-    <div className="space-y-2">
-      {/* Alerts Header */}
+    <div className="space-y-3 pt-2">
+      {/* Section divider */}
+      <div className="border-t border-border/30" />
+      
+      {/* Alerts Header - Premium styling */}
       <div className="flex items-center justify-between">
         <button 
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-foreground/80 transition-colors"
+          className="flex items-center gap-2.5 text-sm font-semibold text-foreground hover:text-foreground/80 transition-colors group"
         >
-          <Bell className="h-4 w-4" />
-          <span>{t("notifications_alerts")}</span>
+          <Bell className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+          <span className="uppercase tracking-wide text-xs">{t("notifications_alerts")}</span>
           {(alertCounts.error > 0 || alertCounts.warning > 0) && (
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 shadow-sm">
               {alertCounts.error + alertCounts.warning}
             </span>
           )}
-          <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
+          <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground/60 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
         </button>
       </div>
 
-      {/* Alerts List - Full width, simple */}
+      {/* Alerts List - Premium market-style */}
       {isOpen && (
-        <div className="space-y-1">
+        <div className="space-y-1.5 bg-muted/20 dark:bg-muted/10 rounded-lg p-2">
           {isLoading ? (
-            <div className="flex items-center justify-center py-4">
+            <div className="flex items-center justify-center py-6">
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             </div>
           ) : sortedAlerts.length === 0 ? (
-            <div className="flex items-center gap-2 py-3 px-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-3 py-4 px-3 text-sm text-muted-foreground">
               <CheckCircle className="h-4 w-4 text-emerald-500" />
-              <span>{t("all_clear")} — {t("no_alerts")}</span>
+              <span className="font-medium">{t("all_clear")} — {t("no_alerts")}</span>
             </div>
           ) : (
             sortedAlerts.map((alert) => (
               <div 
                 key={alert.id} 
-                className="flex items-start gap-2.5 py-2 px-2 rounded-md hover:bg-muted/30 transition-colors"
+                className={`flex items-start gap-3 py-2.5 px-3 rounded-lg border-l-2 transition-colors ${getAlertStyles(alert.type)}`}
               >
-                {getAlertIcon(alert.type)}
-                <div className="flex-1 min-w-0">
-                  <span className="text-sm font-medium text-foreground">{alert.title}</span>
-                  <span className="text-sm text-muted-foreground ml-1.5">— {alert.message}</span>
+                <div className="mt-0.5">
+                  {getAlertIcon(alert.type)}
                 </div>
-                <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground leading-tight">{alert.title}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{alert.message}</p>
+                </div>
+                <span className="text-[10px] text-muted-foreground/60 font-medium whitespace-nowrap mt-0.5">
                   {format(alert.timestamp, "HH:mm")}
                 </span>
               </div>

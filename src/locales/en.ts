@@ -83,6 +83,7 @@ export default {
   settings: "Settings",
 
   // Dashboard
+  daily_snapshot: "Daily Snapshot",
   todays_sales: "Today's Sales",
   todays_orders: "Today's Orders",
   open_shifts: "Open Shifts",
