@@ -44,6 +44,19 @@ export default function Login() {
     toast
   } = useToast();
 
+  // Check for restaurant inactive logout flag
+  useEffect(() => {
+    const inactiveLogout = sessionStorage.getItem("restaurant_inactive_logout");
+    if (inactiveLogout === "true") {
+      sessionStorage.removeItem("restaurant_inactive_logout");
+      toast({
+        title: "Session Ended",
+        description: "This restaurant has been deactivated by system administration.",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+
   useEffect(() => {
     if (!loading && user && role) {
       if (role === "system_admin") {
