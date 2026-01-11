@@ -110,21 +110,33 @@
 }
 
 @layer utilities {
+  /* Softer, lighter card shadows */
   .shadow-card {
-    box-shadow: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+    box-shadow: 0 1px 2px 0 hsl(0 0% 0% / 0.04), 0 1px 3px 0 hsl(0 0% 0% / 0.06);
   }
   
   .shadow-card-hover {
-    box-shadow: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -2px hsl(0 0% 0% / 0.1);
+    box-shadow: 0 2px 4px -1px hsl(0 0% 0% / 0.06), 0 2px 6px -1px hsl(0 0% 0% / 0.08);
   }
   
   .animate-fade-in {
-    animation: fade-in 0.3s ease-out;
+    animation: fade-in 0.25s ease-out;
   }
   
   @keyframes fade-in {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Subtle hover scale for interactive elements */
+  .hover-scale {
+    transition: transform 0.15s ease;
+  }
+  .hover-scale:hover {
+    transform: scale(1.02);
+  }
+  .hover-scale:active {
+    transform: scale(0.98);
   }
 }
 

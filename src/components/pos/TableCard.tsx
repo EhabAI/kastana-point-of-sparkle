@@ -70,33 +70,33 @@ export function TableCard({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 min-h-[140px] group",
-        "hover:scale-105 hover:shadow-lg active:scale-95",
+        "relative flex flex-col items-center justify-center p-3.5 rounded-xl border transition-all duration-200 min-h-[130px] group",
+        "hover:shadow-md active:scale-[0.98]",
         selected
           ? "border-primary bg-primary/10 ring-2 ring-primary ring-offset-2"
           : isOccupied
-            ? "border-amber-400 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-600 shadow-amber-200/50 dark:shadow-amber-900/30 shadow-md"
-            : "border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-600 hover:shadow-emerald-200/50 dark:hover:shadow-emerald-900/30",
-        disabled && "opacity-50 cursor-not-allowed hover:scale-100"
+            ? "border-amber-300 bg-amber-50/80 dark:bg-amber-950/20 dark:border-amber-700 shadow-sm"
+            : "border-emerald-300 bg-emerald-50/80 dark:bg-emerald-950/20 dark:border-emerald-700 hover:border-emerald-400",
+        disabled && "opacity-50 cursor-not-allowed hover:shadow-none"
       )}
     >
       {/* Table SVG */}
-      <div className="relative mb-2">
+      <div className="relative mb-1.5">
         {tableType === "round-small" && <RoundTableSmall isOccupied={isOccupied} tableName={tableName} />}
         {tableType === "round" && <RoundTable isOccupied={isOccupied} tableName={tableName} />}
         {tableType === "rectangular" && <RectangularTable isOccupied={isOccupied} capacity={effectiveCapacity} tableName={tableName} />}
       </div>
 
       {/* Capacity */}
-      <span className="text-xs text-muted-foreground">{effectiveCapacity} {t("seats")}</span>
+      <span className="text-[10px] text-muted-foreground">{effectiveCapacity} {t("seats")}</span>
 
       {/* Status Badge */}
       <div
         className={cn(
-          "absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide",
+          "absolute top-2 right-2 px-1.5 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wide",
           isOccupied
-            ? "bg-amber-500 text-white"
-            : "bg-emerald-500 text-white"
+            ? "bg-amber-500/90 text-white"
+            : "bg-emerald-500/90 text-white"
         )}
       >
         {isOccupied ? `#${orderNumber}` : t("free")}
@@ -104,15 +104,15 @@ export function TableCard({
 
       {/* Multiple Orders Indicator */}
       {orderCount && orderCount > 1 && (
-        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary text-primary-foreground">
+        <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-primary/90 text-primary-foreground">
           {orderCount} {t("orders")}
         </div>
       )}
 
-      {/* Occupancy Timer */}
+      {/* Occupancy Timer - subtle styling */}
       {isOccupied && orderCreatedAt && (
-        <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/80 text-[10px] font-medium text-muted-foreground">
-          <Clock className="h-3 w-3" />
+        <div className="absolute bottom-1.5 right-1.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-muted/60 text-[9px] font-medium text-muted-foreground">
+          <Clock className="h-2.5 w-2.5" />
           {duration}
         </div>
       )}

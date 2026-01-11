@@ -129,50 +129,50 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
   const nextOpenTime = !isOpen ? getNextOpenTime(settings?.business_hours || null, t) : null;
   
   return (
-    <Card className="shadow-card bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-      <CardContent className="p-6">
+    <Card className="shadow-card border-border/40 bg-gradient-to-br from-primary/[0.02] to-primary/[0.06]">
+      <CardContent className="p-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Restaurant Status */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <Store className="h-5 w-5 text-primary" />
-              <Badge variant={isOpen ? "default" : "secondary"} className="text-sm">
+              <Store className="h-4 w-4 text-primary" />
+              <Badge variant={isOpen ? "default" : "secondary"} className="text-xs font-medium">
                 {isOpen ? t("open") : t("closed")}
               </Badge>
             </div>
             {nextOpenTime && (
-              <span className="text-sm text-muted-foreground">{nextOpenTime}</span>
+              <span className="text-xs text-muted-foreground">{nextOpenTime}</span>
             )}
           </div>
           
           {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-5">
             <div className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
               <div>
-                <p className="text-xs text-muted-foreground">{t("todays_sales")}</p>
-                <p className="font-semibold text-foreground">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t("todays_sales")}</p>
+                <p className="text-sm font-semibold text-foreground">
                   {formatJOD(todayStats?.todaySales || 0)} {currencySymbol}
                 </p>
               </div>
             </div>
             
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
               <div>
-                <p className="text-xs text-muted-foreground">{t("todays_orders")}</p>
-                <p className="font-semibold text-foreground">{todayStats?.todayOrders || 0}</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t("todays_orders")}</p>
+                <p className="text-sm font-semibold text-foreground">{todayStats?.todayOrders || 0}</p>
               </div>
             </div>
             
             <div className="flex items-center gap-2">
-              <Clock className={`h-4 w-4 ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-warning' : 'text-muted-foreground'}`} />
+              <Clock className={`h-3.5 w-3.5 ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-warning' : 'text-muted-foreground'}`} />
               <div>
-                <p className="text-xs text-muted-foreground">{t("open_shifts")}</p>
-                <div className="flex items-center gap-2">
-                  <p className="font-semibold text-foreground">{todayStats?.openShifts || 0}</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t("open_shifts")}</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-sm font-semibold text-foreground">{todayStats?.openShifts || 0}</p>
                   {(todayStats?.openShifts || 0) > 0 && (todayStats?.oldestShiftMinutes || 0) > 0 && (
-                    <span className={`text-xs ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-warning font-medium' : 'text-muted-foreground'}`}>
+                    <span className={`text-[10px] ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-warning font-medium' : 'text-muted-foreground'}`}>
                       ({t("oldest")}: {formatShiftDuration(todayStats?.oldestShiftMinutes || 0, language)})
                     </span>
                   )}
@@ -181,18 +181,18 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
             </div>
             
             <div className="flex items-center gap-2">
-              <Table2 className="h-4 w-4 text-muted-foreground" />
+              <Table2 className="h-3.5 w-3.5 text-muted-foreground" />
               <div>
-                <p className="text-xs text-muted-foreground">{t("tables")}</p>
-                <p className="font-semibold text-foreground">{tableCount}</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t("tables")}</p>
+                <p className="text-sm font-semibold text-foreground">{tableCount}</p>
               </div>
             </div>
             
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <Users className="h-3.5 w-3.5 text-muted-foreground" />
               <div>
-                <p className="text-xs text-muted-foreground">{t("staff")}</p>
-                <p className="font-semibold text-foreground">{staffCount}</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t("staff")}</p>
+                <p className="text-sm font-semibold text-foreground">{staffCount}</p>
               </div>
             </div>
           </div>
