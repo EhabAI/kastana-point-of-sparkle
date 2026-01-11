@@ -52,10 +52,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   // If restaurant is inactive for owner/cashier, show inactive screen
   if (showInactiveScreen) {
     return (
-      <RestaurantInactiveScreen 
-        message="This restaurant has been deactivated by system administration. Please contact support for assistance."
-        showLogout={true}
-      />
+      <RestaurantInactiveScreen showLogout={true} />
     );
   }
 
