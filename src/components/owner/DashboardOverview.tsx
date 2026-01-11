@@ -134,11 +134,11 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
       <div className="bg-card border border-border/50 rounded-xl p-4 shadow-kpi">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 md:gap-8">
           {/* Restaurant Status */}
-          <div className="flex flex-col space-y-1">
+          <div className="flex flex-col space-y-0.5">
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{t("status")}</span>
             <div className="flex items-center gap-2">
               <span className={`inline-block w-2 h-2 rounded-full ${isOpen ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50' : 'bg-muted-foreground/50'}`} />
-              <span className="text-xl font-extrabold text-foreground tracking-tight">{isOpen ? t("open") : t("closed")}</span>
+              <span className="text-base font-bold text-foreground tracking-tight">{isOpen ? t("open") : t("closed")}</span>
             </div>
             {nextOpenTime && (
               <span className="text-[10px] text-muted-foreground/60">{nextOpenTime}</span>
@@ -146,29 +146,29 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
           </div>
 
           {/* Today's Sales */}
-          <div className="flex flex-col space-y-1">
+          <div className="flex flex-col space-y-0.5">
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{t("todays_sales")}</span>
-            <span className="text-2xl font-extrabold text-foreground tabular-nums tracking-tight">
+            <span className="text-lg font-bold text-foreground tabular-nums tracking-tight">
               {formatJOD(todayStats?.todaySales || 0)}
             </span>
             <span className="text-[10px] text-muted-foreground/60">{currencySymbol}</span>
           </div>
           
           {/* Today's Orders */}
-          <div className="flex flex-col space-y-1">
+          <div className="flex flex-col space-y-0.5">
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{t("todays_orders")}</span>
-            <span className="text-2xl font-extrabold text-foreground tabular-nums tracking-tight">{todayStats?.todayOrders || 0}</span>
+            <span className="text-lg font-bold text-foreground tabular-nums tracking-tight">{todayStats?.todayOrders || 0}</span>
           </div>
           
           {/* Open Shifts */}
-          <div className="flex flex-col space-y-1">
+          <div className="flex flex-col space-y-0.5">
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{t("open_shifts")}</span>
-            <div className="flex items-baseline gap-2">
-              <span className={`text-2xl font-extrabold tabular-nums tracking-tight ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
+            <div className="flex items-baseline gap-1.5">
+              <span className={`text-lg font-bold tabular-nums tracking-tight ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
                 {todayStats?.openShifts || 0}
               </span>
               {(todayStats?.openShifts || 0) > 0 && (todayStats?.oldestShiftMinutes || 0) > 0 && (
-                <span className={`text-xs font-medium ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground/60'}`}>
+                <span className={`text-[11px] font-medium ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground/60'}`}>
                   {formatShiftDuration(todayStats?.oldestShiftMinutes || 0, language)}
                 </span>
               )}
@@ -176,15 +176,15 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
           </div>
           
           {/* Tables */}
-          <div className="flex flex-col space-y-1">
+          <div className="flex flex-col space-y-0.5">
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{t("tables")}</span>
-            <span className="text-2xl font-extrabold text-foreground tabular-nums tracking-tight">{tableCount}</span>
+            <span className="text-lg font-bold text-foreground tabular-nums tracking-tight">{tableCount}</span>
           </div>
           
           {/* Staff */}
-          <div className="flex flex-col space-y-1">
+          <div className="flex flex-col space-y-0.5">
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{t("staff")}</span>
-            <span className="text-2xl font-extrabold text-foreground tabular-nums tracking-tight">{staffCount}</span>
+            <span className="text-lg font-bold text-foreground tabular-nums tracking-tight">{staffCount}</span>
           </div>
         </div>
       </div>
