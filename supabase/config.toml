@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.set-restaurant-active]
 verify_jwt = false
+
+[functions.update-cashier-status]
+verify_jwt = false

@@ -183,7 +183,11 @@ export default {
   branch_phone: "Phone",
   set_default: "Set as Default",
   cannot_delete_default: "Cannot delete the default branch",
-  confirm_delete_branch: "Are you sure you want to delete branch",
+  confirm_delete_branch: "Delete Branch?",
+  delete_branch_warning: "This will permanently delete branch",
+  cannot_delete_branch: "Cannot Delete Branch",
+  branch_has_active_cashiers: "This branch has active cashiers assigned. Please deactivate or reassign them first.",
+  branch_has_open_shifts: "This branch has open shifts. Please close all shifts before deleting.",
   no_branches_add: "No branches. Add a branch to get started.",
 
   // Branch prices/promos
