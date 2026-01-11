@@ -1,17 +1,17 @@
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface RestaurantInactiveScreenProps {
-  message?: string;
   showLogout?: boolean;
 }
 
 export function RestaurantInactiveScreen({
-  message = "This restaurant is currently inactive. Please contact support.",
   showLogout = true,
 }: RestaurantInactiveScreenProps) {
   const { signOut } = useAuth();
+  const { t } = useLanguage();
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -20,12 +20,12 @@ export function RestaurantInactiveScreen({
           <AlertTriangle className="h-8 w-8 text-destructive" />
         </div>
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-foreground">Restaurant Inactive</h1>
-          <p className="text-muted-foreground">{message}</p>
+          <h1 className="text-2xl font-bold text-foreground">{t("restaurant_inactive_title")}</h1>
+          <p className="text-muted-foreground">{t("restaurant_inactive_message")}</p>
         </div>
         {showLogout && (
           <Button onClick={() => signOut()} variant="outline" className="w-full">
-            Sign Out
+            {t("sign_out")}
           </Button>
         )}
       </div>

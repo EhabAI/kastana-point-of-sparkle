@@ -63,7 +63,9 @@ export default {
   remaining_must_be_zero: "Remaining must be 0.000 to complete",
   overpayment_cash_only: "Overpayment allowed only for cash (change)",
 
-  // Owner Dashboard
+  // Restaurant inactive
+  restaurant_inactive_title: "Restaurant Inactive",
+  restaurant_inactive_message: "This restaurant is currently inactive. Please contact support.",
   owner_dashboard: "Owner Dashboard",
   system_admin: "System Admin",
   cashier: "Cashier",
@@ -929,4 +931,19 @@ export default {
   of_total: "of total",
   single_branch_msg: "You have a single branch. Multi-branch reports will appear when you add more branches.",
   no_branch_data: "No branch data for this period.",
+
+  // Report Filters
+  all_cashiers: "All Cashiers",
+  all_methods: "All Methods",
+  all_types: "All Types",
+  clear_filters: "Clear Filters",
+  view_details: "View Details",
+  orders_details: "Orders Details",
+  net_after_refunds: "Net After Refunds",
+  type: "Type",
+  source: "Source",
+  payment_method: "Payment Method",
+  time: "Time",
+  order_number: "Order #",
+  cash_movements: "Cash Movements",
 } as const;

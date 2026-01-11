@@ -63,7 +63,9 @@ export default {
   remaining_must_be_zero: "يجب أن يكون المتبقي 0.000 للإكمال",
   overpayment_cash_only: "الدفع الزائد مسموح فقط للنقد (الباقي)",
 
-  // Owner Dashboard
+  // Restaurant inactive
+  restaurant_inactive_title: "المطعم غير نشط",
+  restaurant_inactive_message: "هذا المطعم غير نشط حالياً. يرجى التواصل مع الدعم.",
   owner_dashboard: "لوحة تحكم المالك",
   system_admin: "مدير النظام",
   cashier: "كاشير",
@@ -927,4 +929,19 @@ export default {
   of_total: "من الإجمالي",
   single_branch_msg: "لديك فرع واحد فقط. ستظهر تقارير الفروع المتعددة عند إضافة المزيد من الفروع.",
   no_branch_data: "لا توجد بيانات فروع لهذه الفترة.",
+
+  // Report Filters
+  all_cashiers: "كل الكاشيرات",
+  all_methods: "كل الطرق",
+  all_types: "كل الأنواع",
+  clear_filters: "مسح الفلاتر",
+  view_details: "عرض التفاصيل",
+  orders_details: "تفاصيل الطلبات",
+  net_after_refunds: "الصافي بعد الاستردادات",
+  type: "النوع",
+  source: "المصدر",
+  payment_method: "طريقة الدفع",
+  time: "الوقت",
+  order_number: "رقم الطلب",
+  cash_movements: "حركات النقد",
 } as const;
