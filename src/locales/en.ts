@@ -86,9 +86,11 @@ export default {
   todays_sales: "Today's Sales",
   todays_orders: "Today's Orders",
   open_shifts: "Open Shifts",
+  oldest: "Oldest",
   staff: "Staff",
   opens_at: "Opens at",
   opens_on: "Opens",
+  shift_already_open_at_branch: "An open shift already exists at this branch. Please close it before opening a new one.",
 
   // Analytics
   analytics_charts: "Analytics & Charts",

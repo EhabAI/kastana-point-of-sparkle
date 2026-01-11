@@ -26,6 +26,27 @@ export function useCurrentShift() {
   });
 }
 
+// Check if there's already an open shift at the branch (for soft block)
+export function useBranchOpenShift(branchId: string | undefined) {
+  return useQuery({
+    queryKey: ["branch-open-shift", branchId],
+    queryFn: async () => {
+      if (!branchId) return null;
+
+      const { data, error } = await supabase
+        .from("shifts")
+        .select("id, cashier_id, opened_at")
+        .eq("branch_id", branchId)
+        .eq("status", "open")
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!branchId,
+  });
+}
+
 export function useOpenShift() {
   const { user } = useAuth();
   const { data: session } = useCashierSession();

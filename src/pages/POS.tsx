@@ -41,6 +41,7 @@ import {
   useMenuItemModifiers,
   useAddOrderItemModifiers,
   useTransferOrderItem,
+  useBranchOpenShift,
 } from "@/hooks/pos";
 import type { SelectedModifier } from "@/hooks/pos/useModifiers";
 import { useCreateRefund } from "@/hooks/pos/useRefunds";
@@ -109,6 +110,7 @@ export default function POS() {
   const branch = session?.branch;
   const { data: isRestaurantActive, isLoading: activeLoading } = useRestaurantActiveStatus(restaurant?.id);
   const { data: currentShift, isLoading: shiftLoading } = useCurrentShift();
+  const { data: branchOpenShift } = useBranchOpenShift(branch?.id); // Check for existing open shift at branch
   const { data: settings } = useRestaurantSettings();
   const { data: categories = [] } = useCashierCategories();
   const { data: heldOrders = [] } = useHeldOrders(currentShift?.id);
@@ -410,6 +412,11 @@ export default function POS() {
 
   // Handlers
   const handleOpenShift = () => {
+    // Soft block: Check if there's already an open shift at this branch (by another cashier)
+    if (branchOpenShift && branchOpenShift.cashier_id !== user?.id) {
+      toast.error(t("shift_already_open_at_branch"));
+      return;
+    }
     setShiftDialogMode("open");
     setShiftDialogOpen(true);
   };
