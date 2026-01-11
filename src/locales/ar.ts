@@ -843,4 +843,71 @@ export default {
   pos_qr_pending: "طلبات QR",
   pos_open_orders: "الطلبات المفتوحة",
   pos_tables: "الطاولات",
+
+  // Reports Module
+  financial: "المالية",
+  operations: "العمليات",
+  
+  // Financial Reports
+  daily_sales_report: "تقرير المبيعات اليومية",
+  taxes_collected: "الضرائب المحصلة",
+  final_total: "الإجمالي النهائي",
+  payment_methods_report: "تقرير طرق الدفع",
+  cash_total: "إجمالي النقد",
+  card_total: "إجمالي البطاقات",
+  other_payments: "مدفوعات أخرى",
+  transactions: "المعاملات",
+  refunds_report: "تقرير الاستردادات",
+  total_refunds: "إجمالي الاستردادات",
+  refunds_count: "عدد الاستردادات",
+  by_reason: "حسب السبب",
+  by_cashier: "حسب الكاشير",
+  no_refund_data: "لا توجد بيانات استرداد لهذه الفترة.",
+  no_payment_data: "لا توجد بيانات دفع لهذه الفترة.",
+  
+  // Orders Reports
+  orders_overview: "نظرة عامة على الطلبات",
+  open_orders: "الطلبات المفتوحة",
+  closed_orders: "الطلبات المغلقة",
+  refunded_orders: "الطلبات المستردة",
+  voided_orders: "الطلبات الملغاة",
+  orders_by_type: "الطلبات حسب النوع",
+  average_order_value: "متوسط قيمة الطلب (AOV)",
+  peak_hours_report: "ساعات الذروة",
+  hour: "الساعة",
+  orders_count: "عدد الطلبات",
+  no_orders_data: "لا توجد بيانات طلبات لهذه الفترة.",
+  
+  // Menu Reports
+  top_selling_items: "الأصناف الأكثر مبيعاً",
+  least_selling_items: "الأصناف الأقل مبيعاً",
+  sales_by_category: "المبيعات حسب الفئة",
+  item_performance: "أداء الأصناف",
+  item: "الصنف",
+  quantity_sold: "الكمية المباعة",
+  revenue: "الإيرادات",
+  category: "الفئة",
+  no_menu_data: "لا توجد بيانات أداء القائمة لهذه الفترة.",
+  
+  // Staff Reports
+  cashier_activity: "نشاط الكاشير",
+  void_count: "عدد الإلغاءات",
+  no_staff_data: "لا توجد بيانات أداء الموظفين لهذه الفترة.",
+  
+  // Operations Reports
+  shifts_history: "سجل الورديات",
+  cash_difference_report: "تقرير فرق النقد",
+  tables_usage: "استخدام الطاولات",
+  duration: "المدة",
+  sales_per_shift: "المبيعات لكل وردية",
+  orders_per_table: "الطلبات لكل طاولة",
+  avg_duration: "متوسط المدة",
+  no_operations_data: "لا توجد بيانات عمليات لهذه الفترة.",
+  no_table_data: "لا توجد بيانات استخدام الطاولات لهذه الفترة.",
+  
+  // Branch Reports
+  sales_per_branch: "المبيعات حسب الفرع",
+  orders_per_branch: "الطلبات حسب الفرع",
+  shifts_per_branch: "الورديات حسب الفرع",
+  no_branch_data: "لا توجد بيانات فروع لهذه الفترة.",
 } as const;
