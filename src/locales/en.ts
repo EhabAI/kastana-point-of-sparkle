@@ -387,6 +387,18 @@ export default {
   alert_excessive_refunds: "💰 High Refunds Today",
   alert_excessive_refunds_msg: "High number of refunds today ({count} refunds)",
 
+  // Refund & Void Insights
+  refund_void_insights: "Refund & Void Insights",
+  refund_void_insights_desc: "Today's refund and void activity overview",
+  refunds_today: "Refunds Today",
+  refunded_amount: "Refunded Amount",
+  voided_orders_today: "Voided Orders Today",
+  refunds_by_cashier: "Refunds by Cashier",
+  top_void_reasons: "Top Void Reasons",
+  no_refunds_today: "No refunds today",
+  no_voided_orders_today: "No voided orders today",
+  no_reason_given: "No reason given",
+
   // CSV Upload
   csv_upload: "CSV Upload",
   csv_upload_desc: "Import menu items and offers from CSV files",

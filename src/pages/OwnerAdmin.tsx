@@ -56,6 +56,7 @@ import { AnalyticsCharts } from "@/components/owner/AnalyticsCharts";
 import { BestWorstSellers } from "@/components/owner/BestWorstSellers";
 import { CashierPerformance } from "@/components/owner/CashierPerformance";
 import { NotificationsAlerts } from "@/components/owner/NotificationsAlerts";
+import { RefundVoidInsights } from "@/components/owner/RefundVoidInsights";
 import { BranchSelector } from "@/components/owner/BranchSelector";
 import { BranchManagement } from "@/components/owner/BranchManagement";
 import { BranchMenuItemsManager } from "@/components/owner/BranchMenuItemsManager";
@@ -242,6 +243,7 @@ export default function OwnerAdmin() {
               />
             )}
             {role === "owner" && <NotificationsAlerts />}
+            {role === "owner" && <RefundVoidInsights />}
           </TabsContent>
 
           {/* Analytics Tab */}
