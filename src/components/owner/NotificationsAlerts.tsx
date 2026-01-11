@@ -346,26 +346,26 @@ export function NotificationsAlerts() {
   const getAlertIcon = (type: Alert["type"]) => {
     switch (type) {
       case "error":
-        return <AlertCircle className="h-5 w-5 text-destructive" />;
+        return <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />;
       case "warning":
-        return <AlertTriangle className="h-5 w-5 text-warning" />;
+        return <AlertTriangle className="h-4 w-4 text-warning flex-shrink-0" />;
       case "success":
-        return <CheckCircle className="h-5 w-5 text-success" />;
+        return <CheckCircle className="h-4 w-4 text-success flex-shrink-0" />;
       default:
-        return <Info className="h-5 w-5 text-primary" />;
+        return <Info className="h-4 w-4 text-primary flex-shrink-0" />;
     }
   };
 
   const getAlertStyles = (type: Alert["type"]) => {
     switch (type) {
       case "error":
-        return "bg-destructive/5 border-destructive/20";
+        return "bg-destructive/[0.03] border-destructive/15";
       case "warning":
-        return "bg-warning/5 border-warning/20";
+        return "bg-warning/[0.03] border-warning/15";
       case "success":
-        return "bg-success/5 border-success/20";
+        return "bg-success/[0.03] border-success/15";
       default:
-        return "bg-primary/5 border-primary/20";
+        return "bg-primary/[0.03] border-primary/15";
     }
   };
 
@@ -382,52 +382,52 @@ export function NotificationsAlerts() {
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <Card className="shadow-card">
-        <CardHeader>
+        <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CollapsibleTrigger asChild>
               <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
+                <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
                 <div className="text-left">
-                  <CardTitle className="flex items-center gap-2">
-                    <Bell className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Bell className="h-4 w-4" />
                     {t("notifications_alerts")}
                     {(alertCounts.error > 0 || alertCounts.warning > 0) && (
-                      <Badge variant="destructive" className="ml-2">
+                      <Badge variant="destructive" className="ml-1.5 h-5 px-1.5 text-[10px]">
                         {alertCounts.error + alertCounts.warning}
                       </Badge>
                     )}
                   </CardTitle>
-                  <CardDescription>{t("notifications_desc")}</CardDescription>
+                  <CardDescription className="text-xs mt-0.5">{t("notifications_desc")}</CardDescription>
                 </div>
               </button>
             </CollapsibleTrigger>
           </div>
         </CardHeader>
         <CollapsibleContent>
-          <CardContent>
+          <CardContent className="pt-0">
             {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <div className="flex items-center justify-center py-6">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
               </div>
             ) : sortedAlerts.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <CheckCircle className="h-12 w-12 text-success mb-3" />
-                <p className="font-medium text-foreground">{t("all_clear")}</p>
-                <p className="text-sm text-muted-foreground">{t("no_alerts")}</p>
+              <div className="flex flex-col items-center justify-center py-6 text-center">
+                <CheckCircle className="h-10 w-10 text-success/70 mb-2" />
+                <p className="font-medium text-sm text-foreground">{t("all_clear")}</p>
+                <p className="text-xs text-muted-foreground">{t("no_alerts")}</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {sortedAlerts.map((alert) => (
                   <div 
                     key={alert.id} 
-                    className={`flex items-start gap-3 p-4 rounded-lg border ${getAlertStyles(alert.type)}`}
+                    className={`flex items-start gap-2.5 p-3 rounded-lg border ${getAlertStyles(alert.type)}`}
                   >
                     {getAlertIcon(alert.type)}
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground">{alert.title}</p>
-                      <p className="text-sm text-muted-foreground mt-0.5">{alert.message}</p>
+                      <p className="font-medium text-sm text-foreground">{alert.title}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{alert.message}</p>
                     </div>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">
                       {format(alert.timestamp, "HH:mm")}
                     </span>
                   </div>

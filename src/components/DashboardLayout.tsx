@@ -27,18 +27,18 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-slate-50 dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800">
+      {/* Header - cleaner, reduced height */}
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14 sm:h-16">
+          <div className="flex items-center justify-between h-12 sm:h-14">
             {/* LEFT – Brand Area */}
-            <div className="flex items-center gap-3">
-              <img src={kastanaLogo} alt="Kastana POS" className="h-10 sm:h-12 w-auto" />
+            <div className="flex items-center gap-2.5">
+              <img src={kastanaLogo} alt="Kastana POS" className="h-8 sm:h-10 w-auto" />
               <div className="flex flex-col">
-                <span className="text-sm sm:text-base font-semibold text-foreground leading-tight">
+                <span className="text-sm font-semibold text-foreground leading-tight">
                   Kastana POS
                 </span>
-                <span className="text-xs text-muted-foreground capitalize leading-tight">
+                <span className="text-[11px] text-muted-foreground capitalize leading-tight">
                   {roleLabel}
                 </span>
               </div>
@@ -46,20 +46,19 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
 
             {/* CENTER – Page Title (hidden on mobile) */}
             <div className="hidden md:flex items-center justify-center flex-1">
-              <h1 className="text-lg font-semibold text-foreground">{title}</h1>
+              <h1 className="text-base font-medium text-foreground">{title}</h1>
             </div>
 
             {/* RIGHT – User Area */}
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1 sm:gap-1.5">
               <ThemeToggle />
-              <div className="w-1" /> {/* Separator gap */}
               <LanguageToggle />
               
               {/* Divider */}
-              <div className="hidden sm:block w-px h-6 bg-border mx-1" />
+              <div className="hidden sm:block w-px h-5 bg-border/60 mx-1.5" />
               
               {/* User email */}
-              <span className="text-sm text-muted-foreground hidden lg:block max-w-[180px] truncate">
+              <span className="text-xs text-muted-foreground hidden lg:block max-w-[160px] truncate">
                 {user?.email}
               </span>
               
@@ -68,10 +67,10 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
                 variant="ghost" 
                 size="sm" 
                 onClick={handleSignOut}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground h-8 px-2"
               >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline ltr:ml-1.5 rtl:mr-1.5">{t("sign_out")}</span>
+                <LogOut className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline ltr:ml-1.5 rtl:mr-1.5 text-xs">{t("sign_out")}</span>
               </Button>
             </div>
           </div>
@@ -79,7 +78,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {children}
       </main>
     </div>

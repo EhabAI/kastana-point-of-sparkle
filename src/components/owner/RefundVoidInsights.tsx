@@ -154,90 +154,90 @@ export function RefundVoidInsights() {
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <Card className="shadow-card">
-        <CardHeader>
+        <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CollapsibleTrigger asChild>
               <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${isOpen ? "" : "ltr:-rotate-90 rtl:rotate-90"}`} />
+                <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "" : "ltr:-rotate-90 rtl:rotate-90"}`} />
                 <div className="text-start">
-                  <CardTitle className="flex items-center gap-2">
-                    <ReceiptText className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <ReceiptText className="h-4 w-4" />
                     {t("refund_void_insights")}
                     {showRefundWarning && (
-                      <AlertTriangle className="h-4 w-4 text-warning" />
+                      <AlertTriangle className="h-3.5 w-3.5 text-warning" />
                     )}
                   </CardTitle>
-                  <CardDescription>{t("refund_void_insights_desc")}</CardDescription>
+                  <CardDescription className="text-xs mt-0.5">{t("refund_void_insights_desc")}</CardDescription>
                 </div>
               </button>
             </CollapsibleTrigger>
           </div>
         </CardHeader>
         <CollapsibleContent>
-          <CardContent>
+          <CardContent className="pt-0">
             {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <div className="flex items-center justify-center py-6">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-5">
                 {/* Refund & Void Summary Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {/* Refund Count */}
-                  <div className={`rounded-lg border p-4 ${showRefundWarning ? 'bg-warning/5 border-warning/20' : 'bg-muted/30'}`}>
-                    <div className="flex items-center gap-2 mb-1">
-                      <ReceiptText className={`h-4 w-4 ${showRefundWarning ? 'text-warning' : 'text-muted-foreground'}`} />
-                      <span className="text-sm text-muted-foreground">{t("refunds_today")}</span>
+                  <div className={`rounded-lg border p-3.5 ${showRefundWarning ? 'bg-warning/[0.03] border-warning/15' : 'bg-muted/20'}`}>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <ReceiptText className={`h-3.5 w-3.5 ${showRefundWarning ? 'text-warning' : 'text-muted-foreground'}`} />
+                      <span className="text-xs text-muted-foreground">{t("refunds_today")}</span>
                     </div>
-                    <p className={`text-2xl font-bold ${showRefundWarning ? 'text-warning' : 'text-foreground'}`}>
+                    <p className={`text-xl font-bold ${showRefundWarning ? 'text-warning' : 'text-foreground'}`}>
                       {insightsData?.refundCount || 0}
                     </p>
                   </div>
 
                   {/* Refund Amount */}
-                  <div className={`rounded-lg border p-4 ${showRefundWarning ? 'bg-warning/5 border-warning/20' : 'bg-muted/30'}`}>
-                    <div className="flex items-center gap-2 mb-1">
-                      <ReceiptText className={`h-4 w-4 ${showRefundWarning ? 'text-warning' : 'text-muted-foreground'}`} />
-                      <span className="text-sm text-muted-foreground">{t("refunded_amount")}</span>
+                  <div className={`rounded-lg border p-3.5 ${showRefundWarning ? 'bg-warning/[0.03] border-warning/15' : 'bg-muted/20'}`}>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <ReceiptText className={`h-3.5 w-3.5 ${showRefundWarning ? 'text-warning' : 'text-muted-foreground'}`} />
+                      <span className="text-xs text-muted-foreground">{t("refunded_amount")}</span>
                     </div>
-                    <p className={`text-2xl font-bold ${showRefundWarning ? 'text-warning' : 'text-foreground'}`}>
-                      {formatJOD(insightsData?.refundTotal || 0)} <span className="text-sm font-normal">{currencySymbol}</span>
+                    <p className={`text-xl font-bold ${showRefundWarning ? 'text-warning' : 'text-foreground'}`}>
+                      {formatJOD(insightsData?.refundTotal || 0)} <span className="text-xs font-normal">{currencySymbol}</span>
                     </p>
                   </div>
 
                   {/* Voided Orders */}
-                  <div className="rounded-lg border p-4 bg-muted/30">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Ban className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">{t("voided_orders_today")}</span>
+                  <div className="rounded-lg border p-3.5 bg-muted/20">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Ban className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">{t("voided_orders_today")}</span>
                     </div>
-                    <p className="text-2xl font-bold text-foreground">
+                    <p className="text-xl font-bold text-foreground">
                       {insightsData?.voidedOrderCount || 0}
                     </p>
                   </div>
                 </div>
 
                 {/* Two-column layout for lists */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   {/* Refunds by Cashier */}
                   <div>
-                    <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-                      <User className="h-4 w-4" />
+                    <h4 className="text-xs font-medium text-foreground mb-2 flex items-center gap-1.5 uppercase tracking-wide">
+                      <User className="h-3.5 w-3.5" />
                       {t("refunds_by_cashier")}
                     </h4>
                     {(insightsData?.cashierRefunds?.length || 0) === 0 ? (
-                      <p className="text-sm text-muted-foreground">{t("no_refunds_today")}</p>
+                      <p className="text-xs text-muted-foreground">{t("no_refunds_today")}</p>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         {insightsData?.cashierRefunds.map((cashier, idx) => (
                           <div 
                             key={cashier.cashierId} 
-                            className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30"
+                            className="flex items-center justify-between py-1.5 px-2.5 rounded-md bg-muted/20"
                           >
-                            <span className="text-sm text-foreground truncate max-w-[200px]" title={cashier.email}>
+                            <span className="text-xs text-foreground truncate max-w-[180px]" title={cashier.email}>
                               {cashier.email}
                             </span>
-                            <span className={`text-sm font-medium ${cashier.refundCount > 2 ? 'text-warning' : 'text-muted-foreground'}`}>
+                            <span className={`text-xs font-medium ${cashier.refundCount > 2 ? 'text-warning' : 'text-muted-foreground'}`}>
                               {cashier.refundCount}
                             </span>
                           </div>
@@ -248,23 +248,23 @@ export function RefundVoidInsights() {
 
                   {/* Top Void Reasons */}
                   <div>
-                    <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-                      <Ban className="h-4 w-4" />
+                    <h4 className="text-xs font-medium text-foreground mb-2 flex items-center gap-1.5 uppercase tracking-wide">
+                      <Ban className="h-3.5 w-3.5" />
                       {t("top_void_reasons")}
                     </h4>
                     {(insightsData?.topVoidReasons?.length || 0) === 0 ? (
-                      <p className="text-sm text-muted-foreground">{t("no_voided_orders_today")}</p>
+                      <p className="text-xs text-muted-foreground">{t("no_voided_orders_today")}</p>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         {insightsData?.topVoidReasons.map((reason, idx) => (
                           <div 
                             key={idx} 
-                            className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30"
+                            className="flex items-center justify-between py-1.5 px-2.5 rounded-md bg-muted/20"
                           >
-                            <span className="text-sm text-foreground truncate max-w-[200px]" title={reason.reason}>
+                            <span className="text-xs text-foreground truncate max-w-[180px]" title={reason.reason}>
                               {reason.reason}
                             </span>
-                            <span className="text-sm font-medium text-muted-foreground">
+                            <span className="text-xs font-medium text-muted-foreground">
                               {reason.count}
                             </span>
                           </div>
