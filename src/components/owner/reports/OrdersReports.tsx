@@ -124,7 +124,7 @@ export function OrdersReports({ dateRange }: OrdersReportsProps) {
 
   const handleExportCSV = () => {
     if (!data) return;
-    exportToCSV(data.orderDetails, "orders_report");
+    exportToCSV(data.orderDetails as unknown as Record<string, unknown>[], "orders_report");
   };
 
   const handlePrint = () => {
