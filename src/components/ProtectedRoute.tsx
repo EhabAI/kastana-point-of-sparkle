@@ -1,8 +1,9 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { RestaurantInactiveScreen } from '@/components/RestaurantInactiveScreen';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -10,10 +11,11 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const { user, role, isActive, loading, signOut } = useAuth();
+  const { user, role, isActive, isRestaurantActive, loading, signOut } = useAuth();
   const { toast } = useToast();
+  const [showInactiveScreen, setShowInactiveScreen] = useState(false);
 
-  // Handle inactive cashier - sign them out
+  // Handle inactive user (cashier/owner deactivated)
   useEffect(() => {
     if (!loading && user && !isActive) {
       toast({
@@ -25,6 +27,15 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     }
   }, [loading, user, isActive, signOut, toast]);
 
+  // Handle inactive restaurant for owners and cashiers
+  useEffect(() => {
+    if (!loading && user && role && (role === 'owner' || role === 'cashier') && !isRestaurantActive) {
+      setShowInactiveScreen(true);
+    } else {
+      setShowInactiveScreen(false);
+    }
+  }, [loading, user, role, isRestaurantActive]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -33,9 +44,19 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     );
   }
 
-  // If user is inactive (cashier deactivated), redirect to login
+  // If user is inactive (cashier/owner deactivated), redirect to login
   if (!isActive) {
     return <Navigate to="/login" replace />;
+  }
+
+  // If restaurant is inactive for owner/cashier, show inactive screen
+  if (showInactiveScreen) {
+    return (
+      <RestaurantInactiveScreen 
+        message="This restaurant has been deactivated by system administration. Please contact support for assistance."
+        showLogout={true}
+      />
+    );
   }
 
   if (!user) {

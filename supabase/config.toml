@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.reject-qr-order]
 verify_jwt = false
+
+[functions.set-restaurant-active]
+verify_jwt = false
