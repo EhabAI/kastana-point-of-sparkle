@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { ChevronDown, Bell, AlertTriangle, AlertCircle, Info, CheckCircle, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +26,7 @@ const THRESHOLDS = {
   EXCESSIVE_REFUNDS_COUNT: 5,
 };
 
-export function NotificationsAlerts() {
+export const NotificationsAlerts = forwardRef<HTMLDivElement>(function NotificationsAlerts(_, ref) {
   const { data: restaurant } = useOwnerRestaurant();
   const { data: settings } = useOwnerRestaurantSettings();
   const { data: branches = [] } = useBranches(restaurant?.id);
@@ -380,7 +380,7 @@ export function NotificationsAlerts() {
   const criticalCount = alertCounts.error + alertCounts.warning;
 
   return (
-    <div className={`mt-4 rounded-lg ${hasAlerts ? 'bg-amber-50/70 dark:bg-amber-950/20 border-l-4 border-l-amber-500' : 'bg-muted/20'} p-3`}>
+    <div ref={ref} className={`mt-4 rounded-lg ${hasAlerts ? 'bg-amber-50/70 dark:bg-amber-950/20 border-l-4 border-l-amber-500' : 'bg-muted/20'} p-3`}>
       {/* Section Header - Action Required */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
@@ -432,4 +432,4 @@ export function NotificationsAlerts() {
       )}
     </div>
   );
-}
+});
