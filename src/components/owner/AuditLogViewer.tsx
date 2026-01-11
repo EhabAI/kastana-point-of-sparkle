@@ -54,7 +54,7 @@ export function AuditLogViewer() {
   };
 
   return (
-    <Card className="shadow-card">
+    <Card className="shadow-card hover-lift">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ScrollText className="h-5 w-5" />

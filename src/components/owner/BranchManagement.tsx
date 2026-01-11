@@ -154,7 +154,7 @@ export function BranchManagement({ restaurantId }: BranchManagementProps) {
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className="shadow-card">
+      <Card className="shadow-card hover-lift">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CollapsibleTrigger asChild>
@@ -244,7 +244,7 @@ export function BranchManagement({ restaurantId }: BranchManagementProps) {
                 {branches.map((branch) => (
                   <div
                     key={branch.id}
-                    className={`flex items-center justify-between p-4 rounded-lg border ${
+                    className={`flex items-center justify-between p-4 rounded-lg border transition-all duration-200 hover:shadow-md hover:border-primary/30 ${
                       branch.is_active ? "bg-muted/50" : "bg-muted/20 opacity-60"
                     }`}
                   >

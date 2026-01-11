@@ -132,7 +132,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
   const zeroSalesWarning = hasZeroSalesWithOpenShift && currentHour >= 11;
 
   return (
-    <div className="bg-muted/30 dark:bg-muted/10 rounded-lg p-4">
+    <div className="bg-muted/30 dark:bg-muted/10 rounded-lg p-4 transition-all duration-200 hover:shadow-md">
       {/* Section Header - Commanding */}
       <div className="flex items-center gap-2 mb-4">
         <span className="text-[10px] font-bold text-muted-foreground/80 uppercase tracking-[0.15em]">
@@ -163,7 +163,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
         {/* PERFORMANCE GROUP */}
         <div className="flex gap-6 md:gap-8">
           {/* Today's Sales */}
-          <div className="flex flex-col">
+          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-muted/50">
             <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-0.5">{t("sales")}</span>
             <div className="flex items-baseline gap-1">
               <span className={`text-2xl font-black tabular-nums tracking-tight ${zeroSalesWarning ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
@@ -177,7 +177,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
           </div>
           
           {/* Today's Orders */}
-          <div className="flex flex-col">
+          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-muted/50">
             <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-0.5">{t("orders")}</span>
             <span className="text-xl font-bold text-foreground tabular-nums tracking-tight">{todayStats?.todayOrders || 0}</span>
           </div>
@@ -189,7 +189,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
         {/* OPERATIONS GROUP */}
         <div className="flex gap-6 md:gap-8">
           {/* Open Shifts */}
-          <div className="flex flex-col">
+          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-muted/50">
             <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-0.5">{t("shifts")}</span>
             <div className="flex items-baseline gap-1.5">
               <span className={`text-xl font-bold tabular-nums tracking-tight ${hasLongShift ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
@@ -207,13 +207,13 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
           </div>
           
           {/* Tables */}
-          <div className="flex flex-col">
+          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-muted/50">
             <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-0.5">{t("tables")}</span>
             <span className="text-xl font-bold text-foreground tabular-nums tracking-tight">{tableCount}</span>
           </div>
           
           {/* Staff */}
-          <div className="flex flex-col">
+          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-muted/50">
             <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-0.5">{t("staff")}</span>
             <span className="text-xl font-bold text-foreground tabular-nums tracking-tight">{staffCount}</span>
           </div>

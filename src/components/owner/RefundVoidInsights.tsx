@@ -150,7 +150,7 @@ export function RefundVoidInsights() {
   const showRefundWarning = (insightsData?.refundCount || 0) > REFUND_WARNING_THRESHOLD;
 
   return (
-    <div className="mt-4 bg-muted/20 dark:bg-muted/10 rounded-lg p-3">
+    <div className="mt-4 bg-muted/20 dark:bg-muted/10 rounded-lg p-3 transition-all duration-200 hover:shadow-md">
       {/* Section Header - Consistent with other sections */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
