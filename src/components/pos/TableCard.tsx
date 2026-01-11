@@ -20,13 +20,16 @@ function formatDuration(startTime: string): string {
   const now = Date.now();
   const diffMs = now - start;
   
-  if (diffMs < 0) return "00:00";
+  if (diffMs < 0) return "0m";
   
   const totalMinutes = Math.floor(diffMs / 60000);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   
-  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+  if (hours > 0) {
+    return `${hours}h ${minutes.toString().padStart(2, "0")}m`;
+  }
+  return `${minutes}m`;
 }
 
 export function TableCard({
@@ -43,7 +46,7 @@ export function TableCard({
   const { t } = useLanguage();
   const effectiveCapacity = capacity || 4;
   const [duration, setDuration] = useState(() => 
-    orderCreatedAt ? formatDuration(orderCreatedAt) : "00:00"
+    orderCreatedAt ? formatDuration(orderCreatedAt) : "0m"
   );
   
   // Update timer every minute
