@@ -83,6 +83,7 @@ export default {
   settings: "الإعدادات",
 
   // Dashboard
+  daily_snapshot: "ملخص اليوم",
   todays_sales: "مبيعات اليوم",
   todays_orders: "طلبات اليوم",
   open_shifts: "الورديات المفتوحة",
