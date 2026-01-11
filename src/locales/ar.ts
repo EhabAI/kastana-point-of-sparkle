@@ -617,6 +617,12 @@ export default {
   select_occupied_table: "اختر طاولة مشغولة",
   select_second_table: "اختر الطاولة الثانية للدمج",
 
+  // Soft Lock Messages
+  cannot_refund_shift_closed: "لا يمكن معالجة الاسترداد بعد إغلاق الوردية.",
+  cannot_move_ready_order: "هذا الطلب جاهز بالفعل ولا يمكن نقله.",
+  cannot_merge_paid_orders: "لا يمكن دمج الطلبات المدفوعة.",
+  void_paid_use_refund: "يجب استرداد الطلبات المدفوعة، وليس إبطالها.",
+
   // POS - Held Orders
   held_orders: "الطلبات المعلقة",
   no_held_orders: "لا توجد طلبات معلقة",

@@ -1066,6 +1066,12 @@ export default function POS() {
   const handleVoidOrder = () => {
     if (!currentOrder) return;
     
+    // Soft lock: Paid orders must be refunded, not voided
+    if (currentOrder.status === "paid") {
+      toast.error(t("void_paid_use_refund"));
+      return;
+    }
+    
     // Only allow void on open orders
     if (currentOrder.status !== "open") {
       toast.error(t("can_only_void_open"));
@@ -1120,6 +1126,11 @@ export default function POS() {
   };
 
   const handleRefund = (order: RecentOrder) => {
+    // Soft lock: Block refund if shift is closed
+    if (!currentShift || currentShift.status !== "open") {
+      toast.error(t("cannot_refund_shift_closed"));
+      return;
+    }
     // Only allow refunds on paid orders
     if (order.status !== "paid") {
       toast.error(t("can_only_refund_paid"));
@@ -1331,6 +1342,13 @@ export default function POS() {
     prevTableId?: string,
     prevTableName?: string,
   ) => {
+    // Soft lock: Block move if order is in 'ready' or 'paid' status
+    const orderToMove = openOrders.find(o => o.id === orderId);
+    if (orderToMove && (orderToMove.status === "ready" || orderToMove.status === "paid")) {
+      toast.error(t("cannot_move_ready_order"));
+      return;
+    }
+    
     try {
       await moveToTableMutation.mutateAsync({
         orderId,
@@ -1497,6 +1515,13 @@ export default function POS() {
 
     if (!order1 || !order2) {
       toast.error(t("order_not_found"));
+      handleCancelMerge();
+      return;
+    }
+
+    // Soft lock: Block merge if either order is paid
+    if (order1.status === "paid" || order2.status === "paid") {
+      toast.error(t("cannot_merge_paid_orders"));
       handleCancelMerge();
       return;
     }
