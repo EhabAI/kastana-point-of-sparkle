@@ -88,7 +88,7 @@ export function BranchReports({ dateRange }: BranchReportsProps) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <Building2 className="h-10 w-10 text-muted-foreground/50 mb-3" />
-        <p className="text-sm text-muted-foreground">{t("single_branch_msg") || "You have a single branch. Multi-branch reports will appear when you add more branches."}</p>
+        <p className="text-sm text-muted-foreground">{t("single_branch_msg")}</p>
       </div>
     );
   }
@@ -106,10 +106,10 @@ export function BranchReports({ dateRange }: BranchReportsProps) {
       {/* Sales per Branch */}
       <section>
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50">
-          {t("sales_per_branch") || "Sales per Branch"}
+          {t("sales_per_branch")}
         </h3>
         {(data?.branches || []).length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4">{t("no_branch_data") || "No branch data for this period."}</p>
+          <p className="text-sm text-muted-foreground py-4">{t("no_branch_data")}</p>
         ) : (
           <div className="space-y-3">
             {data?.branches.map((branch, i) => {
@@ -126,7 +126,7 @@ export function BranchReports({ dateRange }: BranchReportsProps) {
                       style={{ width: `${salesPercent}%` }}
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">{salesPercent.toFixed(0)}% {t("of_total") || "of total"}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{salesPercent.toFixed(0)}% {t("of_total")}</p>
                 </div>
               );
             })}
@@ -137,17 +137,17 @@ export function BranchReports({ dateRange }: BranchReportsProps) {
       {/* Orders per Branch */}
       <section>
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50">
-          {t("orders_per_branch") || "Orders per Branch"}
+          {t("orders_per_branch")}
         </h3>
         {(data?.branches || []).length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4">{t("no_branch_data") || "No branch data."}</p>
+          <p className="text-sm text-muted-foreground py-4">{t("no_branch_data")}</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {data?.branches.map((branch, i) => (
               <div key={i} className="p-4 bg-muted/30 rounded-lg">
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">{branch.name}</p>
                 <p className="text-2xl font-bold text-foreground tabular-nums mt-1">{branch.orderCount}</p>
-                <p className="text-xs text-muted-foreground">{t("orders") || "orders"}</p>
+                <p className="text-xs text-muted-foreground">{t("orders")}</p>
               </div>
             ))}
           </div>
@@ -157,17 +157,17 @@ export function BranchReports({ dateRange }: BranchReportsProps) {
       {/* Shifts per Branch */}
       <section>
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50">
-          {t("shifts_per_branch") || "Shifts per Branch"}
+          {t("shifts_per_branch")}
         </h3>
         {(data?.branches || []).length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4">{t("no_branch_data") || "No branch data."}</p>
+          <p className="text-sm text-muted-foreground py-4">{t("no_branch_data")}</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {data?.branches.map((branch, i) => (
               <div key={i} className="p-4 bg-muted/30 rounded-lg">
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">{branch.name}</p>
                 <p className="text-2xl font-bold text-foreground tabular-nums mt-1">{branch.shiftCount}</p>
-                <p className="text-xs text-muted-foreground">{t("shifts") || "shifts"}</p>
+                <p className="text-xs text-muted-foreground">{t("shifts")}</p>
               </div>
             ))}
           </div>

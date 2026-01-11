@@ -160,20 +160,20 @@ export function OperationsReports({ dateRange }: OperationsReportsProps) {
       {/* Shifts History */}
       <section>
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50">
-          {t("shifts_history") || "Shifts History"}
+          {t("shifts_history")}
         </h3>
         {(data?.shifts || []).length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4">{t("no_shifts_found") || "No shifts found for this period."}</p>
+          <p className="text-sm text-muted-foreground py-4">{t("no_shifts_found")}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/50">
-                  <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("cashier") || "Cashier"}</th>
-                  <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("started") || "Started"}</th>
-                  <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("ended") || "Ended"}</th>
-                  <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("duration") || "Duration"}</th>
-                  <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("sales") || "Sales"}</th>
+                  <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("cashier")}</th>
+                  <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("started")}</th>
+                  <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("ended")}</th>
+                  <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("duration")}</th>
+                  <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("sales")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -182,7 +182,7 @@ export function OperationsReports({ dateRange }: OperationsReportsProps) {
                     <td className="py-2 px-3 font-medium text-foreground">{shift.cashierEmail}</td>
                     <td className="py-2 px-3 text-muted-foreground">{format(new Date(shift.openedAt), "MMM d, HH:mm")}</td>
                     <td className="py-2 px-3 text-muted-foreground">
-                      {shift.closedAt ? format(new Date(shift.closedAt), "HH:mm") : <Badge variant="outline" className="text-xs">Open</Badge>}
+                      {shift.closedAt ? format(new Date(shift.closedAt), "HH:mm") : <Badge variant="outline" className="text-xs">{t("open")}</Badge>}
                     </td>
                     <td className="py-2 px-3 text-right tabular-nums text-muted-foreground">{formatDuration(shift.durationMinutes)}</td>
                     <td className="py-2 px-3 text-right tabular-nums font-medium text-foreground">{formatJOD(shift.totalSales)} {currencySymbol}</td>
@@ -198,17 +198,17 @@ export function OperationsReports({ dateRange }: OperationsReportsProps) {
       {shiftsWithDifference.length > 0 && (
         <section>
           <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50">
-            {t("cash_difference") || "Cash Difference Report"}
+            {t("cash_difference")}
           </h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/50">
-                  <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("cashier") || "Cashier"}</th>
-                  <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("date") || "Date"}</th>
-                  <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("expected") || "Expected"}</th>
-                  <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("actual") || "Actual"}</th>
-                  <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("difference") || "Diff"}</th>
+                  <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("cashier")}</th>
+                  <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("date")}</th>
+                  <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("expected")}</th>
+                  <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("actual")}</th>
+                  <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("difference")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -232,17 +232,17 @@ export function OperationsReports({ dateRange }: OperationsReportsProps) {
       {/* Tables Usage */}
       <section>
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50">
-          {t("tables_usage") || "Tables Usage"}
+          {t("tables_usage")}
         </h3>
         {(data?.tableUsage || []).length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4">{t("no_table_data") || "No table data for this period."}</p>
+          <p className="text-sm text-muted-foreground py-4">{t("no_table_data")}</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {data?.tableUsage.map((table, i) => (
               <div key={i} className="p-3 bg-muted/30 rounded-lg">
                 <p className="font-medium text-foreground">{table.tableName}</p>
-                <p className="text-xs text-muted-foreground mt-1">{table.orderCount} {t("orders") || "orders"}</p>
-                <p className="text-xs text-muted-foreground">~{formatDuration(table.avgOccupancy)} {t("avg") || "avg"}</p>
+                <p className="text-xs text-muted-foreground mt-1">{table.orderCount} {t("orders")}</p>
+                <p className="text-xs text-muted-foreground">~{formatDuration(table.avgOccupancy)} {t("avg")}</p>
               </div>
             ))}
           </div>

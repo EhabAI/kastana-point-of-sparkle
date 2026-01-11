@@ -124,10 +124,10 @@ export function MenuReports({ dateRange }: MenuReportsProps) {
       <section>
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50 flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-emerald-500" />
-          {t("top_selling_items") || "Top Selling Items"}
+          {t("top_selling_items")}
         </h3>
         {!hasData ? (
-          <p className="text-sm text-muted-foreground py-4">{t("no_menu_data") || "No menu data for this period."}</p>
+          <p className="text-sm text-muted-foreground py-4">{t("no_menu_data")}</p>
         ) : (
           <div className="space-y-2">
             {data?.topSellers.map((item, i) => (
@@ -136,7 +136,7 @@ export function MenuReports({ dateRange }: MenuReportsProps) {
                   <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400 w-6">{i + 1}</span>
                   <div>
                     <p className="font-medium text-foreground">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">{item.quantity} {t("sold") || "sold"}</p>
+                    <p className="text-xs text-muted-foreground">{item.quantity} {t("sold")}</p>
                   </div>
                 </div>
                 <p className="text-lg font-bold text-foreground tabular-nums">{formatJOD(item.revenue)} {currencySymbol}</p>
@@ -150,10 +150,10 @@ export function MenuReports({ dateRange }: MenuReportsProps) {
       <section>
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50 flex items-center gap-2">
           <TrendingDown className="h-4 w-4 text-amber-500" />
-          {t("least_selling_items") || "Least Selling Items"}
+          {t("least_selling_items")}
         </h3>
         {!hasData ? (
-          <p className="text-sm text-muted-foreground py-4">{t("not_enough_data") || "Not enough data."}</p>
+          <p className="text-sm text-muted-foreground py-4">{t("not_enough_data")}</p>
         ) : (
           <div className="space-y-2">
             {data?.leastSellers.map((item, i) => (
@@ -162,7 +162,7 @@ export function MenuReports({ dateRange }: MenuReportsProps) {
                   <span className="text-lg font-bold text-amber-600 dark:text-amber-400 w-6">{i + 1}</span>
                   <div>
                     <p className="font-medium text-foreground">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">{item.quantity} {t("sold") || "sold"}</p>
+                    <p className="text-xs text-muted-foreground">{item.quantity} {t("sold")}</p>
                   </div>
                 </div>
                 <p className="text-lg font-bold text-foreground tabular-nums">{formatJOD(item.revenue)} {currencySymbol}</p>
@@ -175,10 +175,10 @@ export function MenuReports({ dateRange }: MenuReportsProps) {
       {/* Sales by Category */}
       <section>
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50">
-          {t("sales_by_category") || "Sales by Category"}
+          {t("sales_by_category")}
         </h3>
         {(data?.categoryPerformance || []).length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4">{t("no_category_data") || "No category data."}</p>
+          <p className="text-sm text-muted-foreground py-4">{t("no_category_data")}</p>
         ) : (
           <div className="space-y-2">
             {data?.categoryPerformance.map((cat, i) => {
@@ -188,7 +188,7 @@ export function MenuReports({ dateRange }: MenuReportsProps) {
                 <div key={i} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                   <div>
                     <p className="font-medium text-foreground">{cat.name}</p>
-                    <p className="text-xs text-muted-foreground">{cat.quantity} {t("items") || "items"} · {percent.toFixed(0)}%</p>
+                    <p className="text-xs text-muted-foreground">{cat.quantity} {t("items")} · {percent.toFixed(0)}%</p>
                   </div>
                   <p className="text-lg font-bold text-foreground tabular-nums">{formatJOD(cat.revenue)} {currencySymbol}</p>
                 </div>
@@ -201,18 +201,18 @@ export function MenuReports({ dateRange }: MenuReportsProps) {
       {/* Item Performance Table */}
       <section>
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50">
-          {t("item_performance") || "Item Performance"}
+          {t("item_performance")}
         </h3>
         {!hasData ? (
-          <p className="text-sm text-muted-foreground py-4">{t("no_menu_data") || "No menu data for this period."}</p>
+          <p className="text-sm text-muted-foreground py-4">{t("no_menu_data")}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/50">
-                  <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("item") || "Item"}</th>
-                  <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("quantity") || "Qty"}</th>
-                  <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("revenue") || "Revenue"}</th>
+                  <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("item")}</th>
+                  <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("quantity")}</th>
+                  <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("revenue")}</th>
                 </tr>
               </thead>
               <tbody>

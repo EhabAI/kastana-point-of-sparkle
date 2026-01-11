@@ -147,17 +147,17 @@ export function StaffReports({ dateRange }: StaffReportsProps) {
       {/* Sales by Cashier */}
       <section>
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50">
-          {t("sales_by_cashier") || "Sales by Cashier"}
+          {t("sales_by_cashier")}
         </h3>
         {(data?.cashierSales || []).length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4">{t("no_staff_data") || "No staff data for this period."}</p>
+          <p className="text-sm text-muted-foreground py-4">{t("no_staff_data")}</p>
         ) : (
           <div className="space-y-2">
             {data?.cashierSales.map((cashier, i) => (
               <div key={i} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                 <div>
                   <p className="font-medium text-foreground">{cashier.email}</p>
-                  <p className="text-xs text-muted-foreground">{cashier.orderCount} {t("orders") || "orders"}</p>
+                  <p className="text-xs text-muted-foreground">{cashier.orderCount} {t("orders")}</p>
                 </div>
                 <p className="text-lg font-bold text-foreground tabular-nums">{formatJOD(cashier.totalSales)} {currencySymbol}</p>
               </div>
@@ -169,18 +169,18 @@ export function StaffReports({ dateRange }: StaffReportsProps) {
       {/* Cashier Activity (Voids & Refunds) */}
       <section>
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50">
-          {t("cashier_activity") || "Cashier Activity"} — {t("voids_refunds") || "Voids & Refunds"}
+          {t("cashier_activity")} — {t("voids_refunds")}
         </h3>
         {(data?.cashierActivity || []).length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4">{t("no_voids_refunds") || "No voids or refunds recorded."}</p>
+          <p className="text-sm text-muted-foreground py-4">{t("no_voids_refunds")}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/50">
-                  <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("cashier") || "Cashier"}</th>
-                  <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("voided_items") || "Voided Items"}</th>
-                  <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("refunds") || "Refunds"}</th>
+                  <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("cashier")}</th>
+                  <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("voided_items")}</th>
+                  <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("refunds")}</th>
                 </tr>
               </thead>
               <tbody>
