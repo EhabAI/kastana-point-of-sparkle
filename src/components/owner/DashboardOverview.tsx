@@ -149,15 +149,16 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
       {/* Status Bar */}
       <div className="flex flex-wrap items-start gap-x-8 gap-y-4 md:gap-x-12">
         {/* PRIMARY: Restaurant Status */}
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <span className={`inline-block w-2.5 h-2.5 rounded-full ${isOpen ? 'bg-emerald-500' : 'bg-muted-foreground/40'}`} />
-            <span className="text-xl font-black text-foreground tracking-tight">{isOpen ? t("open") : t("closed")}</span>
+        <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default">
+          <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-0.5">{t("status")}</span>
+          <div className="flex items-center gap-1.5">
+            <span className={`inline-block w-2 h-2 rounded-full ${isOpen ? 'bg-emerald-500' : 'bg-muted-foreground/40'}`} />
+            <span className="text-xl font-bold text-foreground tracking-tight">{isOpen ? t("open") : t("closed")}</span>
             {!isOpen && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Info className="h-4 w-4 text-muted-foreground/60 cursor-help" />
+                    <Info className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help" />
                   </TooltipTrigger>
                   <TooltipContent side="top" className="max-w-[250px]">
                     <p className="text-sm">{t("closed_tooltip")}</p>
@@ -167,7 +168,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
             )}
           </div>
           {nextOpenTime && (
-            <span className="text-[10px] text-muted-foreground/50 mt-0.5 ltr:ml-4.5 rtl:mr-4.5">{nextOpenTime}</span>
+            <span className="text-[9px] text-muted-foreground/40 mt-0.5">{nextOpenTime}</span>
           )}
         </div>
 
