@@ -101,27 +101,27 @@ export function OrdersReports({ dateRange }: OrdersReportsProps) {
       {/* Orders Overview */}
       <section>
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50">
-          {t("orders_overview") || "Orders Overview"}
+          {t("orders_overview")}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="p-4 bg-muted/30 rounded-lg">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("total_orders") || "Total Orders"}</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("total_orders")}</p>
             <p className="text-2xl font-black text-foreground tabular-nums mt-1">{data?.totalOrders || 0}</p>
           </div>
           <div className="p-4 bg-emerald-50 dark:bg-emerald-950/20 rounded-lg">
-            <p className="text-xs text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">{t("paid") || "Paid"}</p>
+            <p className="text-xs text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">{t("paid")}</p>
             <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 tabular-nums mt-1">{data?.paidCount || 0}</p>
           </div>
           <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
-            <p className="text-xs text-blue-700 dark:text-blue-400 uppercase tracking-wide">{t("open") || "Open"}</p>
+            <p className="text-xs text-blue-700 dark:text-blue-400 uppercase tracking-wide">{t("open")}</p>
             <p className="text-2xl font-bold text-blue-700 dark:text-blue-400 tabular-nums mt-1">{data?.openCount || 0}</p>
           </div>
           <div className="p-4 bg-amber-50 dark:bg-amber-950/20 rounded-lg">
-            <p className="text-xs text-amber-700 dark:text-amber-400 uppercase tracking-wide">{t("cancelled") || "Cancelled"}</p>
+            <p className="text-xs text-amber-700 dark:text-amber-400 uppercase tracking-wide">{t("cancelled")}</p>
             <p className="text-2xl font-bold text-amber-700 dark:text-amber-400 tabular-nums mt-1">{data?.cancelledCount || 0}</p>
           </div>
           <div className="p-4 bg-destructive/10 rounded-lg">
-            <p className="text-xs text-destructive uppercase tracking-wide">{t("refunded") || "Refunded"}</p>
+            <p className="text-xs text-destructive uppercase tracking-wide">{t("refunded")}</p>
             <p className="text-2xl font-bold text-destructive tabular-nums mt-1">{data?.refundedCount || 0}</p>
           </div>
         </div>
@@ -130,18 +130,18 @@ export function OrdersReports({ dateRange }: OrdersReportsProps) {
       {/* Orders by Type */}
       <section>
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50">
-          {t("orders_by_type") || "Orders by Type"}
+          {t("orders_by_type")}
         </h3>
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 bg-muted/30 rounded-lg">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("dine_in") || "Dine-in"}</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("dine_in")}</p>
             <p className="text-2xl font-bold text-foreground tabular-nums mt-1">{data?.dineInCount || 0}</p>
             <p className="text-xs text-muted-foreground mt-1">
               {data?.paidCount ? ((data.dineInCount / data.paidCount) * 100).toFixed(0) : 0}%
             </p>
           </div>
           <div className="p-4 bg-muted/30 rounded-lg">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("takeaway") || "Takeaway"}</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("takeaway")}</p>
             <p className="text-2xl font-bold text-foreground tabular-nums mt-1">{data?.takeawayCount || 0}</p>
             <p className="text-xs text-muted-foreground mt-1">
               {data?.paidCount ? ((data.takeawayCount / data.paidCount) * 100).toFixed(0) : 0}%
@@ -153,15 +153,15 @@ export function OrdersReports({ dateRange }: OrdersReportsProps) {
       {/* Average Order Value */}
       <section>
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50">
-          {t("average_order_value") || "Average Order Value"}
+          {t("average_order_value")}
         </h3>
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
-            <p className="text-xs text-primary uppercase tracking-wide font-medium">{t("aov") || "AOV"}</p>
+            <p className="text-xs text-primary uppercase tracking-wide font-medium">{t("aov")}</p>
             <p className="text-2xl font-black text-foreground tabular-nums mt-1">{formatJOD(data?.averageOrderValue || 0)} <span className="text-sm font-normal text-muted-foreground">{currencySymbol}</span></p>
           </div>
           <div className="p-4 bg-muted/30 rounded-lg">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("total_revenue") || "Total Revenue"}</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("total_revenue")}</p>
             <p className="text-2xl font-bold text-foreground tabular-nums mt-1">{formatJOD(data?.totalRevenue || 0)} <span className="text-sm font-normal text-muted-foreground">{currencySymbol}</span></p>
           </div>
         </div>
@@ -170,10 +170,10 @@ export function OrdersReports({ dateRange }: OrdersReportsProps) {
       {/* Peak Hours */}
       <section>
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50">
-          {t("peak_hours") || "Peak Hours"}
+          {t("peak_hours")}
         </h3>
         {(data?.peakHours || []).length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4">{t("no_order_data") || "No order data for this period."}</p>
+          <p className="text-sm text-muted-foreground py-4">{t("no_order_data")}</p>
         ) : (
           <div className="space-y-2">
             {data?.peakHours.slice(0, 8).map((ph, i) => {
@@ -200,7 +200,7 @@ export function OrdersReports({ dateRange }: OrdersReportsProps) {
       {Object.keys(data?.ordersBySource || {}).length > 1 && (
         <section>
           <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50">
-            {t("orders_by_source") || "Orders by Source"}
+            {t("orders_by_source")}
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {Object.entries(data?.ordersBySource || {}).map(([source, count]) => (

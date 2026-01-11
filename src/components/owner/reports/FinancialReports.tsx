@@ -161,33 +161,33 @@ export function FinancialReports({ dateRange }: FinancialReportsProps) {
       {/* Daily Sales Report */}
       <section>
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50">
-          {t("daily_sales_report") || "Daily Sales Report"}
+          {t("daily_sales_report")}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div className="p-4 bg-muted/30 rounded-lg">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("gross_sales") || "Gross Sales"}</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("gross_sales")}</p>
             <p className="text-xl font-bold text-foreground tabular-nums mt-1">{formatJOD(data?.grossSales || 0)} <span className="text-sm font-normal text-muted-foreground">{currencySymbol}</span></p>
           </div>
           <div className="p-4 bg-muted/30 rounded-lg">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("discounts")}</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("discount")}</p>
             <p className="text-xl font-bold text-amber-600 dark:text-amber-400 tabular-nums mt-1">-{formatJOD(data?.totalDiscounts || 0)} <span className="text-sm font-normal">{currencySymbol}</span></p>
           </div>
           <div className="p-4 bg-muted/30 rounded-lg">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("net_sales") || "Net Sales"}</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("net_sales")}</p>
             <p className="text-xl font-bold text-foreground tabular-nums mt-1">{formatJOD(data?.netSales || 0)} <span className="text-sm font-normal text-muted-foreground">{currencySymbol}</span></p>
           </div>
           <div className="p-4 bg-muted/30 rounded-lg">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("taxes") || "Taxes"}</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("tax")}</p>
             <p className="text-xl font-bold text-foreground tabular-nums mt-1">{formatJOD(data?.totalTax || 0)} <span className="text-sm font-normal text-muted-foreground">{currencySymbol}</span></p>
           </div>
           {(data?.totalServiceCharge || 0) > 0 && (
             <div className="p-4 bg-muted/30 rounded-lg">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("service_charge") || "Service Charge"}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("service_charge")}</p>
               <p className="text-xl font-bold text-foreground tabular-nums mt-1">{formatJOD(data?.totalServiceCharge || 0)} <span className="text-sm font-normal text-muted-foreground">{currencySymbol}</span></p>
             </div>
           )}
           <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
-            <p className="text-xs text-primary uppercase tracking-wide font-medium">{t("final_total") || "Final Total"}</p>
+            <p className="text-xs text-primary uppercase tracking-wide font-medium">{t("final_total")}</p>
             <p className="text-2xl font-black text-foreground tabular-nums mt-1">{formatJOD(data?.finalTotal || 0)} <span className="text-sm font-normal text-muted-foreground">{currencySymbol}</span></p>
           </div>
         </div>
@@ -196,17 +196,17 @@ export function FinancialReports({ dateRange }: FinancialReportsProps) {
       {/* Payment Methods Report */}
       <section>
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50">
-          {t("payment_methods") || "Payment Methods"}
+          {t("payment_methods")}
         </h3>
         {Object.keys(data?.paymentsByMethod || {}).length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4">{t("no_payment_data") || "No payment data for this period."}</p>
+          <p className="text-sm text-muted-foreground py-4">{t("no_payment_data")}</p>
         ) : (
           <div className="space-y-2">
             {Object.entries(data?.paymentsByMethod || {}).map(([method, info]) => (
               <div key={method} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                 <div>
                   <p className="font-medium text-foreground capitalize">{t(method) || method}</p>
-                  <p className="text-xs text-muted-foreground">{info.count} {t("transactions") || "transactions"}</p>
+                  <p className="text-xs text-muted-foreground">{info.count} {t("transactions")}</p>
                 </div>
                 <p className="text-lg font-bold text-foreground tabular-nums">{formatJOD(info.total)} {currencySymbol}</p>
               </div>
@@ -218,22 +218,22 @@ export function FinancialReports({ dateRange }: FinancialReportsProps) {
       {/* Refunds Report */}
       <section>
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-4 pb-2 border-b border-border/50">
-          {t("refunds_report") || "Refunds Report"}
+          {t("refunds_report")}
         </h3>
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="p-4 bg-muted/30 rounded-lg">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("total_refunds") || "Total Refunds"}</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("total_refunds")}</p>
             <p className="text-xl font-bold text-foreground tabular-nums mt-1">{data?.refundCount || 0}</p>
           </div>
           <div className="p-4 bg-muted/30 rounded-lg">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("refunded_amount") || "Refunded Amount"}</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("refunded_amount")}</p>
             <p className="text-xl font-bold text-destructive tabular-nums mt-1">{formatJOD(data?.totalRefundAmount || 0)} {currencySymbol}</p>
           </div>
         </div>
 
         {Object.keys(data?.refundsByReason || {}).length > 0 && (
           <div className="mb-4">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">{t("by_reason") || "By Reason"}</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">{t("by_reason")}</p>
             <div className="space-y-1">
               {Object.entries(data?.refundsByReason || {}).map(([reason, info]) => (
                 <div key={reason} className="flex items-center justify-between py-2 px-3 bg-muted/20 rounded">
@@ -247,12 +247,12 @@ export function FinancialReports({ dateRange }: FinancialReportsProps) {
 
         {(data?.refundsByCashier || []).length > 0 && (
           <div>
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">{t("by_cashier") || "By Cashier"}</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">{t("by_cashier")}</p>
             <div className="space-y-1">
               {data?.refundsByCashier.map((c, i) => (
                 <div key={i} className="flex items-center justify-between py-2 px-3 bg-muted/20 rounded">
                   <span className="text-sm text-foreground">{c.email}</span>
-                  <span className="text-sm font-medium text-foreground">{c.count} {t("refunds") || "refunds"}</span>
+                  <span className="text-sm font-medium text-foreground">{c.count} {t("refunds")}</span>
                 </div>
               ))}
             </div>
