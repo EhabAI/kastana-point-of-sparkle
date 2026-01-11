@@ -617,6 +617,12 @@ export default {
   select_occupied_table: "Select an occupied table",
   select_second_table: "Select second table to merge",
 
+  // Soft Lock Messages
+  cannot_refund_shift_closed: "Refunds cannot be processed after the shift is closed.",
+  cannot_move_ready_order: "This order is already ready and cannot be moved.",
+  cannot_merge_paid_orders: "Paid orders cannot be merged.",
+  void_paid_use_refund: "Paid orders must be refunded, not voided.",
+
   // POS - Held Orders
   held_orders: "Held Orders",
   no_held_orders: "No held orders",
