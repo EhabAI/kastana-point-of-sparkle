@@ -5,14 +5,15 @@ import { useOwnerRestaurant } from "@/hooks/useRestaurants";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatJOD } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
 import { DateRange } from "../DateRangeFilter";
 import { format, differenceInMinutes } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { ReportFilters, ReportFilterValues } from "./ReportFilters";
 import { ReportSection } from "./ReportSection";
 import { DrillDownDialog, DrillDownColumn } from "./DrillDownDialog";
-import { exportToCSV, printReport } from "./utils/reportUtils";
+import { exportToCSV, printReport, getPaginatedData, getTotalPages } from "./utils/reportUtils";
+import { OperationsReportsSkeleton } from "./ReportSkeletons";
+import { ReportTablePagination } from "./ReportTablePagination";
 
 interface OperationsReportsProps {
   dateRange: DateRange;
@@ -59,6 +60,8 @@ export function OperationsReports({ dateRange }: OperationsReportsProps) {
   const [showShiftsDialog, setShowShiftsDialog] = useState(false);
   const [showCashDiffDialog, setShowCashDiffDialog] = useState(false);
   const [showCashMovementsDialog, setShowCashMovementsDialog] = useState(false);
+  const [shiftsPage, setShiftsPage] = useState(1);
+  const [shiftsPageSize, setShiftsPageSize] = useState(10);
 
   const { data, isLoading } = useQuery({
     queryKey: ["operations-reports", restaurant?.id, dateRange.from.toISOString(), dateRange.to.toISOString(), filters],
@@ -278,14 +281,12 @@ export function OperationsReports({ dateRange }: OperationsReportsProps) {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <OperationsReportsSkeleton />;
   }
 
   const shiftsWithDifference = (data?.shifts || []).filter(s => s.difference !== null && s.difference !== 0);
+  const paginatedShifts = getPaginatedData(data?.shifts || [], { page: shiftsPage, pageSize: shiftsPageSize });
+  const totalShiftPages = getTotalPages((data?.shifts || []).length, shiftsPageSize);
 
   const shiftColumns: DrillDownColumn<ShiftData>[] = [
     { key: "cashierEmail", header: t("cashier") },
@@ -338,32 +339,42 @@ export function OperationsReports({ dateRange }: OperationsReportsProps) {
           {(data?.shifts || []).length === 0 ? (
             <p className="text-sm text-muted-foreground py-4">{t("no_shifts_found")}</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border/50">
-                    <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("cashier")}</th>
-                    <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("started")}</th>
-                    <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("ended")}</th>
-                    <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("duration")}</th>
-                    <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("sales")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data?.shifts.slice(0, 15).map((shift, i) => (
-                    <tr key={shift.id} className="border-b border-border/30 hover:bg-muted/20">
-                      <td className="py-2 px-3 font-medium text-foreground">{shift.cashierEmail}</td>
-                      <td className="py-2 px-3 text-muted-foreground">{format(new Date(shift.openedAt), "MMM d, HH:mm")}</td>
-                      <td className="py-2 px-3 text-muted-foreground">
-                        {shift.closedAt ? format(new Date(shift.closedAt), "HH:mm") : <Badge variant="outline" className="text-xs">{t("open")}</Badge>}
-                      </td>
-                      <td className="py-2 px-3 text-right tabular-nums text-muted-foreground">{formatDuration(shift.durationMinutes)}</td>
-                      <td className="py-2 px-3 text-right tabular-nums font-medium text-foreground">{formatJOD(shift.totalSales)} {currencySymbol}</td>
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border/50">
+                      <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("cashier")}</th>
+                      <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("started")}</th>
+                      <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("ended")}</th>
+                      <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("duration")}</th>
+                      <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("sales")}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {paginatedShifts.map((shift) => (
+                      <tr key={shift.id} className="border-b border-border/30 hover:bg-muted/20">
+                        <td className="py-2 px-3 font-medium text-foreground">{shift.cashierEmail}</td>
+                        <td className="py-2 px-3 text-muted-foreground">{format(new Date(shift.openedAt), "MMM d, HH:mm")}</td>
+                        <td className="py-2 px-3 text-muted-foreground">
+                          {shift.closedAt ? format(new Date(shift.closedAt), "HH:mm") : <Badge variant="outline" className="text-xs">{t("open")}</Badge>}
+                        </td>
+                        <td className="py-2 px-3 text-right tabular-nums text-muted-foreground">{formatDuration(shift.durationMinutes)}</td>
+                        <td className="py-2 px-3 text-right tabular-nums font-medium text-foreground">{formatJOD(shift.totalSales)} {currencySymbol}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <ReportTablePagination
+                currentPage={shiftsPage}
+                totalPages={totalShiftPages}
+                totalItems={(data?.shifts || []).length}
+                pageSize={shiftsPageSize}
+                onPageChange={setShiftsPage}
+                onPageSizeChange={(size) => { setShiftsPageSize(size); setShiftsPage(1); }}
+              />
+            </>
           )}
         </ReportSection>
 

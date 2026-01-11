@@ -6,13 +6,14 @@ import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { useBranches } from "@/hooks/useBranches";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatJOD } from "@/lib/utils";
-import { Loader2, Building2 } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { DateRange } from "../DateRangeFilter";
 import { format } from "date-fns";
 import { ReportFilters, ReportFilterValues } from "./ReportFilters";
 import { ReportSection } from "./ReportSection";
 import { DrillDownDialog, DrillDownColumn } from "./DrillDownDialog";
 import { exportToCSV, printReport } from "./utils/reportUtils";
+import { BranchReportsSkeleton } from "./ReportSkeletons";
 
 interface BranchReportsProps {
   dateRange: DateRange;
@@ -140,11 +141,7 @@ export function BranchReports({ dateRange }: BranchReportsProps) {
   }
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <BranchReportsSkeleton />;
   }
 
   const branchColumns: DrillDownColumn<BranchData>[] = [

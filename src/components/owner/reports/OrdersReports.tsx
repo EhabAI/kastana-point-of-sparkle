@@ -5,13 +5,13 @@ import { useOwnerRestaurant } from "@/hooks/useRestaurants";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatJOD } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
 import { DateRange } from "../DateRangeFilter";
 import { format } from "date-fns";
 import { ReportFilters, ReportFilterValues } from "./ReportFilters";
 import { ReportSection } from "./ReportSection";
 import { DrillDownDialog, DrillDownColumn } from "./DrillDownDialog";
 import { exportToCSV, printReport } from "./utils/reportUtils";
+import { OrdersReportsSkeleton } from "./ReportSkeletons";
 
 interface OrdersReportsProps {
   dateRange: DateRange;
@@ -138,11 +138,7 @@ export function OrdersReports({ dateRange }: OrdersReportsProps) {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <OrdersReportsSkeleton />;
   }
 
   const formatHour = (hour: number) => {

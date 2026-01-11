@@ -944,4 +944,5 @@ export default {
   time: "الوقت",
   order_number: "رقم الطلب",
   cash_movements: "حركات النقد",
+  rows_per_page: "صفوف",
 } as const;
