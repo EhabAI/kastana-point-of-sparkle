@@ -86,9 +86,11 @@ export default {
   todays_sales: "مبيعات اليوم",
   todays_orders: "طلبات اليوم",
   open_shifts: "الورديات المفتوحة",
+  oldest: "الأقدم",
   staff: "الموظفين",
   opens_at: "يفتح الساعة",
   opens_on: "يفتح",
+  shift_already_open_at_branch: "توجد وردية مفتوحة بالفعل في هذا الفرع. يرجى إغلاقها قبل فتح وردية جديدة.",
 
   // Analytics
   analytics_charts: "التحليلات والرسوم البيانية",

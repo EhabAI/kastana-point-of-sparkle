@@ -1,10 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Users, Table2, DollarSign, TrendingUp, Store } from "lucide-react";
+import { Clock, Users, Table2, DollarSign, TrendingUp, Store, AlertTriangle } from "lucide-react";
 import { useOwnerRestaurantSettings, BusinessHours } from "@/hooks/useOwnerRestaurantSettings";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { startOfDay, endOfDay, format } from "date-fns";
+import { startOfDay, endOfDay, format, differenceInMinutes } from "date-fns";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatJOD } from "@/lib/utils";
 
@@ -58,6 +58,19 @@ function getNextOpenTime(businessHours: BusinessHours | null, t: (key: string) =
   return null;
 }
 
+// Format duration for display
+function formatShiftDuration(minutes: number, language: string): string {
+  if (minutes < 60) {
+    return language === "ar" ? `${minutes}د` : `${minutes}m`;
+  }
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  if (language === "ar") {
+    return mins > 0 ? `${hours}س ${mins}د` : `${hours}س`;
+  }
+  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+}
+
 export function DashboardOverview({ restaurantId, tableCount, staffCount, currency }: DashboardOverviewProps) {
   const { t, language } = useLanguage();
   const { data: settings } = useOwnerRestaurantSettings();
@@ -81,10 +94,10 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
       
       if (ordersError) throw ordersError;
       
-      // Get open shifts count
+      // Get open shifts with opened_at for duration calculation
       const { data: openShifts, error: shiftsError } = await supabase
         .from("shifts")
-        .select("id")
+        .select("id, opened_at")
         .eq("restaurant_id", restaurantId)
         .eq("status", "open");
       
@@ -93,10 +106,19 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
       const paidOrders = orders?.filter(o => o.status === "paid") || [];
       const totalSales = paidOrders.reduce((sum, o) => sum + Number(o.total), 0);
       
+      // Calculate oldest open shift duration
+      let oldestShiftMinutes = 0;
+      if (openShifts && openShifts.length > 0) {
+        const now = new Date();
+        const durations = openShifts.map(s => differenceInMinutes(now, new Date(s.opened_at)));
+        oldestShiftMinutes = Math.max(...durations);
+      }
+      
       return {
         todaySales: totalSales,
         todayOrders: paidOrders.length,
         openShifts: openShifts?.length || 0,
+        oldestShiftMinutes,
       };
     },
     enabled: !!restaurantId,
@@ -144,10 +166,17 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
             </div>
             
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
+              <Clock className={`h-4 w-4 ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-warning' : 'text-muted-foreground'}`} />
               <div>
                 <p className="text-xs text-muted-foreground">{t("open_shifts")}</p>
-                <p className="font-semibold text-foreground">{todayStats?.openShifts || 0}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-foreground">{todayStats?.openShifts || 0}</p>
+                  {(todayStats?.openShifts || 0) > 0 && (todayStats?.oldestShiftMinutes || 0) > 0 && (
+                    <span className={`text-xs ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-warning font-medium' : 'text-muted-foreground'}`}>
+                      ({t("oldest")}: {formatShiftDuration(todayStats?.oldestShiftMinutes || 0, language)})
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             
