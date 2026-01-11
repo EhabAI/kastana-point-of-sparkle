@@ -84,6 +84,8 @@ export default {
 
   // Dashboard
   daily_snapshot: "Daily Snapshot",
+  operational_status: "Operational Status",
+  attention_required: "Attention Required",
   todays_sales: "Today's Sales",
   todays_orders: "Today's Orders",
   open_shifts: "Open Shifts",
