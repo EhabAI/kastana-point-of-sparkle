@@ -35,6 +35,7 @@ export default {
   custom: "Custom",
   open: "Open",
   closed: "Closed",
+  closed_tooltip: "Closed — No active shift is currently open.",
   unknown: "Unknown",
   page: "Page",
   of: "of",
