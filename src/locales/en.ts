@@ -946,4 +946,5 @@ export default {
   time: "Time",
   order_number: "Order #",
   cash_movements: "Cash Movements",
+  rows_per_page: "Rows",
 } as const;

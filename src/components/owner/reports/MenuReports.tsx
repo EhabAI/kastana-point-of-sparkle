@@ -5,12 +5,15 @@ import { useOwnerRestaurant } from "@/hooks/useRestaurants";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatJOD } from "@/lib/utils";
-import { Loader2, TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 import { DateRange } from "../DateRangeFilter";
 import { ReportFilters, ReportFilterValues } from "./ReportFilters";
 import { ReportSection } from "./ReportSection";
 import { DrillDownDialog, DrillDownColumn } from "./DrillDownDialog";
 import { exportToCSV, printReport } from "./utils/reportUtils";
+import { MenuReportsSkeleton } from "./ReportSkeletons";
+import { ReportTablePagination } from "./ReportTablePagination";
+import { getPaginatedData, getTotalPages } from "./utils/reportUtils";
 
 interface MenuReportsProps {
   dateRange: DateRange;
@@ -31,6 +34,8 @@ export function MenuReports({ dateRange }: MenuReportsProps) {
 
   const [filters, setFilters] = useState<ReportFilterValues>({});
   const [showItemsDialog, setShowItemsDialog] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const { data, isLoading } = useQuery({
     queryKey: ["menu-reports", restaurant?.id, dateRange.from.toISOString(), dateRange.to.toISOString(), filters],
@@ -153,14 +158,12 @@ export function MenuReports({ dateRange }: MenuReportsProps) {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <MenuReportsSkeleton />;
   }
 
   const hasData = (data?.itemPerformance || []).length > 0;
+  const paginatedItems = getPaginatedData(data?.itemPerformance || [], { page, pageSize });
+  const totalPages = getTotalPages((data?.itemPerformance || []).length, pageSize);
 
   const itemColumns: DrillDownColumn<ItemPerformance>[] = [
     { key: "name", header: t("item") },
@@ -262,28 +265,38 @@ export function MenuReports({ dateRange }: MenuReportsProps) {
           {!hasData ? (
             <p className="text-sm text-muted-foreground py-4">{t("no_menu_data")}</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border/50">
-                    <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("item")}</th>
-                    <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("category")}</th>
-                    <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("quantity")}</th>
-                    <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("revenue")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data?.itemPerformance.slice(0, 15).map((item, i) => (
-                    <tr key={i} className="border-b border-border/30 hover:bg-muted/20">
-                      <td className="py-2 px-3 font-medium text-foreground">{item.name}</td>
-                      <td className="py-2 px-3 text-muted-foreground">{item.category}</td>
-                      <td className="py-2 px-3 text-right tabular-nums text-muted-foreground">{item.quantity}</td>
-                      <td className="py-2 px-3 text-right tabular-nums font-medium text-foreground">{formatJOD(item.revenue)} {currencySymbol}</td>
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border/50">
+                      <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("item")}</th>
+                      <th className="text-left py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("category")}</th>
+                      <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("quantity")}</th>
+                      <th className="text-right py-2 px-3 text-xs text-muted-foreground uppercase tracking-wide font-medium">{t("revenue")}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {paginatedItems.map((item, i) => (
+                      <tr key={i} className="border-b border-border/30 hover:bg-muted/20">
+                        <td className="py-2 px-3 font-medium text-foreground">{item.name}</td>
+                        <td className="py-2 px-3 text-muted-foreground">{item.category}</td>
+                        <td className="py-2 px-3 text-right tabular-nums text-muted-foreground">{item.quantity}</td>
+                        <td className="py-2 px-3 text-right tabular-nums font-medium text-foreground">{formatJOD(item.revenue)} {currencySymbol}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <ReportTablePagination
+                currentPage={page}
+                totalPages={totalPages}
+                totalItems={(data?.itemPerformance || []).length}
+                pageSize={pageSize}
+                onPageChange={setPage}
+                onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+              />
+            </>
           )}
         </ReportSection>
       </div>
