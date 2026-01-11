@@ -149,16 +149,16 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
       {/* Status Bar */}
       <div className="flex flex-wrap items-start gap-x-8 gap-y-4 md:gap-x-12">
         {/* PRIMARY: Restaurant Status */}
-        <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default">
+        <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default min-h-[52px]">
           <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-0.5">{t("status")}</span>
           <div className="flex items-center gap-1.5">
-            <span className={`inline-block w-2 h-2 rounded-full ${isOpen ? 'bg-emerald-500' : 'bg-muted-foreground/40'}`} />
-            <span className="text-xl font-bold text-foreground tracking-tight">{isOpen ? t("open") : t("closed")}</span>
+            <span className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${isOpen ? 'bg-emerald-500' : 'bg-muted-foreground/40'}`} />
+            <span className="text-xl font-bold text-foreground tracking-tight leading-none">{isOpen ? t("open") : t("closed")}</span>
             {!isOpen && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Info className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help" />
+                    <Info className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help flex-shrink-0" />
                   </TooltipTrigger>
                   <TooltipContent side="top" className="max-w-[250px]">
                     <p className="text-sm">{t("closed_tooltip")}</p>
@@ -178,10 +178,10 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
         {/* PERFORMANCE GROUP */}
         <div className="flex gap-6 md:gap-8">
           {/* Today's Sales */}
-          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default">
+          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default min-h-[52px]">
             <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-0.5">{t("sales")}</span>
             <div className="flex items-baseline gap-1">
-              <span className={`text-2xl font-black tabular-nums tracking-tight ${zeroSalesWarning ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
+              <span className={`text-xl font-bold tabular-nums tracking-tight leading-none ${zeroSalesWarning ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
                 {formatJOD(todayStats?.todaySales || 0)}
               </span>
               <span className="text-[9px] text-muted-foreground/40 font-medium">{currencySymbol}</span>
@@ -192,9 +192,9 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
           </div>
           
           {/* Today's Orders */}
-          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default">
+          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default min-h-[52px]">
             <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-0.5">{t("orders")}</span>
-            <span className="text-xl font-bold text-foreground tabular-nums tracking-tight">{todayStats?.todayOrders || 0}</span>
+            <span className="text-xl font-bold text-foreground tabular-nums tracking-tight leading-none">{todayStats?.todayOrders || 0}</span>
           </div>
         </div>
 
@@ -204,10 +204,10 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
         {/* OPERATIONS GROUP */}
         <div className="flex gap-6 md:gap-8">
           {/* Open Shifts */}
-          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default">
+          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default min-h-[52px]">
             <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-0.5">{t("shifts")}</span>
             <div className="flex items-baseline gap-1.5">
-              <span className={`text-xl font-bold tabular-nums tracking-tight ${hasLongShift ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
+              <span className={`text-xl font-bold tabular-nums tracking-tight leading-none ${hasLongShift ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
                 {todayStats?.openShifts || 0}
               </span>
               {(todayStats?.openShifts || 0) > 0 && (todayStats?.oldestShiftMinutes || 0) > 0 && (
@@ -222,15 +222,15 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
           </div>
           
           {/* Tables */}
-          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default">
+          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default min-h-[52px]">
             <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-0.5">{t("tables")}</span>
-            <span className="text-xl font-bold text-foreground tabular-nums tracking-tight">{tableCount}</span>
+            <span className="text-xl font-bold text-foreground tabular-nums tracking-tight leading-none">{tableCount}</span>
           </div>
           
           {/* Staff */}
-          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default">
+          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default min-h-[52px]">
             <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-0.5">{t("staff")}</span>
-            <span className="text-xl font-bold text-foreground tabular-nums tracking-tight">{staffCount}</span>
+            <span className="text-xl font-bold text-foreground tabular-nums tracking-tight leading-none">{staffCount}</span>
           </div>
         </div>
       </div>
