@@ -126,65 +126,71 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
   const nextOpenTime = !isOpen ? getNextOpenTime(settings?.business_hours || null, t) : null;
   
   return (
-    <div className="space-y-1">
-      {/* Section Label */}
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">{t("daily_snapshot") || "Daily Snapshot"}</p>
+    <div>
+      {/* Section Label with underline */}
+      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2 pb-1 border-b border-border/40">{t("daily_snapshot") || "Daily Snapshot"}</p>
       
       {/* Premium KPI Bar with subtle depth */}
-      <div className="bg-card border border-border/50 rounded-xl p-4 shadow-kpi">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 md:gap-8">
+      <div className="bg-card border border-border/50 rounded-lg p-3.5 shadow-kpi">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 md:gap-6">
           {/* Restaurant Status */}
           <div className="flex flex-col space-y-0.5">
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{t("status")}</span>
-            <div className="flex items-center gap-2">
-              <span className={`inline-block w-2 h-2 rounded-full ${isOpen ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50' : 'bg-muted-foreground/50'}`} />
-              <span className="text-base font-bold text-foreground tracking-tight">{isOpen ? t("open") : t("closed")}</span>
+            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/60">{t("status")}</span>
+            <div className="flex items-center gap-1.5">
+              <span className={`inline-block w-1.5 h-1.5 rounded-full ${isOpen ? 'bg-emerald-500' : 'bg-muted-foreground/50'}`} />
+              <span className="text-sm font-semibold text-foreground">{isOpen ? t("open") : t("closed")}</span>
             </div>
             {nextOpenTime && (
-              <span className="text-[10px] text-muted-foreground/60">{nextOpenTime}</span>
+              <span className="text-[9px] text-muted-foreground/50">{nextOpenTime}</span>
             )}
           </div>
 
-          {/* Today's Sales */}
-          <div className="flex flex-col space-y-0.5">
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{t("todays_sales")}</span>
-            <span className="text-lg font-bold text-foreground tabular-nums tracking-tight">
+          {/* Today's Sales - EMPHASIZED */}
+          <div className="flex flex-col space-y-0.5 relative">
+            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/60">{t("todays_sales")}</span>
+            <span className="text-lg font-extrabold text-foreground tabular-nums">
               {formatJOD(todayStats?.todaySales || 0)}
             </span>
-            <span className="text-[10px] text-muted-foreground/60">{currencySymbol}</span>
+            <div className="flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-primary/60" />
+              <span className="text-[9px] text-muted-foreground/50">{currencySymbol}</span>
+            </div>
           </div>
           
           {/* Today's Orders */}
           <div className="flex flex-col space-y-0.5">
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{t("todays_orders")}</span>
-            <span className="text-lg font-bold text-foreground tabular-nums tracking-tight">{todayStats?.todayOrders || 0}</span>
+            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/60">{t("todays_orders")}</span>
+            <span className="text-base font-bold text-foreground tabular-nums">{todayStats?.todayOrders || 0}</span>
           </div>
           
-          {/* Open Shifts */}
+          {/* Open Shifts - EMPHASIZED */}
           <div className="flex flex-col space-y-0.5">
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{t("open_shifts")}</span>
+            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/60">{t("open_shifts")}</span>
             <div className="flex items-baseline gap-1.5">
-              <span className={`text-lg font-bold tabular-nums tracking-tight ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
+              <span className={`text-lg font-extrabold tabular-nums ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
                 {todayStats?.openShifts || 0}
               </span>
               {(todayStats?.openShifts || 0) > 0 && (todayStats?.oldestShiftMinutes || 0) > 0 && (
-                <span className={`text-[11px] font-medium ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground/60'}`}>
+                <span className={`text-[10px] font-medium ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground/50'}`}>
                   {formatShiftDuration(todayStats?.oldestShiftMinutes || 0, language)}
                 </span>
               )}
             </div>
+            {(todayStats?.openShifts || 0) > 0 && (
+              <span className="w-1 h-1 rounded-full bg-primary/60" />
+            )}
           </div>
           
           {/* Tables */}
           <div className="flex flex-col space-y-0.5">
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{t("tables")}</span>
-            <span className="text-lg font-bold text-foreground tabular-nums tracking-tight">{tableCount}</span>
+            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/60">{t("tables")}</span>
+            <span className="text-base font-bold text-foreground tabular-nums">{tableCount}</span>
           </div>
           
           {/* Staff */}
           <div className="flex flex-col space-y-0.5">
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{t("staff")}</span>
-            <span className="text-lg font-bold text-foreground tabular-nums tracking-tight">{staffCount}</span>
+            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/60">{t("staff")}</span>
+            <span className="text-base font-bold text-foreground tabular-nums">{staffCount}</span>
           </div>
         </div>
       </div>
