@@ -84,6 +84,8 @@ export default {
 
   // Dashboard
   daily_snapshot: "ملخص اليوم",
+  operational_status: "الحالة التشغيلية",
+  attention_required: "يتطلب الانتباه",
   todays_sales: "مبيعات اليوم",
   todays_orders: "طلبات اليوم",
   open_shifts: "الورديات المفتوحة",

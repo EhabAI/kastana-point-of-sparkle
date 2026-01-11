@@ -376,51 +376,53 @@ export function NotificationsAlerts() {
     warning: sortedAlerts.filter(a => a.type === "warning").length,
   };
 
-  return (
-    <div className="mt-3">
-      {/* Section Header with underline */}
-      <div className="flex items-center justify-between mb-2 pb-1 border-b border-border/40">
-        <button 
-          onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-widest hover:text-foreground transition-colors group"
-        >
-          <Bell className="h-3.5 w-3.5" />
-          <span>{t("notifications_alerts")}</span>
-          {(alertCounts.error > 0 || alertCounts.warning > 0) && (
-            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 animate-pulse">
-              {alertCounts.error + alertCounts.warning}
-            </span>
-          )}
-          <ChevronDown className={`h-3 w-3 text-muted-foreground/50 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
-        </button>
-      </div>
+  const hasAlerts = sortedAlerts.length > 0;
+  const criticalCount = alertCounts.error + alertCounts.warning;
 
-      {/* Alerts List - Tinted background strip */}
+  return (
+    <div className={`mt-4 rounded-lg ${hasAlerts ? 'bg-amber-50/70 dark:bg-amber-950/20 border-l-4 border-l-amber-500' : 'bg-muted/20'} p-3`}>
+      {/* Section Header - Action Required */}
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 w-full"
+      >
+        <span className="text-[10px] font-bold text-foreground/80 uppercase tracking-[0.15em]">
+          {hasAlerts ? (t("attention_required") || "Attention Required") : (t("notifications_alerts"))}
+        </span>
+        {criticalCount > 0 && (
+          <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-500 text-white animate-pulse">
+            {criticalCount}
+          </span>
+        )}
+        <ChevronDown className={`h-3 w-3 text-muted-foreground/50 transition-transform duration-200 ltr:ml-auto rtl:mr-auto ${isOpen ? "" : "-rotate-90"}`} />
+      </button>
+
+      {/* Alerts List */}
       {isOpen && (
-        <div className="bg-amber-50/50 dark:bg-amber-950/10 border border-amber-200/30 dark:border-amber-800/20 rounded-lg p-1.5 space-y-1">
+        <div className="mt-3 space-y-1.5">
           {isLoading ? (
-            <div className="flex items-center justify-center py-4">
+            <div className="flex items-center justify-center py-3">
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             </div>
           ) : sortedAlerts.length === 0 ? (
-            <div className="flex items-center gap-2.5 py-3 px-2.5 text-sm text-muted-foreground">
-              <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+            <div className="flex items-center gap-2 py-2 text-muted-foreground">
+              <CheckCircle className="h-4 w-4 text-emerald-500" />
               <span className="text-xs font-medium">{t("all_clear")} — {t("no_alerts")}</span>
             </div>
           ) : (
             sortedAlerts.map((alert) => (
               <div 
                 key={alert.id} 
-                className={`flex items-start gap-2.5 py-2 px-2.5 rounded-md border-l-2 ${getAlertStyles(alert.type)}`}
+                className={`flex items-start gap-3 py-2.5 px-3 rounded bg-background/60 dark:bg-background/40 border-l-2 ${getAlertStyles(alert.type)}`}
               >
-                <div className="mt-0.5">
+                <div className="mt-0.5 flex-shrink-0">
                   {getAlertIcon(alert.type)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-foreground leading-tight">{alert.title}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{alert.message}</p>
+                  <p className="text-sm font-bold text-foreground leading-tight">{alert.title}</p>
+                  <p className="text-[11px] text-muted-foreground/70 mt-0.5 leading-relaxed">{alert.message}</p>
                 </div>
-                <span className="text-[9px] text-muted-foreground/50 font-medium whitespace-nowrap">
+                <span className="text-[9px] text-muted-foreground/40 font-medium whitespace-nowrap">
                   {format(alert.timestamp, "HH:mm")}
                 </span>
               </div>
