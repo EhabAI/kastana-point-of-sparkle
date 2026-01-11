@@ -121,119 +121,113 @@ export default function OwnerAdmin() {
   return (
     <BranchProvider>
       <DashboardLayout title={t("owner_dashboard")}>
-        <div className="space-y-6 animate-fade-in">
-        {/* Restaurant Info - Always visible */}
-        <Card className="shadow-card">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                {restaurant.logo_url ? (
-                  <img
-                    src={restaurant.logo_url}
-                    alt={`${restaurant.name} logo`}
-                    className="w-12 h-12 object-contain rounded-lg"
+        <div className="space-y-4 animate-fade-in">
+        {/* Restaurant Header - Compact */}
+        <div className="flex items-center justify-between py-2">
+          <div className="flex items-center gap-3">
+            {restaurant.logo_url ? (
+              <img
+                src={restaurant.logo_url}
+                alt={`${restaurant.name} logo`}
+                className="w-9 h-9 object-contain rounded-lg"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
+                <Store className="h-5 w-5 text-muted-foreground" />
+              </div>
+            )}
+            <h2 className="text-lg font-semibold text-foreground">{restaurant.name}</h2>
+          </div>
+          <Dialog open={editingRestaurantName} onOpenChange={setEditingRestaurantName}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="text-muted-foreground h-8" onClick={() => setRestaurantName(restaurant.name)}>
+                <Edit2 className="h-3.5 w-3.5" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t("edit_restaurant_name")}</DialogTitle>
+                <DialogDescription>{t("update_restaurant_name")}</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-restaurant-name">{t("restaurant_name")}</Label>
+                  <Input
+                    id="edit-restaurant-name"
+                    value={restaurantName}
+                    onChange={(e) => setRestaurantName(e.target.value)}
                   />
-                ) : (
-                  <Store className="h-8 w-8 text-primary" />
-                )}
-                <div>
-                  <CardTitle className="flex items-center gap-2">{restaurant.name}</CardTitle>
-                  <CardDescription>{t("your_restaurant_info")}</CardDescription>
                 </div>
               </div>
-              <Dialog open={editingRestaurantName} onOpenChange={setEditingRestaurantName}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={() => setRestaurantName(restaurant.name)}>
-                    <Edit2 className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
-                    {t("edit_name")}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>{t("edit_restaurant_name")}</DialogTitle>
-                    <DialogDescription>{t("update_restaurant_name")}</DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-restaurant-name">{t("restaurant_name")}</Label>
-                      <Input
-                        id="edit-restaurant-name"
-                        value={restaurantName}
-                        onChange={(e) => setRestaurantName(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setEditingRestaurantName(false)}>
-                      {t("cancel")}
-                    </Button>
-                    <Button onClick={handleUpdateRestaurantName} disabled={updateRestaurant.isPending}>
-                      {updateRestaurant.isPending ? <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" /> : null}
-                      {t("save")}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </CardHeader>
-        </Card>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setEditingRestaurantName(false)}>
+                  {t("cancel")}
+                </Button>
+                <Button onClick={handleUpdateRestaurantName} disabled={updateRestaurant.isPending}>
+                  {updateRestaurant.isPending ? <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" /> : null}
+                  {t("save")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
 
-        {/* Tabbed Navigation */}
+        {/* Tabbed Navigation - Neutral, minimal */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="flex items-center gap-1.5 bg-transparent p-0 h-auto flex-wrap">
+          <TabsList className="flex items-center gap-1 bg-transparent p-0 h-auto flex-wrap border-b border-border/40 pb-2">
             <TabsTrigger 
               value="overview" 
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg border border-transparent bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-sm transition-all duration-150"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all duration-150"
             >
-              <LayoutDashboard className="h-4 w-4" />
+              <LayoutDashboard className="h-3.5 w-3.5" />
               <span>{t("overview")}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="analytics" 
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg border border-transparent bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-sm transition-all duration-150"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all duration-150"
             >
-              <BarChart3 className="h-4 w-4" />
+              <BarChart3 className="h-3.5 w-3.5" />
               <span>{t("analytics")}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="reports" 
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg border border-transparent bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-sm transition-all duration-150"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all duration-150"
             >
-              <FileText className="h-4 w-4" />
+              <FileText className="h-3.5 w-3.5" />
               <span>{t("reports")}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="menu" 
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg border border-transparent bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-sm transition-all duration-150"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all duration-150"
             >
-              <UtensilsCrossed className="h-4 w-4" />
+              <UtensilsCrossed className="h-3.5 w-3.5" />
               <span>{t("menu")}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="management" 
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg border border-transparent bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-sm transition-all duration-150"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all duration-150"
             >
-              <Users className="h-4 w-4" />
+              <Users className="h-3.5 w-3.5" />
               <span>{t("manage")}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="branches" 
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg border border-transparent bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-sm transition-all duration-150"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all duration-150"
             >
-              <Building2 className="h-4 w-4" />
+              <Building2 className="h-3.5 w-3.5" />
               <span>{t("branches")}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="settings" 
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg border border-transparent bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-sm transition-all duration-150"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm transition-all duration-150"
             >
-              <Settings className="h-4 w-4" />
+              <Settings className="h-3.5 w-3.5" />
               <span>{t("settings")}</span>
             </TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6 mt-6">
+          {/* Overview Tab - KPIs first, then Alerts */}
+          <TabsContent value="overview" className="space-y-4 mt-4">
             {role === "owner" && (
               <DashboardOverview
                 restaurantId={restaurant.id}
