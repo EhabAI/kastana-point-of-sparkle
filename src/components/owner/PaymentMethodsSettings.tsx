@@ -81,7 +81,7 @@ export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsP
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className="shadow-card">
+      <Card className="shadow-card hover-lift">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CollapsibleTrigger asChild>
@@ -138,7 +138,7 @@ export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsP
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
                 {/* Cash */}
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg transition-all duration-200 hover:bg-muted/70">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
                       <Banknote className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -155,7 +155,7 @@ export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsP
                 </div>
 
                 {/* Visa */}
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg transition-all duration-200 hover:bg-muted/70">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
                       <CreditCard className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -172,7 +172,7 @@ export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsP
                 </div>
 
                 {/* CliQ (uses efawateer_enabled column) */}
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg transition-all duration-200 hover:bg-muted/70">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
                       <Building2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
@@ -189,7 +189,7 @@ export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsP
                 </div>
 
                 {/* Zain Cash (uses wallet_enabled column) */}
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg transition-all duration-200 hover:bg-muted/70">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center">
                       <Wallet className="h-5 w-5 text-teal-600 dark:text-teal-400" />

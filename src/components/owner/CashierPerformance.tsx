@@ -140,7 +140,7 @@ export function CashierPerformance() {
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className="shadow-card">
+      <Card className="shadow-card hover-lift">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CollapsibleTrigger asChild>
@@ -175,7 +175,7 @@ export function CashierPerformance() {
             ) : (
               <div className="space-y-4">
                 {performanceData?.cashiers.map((cashier, index) => (
-                  <div key={cashier.cashierId} className="p-4 bg-muted/50 rounded-lg space-y-3">
+                  <div key={cashier.cashierId} className="p-4 bg-muted/50 rounded-lg space-y-3 transition-all duration-200 hover:shadow-md hover:bg-muted/70 border border-transparent hover:border-primary/20">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Badge variant={index === 0 ? "default" : "secondary"} className="font-bold">

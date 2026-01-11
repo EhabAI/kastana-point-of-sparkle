@@ -413,7 +413,7 @@ export function NotificationsAlerts() {
             sortedAlerts.map((alert) => (
               <div 
                 key={alert.id} 
-                className={`flex items-start gap-3 py-2.5 px-3 rounded bg-background/60 dark:bg-background/40 border-l-2 ${getAlertStyles(alert.type)}`}
+                className={`flex items-start gap-3 py-2.5 px-3 rounded bg-background/60 dark:bg-background/40 border-l-2 transition-all duration-200 hover:shadow-sm hover:bg-background/80 ${getAlertStyles(alert.type)}`}
               >
                 <div className="mt-0.5 flex-shrink-0">
                   {getAlertIcon(alert.type)}

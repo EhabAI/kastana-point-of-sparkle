@@ -337,7 +337,7 @@ function CategoriesSection({
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className="shadow-card">
+      <Card className="shadow-card hover-lift">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CollapsibleTrigger asChild>
@@ -399,7 +399,7 @@ function CategoriesSection({
         ) : (
           <div className="space-y-3">
             {categories.map((category) => (
-              <div key={category.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+              <div key={category.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg transition-all duration-200 hover:shadow-md hover:bg-muted/70 border border-transparent hover:border-primary/20">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
                     <FolderOpen className="h-4 w-4 text-primary" />
@@ -534,7 +534,7 @@ function MenuItemsSection({
   };
 
   return (
-    <Card className="shadow-card">
+    <Card className="shadow-card hover-lift">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -636,7 +636,7 @@ function MenuItemsSection({
         ) : (
           <div className="space-y-3">
             {items.map((item) => (
-              <div key={item.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+              <div key={item.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg transition-all duration-200 hover:shadow-md hover:bg-muted/70 border border-transparent hover:border-primary/20">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     {item.is_offer && <Flame className="h-4 w-4 text-warning" />}

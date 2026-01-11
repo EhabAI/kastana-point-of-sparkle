@@ -118,7 +118,7 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
 
   return (
     <>
-      <Card className="shadow-card">
+      <Card className="shadow-card hover-lift">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -221,7 +221,7 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
               </TableHeader>
               <TableBody>
                 {cashiers.map((cashier) => (
-                  <TableRow key={cashier.id}>
+                  <TableRow key={cashier.id} className="hover-row">
                     <TableCell className="font-medium">{cashier.email || t("no_email")}</TableCell>
                     <TableCell>
                       <span className="flex items-center gap-1 text-sm text-muted-foreground">

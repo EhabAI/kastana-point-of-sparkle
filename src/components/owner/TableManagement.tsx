@@ -149,7 +149,7 @@ function TableRow({
   };
   
   return (
-    <div className={`flex flex-col md:flex-row md:items-center justify-between p-4 rounded-lg gap-4 ${!hasValidBranch ? 'bg-destructive/10 border border-destructive/30' : 'bg-muted/50'}`}>
+    <div className={`flex flex-col md:flex-row md:items-center justify-between p-4 rounded-lg gap-4 transition-all duration-200 hover:shadow-md hover:border-primary/30 border ${!hasValidBranch ? 'bg-destructive/10 border-destructive/30' : 'bg-muted/50 border-transparent'}`}>
       <div className="flex items-start gap-4">
         {hasValidBranch ? (
           <QRCodeDisplay data={menuLink} size={80} />
@@ -275,7 +275,7 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
   
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className="shadow-card">
+      <Card className="shadow-card hover-lift">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CollapsibleTrigger asChild>

@@ -103,7 +103,7 @@ export function RestaurantSettings() {
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className="shadow-card">
+      <Card className="shadow-card hover-lift">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CollapsibleTrigger asChild>
@@ -183,7 +183,7 @@ export function RestaurantSettings() {
             {DAYS_OF_WEEK.map((day) => (
               <div
                 key={day.key}
-                className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-muted/50 rounded-lg"
+                className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-muted/50 rounded-lg transition-all duration-200 hover:bg-muted/70 hover:shadow-sm"
               >
                 <div className="w-28 shrink-0">
                   <p className="font-medium text-foreground">{t(day.labelKey)}</p>
