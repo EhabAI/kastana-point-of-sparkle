@@ -845,4 +845,71 @@ export default {
   pos_qr_pending: "QR Pending",
   pos_open_orders: "Open Orders",
   pos_tables: "Tables",
+
+  // Reports Module
+  financial: "Financial",
+  operations: "Operations",
+  
+  // Financial Reports
+  daily_sales_report: "Daily Sales Report",
+  taxes_collected: "Taxes Collected",
+  final_total: "Final Total",
+  payment_methods_report: "Payment Methods Report",
+  cash_total: "Cash Total",
+  card_total: "Card Total",
+  other_payments: "Other Payments",
+  transactions: "Transactions",
+  refunds_report: "Refunds Report",
+  total_refunds: "Total Refunds",
+  refunds_count: "Refunds Count",
+  by_reason: "By Reason",
+  by_cashier: "By Cashier",
+  no_refund_data: "No refund data for this period.",
+  no_payment_data: "No payment data for this period.",
+  
+  // Orders Reports
+  orders_overview: "Orders Overview",
+  open_orders: "Open Orders",
+  closed_orders: "Closed Orders",
+  refunded_orders: "Refunded Orders",
+  voided_orders: "Voided Orders",
+  orders_by_type: "Orders by Type",
+  average_order_value: "Average Order Value (AOV)",
+  peak_hours_report: "Peak Hours",
+  hour: "Hour",
+  orders_count: "Orders Count",
+  no_orders_data: "No orders data for this period.",
+  
+  // Menu Reports
+  top_selling_items: "Top Selling Items",
+  least_selling_items: "Least Selling Items",
+  sales_by_category: "Sales by Category",
+  item_performance: "Item Performance",
+  item: "Item",
+  quantity_sold: "Quantity Sold",
+  revenue: "Revenue",
+  category: "Category",
+  no_menu_data: "No menu performance data for this period.",
+  
+  // Staff Reports
+  cashier_activity: "Cashier Activity",
+  void_count: "Void Count",
+  no_staff_data: "No staff performance data for this period.",
+  
+  // Operations Reports
+  shifts_history: "Shifts History",
+  cash_difference_report: "Cash Difference Report",
+  tables_usage: "Tables Usage",
+  duration: "Duration",
+  sales_per_shift: "Sales per Shift",
+  orders_per_table: "Orders per Table",
+  avg_duration: "Avg Duration",
+  no_operations_data: "No operations data for this period.",
+  no_table_data: "No table usage data for this period.",
+  
+  // Branch Reports
+  sales_per_branch: "Sales per Branch",
+  orders_per_branch: "Orders per Branch",
+  shifts_per_branch: "Shifts per Branch",
+  no_branch_data: "No branch data for this period.",
 } as const;
