@@ -130,13 +130,29 @@ export function useUpdateCashierStatus() {
       isActive: boolean;
       restaurantId: string;
     }) => {
-      const { error } = await supabase
-        .from('user_roles')
-        .update({ is_active: isActive })
-        .eq('id', roleId);
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
 
-      if (error) throw error;
-      return { roleId, isActive };
+      if (sessionError || !accessToken) {
+        throw new Error('Not authenticated. Please sign in again.');
+      }
+
+      const { data, error } = await supabase.functions.invoke('update-cashier-status', {
+        body: { 
+          role_id: roleId, 
+          is_active: isActive,
+          restaurant_id: restaurantId
+        },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Failed to update cashier status');
+      }
+
+      return { roleId, isActive: data.is_active };
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['cashiers', variables.restaurantId] });

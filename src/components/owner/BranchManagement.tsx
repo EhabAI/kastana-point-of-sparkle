@@ -13,11 +13,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useBranches, useCreateBranch, useUpdateBranch, useDeleteBranch, Branch } from "@/hooks/useBranches";
-import { Building2, Plus, Edit2, Trash2, Loader2, ChevronDown, MapPin, Phone, Hash, Star } from "lucide-react";
+import { Building2, Plus, Edit2, Trash2, Loader2, ChevronDown, MapPin, Phone, Hash, Star, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface BranchManagementProps {
   restaurantId: string;
@@ -25,6 +36,7 @@ interface BranchManagementProps {
 
 export function BranchManagement({ restaurantId }: BranchManagementProps) {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const { data: branches = [], isLoading } = useBranches(restaurantId);
   const createBranch = useCreateBranch();
   const updateBranch = useUpdateBranch();
@@ -33,6 +45,9 @@ export function BranchManagement({ restaurantId }: BranchManagementProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [branchToDelete, setBranchToDelete] = useState<Branch | null>(null);
+  const [deleteBlockReason, setDeleteBlockReason] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -94,11 +109,36 @@ export function BranchManagement({ restaurantId }: BranchManagementProps) {
 
   const handleDelete = async (branch: Branch) => {
     if (branch.is_default) {
-      alert(t("cannot_delete_default"));
+      toast({ title: t("cannot_delete_default"), variant: "destructive" });
       return;
     }
-    if (confirm(`${t("confirm_delete_branch")} "${branch.name}"?`)) {
-      await deleteBranch.mutateAsync(branch.id);
+    
+    // Open confirmation dialog
+    setBranchToDelete(branch);
+    setDeleteBlockReason(null);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!branchToDelete) return;
+
+    try {
+      await deleteBranch.mutateAsync({ 
+        branchId: branchToDelete.id, 
+        restaurantId 
+      });
+      setDeleteDialogOpen(false);
+      setBranchToDelete(null);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "";
+      if (errorMessage === "ACTIVE_CASHIERS") {
+        setDeleteBlockReason(t("branch_has_active_cashiers"));
+      } else if (errorMessage === "OPEN_SHIFTS") {
+        setDeleteBlockReason(t("branch_has_open_shifts"));
+      } else {
+        setDeleteDialogOpen(false);
+        setBranchToDelete(null);
+      }
     }
   };
 
@@ -332,6 +372,61 @@ export function BranchManagement({ restaurantId }: BranchManagementProps) {
           </CardContent>
         </CollapsibleContent>
       </Card>
+
+      {/* Delete Branch Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              {deleteBlockReason ? (
+                <>
+                  <AlertTriangle className="h-5 w-5 text-destructive" />
+                  {t("cannot_delete_branch")}
+                </>
+              ) : (
+                t("confirm_delete_branch")
+              )}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteBlockReason ? (
+                <span className="text-destructive font-medium">{deleteBlockReason}</span>
+              ) : (
+                <>
+                  {t("delete_branch_warning")} <strong>{branchToDelete?.name}</strong>?
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            {deleteBlockReason ? (
+              <AlertDialogAction onClick={() => {
+                setDeleteDialogOpen(false);
+                setBranchToDelete(null);
+                setDeleteBlockReason(null);
+              }}>
+                {t("close")}
+              </AlertDialogAction>
+            ) : (
+              <>
+                <AlertDialogCancel onClick={() => {
+                  setBranchToDelete(null);
+                  setDeleteBlockReason(null);
+                }}>
+                  {t("cancel")}
+                </AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={confirmDelete}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={deleteBranch.isPending}
+                >
+                  {deleteBranch.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+                  {t("delete")}
+                </AlertDialogAction>
+              </>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Collapsible>
   );
 }

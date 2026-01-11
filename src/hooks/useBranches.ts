@@ -117,20 +117,52 @@ export function useDeleteBranch() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({ branchId, restaurantId }: { branchId: string; restaurantId: string }) => {
+      // Check for active cashiers assigned to this branch
+      const { data: activeCashiers, error: cashiersError } = await supabase
+        .from("user_roles")
+        .select("id")
+        .eq("branch_id", branchId)
+        .eq("is_active", true)
+        .eq("role", "cashier");
+
+      if (cashiersError) throw cashiersError;
+
+      if (activeCashiers && activeCashiers.length > 0) {
+        throw new Error("ACTIVE_CASHIERS");
+      }
+
+      // Check for open shifts at this branch
+      const { data: openShifts, error: shiftsError } = await supabase
+        .from("shifts")
+        .select("id")
+        .eq("branch_id", branchId)
+        .eq("status", "open");
+
+      if (shiftsError) throw shiftsError;
+
+      if (openShifts && openShifts.length > 0) {
+        throw new Error("OPEN_SHIFTS");
+      }
+
       const { error } = await supabase
         .from("restaurant_branches")
         .delete()
-        .eq("id", id);
+        .eq("id", branchId);
 
       if (error) throw error;
-      return id;
+      return { branchId, restaurantId };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["branches"] });
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["branches", data.restaurantId] });
       toast({ title: "Branch deleted successfully" });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
+      // Return specific error message for UI to handle
+      if (error.message === "ACTIVE_CASHIERS" || error.message === "OPEN_SHIFTS") {
+        // Don't show toast here - let UI handle it
+        return;
+      }
       toast({ title: "Failed to delete branch", description: error.message, variant: "destructive" });
     },
   });

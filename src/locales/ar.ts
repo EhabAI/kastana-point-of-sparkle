@@ -183,7 +183,11 @@ export default {
   branch_phone: "رقم الهاتف",
   set_default: "تعيين كافتراضي",
   cannot_delete_default: "لا يمكن حذف الفرع الافتراضي",
-  confirm_delete_branch: "هل أنت متأكد من حذف الفرع",
+  confirm_delete_branch: "حذف الفرع؟",
+  delete_branch_warning: "سيتم حذف الفرع نهائياً",
+  cannot_delete_branch: "لا يمكن حذف الفرع",
+  branch_has_active_cashiers: "هذا الفرع لديه كاشيرات نشطون. يرجى إلغاء تفعيلهم أو إعادة تعيينهم أولاً.",
+  branch_has_open_shifts: "هذا الفرع لديه ورديات مفتوحة. يرجى إغلاق جميع الورديات قبل الحذف.",
   no_branches_add: "لا توجد فروع. أضف فرعاً للبدء.",
 
   // Branch prices/promos
