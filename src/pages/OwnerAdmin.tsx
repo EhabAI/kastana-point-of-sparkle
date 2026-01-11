@@ -89,34 +89,38 @@ export default function OwnerAdmin() {
 
   if (loadingRestaurant) {
     return (
-      <DashboardLayout title={t("owner_dashboard")}>
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </DashboardLayout>
+      <BranchProvider>
+        <DashboardLayout title={t("owner_dashboard")}>
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        </DashboardLayout>
+      </BranchProvider>
     );
   }
 
   if (!restaurant) {
     return (
-      <DashboardLayout title={t("owner_dashboard")}>
-        <Card className="shadow-card">
-          <CardContent className="p-12 text-center">
-            <Store className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-foreground mb-2">{t("no_restaurant")}</h2>
-            <p className="text-muted-foreground">
-              {t("no_restaurant_desc")}
-            </p>
-          </CardContent>
-        </Card>
-      </DashboardLayout>
+      <BranchProvider>
+        <DashboardLayout title={t("owner_dashboard")}>
+          <Card className="shadow-card">
+            <CardContent className="p-12 text-center">
+              <Store className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-foreground mb-2">{t("no_restaurant")}</h2>
+              <p className="text-muted-foreground">
+                {t("no_restaurant_desc")}
+              </p>
+            </CardContent>
+          </Card>
+        </DashboardLayout>
+      </BranchProvider>
     );
   }
 
   return (
-    <DashboardLayout title={t("owner_dashboard")}>
-      <BranchProvider>
-      <div className="space-y-6 animate-fade-in">
+    <BranchProvider>
+      <DashboardLayout title={t("owner_dashboard")}>
+        <div className="space-y-6 animate-fade-in">
         {/* Restaurant Info - Always visible */}
         <Card className="shadow-card">
           <CardHeader>
@@ -283,9 +287,9 @@ export default function OwnerAdmin() {
             {role === "owner" && <DiscountSettings />}
           </TabsContent>
         </Tabs>
-      </div>
-      </BranchProvider>
-    </DashboardLayout>
+        </div>
+      </DashboardLayout>
+    </BranchProvider>
   );
 }
 
