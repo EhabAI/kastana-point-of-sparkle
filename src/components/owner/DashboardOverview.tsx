@@ -1,6 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Clock, Users, Table2, DollarSign, TrendingUp, Store, AlertTriangle } from "lucide-react";
 import { useOwnerRestaurantSettings, BusinessHours } from "@/hooks/useOwnerRestaurantSettings";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -129,75 +126,63 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
   const nextOpenTime = !isOpen ? getNextOpenTime(settings?.business_hours || null, t) : null;
   
   return (
-    <Card className="shadow-card border-border/40 bg-gradient-to-br from-primary/[0.02] to-primary/[0.06]">
-      <CardContent className="p-5">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          {/* Restaurant Status */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Store className="h-4 w-4 text-primary" />
-              <Badge variant={isOpen ? "default" : "secondary"} className="text-xs font-medium">
-                {isOpen ? t("open") : t("closed")}
-              </Badge>
-            </div>
-            {nextOpenTime && (
-              <span className="text-xs text-muted-foreground">{nextOpenTime}</span>
+    <div className="border-b border-border/40 pb-4">
+      {/* Horizontal KPI Bar */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 md:gap-6">
+        {/* Restaurant Status */}
+        <div className="flex flex-col">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{t("status")}</span>
+          <div className="flex items-center gap-2">
+            <span className={`inline-block w-2 h-2 rounded-full ${isOpen ? 'bg-emerald-500' : 'bg-muted-foreground'}`} />
+            <span className="text-lg font-bold text-foreground">{isOpen ? t("open") : t("closed")}</span>
+          </div>
+          {nextOpenTime && (
+            <span className="text-[10px] text-muted-foreground mt-0.5">{nextOpenTime}</span>
+          )}
+        </div>
+
+        {/* Today's Sales */}
+        <div className="flex flex-col">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{t("todays_sales")}</span>
+          <span className="text-2xl font-bold text-foreground tabular-nums">
+            {formatJOD(todayStats?.todaySales || 0)}
+          </span>
+          <span className="text-[10px] text-muted-foreground">{currencySymbol}</span>
+        </div>
+        
+        {/* Today's Orders */}
+        <div className="flex flex-col">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{t("todays_orders")}</span>
+          <span className="text-2xl font-bold text-foreground tabular-nums">{todayStats?.todayOrders || 0}</span>
+        </div>
+        
+        {/* Open Shifts */}
+        <div className="flex flex-col">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{t("open_shifts")}</span>
+          <div className="flex items-baseline gap-2">
+            <span className={`text-2xl font-bold tabular-nums ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-amber-600 dark:text-amber-500' : 'text-foreground'}`}>
+              {todayStats?.openShifts || 0}
+            </span>
+            {(todayStats?.openShifts || 0) > 0 && (todayStats?.oldestShiftMinutes || 0) > 0 && (
+              <span className={`text-xs ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-amber-600 dark:text-amber-500' : 'text-muted-foreground'}`}>
+                {formatShiftDuration(todayStats?.oldestShiftMinutes || 0, language)}
+              </span>
             )}
           </div>
-          
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-5">
-            <div className="flex items-center gap-2">
-              <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
-              <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t("todays_sales")}</p>
-                <p className="text-sm font-semibold text-foreground">
-                  {formatJOD(todayStats?.todaySales || 0)} {currencySymbol}
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
-              <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t("todays_orders")}</p>
-                <p className="text-sm font-semibold text-foreground">{todayStats?.todayOrders || 0}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Clock className={`h-3.5 w-3.5 ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-warning' : 'text-muted-foreground'}`} />
-              <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t("open_shifts")}</p>
-                <div className="flex items-center gap-1.5">
-                  <p className="text-sm font-semibold text-foreground">{todayStats?.openShifts || 0}</p>
-                  {(todayStats?.openShifts || 0) > 0 && (todayStats?.oldestShiftMinutes || 0) > 0 && (
-                    <span className={`text-[10px] ${(todayStats?.oldestShiftMinutes || 0) > 600 ? 'text-warning font-medium' : 'text-muted-foreground'}`}>
-                      ({t("oldest")}: {formatShiftDuration(todayStats?.oldestShiftMinutes || 0, language)})
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Table2 className="h-3.5 w-3.5 text-muted-foreground" />
-              <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t("tables")}</p>
-                <p className="text-sm font-semibold text-foreground">{tableCount}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Users className="h-3.5 w-3.5 text-muted-foreground" />
-              <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t("staff")}</p>
-                <p className="text-sm font-semibold text-foreground">{staffCount}</p>
-              </div>
-            </div>
-          </div>
         </div>
-      </CardContent>
-    </Card>
+        
+        {/* Tables */}
+        <div className="flex flex-col">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{t("tables")}</span>
+          <span className="text-2xl font-bold text-foreground tabular-nums">{tableCount}</span>
+        </div>
+        
+        {/* Staff */}
+        <div className="flex flex-col">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{t("staff")}</span>
+          <span className="text-2xl font-bold text-foreground tabular-nums">{staffCount}</span>
+        </div>
+      </div>
+    </div>
   );
 }

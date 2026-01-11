@@ -1,14 +1,11 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, Bell, AlertTriangle, AlertCircle, Info, CheckCircle, Loader2, Clock, UtensilsCrossed, Receipt, Timer } from "lucide-react";
+import { ChevronDown, Bell, AlertTriangle, AlertCircle, Info, CheckCircle, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOwnerRestaurant } from "@/hooks/useRestaurants";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { useBranches } from "@/hooks/useBranches";
 import { startOfDay, endOfDay, subDays, format, differenceInMinutes, differenceInHours } from "date-fns";
-import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatJOD } from "@/lib/utils";
 
@@ -380,63 +377,55 @@ export function NotificationsAlerts() {
   };
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className="shadow-card">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CollapsibleTrigger asChild>
-              <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
-                <div className="text-left">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <Bell className="h-4 w-4" />
-                    {t("notifications_alerts")}
-                    {(alertCounts.error > 0 || alertCounts.warning > 0) && (
-                      <Badge variant="destructive" className="ml-1.5 h-5 px-1.5 text-[10px]">
-                        {alertCounts.error + alertCounts.warning}
-                      </Badge>
-                    )}
-                  </CardTitle>
-                  <CardDescription className="text-xs mt-0.5">{t("notifications_desc")}</CardDescription>
+    <div className="space-y-2">
+      {/* Alerts Header */}
+      <div className="flex items-center justify-between">
+        <button 
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-foreground/80 transition-colors"
+        >
+          <Bell className="h-4 w-4" />
+          <span>{t("notifications_alerts")}</span>
+          {(alertCounts.error > 0 || alertCounts.warning > 0) && (
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+              {alertCounts.error + alertCounts.warning}
+            </span>
+          )}
+          <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
+        </button>
+      </div>
+
+      {/* Alerts List - Full width, simple */}
+      {isOpen && (
+        <div className="space-y-1">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            </div>
+          ) : sortedAlerts.length === 0 ? (
+            <div className="flex items-center gap-2 py-3 px-2 text-sm text-muted-foreground">
+              <CheckCircle className="h-4 w-4 text-emerald-500" />
+              <span>{t("all_clear")} — {t("no_alerts")}</span>
+            </div>
+          ) : (
+            sortedAlerts.map((alert) => (
+              <div 
+                key={alert.id} 
+                className="flex items-start gap-2.5 py-2 px-2 rounded-md hover:bg-muted/30 transition-colors"
+              >
+                {getAlertIcon(alert.type)}
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium text-foreground">{alert.title}</span>
+                  <span className="text-sm text-muted-foreground ml-1.5">— {alert.message}</span>
                 </div>
-              </button>
-            </CollapsibleTrigger>
-          </div>
-        </CardHeader>
-        <CollapsibleContent>
-          <CardContent className="pt-0">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-6">
-                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                  {format(alert.timestamp, "HH:mm")}
+                </span>
               </div>
-            ) : sortedAlerts.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-6 text-center">
-                <CheckCircle className="h-10 w-10 text-success/70 mb-2" />
-                <p className="font-medium text-sm text-foreground">{t("all_clear")}</p>
-                <p className="text-xs text-muted-foreground">{t("no_alerts")}</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {sortedAlerts.map((alert) => (
-                  <div 
-                    key={alert.id} 
-                    className={`flex items-start gap-2.5 p-3 rounded-lg border ${getAlertStyles(alert.type)}`}
-                  >
-                    {getAlertIcon(alert.type)}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm text-foreground">{alert.title}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{alert.message}</p>
-                    </div>
-                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                      {format(alert.timestamp, "HH:mm")}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </CollapsibleContent>
-      </Card>
-    </Collapsible>
+            ))
+          )}
+        </div>
+      )}
+    </div>
   );
 }
