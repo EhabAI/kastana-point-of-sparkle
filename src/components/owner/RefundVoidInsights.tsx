@@ -150,19 +150,21 @@ export function RefundVoidInsights() {
   const showRefundWarning = (insightsData?.refundCount || 0) > REFUND_WARNING_THRESHOLD;
 
   return (
-    <div className="space-y-3 pt-2 border-t border-border/40">
-      {/* Header */}
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-foreground/80 transition-colors"
-      >
-        <ReceiptText className="h-4 w-4" />
-        <span>{t("refund_void_insights")}</span>
-        {showRefundWarning && (
-          <AlertTriangle className="h-3.5 w-3.5 text-amber-600 dark:text-amber-500" />
-        )}
-        <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 ${isOpen ? "" : "ltr:-rotate-90 rtl:rotate-90"}`} />
-      </button>
+    <div className="mt-3">
+      {/* Section Header with underline */}
+      <div className="flex items-center justify-between mb-2 pb-1 border-b border-border/40">
+        <button 
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center gap-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-widest hover:text-foreground transition-colors"
+        >
+          <ReceiptText className="h-3.5 w-3.5" />
+          <span>{t("refund_void_insights")}</span>
+          {showRefundWarning && (
+            <AlertTriangle className="h-3 w-3 text-amber-600 dark:text-amber-500" />
+          )}
+          <ChevronDown className={`h-3 w-3 text-muted-foreground/50 transition-transform duration-200 ${isOpen ? "" : "ltr:-rotate-90 rtl:rotate-90"}`} />
+        </button>
+      </div>
 
       {isOpen && (
         <div className="space-y-4">

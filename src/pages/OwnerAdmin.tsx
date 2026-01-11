@@ -226,8 +226,8 @@ export default function OwnerAdmin() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab - KPIs first, then Alerts */}
-          <TabsContent value="overview" className="space-y-4 mt-4">
+          {/* Overview Tab - Compact vertical rhythm */}
+          <TabsContent value="overview" className="space-y-3 mt-3">
             {role === "owner" && (
               <DashboardOverview
                 restaurantId={restaurant.id}
