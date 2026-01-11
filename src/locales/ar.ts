@@ -35,6 +35,7 @@ export default {
   custom: "مخصص",
   open: "مفتوح",
   closed: "مغلق",
+  closed_tooltip: "مغلق — لا يوجد شِفت تشغيل مفتوح حاليًا.",
   unknown: "غير معروف",
   page: "صفحة",
   of: "من",

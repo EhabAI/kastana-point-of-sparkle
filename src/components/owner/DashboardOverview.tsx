@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { startOfDay, endOfDay, format, differenceInMinutes } from "date-fns";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatJOD } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 
 interface DashboardOverviewProps {
   restaurantId: string;
@@ -151,6 +153,18 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
           <div className="flex items-center gap-2">
             <span className={`inline-block w-2.5 h-2.5 rounded-full ${isOpen ? 'bg-emerald-500' : 'bg-muted-foreground/40'}`} />
             <span className="text-xl font-black text-foreground tracking-tight">{isOpen ? t("open") : t("closed")}</span>
+            {!isOpen && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-muted-foreground/60 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[250px]">
+                    <p className="text-sm">{t("closed_tooltip")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
           {nextOpenTime && (
             <span className="text-[10px] text-muted-foreground/50 mt-0.5 ltr:ml-4.5 rtl:mr-4.5">{nextOpenTime}</span>
