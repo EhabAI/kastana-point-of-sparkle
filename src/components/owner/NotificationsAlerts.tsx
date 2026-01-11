@@ -36,7 +36,7 @@ export function NotificationsAlerts() {
   const { t, language } = useLanguage();
   const currencySymbol = language === "ar" ? "د.أ" : "JOD";
   
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   // Helper to get branch name by ID
   const getBranchName = (branchId: string | null) => {

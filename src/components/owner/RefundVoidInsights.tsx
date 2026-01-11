@@ -30,7 +30,7 @@ export function RefundVoidInsights() {
   const { t, language } = useLanguage();
   const currencySymbol = language === "ar" ? "د.أ" : "JOD";
   
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   const { data: insightsData, isLoading } = useQuery({
     queryKey: ["refund-void-insights", restaurant?.id],

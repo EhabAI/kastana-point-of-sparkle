@@ -29,7 +29,7 @@ export function CashierPerformance() {
   const { t } = useLanguage();
   const currency = settings?.currency || "JOD";
   
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [preset, setPreset] = useState<DateRangePreset>("this_month");
   const [dateRange, setDateRange] = useState<DateRange>(getDateRangeForPreset("this_month"));
 

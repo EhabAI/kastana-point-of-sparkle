@@ -24,7 +24,7 @@ export function BestWorstSellers() {
   const { data: settings } = useOwnerRestaurantSettings();
   const currency = settings?.currency || "JOD";
   
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [preset, setPreset] = useState<DateRangePreset>("last_30_days");
   const [dateRange, setDateRange] = useState<DateRange>(getDateRangeForPreset("last_30_days"));
 

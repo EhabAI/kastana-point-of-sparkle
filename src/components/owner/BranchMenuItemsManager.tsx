@@ -55,7 +55,7 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
   const bulkUpdate = useBulkUpdateBranchMenuItems();
   const copyPrices = useCopyBranchPrices();
 
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [editingItem, setEditingItem] = useState<BranchMenuItemWithBase | null>(null);

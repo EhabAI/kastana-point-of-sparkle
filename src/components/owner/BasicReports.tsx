@@ -25,7 +25,7 @@ export function BasicReports() {
   const { data: settings } = useOwnerRestaurantSettings();
   const currencySymbol = language === "ar" ? "د.أ" : "JOD";
   
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [preset, setPreset] = useState<DateRangePreset>("today");
   const [dateRange, setDateRange] = useState<DateRange>(getDateRangeForPreset("today"));
 
