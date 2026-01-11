@@ -387,7 +387,7 @@ export function NotificationsAlerts() {
           <Bell className="h-3.5 w-3.5" />
           <span>{t("notifications_alerts")}</span>
           {(alertCounts.error > 0 || alertCounts.warning > 0) && (
-            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 animate-pulse">
               {alertCounts.error + alertCounts.warning}
             </span>
           )}
