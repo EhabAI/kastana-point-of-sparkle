@@ -375,6 +375,16 @@ export default {
   great_performance: "Great Performance!",
   great_performance_msg: "Operations are running smoothly with low cancellations and voids.",
 
+  // Operational Alerts
+  alert_long_shift: "⏱ Long Open Shift",
+  alert_long_shift_msg: "Shift open for more than {hours} hours (Branch: {branch})",
+  alert_stuck_order: "⏳ Stuck Order",
+  alert_stuck_order_msg: "Order #{orderNumber} stuck in progress for {duration}",
+  alert_long_table: "🪑 Long Occupied Table",
+  alert_long_table_msg: "Table {tableName} occupied for {duration}",
+  alert_excessive_refunds: "💰 High Refunds Today",
+  alert_excessive_refunds_msg: "High number of refunds today ({count} refunds)",
+
   // CSV Upload
   csv_upload: "CSV Upload",
   csv_upload_desc: "Import menu items and offers from CSV files",

@@ -375,6 +375,16 @@ export default {
   great_performance: "أداء رائع!",
   great_performance_msg: "العمليات تسير بسلاسة مع إلغاءات منخفضة.",
 
+  // Operational Alerts
+  alert_long_shift: "⏱ وردية مفتوحة طويلة",
+  alert_long_shift_msg: "وردية مفتوحة لأكثر من {hours} ساعة (الفرع: {branch})",
+  alert_stuck_order: "⏳ طلب معلق",
+  alert_stuck_order_msg: "الطلب #{orderNumber} معلق منذ {duration}",
+  alert_long_table: "🪑 طاولة مشغولة طويلاً",
+  alert_long_table_msg: "الطاولة {tableName} مشغولة منذ {duration}",
+  alert_excessive_refunds: "💰 استردادات عالية اليوم",
+  alert_excessive_refunds_msg: "عدد مرتفع من الاستردادات اليوم ({count} استرداد)",
+
   // CSV Upload
   csv_upload: "رفع ملف CSV",
   csv_upload_desc: "استيراد عناصر القائمة والعروض من ملفات CSV",
