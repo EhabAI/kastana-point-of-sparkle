@@ -52,6 +52,7 @@ import { DiscountSettings } from "@/components/owner/DiscountSettings";
 import { BasicReports } from "@/components/owner/BasicReports";
 import { ShiftsView } from "@/components/owner/ShiftsView";
 import { DashboardOverview } from "@/components/owner/DashboardOverview";
+import { ReportsModule } from "@/components/owner/ReportsModule";
 import { AnalyticsCharts } from "@/components/owner/AnalyticsCharts";
 import { BestWorstSellers } from "@/components/owner/BestWorstSellers";
 import { CashierPerformance } from "@/components/owner/CashierPerformance";
@@ -248,9 +249,8 @@ export default function OwnerAdmin() {
           </TabsContent>
 
           {/* Reports Tab */}
-          <TabsContent value="reports" className="space-y-6 mt-6">
-            {role === "owner" && <BasicReports />}
-            {role === "owner" && <ShiftsView />}
+          <TabsContent value="reports" className="mt-4">
+            {role === "owner" && <ReportsModule />}
             {role === "owner" && <AuditLogViewer />}
           </TabsContent>
 
