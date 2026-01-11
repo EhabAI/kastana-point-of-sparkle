@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface ToggleParams {
   restaurantId: string;
@@ -9,56 +8,53 @@ interface ToggleParams {
 }
 
 /**
- * Hook for System Admin to toggle restaurant active status
+ * Hook for System Admin to toggle restaurant active status via Edge Function.
+ * This atomically updates the restaurant status and all related user_roles,
+ * and creates an audit log entry.
  */
 export function useToggleRestaurantActive() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ restaurantId, isActive }: ToggleParams) => {
-      // Update restaurant active status
-      const { data, error } = await supabase
-        .from("restaurants")
-        .update({ is_active: isActive })
-        .eq("id", restaurantId)
-        .select()
-        .single();
+      // Get the current session for the JWT
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        throw new Error("Not authenticated");
+      }
 
-      if (error) throw error;
-
-      // Log audit event
-      if (user) {
-        const { error: auditError } = await supabase.from("audit_logs").insert({
-          user_id: user.id,
+      // Call the edge function
+      const { data, error } = await supabase.functions.invoke("set-restaurant-active", {
+        body: {
           restaurant_id: restaurantId,
-          entity_type: "restaurant",
-          entity_id: restaurantId,
-          action: isActive ? "RESTAURANT_ACTIVATED" : "RESTAURANT_DEACTIVATED",
-          details: {
-            previous: !isActive,
-            next: isActive,
-            toggled_at: new Date().toISOString(),
-          },
-        });
+          is_active: isActive,
+        },
+      });
 
-        if (auditError) {
-          console.error("Failed to log audit event:", auditError);
-        }
+      if (error) {
+        console.error("Edge function error:", error);
+        throw new Error(error.message || "Failed to update restaurant status");
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.error || "Failed to update restaurant status");
       }
 
       return data;
     },
-    onSuccess: (_, { isActive }) => {
+    onSuccess: (data, { isActive }) => {
+      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ["restaurants"] });
       queryClient.invalidateQueries({ queryKey: ["restaurant-active-status"] });
       queryClient.invalidateQueries({ queryKey: ["public-restaurant-active-status"] });
+      
       toast({
         title: isActive ? "Restaurant Activated" : "Restaurant Deactivated",
         description: isActive
           ? "Restaurant is now active. Staff can access the system."
-          : "Restaurant is now inactive. All access has been blocked.",
+          : `Restaurant is now inactive. ${data.affected_roles || 0} staff account(s) have been blocked.`,
       });
     },
     onError: (error: Error) => {
