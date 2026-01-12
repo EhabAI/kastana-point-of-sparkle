@@ -55,28 +55,28 @@ export function POSTabControl({
   ];
 
   return (
-    <div className="flex bg-muted/60 p-0.5 rounded-lg gap-0.5">
+    <div className="flex bg-muted/40 p-1 rounded-lg gap-1">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
           className={cn(
-            "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md text-sm font-medium transition-all min-h-[44px]",
+            "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md text-sm font-medium transition-all min-h-[44px] relative",
             activeTab === tab.id
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground hover:bg-background/50",
+              ? "bg-background text-foreground shadow-md border-b-2 border-primary"
+              : "text-muted-foreground/70 hover:text-foreground hover:bg-background/40",
           )}
         >
-          <tab.icon className="h-4 w-4" />
+          <tab.icon className={cn("h-4 w-4", activeTab === tab.id && "text-primary")} />
           <span className="hidden sm:inline">{tab.label}</span>
 
           {tab.count > 0 && (
             <span
               className={cn(
-                "ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold min-w-[18px] text-center",
+                "ml-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-semibold min-w-[16px] text-center",
                 activeTab === tab.id
                   ? "bg-primary text-primary-foreground"
-                  : "bg-muted-foreground/15 text-muted-foreground",
+                  : "bg-muted-foreground/10 text-muted-foreground/70",
               )}
             >
               {tab.count}

@@ -5,8 +5,16 @@ import { Badge } from "@/components/ui/badge";
 import { OrderItemRow } from "./OrderItemRow";
 import { OrderTotals } from "./OrderTotals";
 import { Percent, CreditCard, Pause, Ban, User, Phone, Plus } from "lucide-react";
-import { formatJOD } from "@/lib/utils";
+import { formatJOD, cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+
+// Status badge configuration
+const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
+  open: { label: "OPEN", className: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border-blue-200 dark:border-blue-800" },
+  held: { label: "HELD", className: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 border-amber-200 dark:border-amber-800" },
+  paid: { label: "PAID", className: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800" },
+  refunded: { label: "REFUNDED", className: "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300 border-red-200 dark:border-red-800" },
+};
 
 interface OrderItem {
   id: string;
@@ -107,6 +115,18 @@ export function OrderPanel({
         <CardTitle className="text-base flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span>{t("current_order")}</span>
+            {/* Status Badge */}
+            {orderStatus && STATUS_CONFIG[orderStatus] && (
+              <Badge 
+                variant="outline"
+                className={cn(
+                  "text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 border",
+                  STATUS_CONFIG[orderStatus].className
+                )}
+              >
+                {STATUS_CONFIG[orderStatus].label}
+              </Badge>
+            )}
             <Badge 
               variant={orderType === "DINE-IN" ? "default" : "secondary"}
               className="text-xs"
@@ -193,8 +213,9 @@ export function OrderPanel({
             size="sm"
             onClick={onApplyDiscount}
             disabled={!hasItems || !isOpen}
+            className="text-muted-foreground hover:text-foreground"
           >
-            <Percent className="h-4 w-4 mr-1" />
+            <Percent className="h-4 w-4 mr-1.5" />
             {t("discount")}
           </Button>
           <Button
@@ -202,29 +223,31 @@ export function OrderPanel({
             size="sm"
             onClick={onHoldOrder}
             disabled={!hasItems || !isOpen}
+            className="text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-900/30"
           >
-            <Pause className="h-4 w-4 mr-1" />
+            <Pause className="h-4 w-4 mr-1.5" />
             {t("hold")}
           </Button>
         </div>
 
-        <div className="w-full grid grid-cols-2 gap-2">
+        <div className="w-full grid grid-cols-2 gap-3">
           <Button
-            variant="destructive"
+            variant="outline"
             size="sm"
             onClick={onVoidOrder}
             disabled={!hasItems || !isOpen}
+            className="text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
           >
-            <Ban className="h-4 w-4 mr-1" />
+            <Ban className="h-4 w-4 mr-1.5" />
             {t("void")}
           </Button>
           <Button
             size="lg"
-            className="font-bold"
+            className="font-bold text-base shadow-md"
             onClick={onPay}
             disabled={!hasItems || total <= 0 || !isOpen}
           >
-            <CreditCard className="h-4 w-4 mr-1" />
+            <CreditCard className="h-5 w-5 mr-2" />
             {t("pay")} {formatJOD(total)}
           </Button>
         </div>
