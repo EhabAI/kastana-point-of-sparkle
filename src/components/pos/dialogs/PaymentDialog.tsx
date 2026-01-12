@@ -378,9 +378,9 @@ export function PaymentDialog({
               {isLoading || isSubmitting ? (
                 <span className="text-sm">{t("processing")}</span>
               ) : (
-                <span className="flex items-center gap-2">
-                  <span className="text-xs font-medium opacity-90">✓ {t("pay")}</span>
-                  <span className="text-base font-bold">{formatJOD(splitTotal)} {currency}</span>
+                <span className="flex flex-col items-center leading-tight">
+                  <span className="text-[10px] font-normal opacity-80">✓ {t("pay")}</span>
+                  <span className="text-sm font-semibold">{formatJOD(splitTotal)} {currency}</span>
                 </span>
               )}
             </Button>
