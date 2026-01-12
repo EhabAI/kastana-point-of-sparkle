@@ -141,7 +141,24 @@ export function useZReport(shiftId: string | undefined) {
       const grossSales = paidOrders.reduce((sum, o) => sum + Number(o.total), 0);
       const grossTax = paidOrders.reduce((sum, o) => sum + Number(o.tax_amount), 0);
       const grossServiceCharge = paidOrders.reduce((sum, o) => sum + Number(o.service_charge), 0);
-      const totalDiscounts = paidOrders.reduce((sum, o) => sum + Number(o.discount_value || 0), 0);
+      
+      // Calculate discount amounts correctly based on discount_type
+      // If percentage: discount_amount = subtotal * (discount_value / 100)
+      // If fixed: discount_amount = discount_value
+      const totalDiscounts = paidOrders.reduce((sum, o) => {
+        const discountValue = Number(o.discount_value || 0);
+        if (discountValue <= 0) return sum;
+        
+        if (o.discount_type === "percentage") {
+          // Percentage discount: calculate actual amount from subtotal
+          const subtotal = Number(o.subtotal);
+          return sum + (subtotal * discountValue / 100);
+        } else {
+          // Fixed discount: use discount_value directly
+          return sum + discountValue;
+        }
+      }, 0);
+      
       const grossNetSales = paidOrders.reduce((sum, o) => sum + Number(o.subtotal), 0);
 
       // Gross payment breakdown by method

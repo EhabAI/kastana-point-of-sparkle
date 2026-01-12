@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Delete, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface NumericKeypadProps {
   open: boolean;
@@ -25,7 +26,7 @@ interface NumericKeypadProps {
 export function NumericKeypad({
   open,
   onOpenChange,
-  title = "Enter Value",
+  title,
   initialValue = "",
   allowDecimals = false,
   minValue,
@@ -34,6 +35,7 @@ export function NumericKeypad({
   onConfirm,
   errorMessage,
 }: NumericKeypadProps) {
+  const { t } = useLanguage();
   const [value, setValue] = useState(initialValue);
   const [error, setError] = useState<string | null>(null);
 
@@ -72,17 +74,17 @@ export function NumericKeypad({
     const numValue = parseFloat(value) || 0;
     
     if (!allowDecimals && !Number.isInteger(numValue)) {
-      setError("Please enter a whole number");
+      setError(t("keypad_whole_number"));
       return;
     }
     
     if (minValue !== undefined && numValue < minValue) {
-      setError(`Minimum value is ${minValue}`);
+      setError(`${t("keypad_min_value")} ${minValue}`);
       return;
     }
     
     if (maxValue !== undefined && numValue > maxValue) {
-      setError(`Maximum value is ${maxValue}`);
+      setError(`${t("keypad_max_value")} ${maxValue}`);
       return;
     }
 
@@ -101,7 +103,7 @@ export function NumericKeypad({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[320px] p-4">
         <DialogHeader>
-          <DialogTitle className="text-center">{title}</DialogTitle>
+          <DialogTitle className="text-center">{title || t("keypad_enter_value")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -170,13 +172,13 @@ export function NumericKeypad({
 
           {/* Action buttons */}
           <div className="grid grid-cols-2 gap-2">
-            {allowDecimals && (
+          {allowDecimals && (
               <Button
                 variant="outline"
                 className="h-12"
                 onClick={handleClear}
               >
-                Clear
+                {t("keypad_clear")}
               </Button>
             )}
             <Button
@@ -184,13 +186,13 @@ export function NumericKeypad({
               className={cn("h-12", !allowDecimals && "col-span-1")}
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               className={cn("h-12", !allowDecimals && "col-span-1")}
               onClick={handleConfirm}
             >
-              OK
+              {t("confirm")}
             </Button>
           </div>
         </div>
