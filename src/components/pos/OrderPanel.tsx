@@ -244,12 +244,15 @@ export function OrderPanel({
           </Button>
           <Button
             size="lg"
-            className="font-bold text-base shadow-md"
+            className="shadow-md"
             onClick={onPay}
             disabled={!hasItems || total <= 0 || !isOpen}
           >
-            <CreditCard className="h-5 w-5 mr-2" />
-            {t("pay")} {formatJOD(total)} {localizedCurrency}
+            <CreditCard className="h-4 w-4 ltr:mr-1.5 rtl:ml-1.5" />
+            <span className="flex flex-col items-center leading-tight">
+              <span className="text-[10px] font-normal opacity-80">{t("pay")}</span>
+              <span className="text-xs font-semibold">{formatJOD(total)} {localizedCurrency}</span>
+            </span>
           </Button>
         </div>
       </CardFooter>
