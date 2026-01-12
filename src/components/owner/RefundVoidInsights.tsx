@@ -156,7 +156,7 @@ export function RefundVoidInsights() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 w-full"
       >
-        <span className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-[0.15em]">
+        <span className="text-xs font-bold text-muted-foreground/70 uppercase tracking-[0.15em]">
           {t("refund_void_insights")}
         </span>
         {showRefundWarning && (
