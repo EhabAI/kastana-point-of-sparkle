@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.complete-payment]
 verify_jwt = false
+
+[functions.create-refund]
+verify_jwt = false

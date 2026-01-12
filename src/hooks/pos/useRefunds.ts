@@ -1,11 +1,17 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCashierRestaurant } from "./useCashierRestaurant";
 import { useCashierBranch } from "./useCashierBranch";
-import { formatJOD } from "@/lib/utils";
 
+/**
+ * Atomic refund creation - prevents double refunds via race conditions.
+ * This hook calls the create-refund edge function which:
+ * 1. Validates JWT and user role (cashier/owner)
+ * 2. Validates restaurant is active
+ * 3. Atomically calculates refundable amount
+ * 4. Inserts refund record
+ * 5. Updates order status to 'refunded' if fully refunded
+ */
 export function useCreateRefund() {
-  const { data: restaurant } = useCashierRestaurant();
   const { data: branch } = useCashierBranch();
   const queryClient = useQueryClient();
 
@@ -21,70 +27,39 @@ export function useCreateRefund() {
       refundType: "full" | "partial";
       reason: string;
     }) => {
-      if (!restaurant?.id) throw new Error("Missing restaurant");
       if (!reason?.trim()) throw new Error("Refund reason is required");
 
-      // Check order status - only allow refunds on paid orders
-      const { data: order, error: orderCheckError } = await supabase
-        .from("orders")
-        .select("id, status, total")
-        .eq("id", orderId)
-        .single();
-
-      if (orderCheckError) throw orderCheckError;
-      if (!order) throw new Error("Order not found");
-      if (order.status !== "paid") throw new Error("Can only refund paid orders");
-
-      // Get existing refunds to prevent double refund
-      const { data: existingRefunds, error: refundsError } = await supabase
-        .from("refunds")
-        .select("amount")
-        .eq("order_id", orderId);
-
-      if (refundsError) throw refundsError;
-
-      const totalRefunded = existingRefunds?.reduce((sum, r) => sum + Number(r.amount), 0) || 0;
-      const maxRefundable = Number(order.total) - totalRefunded;
-
-      if (amount > maxRefundable) {
-        throw new Error(`Cannot refund more than ${formatJOD(maxRefundable)}. Already refunded: ${formatJOD(totalRefunded)}`);
-      }
-
-      if (amount <= 0) {
-        throw new Error("Refund amount must be greater than zero");
-      }
-
-      // Create the refund record
-      const { data: refund, error: refundError } = await supabase
-        .from("refunds")
-        .insert({
-          order_id: orderId,
-          restaurant_id: restaurant.id,
-          branch_id: branch?.id || null,
-          amount,
-          refund_type: refundType,
+      // Call the atomic edge function
+      const { data, error } = await supabase.functions.invoke("create-refund", {
+        body: { 
+          orderId, 
+          amount, 
+          refundType, 
           reason: reason.trim(),
-        })
-        .select()
-        .single();
+          branchId: branch?.id || null,
+        },
+      });
 
-      if (refundError) throw refundError;
-
-      // Update order status to refunded only if fully refunded
-      const newTotalRefunded = totalRefunded + amount;
-      if (newTotalRefunded >= Number(order.total)) {
-        const { error: orderError } = await supabase
-          .from("orders")
-          .update({ status: "refunded" })
-          .eq("id", orderId);
-
-        if (orderError) throw orderError;
+      if (error) {
+        console.error("[useCreateRefund] Edge function error:", error);
+        throw new Error(error.message || "Refund failed");
       }
 
-      return refund;
+      if (!data?.success) {
+        console.error("[useCreateRefund] Refund rejected:", data?.error);
+        throw new Error(data?.error || "Refund failed");
+      }
+
+      return {
+        refund: data.refund,
+        totalRefunded: data.totalRefunded,
+        remainingRefundable: data.remainingRefundable,
+        isFullyRefunded: data.isFullyRefunded,
+      };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recent-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["current-order"] });
     },
   });
 }
