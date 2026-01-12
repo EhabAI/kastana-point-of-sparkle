@@ -13,11 +13,17 @@ interface DeductionWarning {
   new_on_hand: number;
 }
 
+interface CogsPerMenuItem {
+  menu_item_id: string;
+  total_cogs: number;
+}
+
 interface DeductionResponse {
   success: boolean;
   warnings: DeductionWarning[];
   error: string | null;
   deducted_count: number;
+  cogs_computed: boolean;
 }
 
 Deno.serve(async (req) => {
@@ -35,7 +41,7 @@ Deno.serve(async (req) => {
     if (!authHeader?.startsWith("Bearer ")) {
       console.error("[inventory-deduct] Missing Authorization header");
       return new Response(
-        JSON.stringify({ success: false, warnings: [], error: "Unauthorized", deducted_count: 0 }),
+        JSON.stringify({ success: false, warnings: [], error: "Unauthorized", deducted_count: 0, cogs_computed: false }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -50,7 +56,7 @@ Deno.serve(async (req) => {
     if (claimsError || !claimsData?.claims) {
       console.error("[inventory-deduct] JWT validation failed:", claimsError);
       return new Response(
-        JSON.stringify({ success: false, warnings: [], error: "Unauthorized", deducted_count: 0 }),
+        JSON.stringify({ success: false, warnings: [], error: "Unauthorized", deducted_count: 0, cogs_computed: false }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -62,7 +68,7 @@ Deno.serve(async (req) => {
     const { order_id } = await req.json();
     if (!order_id) {
       return new Response(
-        JSON.stringify({ success: false, warnings: [], error: "Missing order_id", deducted_count: 0 }),
+        JSON.stringify({ success: false, warnings: [], error: "Missing order_id", deducted_count: 0, cogs_computed: false }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -80,7 +86,7 @@ Deno.serve(async (req) => {
     if (roleError || !userRole) {
       console.error("[inventory-deduct] User role not found:", roleError);
       return new Response(
-        JSON.stringify({ success: false, warnings: [], error: "Access denied", deducted_count: 0 }),
+        JSON.stringify({ success: false, warnings: [], error: "Access denied", deducted_count: 0, cogs_computed: false }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -95,7 +101,7 @@ Deno.serve(async (req) => {
         .single();
       if (!restaurant) {
         return new Response(
-          JSON.stringify({ success: false, warnings: [], error: "Restaurant not found", deducted_count: 0 }),
+          JSON.stringify({ success: false, warnings: [], error: "Restaurant not found", deducted_count: 0, cogs_computed: false }),
           { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -114,7 +120,7 @@ Deno.serve(async (req) => {
     if (orderError || !order) {
       console.error("[inventory-deduct] Order not found:", orderError);
       return new Response(
-        JSON.stringify({ success: false, warnings: [], error: "Order not found", deducted_count: 0 }),
+        JSON.stringify({ success: false, warnings: [], error: "Order not found", deducted_count: 0, cogs_computed: false }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -123,7 +129,7 @@ Deno.serve(async (req) => {
     if (order.restaurant_id !== userRestaurantId) {
       console.error("[inventory-deduct] Restaurant mismatch");
       return new Response(
-        JSON.stringify({ success: false, warnings: [], error: "Access denied: restaurant mismatch", deducted_count: 0 }),
+        JSON.stringify({ success: false, warnings: [], error: "Access denied: restaurant mismatch", deducted_count: 0, cogs_computed: false }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -132,7 +138,7 @@ Deno.serve(async (req) => {
     if (order.status !== "paid") {
       console.log("[inventory-deduct] Order not paid, skipping deduction");
       return new Response(
-        JSON.stringify({ success: true, warnings: [], error: null, deducted_count: 0 }),
+        JSON.stringify({ success: true, warnings: [], error: null, deducted_count: 0, cogs_computed: false }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -141,22 +147,22 @@ Deno.serve(async (req) => {
     if (!branchId) {
       console.log("[inventory-deduct] No branch_id on order, skipping deduction");
       return new Response(
-        JSON.stringify({ success: true, warnings: [], error: null, deducted_count: 0 }),
+        JSON.stringify({ success: true, warnings: [], error: null, deducted_count: 0, cogs_computed: false }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Get order items (non-voided)
+    // Get order items (non-voided) with id for COGS update
     const { data: orderItems, error: itemsError } = await supabaseAdmin
       .from("order_items")
-      .select("menu_item_id, quantity")
+      .select("id, menu_item_id, quantity, total_price")
       .eq("order_id", order_id)
       .eq("voided", false);
 
     if (itemsError) {
       console.error("[inventory-deduct] Failed to load order items:", itemsError);
       return new Response(
-        JSON.stringify({ success: false, warnings: [], error: "Failed to load order items", deducted_count: 0 }),
+        JSON.stringify({ success: false, warnings: [], error: "Failed to load order items", deducted_count: 0, cogs_computed: false }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -164,7 +170,7 @@ Deno.serve(async (req) => {
     if (!orderItems || orderItems.length === 0) {
       console.log("[inventory-deduct] No order items found");
       return new Response(
-        JSON.stringify({ success: true, warnings: [], error: null, deducted_count: 0 }),
+        JSON.stringify({ success: true, warnings: [], error: null, deducted_count: 0, cogs_computed: false }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -181,7 +187,7 @@ Deno.serve(async (req) => {
     if (menuItemIds.length === 0) {
       console.log("[inventory-deduct] No menu items to process");
       return new Response(
-        JSON.stringify({ success: true, warnings: [], error: null, deducted_count: 0 }),
+        JSON.stringify({ success: true, warnings: [], error: null, deducted_count: 0, cogs_computed: false }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -199,7 +205,7 @@ Deno.serve(async (req) => {
     if (recipesError) {
       console.error("[inventory-deduct] Failed to load recipes:", recipesError);
       return new Response(
-        JSON.stringify({ success: false, warnings: [], error: "Failed to load recipes", deducted_count: 0 }),
+        JSON.stringify({ success: false, warnings: [], error: "Failed to load recipes", deducted_count: 0, cogs_computed: false }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -207,7 +213,7 @@ Deno.serve(async (req) => {
     if (!recipes || recipes.length === 0) {
       console.log("[inventory-deduct] No recipes found for menu items");
       return new Response(
-        JSON.stringify({ success: true, warnings: [], error: null, deducted_count: 0 }),
+        JSON.stringify({ success: true, warnings: [], error: null, deducted_count: 0, cogs_computed: false }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -224,7 +230,7 @@ Deno.serve(async (req) => {
     if (linesError) {
       console.error("[inventory-deduct] Failed to load recipe lines:", linesError);
       return new Response(
-        JSON.stringify({ success: false, warnings: [], error: "Failed to load recipe lines", deducted_count: 0 }),
+        JSON.stringify({ success: false, warnings: [], error: "Failed to load recipe lines", deducted_count: 0, cogs_computed: false }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -232,7 +238,7 @@ Deno.serve(async (req) => {
     if (!recipeLines || recipeLines.length === 0) {
       console.log("[inventory-deduct] No recipe lines found");
       return new Response(
-        JSON.stringify({ success: true, warnings: [], error: null, deducted_count: 0 }),
+        JSON.stringify({ success: true, warnings: [], error: null, deducted_count: 0, cogs_computed: false }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -254,7 +260,7 @@ Deno.serve(async (req) => {
     const inventoryItemIds = Object.keys(requiredByItem);
     if (inventoryItemIds.length === 0) {
       return new Response(
-        JSON.stringify({ success: true, warnings: [], error: null, deducted_count: 0 }),
+        JSON.stringify({ success: true, warnings: [], error: null, deducted_count: 0, cogs_computed: false }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -269,22 +275,26 @@ Deno.serve(async (req) => {
     if (stockError) {
       console.error("[inventory-deduct] Failed to load stock levels:", stockError);
       return new Response(
-        JSON.stringify({ success: false, warnings: [], error: "Failed to load stock levels", deducted_count: 0 }),
+        JSON.stringify({ success: false, warnings: [], error: "Failed to load stock levels", deducted_count: 0, cogs_computed: false }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Get inventory item names and base_unit_id
+    // Get inventory item names, base_unit_id, and avg_cost for COGS calculation
     const { data: inventoryItems, error: invItemsError } = await supabaseAdmin
       .from("inventory_items")
-      .select("id, name, base_unit_id")
+      .select("id, name, base_unit_id, avg_cost")
       .in("id", inventoryItemIds);
 
     if (invItemsError) {
       console.error("[inventory-deduct] Failed to load inventory items:", invItemsError);
     }
 
-    const itemNameMap = new Map((inventoryItems || []).map(i => [i.id, { name: i.name, base_unit_id: i.base_unit_id }]));
+    const itemNameMap = new Map((inventoryItems || []).map(i => [i.id, { 
+      name: i.name, 
+      base_unit_id: i.base_unit_id,
+      avg_cost: Number(i.avg_cost) || 0
+    }]));
     const stockMap = new Map((stockLevels || []).map(s => [s.item_id, Number(s.on_hand_base)]));
 
     // Step 5: Calculate new stock and warnings
@@ -295,6 +305,7 @@ Deno.serve(async (req) => {
       current: number;
       new_on_hand: number;
       base_unit_id: string | null;
+      avg_cost: number;
     }[] = [];
 
     for (const [itemId, required] of Object.entries(requiredByItem)) {
@@ -308,6 +319,7 @@ Deno.serve(async (req) => {
         current,
         new_on_hand: newOnHand,
         base_unit_id: itemInfo?.base_unit_id || null,
+        avg_cost: itemInfo?.avg_cost || 0,
       });
 
       if (newOnHand < 0) {
@@ -361,7 +373,8 @@ Deno.serve(async (req) => {
           success: false, 
           warnings, 
           error: "Failed to record inventory transactions", 
-          deducted_count: 0 
+          deducted_count: 0,
+          cogs_computed: false
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -387,7 +400,58 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Step 8: Write audit logs
+    // Step 8: Calculate COGS per menu_item_id
+    // For each recipe line, calculate ingredient_cost = qty_in_base × avg_cost
+    // Then aggregate by menu_item_id
+    const cogsPerMenuItem: Record<string, number> = {};
+    
+    for (const line of recipeLines) {
+      const menuItemId = recipeMenuMap.get(line.recipe_id);
+      if (!menuItemId) continue;
+      
+      const orderedQty = menuItemQty[menuItemId] || 0;
+      const itemInfo = itemNameMap.get(line.inventory_item_id);
+      const avgCost = itemInfo?.avg_cost || 0;
+      const ingredientQtyBase = Number(line.qty_in_base) * orderedQty;
+      const ingredientCost = ingredientQtyBase * avgCost;
+      
+      cogsPerMenuItem[menuItemId] = (cogsPerMenuItem[menuItemId] || 0) + ingredientCost;
+    }
+
+    console.log("[inventory-deduct] COGS per menu item:", cogsPerMenuItem);
+
+    // Step 9: Update order_items with COGS and profit
+    let cogsComputed = false;
+    for (const orderItem of orderItems) {
+      if (!orderItem.menu_item_id) continue;
+      
+      // Get COGS for this menu item (per unit), then multiply by quantity
+      const totalCogsForMenuItem = cogsPerMenuItem[orderItem.menu_item_id] || 0;
+      const orderedQtyForMenuItem = menuItemQty[orderItem.menu_item_id] || 1;
+      
+      // COGS per unit of this menu item
+      const cogsPerUnit = orderedQtyForMenuItem > 0 ? totalCogsForMenuItem / orderedQtyForMenuItem : 0;
+      
+      // This order item's COGS = cogsPerUnit × orderItem.quantity
+      const itemCogs = cogsPerUnit * orderItem.quantity;
+      const itemProfit = Number(orderItem.total_price || 0) - itemCogs;
+
+      const { error: cogsUpdateError } = await supabaseAdmin
+        .from("order_items")
+        .update({ 
+          cogs: itemCogs,
+          profit: itemProfit
+        })
+        .eq("id", orderItem.id);
+
+      if (cogsUpdateError) {
+        console.error("[inventory-deduct] Failed to update COGS for order_item:", orderItem.id, cogsUpdateError);
+      } else {
+        cogsComputed = true;
+      }
+    }
+
+    // Step 10: Write audit logs
     await supabaseAdmin.from("audit_logs").insert({
       restaurant_id: order.restaurant_id,
       user_id: userId,
@@ -415,7 +479,24 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log("[inventory-deduct] Deduction complete. Success:", deductions.length, "Warnings:", warnings.length);
+    // Write COGS audit log
+    if (cogsComputed) {
+      const totalCogs = Object.values(cogsPerMenuItem).reduce((sum, c) => sum + c, 0);
+      await supabaseAdmin.from("audit_logs").insert({
+        restaurant_id: order.restaurant_id,
+        user_id: userId,
+        action: "COGS_COMPUTED_FOR_ORDER",
+        entity_type: "order",
+        entity_id: order_id,
+        details: {
+          order_id,
+          total_cogs: totalCogs,
+          menu_items_with_cogs: Object.keys(cogsPerMenuItem).length,
+        },
+      });
+    }
+
+    console.log("[inventory-deduct] Deduction complete. Success:", deductions.length, "Warnings:", warnings.length, "COGS computed:", cogsComputed);
 
     return new Response(
       JSON.stringify({
@@ -423,6 +504,7 @@ Deno.serve(async (req) => {
         warnings,
         error: null,
         deducted_count: deductions.length,
+        cogs_computed: cogsComputed,
       } as DeductionResponse),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
@@ -431,7 +513,7 @@ Deno.serve(async (req) => {
     console.error("[inventory-deduct] Unexpected error:", error);
     const message = error instanceof Error ? error.message : "Internal server error";
     return new Response(
-      JSON.stringify({ success: false, warnings: [], error: message, deducted_count: 0 }),
+      JSON.stringify({ success: false, warnings: [], error: message, deducted_count: 0, cogs_computed: false }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
