@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
   useLowStockItems,
@@ -8,12 +10,14 @@ import {
   useRecentTransactions,
   useWasteSummary,
 } from "@/hooks/useInventoryDashboard";
-import { AlertTriangle, PackageX, RefreshCw, Trash2, Package } from "lucide-react";
+import { InventoryItemsList } from "./inventory/InventoryItemsList";
+import { AlertTriangle, PackageX, RefreshCw, Trash2, Package, LayoutDashboard, List } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 
 interface InventoryDashboardProps {
   restaurantId: string;
+  isReadOnly?: boolean;
 }
 
 const txnTypeColors: Record<string, string> = {
@@ -26,7 +30,37 @@ const txnTypeColors: Record<string, string> = {
   STOCK_COUNT_ADJUSTMENT: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
 };
 
-export function InventoryDashboard({ restaurantId }: InventoryDashboardProps) {
+export function InventoryDashboard({ restaurantId, isReadOnly = false }: InventoryDashboardProps) {
+  const { t, language } = useLanguage();
+  const [activeTab, setActiveTab] = useState("dashboard");
+
+  return (
+    <div className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="dashboard" className="flex items-center gap-2">
+            <LayoutDashboard className="h-4 w-4" />
+            {t("inv_dashboard")}
+          </TabsTrigger>
+          <TabsTrigger value="items" className="flex items-center gap-2">
+            <List className="h-4 w-4" />
+            {t("inv_items")}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dashboard" className="mt-4">
+          <DashboardWidgets restaurantId={restaurantId} />
+        </TabsContent>
+
+        <TabsContent value="items" className="mt-4">
+          <InventoryItemsList restaurantId={restaurantId} isReadOnly={isReadOnly} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+function DashboardWidgets({ restaurantId }: { restaurantId: string }) {
   const { t, language } = useLanguage();
   const { data: lowStockItems = [], isLoading: loadingLow } = useLowStockItems(restaurantId);
   const { data: nearReorderItems = [], isLoading: loadingReorder } = useNearReorderItems(restaurantId);
