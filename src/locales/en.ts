@@ -163,6 +163,8 @@ export default {
   inv_supplier_created: "Supplier created",
   inv_receipt_no: "Receipt Number",
   inv_receipt_no_placeholder: "e.g. INV-001",
+  inv_unit_cost: "Cost",
+  inv_unit_cost_helper: "Optional – leave empty if unknown",
   inv_add_line: "Add Line",
   inv_select_item: "Select item",
   inv_qty: "Qty",

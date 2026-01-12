@@ -9,7 +9,15 @@ interface ReceiptLine {
   itemId: string;
   qty: number;
   unitId: string;
-  unitCost?: number;
+  unitCost?: number | null;
+}
+
+interface AvgCostUpdate {
+  itemId: string;
+  oldQty: number;
+  oldAvgCost: number;
+  receivedQty: number;
+  unitCost: number;
 }
 
 interface ReceiptRequest {
@@ -134,11 +142,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Validate all items exist and belong to this branch
+    // Validate all items exist and belong to this branch (include avg_cost for weighted avg calculation)
     const itemIds = lines.map((l) => l.itemId);
     const { data: items, error: itemsError } = await supabase
       .from("inventory_items")
-      .select("id, base_unit_id, name")
+      .select("id, base_unit_id, name, avg_cost")
       .in("id", itemIds)
       .eq("branch_id", branchId)
       .eq("restaurant_id", restaurantId);
@@ -150,7 +158,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const itemMap = new Map(items.map((i) => [i.id, i]));
+    const itemMap = new Map(items.map((i) => [i.id, { ...i, avg_cost: i.avg_cost || 0 }]));
 
     // Fetch unit conversions for this restaurant
     const { data: conversions } = await supabase
@@ -190,6 +198,7 @@ Deno.serve(async (req) => {
     const receiptLines = [];
     const transactions = [];
     const stockUpdates: { itemId: string; qtyInBase: number }[] = [];
+    const avgCostUpdates: AvgCostUpdate[] = [];
 
     for (const line of lines) {
       if (line.qty <= 0) continue;
@@ -209,12 +218,16 @@ Deno.serve(async (req) => {
         }
       }
 
+      // Calculate unit_cost and total_cost
+      const unitCost = line.unitCost != null && line.unitCost > 0 ? line.unitCost : 0;
+      const totalCost = qtyInBase * unitCost;
+
       receiptLines.push({
         receipt_id: receipt.id,
         item_id: line.itemId,
         qty: line.qty,
         unit_id: line.unitId,
-        unit_cost: line.unitCost || null,
+        unit_cost: unitCost > 0 ? unitCost : null,
       });
 
       transactions.push({
@@ -225,6 +238,8 @@ Deno.serve(async (req) => {
         qty: line.qty,
         unit_id: line.unitId,
         qty_in_base: qtyInBase,
+        unit_cost: unitCost > 0 ? unitCost : null,
+        total_cost: totalCost > 0 ? totalCost : null,
         reference_type: "purchase_receipt",
         reference_id: receipt.id,
         notes: `Receipt #${receiptNo}`,
@@ -232,6 +247,17 @@ Deno.serve(async (req) => {
       });
 
       stockUpdates.push({ itemId: line.itemId, qtyInBase });
+
+      // Prepare avg_cost update only if unit_cost is provided
+      if (unitCost > 0) {
+        avgCostUpdates.push({
+          itemId: line.itemId,
+          oldQty: 0, // Will be filled later from stock levels
+          oldAvgCost: item.avg_cost,
+          receivedQty: qtyInBase,
+          unitCost: unitCost,
+        });
+      }
     }
 
     // Insert receipt lines
@@ -252,7 +278,7 @@ Deno.serve(async (req) => {
       console.error("[purchase-receipt-post] Transactions insert error:", txnError);
     }
 
-    // Update stock levels
+    // Update stock levels and calculate weighted average cost
     for (const update of stockUpdates) {
       const { data: currentStock } = await supabase
         .from("inventory_stock_levels")
@@ -261,7 +287,8 @@ Deno.serve(async (req) => {
         .eq("branch_id", branchId)
         .maybeSingle();
 
-      const newOnHand = (currentStock?.on_hand_base || 0) + update.qtyInBase;
+      const oldOnHand = currentStock?.on_hand_base || 0;
+      const newOnHand = oldOnHand + update.qtyInBase;
 
       await supabase
         .from("inventory_stock_levels")
@@ -275,6 +302,31 @@ Deno.serve(async (req) => {
           },
           { onConflict: "restaurant_id,branch_id,item_id" }
         );
+
+      // Update weighted average cost if unit_cost was provided
+      const avgUpdate = avgCostUpdates.find((a) => a.itemId === update.itemId);
+      if (avgUpdate) {
+        const item = itemMap.get(update.itemId);
+        const oldAvgCost = item?.avg_cost || 0;
+        
+        // Weighted Average Cost formula:
+        // new_avg = ((old_qty × old_avg) + (received_qty × unit_cost)) / (old_qty + received_qty)
+        let newAvgCost = oldAvgCost;
+        const totalQty = oldOnHand + avgUpdate.receivedQty;
+        if (totalQty > 0) {
+          newAvgCost = ((oldOnHand * oldAvgCost) + (avgUpdate.receivedQty * avgUpdate.unitCost)) / totalQty;
+        } else {
+          // Edge case: if there's no stock, set avg_cost to the new unit cost
+          newAvgCost = avgUpdate.unitCost;
+        }
+
+        await supabase
+          .from("inventory_items")
+          .update({ avg_cost: newAvgCost })
+          .eq("id", update.itemId);
+
+        console.log(`[purchase-receipt-post] Updated avg_cost for ${update.itemId}: ${oldAvgCost} -> ${newAvgCost}`);
+      }
     }
 
     // Write audit log

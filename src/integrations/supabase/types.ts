@@ -209,6 +209,7 @@ export type Database = {
       }
       inventory_items: {
         Row: {
+          avg_cost: number | null
           base_unit_id: string
           branch_id: string
           category: string | null
@@ -222,6 +223,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          avg_cost?: number | null
           base_unit_id: string
           branch_id: string
           category?: string | null
@@ -235,6 +237,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avg_cost?: number | null
           base_unit_id?: string
           branch_id?: string
           category?: string | null
@@ -330,7 +333,9 @@ export type Database = {
           reference_id: string | null
           reference_type: string | null
           restaurant_id: string
+          total_cost: number | null
           txn_type: string
+          unit_cost: number | null
           unit_id: string
         }
         Insert: {
@@ -345,7 +350,9 @@ export type Database = {
           reference_id?: string | null
           reference_type?: string | null
           restaurant_id: string
+          total_cost?: number | null
           txn_type: string
+          unit_cost?: number | null
           unit_id: string
         }
         Update: {
@@ -360,7 +367,9 @@ export type Database = {
           reference_id?: string | null
           reference_type?: string | null
           restaurant_id?: string
+          total_cost?: number | null
           txn_type?: string
+          unit_cost?: number | null
           unit_id?: string
         }
         Relationships: [
