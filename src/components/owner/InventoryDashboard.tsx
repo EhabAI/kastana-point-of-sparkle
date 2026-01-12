@@ -10,7 +10,7 @@ import {
   useRecentTransactions,
   useWasteSummary,
 } from "@/hooks/useInventoryDashboard";
-import { InventoryItemsList } from "./inventory/InventoryItemsList";
+import { InventoryItemsList, OperationsToolbar } from "./inventory";
 import { AlertTriangle, PackageX, RefreshCw, Trash2, Package, LayoutDashboard, List } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
@@ -36,6 +36,22 @@ export function InventoryDashboard({ restaurantId, isReadOnly = false }: Invento
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <LayoutDashboard className="h-4 w-4" />
+              {t("inv_dashboard")}
+            </TabsTrigger>
+            <TabsTrigger value="items" className="flex items-center gap-2">
+              <List className="h-4 w-4" />
+              {t("inv_items")}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <OperationsToolbar restaurantId={restaurantId} isReadOnly={isReadOnly} />
+      </div>
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full max-w-md grid-cols-2">
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
