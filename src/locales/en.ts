@@ -1131,4 +1131,13 @@ export default {
   recipe_notes_placeholder: "Optional notes about preparation, portions, etc.",
   save_recipe: "Save Recipe",
   saving: "Saving...",
+
+  // Inventory Deduction
+  inventory_negative_warning: "Inventory went negative for some items",
+  inventory_deduction_failed: "Inventory deduction failed. Payment completed successfully.",
+  inventory_warning_title: "Low Inventory Warning",
+  inventory_warning_desc: "The following items went below zero after this sale. Consider restocking soon.",
+  view_inventory: "View Inventory",
+  was: "Was",
+  more_items: "more items",
 } as const;
