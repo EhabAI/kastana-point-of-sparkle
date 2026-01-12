@@ -56,6 +56,7 @@ import {
   useUpdateOrderItemNotes,
 } from "@/hooks/pos/useOrderItems";
 import { useCompletePayment } from "@/hooks/pos/usePayments";
+import { useInventoryDeduction, type DeductionWarning } from "@/hooks/pos/useInventoryDeduction";
 import {
   POSHeader,
   POSTabControl,
@@ -92,6 +93,7 @@ import {
   TransferItemDialog,
   ConfirmNewOrderDialog,
   TableOrdersDialog,
+  InventoryWarningsDialog,
 } from "@/components/pos/dialogs";
 import type { RecentOrder } from "@/components/pos/dialogs/RecentOrdersDialog";
 import type { OrderType } from "@/components/pos/OrderTypeSelector";
@@ -169,7 +171,10 @@ export default function POS() {
   const reopenOrderMutation = useReopenOrder();
   const auditLogMutation = useAuditLog();
   const transferItemMutation = useTransferOrderItem();
+  const inventoryDeductionMutation = useInventoryDeduction();
   
+  // State for inventory deduction warnings
+  const [inventoryWarnings, setInventoryWarnings] = useState<DeductionWarning[]>([]);
   // Dialog states
   const [shiftDialogOpen, setShiftDialogOpen] = useState(false);
   const [shiftDialogMode, setShiftDialogMode] = useState<"open" | "close">("open");
@@ -862,6 +867,38 @@ export default function POS() {
       // Auto-show receipt after successful payment
       setSelectedOrderForReceipt(orderForReceipt as RecentOrder);
       setReceiptDialogOpen(true);
+
+      // Trigger inventory deduction (non-blocking)
+      try {
+        const deductionResult = await inventoryDeductionMutation.mutateAsync(currentOrder.id);
+        
+        if (deductionResult.warnings && deductionResult.warnings.length > 0) {
+          // Store warnings for display
+          setInventoryWarnings(deductionResult.warnings);
+          // Show warning toast with summary
+          const itemCount = deductionResult.warnings.length;
+          toast.warning(
+            `${t("inventory_negative_warning")} (${itemCount} ${t("items")})`,
+            {
+              duration: 8000,
+              action: {
+                label: t("view_details"),
+                onClick: () => setInventoryWarnings(deductionResult.warnings),
+              },
+            }
+          );
+        }
+        
+        if (!deductionResult.success && deductionResult.error) {
+          // Deduction failed but payment succeeded - show non-blocking warning
+          toast.error(t("inventory_deduction_failed"), { duration: 5000 });
+          console.error("[handlePaymentConfirm] Inventory deduction error:", deductionResult.error);
+        }
+      } catch (deductError) {
+        // Inventory deduction failed - payment still succeeded
+        console.error("[handlePaymentConfirm] Inventory deduction exception:", deductError);
+        toast.error(t("inventory_deduction_failed"), { duration: 5000 });
+      }
     } catch (error) {
       toast.error(t("payment_failed"));
       throw error; // Re-throw to signal failure to PaymentDialog
@@ -2147,6 +2184,13 @@ export default function POS() {
           isLoading={resumeOrderMutation.isPending || cancelOrderMutation.isPending}
         />
       )}
+
+      {/* Inventory Warnings Dialog */}
+      <InventoryWarningsDialog
+        open={inventoryWarnings.length > 0}
+        onOpenChange={(open) => { if (!open) setInventoryWarnings([]); }}
+        warnings={inventoryWarnings}
+      />
     </div>
   );
 }

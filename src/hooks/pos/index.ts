@@ -16,3 +16,4 @@ export * from "./usePendingOrders";
 export * from "./useOpenOrders";
 export * from "./useCashierPaymentMethods";
 export * from "./useModifiers";
+export * from "./useInventoryDeduction";

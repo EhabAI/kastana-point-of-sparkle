@@ -1129,4 +1129,13 @@ export default {
   recipe_notes_placeholder: "ملاحظات اختيارية حول التحضير، الحصص، إلخ.",
   save_recipe: "حفظ الوصفة",
   saving: "جاري الحفظ...",
+
+  // Inventory Deduction
+  inventory_negative_warning: "المخزون أصبح سالباً لبعض الأصناف",
+  inventory_deduction_failed: "فشل خصم المخزون. تم إتمام الدفع بنجاح.",
+  inventory_warning_title: "تحذير مخزون منخفض",
+  inventory_warning_desc: "الأصناف التالية أصبحت أقل من الصفر بعد هذا البيع. يُنصح بإعادة التخزين قريباً.",
+  view_inventory: "عرض المخزون",
+  was: "كان",
+  more_items: "أصناف أخرى",
 } as const;
