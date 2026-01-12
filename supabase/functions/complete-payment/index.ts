@@ -1,0 +1,269 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+// Helper: round to 3 decimals using HALF-UP (JOD standard)
+const roundJOD = (n: number): number => Math.round(n * 1000) / 1000;
+
+// Allowed payment methods (must match DB constraint)
+const ALLOWED_PAYMENT_METHODS = ["cash", "visa", "cliq", "zain_cash", "orange_money", "umniah_wallet"];
+
+Deno.serve(async (req) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    // Validate Authorization header
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      console.error("[complete-payment] Missing or invalid Authorization header");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Create Supabase client with user's auth
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    // Validate JWT and get user claims
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      console.error("[complete-payment] JWT validation failed:", claimsError);
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const userId = claimsData.claims.sub;
+    console.log("[complete-payment] Authenticated user:", userId);
+
+    // Parse request body
+    const { orderId, payments } = await req.json();
+
+    if (!orderId || !payments || !Array.isArray(payments) || payments.length === 0) {
+      console.error("[complete-payment] Invalid request body:", { orderId, payments });
+      return new Response(
+        JSON.stringify({ error: "Missing orderId or payments" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate payment methods
+    for (const payment of payments) {
+      if (!ALLOWED_PAYMENT_METHODS.includes(payment.method)) {
+        console.error("[complete-payment] Invalid payment method:", payment.method);
+        return new Response(
+          JSON.stringify({ error: `Invalid payment method: ${payment.method}` }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (typeof payment.amount !== "number" || payment.amount <= 0) {
+        console.error("[complete-payment] Invalid payment amount:", payment.amount);
+        return new Response(
+          JSON.stringify({ error: "Invalid payment amount" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // Use service role client for atomic transaction
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    // Step 1: Validate user role (cashier or owner)
+    const { data: userRole, error: roleError } = await supabaseAdmin
+      .from("user_roles")
+      .select("role, restaurant_id")
+      .eq("user_id", userId)
+      .in("role", ["cashier", "owner"])
+      .single();
+
+    if (roleError || !userRole) {
+      console.error("[complete-payment] User role validation failed:", roleError);
+      return new Response(
+        JSON.stringify({ error: "Access denied: requires cashier or owner role" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("[complete-payment] User role:", userRole.role);
+
+    // Step 2: Fetch order and validate status (atomic lock simulation)
+    const { data: order, error: orderError } = await supabaseAdmin
+      .from("orders")
+      .select("id, status, total, restaurant_id")
+      .eq("id", orderId)
+      .single();
+
+    if (orderError || !order) {
+      console.error("[complete-payment] Order not found:", orderError);
+      return new Response(
+        JSON.stringify({ error: "Order not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("[complete-payment] Order found:", { id: order.id, status: order.status, total: order.total });
+
+    // Step 3: Validate order status is 'open'
+    if (order.status !== "open") {
+      console.error("[complete-payment] Order not open:", order.status);
+      return new Response(
+        JSON.stringify({ error: `Order is not open (status: ${order.status}). Payment rejected.` }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Step 4: Validate user has access to this restaurant
+    let userRestaurantId: string;
+    
+    if (userRole.role === "owner") {
+      // Get owner's restaurant
+      const { data: restaurant } = await supabaseAdmin
+        .from("restaurants")
+        .select("id")
+        .eq("owner_id", userId)
+        .single();
+      
+      if (!restaurant) {
+        console.error("[complete-payment] Owner restaurant not found");
+        return new Response(
+          JSON.stringify({ error: "Restaurant not found for owner" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      userRestaurantId = restaurant.id;
+    } else {
+      userRestaurantId = userRole.restaurant_id;
+    }
+
+    if (order.restaurant_id !== userRestaurantId) {
+      console.error("[complete-payment] Restaurant mismatch:", { order: order.restaurant_id, user: userRestaurantId });
+      return new Response(
+        JSON.stringify({ error: "Access denied: order belongs to different restaurant" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Step 5: Validate restaurant is active
+    const { data: restaurant, error: restaurantError } = await supabaseAdmin
+      .from("restaurants")
+      .select("is_active")
+      .eq("id", order.restaurant_id)
+      .single();
+
+    if (restaurantError || !restaurant || !restaurant.is_active) {
+      console.error("[complete-payment] Restaurant inactive or not found:", restaurantError);
+      return new Response(
+        JSON.stringify({ error: "Restaurant is not active" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Step 6: Validate payment totals
+    const orderTotal = roundJOD(order.total);
+    const paymentTotal = roundJOD(payments.reduce((sum: number, p: { amount: number }) => sum + p.amount, 0));
+    const allCash = payments.every((p: { method: string }) => p.method === "cash");
+
+    // Card payments must be exact (no overpayment)
+    if (!allCash && paymentTotal > orderTotal + 0.001) {
+      console.error("[complete-payment] Card overpayment not allowed:", { paymentTotal, orderTotal });
+      return new Response(
+        JSON.stringify({ error: "Card payments must be exact. No overpayment allowed." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Total payments must cover the order
+    if (paymentTotal < orderTotal - 0.001) {
+      console.error("[complete-payment] Underpayment:", { paymentTotal, orderTotal });
+      return new Response(
+        JSON.stringify({ error: "Payment total is less than order total." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("[complete-payment] Payment validation passed:", { paymentTotal, orderTotal, allCash });
+
+    // Step 7: ATOMIC OPERATION - Check status again and update in one go
+    // First update order to 'paid' - this serves as our lock
+    const { data: updatedOrder, error: updateError } = await supabaseAdmin
+      .from("orders")
+      .update({ status: "paid" })
+      .eq("id", orderId)
+      .eq("status", "open")  // Critical: only update if still open
+      .select()
+      .single();
+
+    if (updateError || !updatedOrder) {
+      console.error("[complete-payment] Failed to update order (race condition or already paid):", updateError);
+      return new Response(
+        JSON.stringify({ error: "Order is no longer open. Payment rejected (possible duplicate)." }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("[complete-payment] Order status updated to paid");
+
+    // Step 8: Insert payments (order is now locked as 'paid')
+    const paymentRecords = payments.map((p: { method: string; amount: number }) => ({
+      order_id: orderId,
+      restaurant_id: order.restaurant_id,
+      method: p.method,
+      amount: p.amount,
+    }));
+
+    const { data: insertedPayments, error: paymentError } = await supabaseAdmin
+      .from("payments")
+      .insert(paymentRecords)
+      .select();
+
+    if (paymentError) {
+      // Rollback: set order back to open
+      console.error("[complete-payment] Failed to insert payments, rolling back:", paymentError);
+      await supabaseAdmin
+        .from("orders")
+        .update({ status: "open" })
+        .eq("id", orderId);
+      
+      return new Response(
+        JSON.stringify({ error: "Failed to record payments" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("[complete-payment] Payments inserted successfully:", insertedPayments?.length);
+
+    // Success
+    return new Response(
+      JSON.stringify({
+        success: true,
+        order: updatedOrder,
+        payments: insertedPayments,
+        change: allCash && paymentTotal > orderTotal ? roundJOD(paymentTotal - orderTotal) : 0,
+      }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+
+  } catch (error) {
+    console.error("[complete-payment] Unexpected error:", error);
+    return new Response(
+      JSON.stringify({ error: "Internal server error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});

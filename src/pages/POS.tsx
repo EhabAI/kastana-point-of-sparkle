@@ -55,7 +55,7 @@ import {
   useVoidOrderItem,
   useUpdateOrderItemNotes,
 } from "@/hooks/pos/useOrderItems";
-import { useAddPayment, useCompleteOrder } from "@/hooks/pos/usePayments";
+import { useCompletePayment } from "@/hooks/pos/usePayments";
 import {
   POSHeader,
   POSTabControl,
@@ -157,8 +157,7 @@ export default function POS() {
   const removeItemMutation = useRemoveOrderItem();
   const voidItemMutation = useVoidOrderItem();
   const updateNotesMutation = useUpdateOrderItemNotes();
-  const addPaymentMutation = useAddPayment();
-  const completeOrderMutation = useCompleteOrder();
+  const completePaymentMutation = useCompletePayment();
   const confirmPendingMutation = useConfirmPendingOrder();
   const rejectPendingMutation = useRejectPendingOrder();
   const moveToTableMutation = useMoveOrderToTable();
@@ -833,14 +832,8 @@ export default function POS() {
         payments: payments.map((p, idx) => ({ id: `temp-${idx}`, method: p.method, amount: p.amount })),
       };
 
-      for (const payment of payments) {
-        await addPaymentMutation.mutateAsync({
-          orderId: currentOrder.id,
-          method: payment.method,
-          amount: payment.amount,
-        });
-      }
-      await completeOrderMutation.mutateAsync({ orderId: currentOrder.id, payments });
+      // Use atomic payment completion - prevents double payments
+      await completePaymentMutation.mutateAsync({ orderId: currentOrder.id, payments });
       
       // Determine payment mode and breakdown for audit
       const cashAmount = roundJOD(payments.filter(p => p.method === "cash").reduce((sum, p) => sum + p.amount, 0));
@@ -1922,7 +1915,7 @@ export default function POS() {
         total={total}
         currency={currency}
         onConfirm={handlePaymentConfirm}
-        isLoading={addPaymentMutation.isPending}
+        isLoading={completePaymentMutation.isPending}
         paymentMethods={paymentMethods}
         orderStatus={currentOrder?.status}
       />
