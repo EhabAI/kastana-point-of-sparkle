@@ -36,8 +36,8 @@ export function InventoryDashboard({ restaurantId, isReadOnly = false }: Invento
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
           <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <LayoutDashboard className="h-4 w-4" />
@@ -48,21 +48,8 @@ export function InventoryDashboard({ restaurantId, isReadOnly = false }: Invento
               {t("inv_items")}
             </TabsTrigger>
           </TabsList>
-        </Tabs>
-        <OperationsToolbar restaurantId={restaurantId} isReadOnly={isReadOnly} />
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="dashboard" className="flex items-center gap-2">
-            <LayoutDashboard className="h-4 w-4" />
-            {t("inv_dashboard")}
-          </TabsTrigger>
-          <TabsTrigger value="items" className="flex items-center gap-2">
-            <List className="h-4 w-4" />
-            {t("inv_items")}
-          </TabsTrigger>
-        </TabsList>
+          <OperationsToolbar restaurantId={restaurantId} isReadOnly={isReadOnly} />
+        </div>
 
         <TabsContent value="dashboard" className="mt-4">
           <DashboardWidgets restaurantId={restaurantId} />
