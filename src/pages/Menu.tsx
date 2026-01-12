@@ -8,12 +8,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Minus,
   Plus,
   ShoppingCart,
   Check,
-  Globe,
   Send,
   Coffee,
   Pizza,
@@ -767,16 +768,11 @@ export default function Menu() {
             </div>
           </div>
 
-          {/* Language Toggle - Icon only */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setLanguage(language === "ar" ? "en" : "ar")}
-            className="h-10 w-10 rounded-full"
-            title={language === "ar" ? "Switch to English" : "التبديل إلى العربية"}
-          >
-            <Globe className="h-5 w-5 text-muted-foreground" />
-          </Button>
+          {/* Language & Theme Toggles */}
+          <div className="flex items-center gap-2">
+            <LanguageToggle />
+            <ThemeToggle />
+          </div>
         </div>
 
         {/* Success Message */}
