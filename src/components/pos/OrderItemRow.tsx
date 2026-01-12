@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, X, MessageSquare, ArrowRightLeft, Hash } from "lucide-react";
 import { NumericKeypad } from "./NumericKeypad";
-import { formatJOD } from "@/lib/utils";
+import { formatJOD, getCurrencySymbol } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OrderItemModifier {
   id: string;
@@ -43,6 +44,8 @@ export function OrderItemRow({
   showTransfer,
 }: OrderItemRowProps) {
   const [keypadOpen, setKeypadOpen] = useState(false);
+  const { language } = useLanguage();
+  const localizedCurrency = getCurrencySymbol(currency, language);
 
   if (item.voided) {
     return (
@@ -68,7 +71,7 @@ export function OrderItemRow({
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium flex-1">{item.name}</span>
           <span className="text-sm font-medium">
-            {formatJOD(lineTotal)} {currency}
+            {formatJOD(lineTotal)} {localizedCurrency}
           </span>
         </div>
 
