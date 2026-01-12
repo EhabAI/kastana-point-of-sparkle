@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Clock } from "lucide-react";
+import { Clock, Users } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface TableCardProps {
   tableName: string;
@@ -49,6 +55,8 @@ export function TableCard({
     orderCreatedAt ? formatDuration(orderCreatedAt) : "0m"
   );
   
+  const hasMergedOrders = orderCount && orderCount > 1;
+  
   // Update timer every minute
   useEffect(() => {
     if (!isOccupied || !orderCreatedAt) return;
@@ -61,201 +69,168 @@ export function TableCard({
     
     return () => clearInterval(interval);
   }, [isOccupied, orderCreatedAt]);
-  
-  // Determine table shape based on capacity
-  const tableType = effectiveCapacity <= 2 ? "round-small" : effectiveCapacity <= 4 ? "round" : "rectangular";
 
   return (
     <button
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "relative flex flex-col items-center justify-center p-3.5 rounded-xl border-2 transition-all duration-200 min-h-[130px] group",
-        "hover:shadow-md active:scale-[0.98]",
+        "relative flex flex-col items-center justify-between p-4 rounded-2xl border-2 transition-all duration-200 min-w-[160px] min-h-[180px] group",
+        "hover:shadow-lg active:scale-[0.98]",
         selected
           ? "border-primary bg-primary/10 ring-2 ring-primary ring-offset-2"
           : isOccupied
-            ? "border-amber-400 bg-amber-50/90 dark:bg-amber-950/30 dark:border-amber-600 shadow-md"
-            : "border-emerald-200/80 bg-emerald-50/50 dark:bg-emerald-950/10 dark:border-emerald-800/60 hover:border-emerald-300",
+            ? "border-amber-500 bg-amber-50/95 dark:bg-amber-950/40 dark:border-amber-500 shadow-lg"
+            : "border-emerald-300/80 bg-emerald-50/60 dark:bg-emerald-950/20 dark:border-emerald-700/60 hover:border-emerald-400",
         disabled && "opacity-50 cursor-not-allowed hover:shadow-none"
       )}
     >
-      {/* Table SVG */}
-      <div className="relative mb-1.5">
-        {tableType === "round-small" && <RoundTableSmall isOccupied={isOccupied} tableName={tableName} />}
-        {tableType === "round" && <RoundTable isOccupied={isOccupied} tableName={tableName} />}
-        {tableType === "rectangular" && <RectangularTable isOccupied={isOccupied} capacity={effectiveCapacity} tableName={tableName} />}
+      {/* Status Badge - Top Left */}
+      <div className="absolute top-2.5 left-2.5">
+        <span
+          className={cn(
+            "px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider",
+            isOccupied
+              ? "bg-amber-500 text-white"
+              : "bg-emerald-500 text-white"
+          )}
+        >
+          {isOccupied ? t("occupied") : t("free")}
+        </span>
       </div>
 
-      {/* Capacity */}
-      <span className="text-[10px] text-muted-foreground">{effectiveCapacity} {t("seats")}</span>
+      {/* Merged Orders Badge - Top Right */}
+      {hasMergedOrders && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-primary text-primary-foreground cursor-help">
+                <span>M</span>
+                <span className="text-primary-foreground/80">×{orderCount}</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              <p>{t("mergedOrdersTooltip") || "Merged Orders - Multiple orders on this table"}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
 
-      {/* Status Badge */}
-      <div
-        className={cn(
-          "absolute top-2 right-2 px-1.5 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wide",
-          isOccupied
-            ? "bg-amber-500/90 text-white"
-            : "bg-emerald-500/90 text-white"
+      {/* Table with Chairs Visualization */}
+      <div className="flex-1 flex items-center justify-center py-2">
+        <TableWithChairs 
+          tableName={tableName} 
+          capacity={effectiveCapacity} 
+          isOccupied={isOccupied}
+          orderNumber={orderNumber}
+        />
+      </div>
+
+      {/* Bottom Info */}
+      <div className="w-full flex items-center justify-between gap-2 mt-1">
+        {/* Seats Count */}
+        <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+          <Users className="h-3 w-3" />
+          <span>{effectiveCapacity} {t("seats")}</span>
+        </div>
+
+        {/* Timer for Occupied */}
+        {isOccupied && orderCreatedAt && (
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-[10px] font-semibold text-amber-700 dark:text-amber-300">
+            <Clock className="h-3 w-3" />
+            {duration}
+          </div>
         )}
-      >
-        {isOccupied ? `#${orderNumber}` : t("free")}
       </div>
-
-      {/* Multiple Orders Indicator */}
-      {orderCount && orderCount > 1 && (
-        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary text-primary-foreground shadow-sm">
-          {orderCount} {t("orders")}
-        </div>
-      )}
-
-      {/* Occupancy Timer - subtle styling */}
-      {isOccupied && orderCreatedAt && (
-        <div className="absolute bottom-1.5 right-1.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-muted/60 text-[9px] font-medium text-muted-foreground">
-          <Clock className="h-2.5 w-2.5" />
-          {duration}
-        </div>
-      )}
     </button>
   );
 }
 
-// Chair component
-function Chair({ className }: { className?: string }) {
+// Chair dot component - subtle circular indicator
+function ChairDot({ className, position }: { className?: string; position: 'top' | 'bottom' | 'left' | 'right' }) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className={cn("w-4 h-4 text-gray-500 dark:text-gray-400", className)}
-      fill="currentColor"
-    >
-      <ellipse cx="12" cy="12" rx="8" ry="6" />
-    </svg>
+    <div
+      className={cn(
+        "w-3 h-3 rounded-full bg-muted-foreground/30 dark:bg-muted-foreground/40 border border-muted-foreground/20",
+        className
+      )}
+    />
   );
 }
 
-// Small round table (2 seats)
-function RoundTableSmall({ isOccupied, tableName }: { isOccupied: boolean; tableName: string }) {
-  return (
-    <div className="relative w-16 h-16 flex items-center justify-center">
-      {/* Chairs */}
-      <Chair className="absolute -top-3 left-1/2 -translate-x-1/2" />
-      <Chair className="absolute -bottom-3 left-1/2 -translate-x-1/2" />
-      
-      {/* Table */}
-      <svg viewBox="0 0 60 60" className="w-12 h-12">
-        <circle
-          cx="30"
-          cy="30"
-          r="24"
-          className={cn(
-            "stroke-2",
-            isOccupied
-              ? "fill-amber-200 dark:fill-amber-800 stroke-amber-600 dark:stroke-amber-400"
-              : "fill-emerald-200 dark:fill-emerald-800 stroke-emerald-600 dark:stroke-emerald-400"
-          )}
-        />
-        <text
-          x="30"
-          y="30"
-          textAnchor="middle"
-          dominantBaseline="middle"
-          className="fill-foreground font-bold text-[14px]"
-        >
-          {tableName}
-        </text>
-      </svg>
-    </div>
-  );
-}
+// Unified table with chairs visualization
+function TableWithChairs({ 
+  tableName, 
+  capacity, 
+  isOccupied,
+  orderNumber 
+}: { 
+  tableName: string; 
+  capacity: number; 
+  isOccupied: boolean;
+  orderNumber?: number;
+}) {
+  // Calculate chair distribution
+  const chairsTop = Math.ceil(capacity / 4);
+  const chairsBottom = Math.ceil(capacity / 4);
+  const chairsLeft = Math.floor((capacity - chairsTop - chairsBottom) / 2);
+  const chairsRight = capacity - chairsTop - chairsBottom - chairsLeft;
 
-// Round table (4 seats)
-function RoundTable({ isOccupied, tableName }: { isOccupied: boolean; tableName: string }) {
   return (
-    <div className="relative w-20 h-20 flex items-center justify-center">
-      {/* Chairs */}
-      <Chair className="absolute -top-3 left-1/2 -translate-x-1/2" />
-      <Chair className="absolute -bottom-3 left-1/2 -translate-x-1/2" />
-      <Chair className="absolute top-1/2 -left-3 -translate-y-1/2 rotate-90" />
-      <Chair className="absolute top-1/2 -right-3 -translate-y-1/2 -rotate-90" />
-      
-      {/* Table */}
-      <svg viewBox="0 0 60 60" className="w-14 h-14">
-        <circle
-          cx="30"
-          cy="30"
-          r="26"
-          className={cn(
-            "stroke-2",
-            isOccupied
-              ? "fill-amber-200 dark:fill-amber-800 stroke-amber-600 dark:stroke-amber-400"
-              : "fill-emerald-200 dark:fill-emerald-800 stroke-emerald-600 dark:stroke-emerald-400"
-          )}
-        />
-        <text
-          x="30"
-          y="30"
-          textAnchor="middle"
-          dominantBaseline="middle"
-          className="fill-foreground font-bold text-[14px]"
-        >
-          {tableName}
-        </text>
-      </svg>
-    </div>
-  );
-}
-
-// Rectangular table (6+ seats)
-function RectangularTable({ isOccupied, capacity, tableName }: { isOccupied: boolean; capacity: number; tableName: string }) {
-  const chairsPerSide = Math.ceil((capacity - 2) / 2);
-  
-  return (
-    <div className="relative w-28 h-20 flex items-center justify-center">
-      {/* Top chairs */}
-      <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex gap-3">
-        {Array.from({ length: chairsPerSide }).map((_, i) => (
-          <Chair key={`top-${i}`} />
+    <div className="relative flex items-center justify-center">
+      {/* Top Chairs */}
+      <div className="absolute -top-4 left-1/2 -translate-x-1/2 flex gap-2">
+        {Array.from({ length: Math.max(1, chairsTop) }).map((_, i) => (
+          <ChairDot key={`top-${i}`} position="top" />
         ))}
       </div>
-      
-      {/* Bottom chairs */}
-      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex gap-3">
-        {Array.from({ length: chairsPerSide }).map((_, i) => (
-          <Chair key={`bottom-${i}`} />
+
+      {/* Bottom Chairs */}
+      <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+        {Array.from({ length: Math.max(1, chairsBottom) }).map((_, i) => (
+          <ChairDot key={`bottom-${i}`} position="bottom" />
         ))}
       </div>
-      
-      {/* Left chair */}
-      <Chair className="absolute top-1/2 -left-2 -translate-y-1/2 rotate-90" />
-      
-      {/* Right chair */}
-      <Chair className="absolute top-1/2 -right-2 -translate-y-1/2 -rotate-90" />
-      
-      {/* Table */}
-      <svg viewBox="0 0 100 50" className="w-24 h-12">
-        <rect
-          x="4"
-          y="4"
-          width="92"
-          height="42"
-          rx="8"
-          className={cn(
-            "stroke-2",
-            isOccupied
-              ? "fill-amber-200 dark:fill-amber-800 stroke-amber-600 dark:stroke-amber-400"
-              : "fill-emerald-200 dark:fill-emerald-800 stroke-emerald-600 dark:stroke-emerald-400"
-          )}
-        />
-        <text
-          x="50"
-          y="25"
-          textAnchor="middle"
-          dominantBaseline="middle"
-          className="fill-foreground font-bold text-[14px]"
-        >
+
+      {/* Left Chairs */}
+      {chairsLeft > 0 && (
+        <div className="absolute top-1/2 -left-4 -translate-y-1/2 flex flex-col gap-2">
+          {Array.from({ length: chairsLeft }).map((_, i) => (
+            <ChairDot key={`left-${i}`} position="left" />
+          ))}
+        </div>
+      )}
+
+      {/* Right Chairs */}
+      {chairsRight > 0 && (
+        <div className="absolute top-1/2 -right-4 -translate-y-1/2 flex flex-col gap-2">
+          {Array.from({ length: chairsRight }).map((_, i) => (
+            <ChairDot key={`right-${i}`} position="right" />
+          ))}
+        </div>
+      )}
+
+      {/* Square Table Surface */}
+      <div
+        className={cn(
+          "w-20 h-20 rounded-xl flex flex-col items-center justify-center border-2 shadow-sm",
+          isOccupied
+            ? "bg-amber-200 dark:bg-amber-800/80 border-amber-500 dark:border-amber-400"
+            : "bg-emerald-200 dark:bg-emerald-800/80 border-emerald-500 dark:border-emerald-400"
+        )}
+      >
+        {/* Table Name - Large */}
+        <span className="text-lg font-bold text-foreground leading-none">
           {tableName}
-        </text>
-      </svg>
+        </span>
+        
+        {/* Order Number if occupied */}
+        {isOccupied && orderNumber && (
+          <span className="text-[10px] font-semibold text-muted-foreground mt-1">
+            #{orderNumber}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
