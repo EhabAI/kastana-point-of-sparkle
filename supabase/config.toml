@@ -26,3 +26,15 @@ verify_jwt = false
 
 [functions.create-refund]
 verify_jwt = false
+
+[functions.inventory-create-transaction]
+verify_jwt = false
+
+[functions.purchase-receipt-post]
+verify_jwt = false
+
+[functions.inventory-transfer]
+verify_jwt = false
+
+[functions.stock-count-approve]
+verify_jwt = false
