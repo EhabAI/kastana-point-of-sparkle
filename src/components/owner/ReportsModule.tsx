@@ -7,8 +7,9 @@ import { MenuReports } from "./reports/MenuReports";
 import { StaffReports } from "./reports/StaffReports";
 import { OperationsReports } from "./reports/OperationsReports";
 import { BranchReports } from "./reports/BranchReports";
+import { CostingReports } from "./reports/CostingReports";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { DollarSign, ShoppingCart, UtensilsCrossed, Users, Settings2, Building2 } from "lucide-react";
+import { DollarSign, ShoppingCart, UtensilsCrossed, Users, Settings2, Building2, Calculator } from "lucide-react";
 
 export function ReportsModule() {
   const { t } = useLanguage();
@@ -52,6 +53,10 @@ export function ReportsModule() {
             <Building2 className="h-3.5 w-3.5" />
             {t("branches") || "Branches"}
           </TabsTrigger>
+          <TabsTrigger value="costing" className="flex items-center gap-1.5 text-xs">
+            <Calculator className="h-3.5 w-3.5" />
+            {t("costing_profit") || "Costing & Profit"}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="financial" className="mt-4">
@@ -71,6 +76,9 @@ export function ReportsModule() {
         </TabsContent>
         <TabsContent value="branches" className="mt-4">
           <BranchReports dateRange={dateRange} />
+        </TabsContent>
+        <TabsContent value="costing" className="mt-4">
+          <CostingReports dateRange={dateRange} />
         </TabsContent>
       </Tabs>
     </div>
