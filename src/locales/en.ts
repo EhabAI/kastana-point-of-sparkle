@@ -87,6 +87,27 @@ export default {
   inventory_coming_soon: "Inventory management coming soon",
   settings: "Settings",
 
+  // Inventory Dashboard
+  inv_low_stock: "Low Stock",
+  inv_low_stock_desc: "Items below minimum level",
+  inv_no_low_stock: "No low stock items",
+  inv_near_reorder: "Near Reorder",
+  inv_near_reorder_desc: "Items approaching reorder point",
+  inv_no_reorder_needed: "No reorder needed",
+  inv_recent_transactions: "Recent Transactions",
+  inv_recent_transactions_desc: "Last 10 inventory movements",
+  inv_no_transactions: "No recent transactions",
+  inv_waste_summary: "Waste (7 Days)",
+  inv_waste_summary_desc: "Total waste in the last 7 days",
+  inv_no_waste: "No waste recorded",
+  inv_txn_purchase_receipt: "Purchase",
+  inv_txn_adjustment_in: "Adj. In",
+  inv_txn_adjustment_out: "Adj. Out",
+  inv_txn_waste: "Waste",
+  inv_txn_transfer_out: "Transfer Out",
+  inv_txn_transfer_in: "Transfer In",
+  inv_txn_stock_count_adjustment: "Count Adj.",
+
   // Dashboard
   daily_snapshot: "Daily Snapshot",
   operational_status: "Operational Status",

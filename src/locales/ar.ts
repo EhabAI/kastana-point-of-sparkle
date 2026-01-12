@@ -87,6 +87,27 @@ export default {
   inventory_coming_soon: "إدارة المخزون قريباً",
   settings: "الإعدادات",
 
+  // Inventory Dashboard
+  inv_low_stock: "مخزون منخفض",
+  inv_low_stock_desc: "الأصناف أقل من الحد الأدنى",
+  inv_no_low_stock: "لا توجد أصناف منخفضة المخزون",
+  inv_near_reorder: "قريب من إعادة الطلب",
+  inv_near_reorder_desc: "الأصناف التي تقترب من نقطة إعادة الطلب",
+  inv_no_reorder_needed: "لا حاجة لإعادة الطلب",
+  inv_recent_transactions: "الحركات الأخيرة",
+  inv_recent_transactions_desc: "آخر 10 حركات مخزون",
+  inv_no_transactions: "لا توجد حركات حديثة",
+  inv_waste_summary: "الهدر (7 أيام)",
+  inv_waste_summary_desc: "إجمالي الهدر في آخر 7 أيام",
+  inv_no_waste: "لا يوجد هدر مسجل",
+  inv_txn_purchase_receipt: "شراء",
+  inv_txn_adjustment_in: "تعديل +",
+  inv_txn_adjustment_out: "تعديل -",
+  inv_txn_waste: "هدر",
+  inv_txn_transfer_out: "نقل صادر",
+  inv_txn_transfer_in: "نقل وارد",
+  inv_txn_stock_count_adjustment: "تعديل جرد",
+
   // Dashboard
   daily_snapshot: "ملخص اليوم",
   operational_status: "الحالة التشغيلية",
