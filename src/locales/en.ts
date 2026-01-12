@@ -83,6 +83,8 @@ export default {
   menu: "Menu",
   manage: "Manage",
   branches: "Branches",
+  inventory: "Inventory",
+  inventory_coming_soon: "Inventory management coming soon",
   settings: "Settings",
 
   // Dashboard

@@ -38,7 +38,8 @@ import {
   Settings,
   Building2,
   ScrollText,
-  Star
+  Star,
+  Package
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -220,6 +221,13 @@ export default function OwnerAdmin() {
               <span>{t("branches")}</span>
             </TabsTrigger>
             <TabsTrigger 
+              value="inventory" 
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
+            >
+              <Package className="h-3.5 w-3.5" />
+              <span>{t("inventory")}</span>
+            </TabsTrigger>
+            <TabsTrigger 
               value="settings" 
               className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
             >
@@ -275,6 +283,16 @@ export default function OwnerAdmin() {
           {/* Branches Tab */}
           <TabsContent value="branches" className="space-y-6 mt-6">
             {role === "owner" && <BranchManagement restaurantId={restaurant.id} />}
+          </TabsContent>
+
+          {/* Inventory Tab */}
+          <TabsContent value="inventory" className="space-y-6 mt-6">
+            {role === "owner" && (
+              <div className="flex items-center justify-center py-12 text-muted-foreground">
+                <Package className="h-8 w-8 mr-3 opacity-50" />
+                <span>{t("inventory_coming_soon")}</span>
+              </div>
+            )}
           </TabsContent>
 
           {/* Settings Tab */}
