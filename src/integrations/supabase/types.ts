@@ -829,6 +829,7 @@ export type Database = {
       }
       order_items: {
         Row: {
+          cogs: number | null
           created_at: string
           id: string
           menu_item_id: string | null
@@ -836,12 +837,14 @@ export type Database = {
           notes: string | null
           order_id: string
           price: number
+          profit: number | null
           quantity: number
           restaurant_id: string
           void_reason: string | null
           voided: boolean
         }
         Insert: {
+          cogs?: number | null
           created_at?: string
           id?: string
           menu_item_id?: string | null
@@ -849,12 +852,14 @@ export type Database = {
           notes?: string | null
           order_id: string
           price: number
+          profit?: number | null
           quantity?: number
           restaurant_id: string
           void_reason?: string | null
           voided?: boolean
         }
         Update: {
+          cogs?: number | null
           created_at?: string
           id?: string
           menu_item_id?: string | null
@@ -862,6 +867,7 @@ export type Database = {
           notes?: string | null
           order_id?: string
           price?: number
+          profit?: number | null
           quantity?: number
           restaurant_id?: string
           void_reason?: string | null
