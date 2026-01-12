@@ -584,14 +584,29 @@ export default function Menu() {
   }, [restaurantId, branchIdParam, tableCode]);
 
   /* =======================
-     Group Items
+     Group Items - Offers first, expanded by default
   ======================= */
   const categoriesWithItems = useMemo(() => {
-    return categories.map((cat) => ({
+    const mapped = categories.map((cat) => ({
       ...cat,
       items: items.filter((item) => item.category_id === cat.id),
+      isOfferCategory: cat.name.toLowerCase().includes("offer") || cat.name.includes("عرض") || cat.name.includes("عروض"),
     }));
+    // Sort: offer categories first
+    return mapped.sort((a, b) => {
+      if (a.isOfferCategory && !b.isOfferCategory) return -1;
+      if (!a.isOfferCategory && b.isOfferCategory) return 1;
+      return (a.sort_order || 0) - (b.sort_order || 0);
+    });
   }, [categories, items]);
+
+  // Auto-expand offers category on mount
+  useEffect(() => {
+    const offerCategory = categoriesWithItems.find(c => c.isOfferCategory);
+    if (offerCategory && openCategoryId === null) {
+      setOpenCategoryId(offerCategory.id);
+    }
+  }, [categoriesWithItems]);
 
   /* =======================
      Cart Functions
@@ -734,8 +749,8 @@ export default function Menu() {
   return (
     <div className="min-h-screen bg-background pb-24" dir={isRTL ? "rtl" : "ltr"}>
       <div className="max-w-3xl mx-auto p-4">
-        {/* Header */}
-        <div className="mb-6 flex justify-between items-start">
+        {/* Header - Polished */}
+        <div className="mb-6 flex justify-between items-center">
           <div className="flex items-center gap-3">
             {restaurant?.logo_url && (
               <img
@@ -745,22 +760,22 @@ export default function Menu() {
               />
             )}
             <div>
-              <h1 className="text-xl font-bold">{restaurant?.name ?? "Restaurant"}</h1>
-              <p className="text-sm text-muted-foreground">
-                {t("menu_table")}: {tableCode}
+              <h1 className="text-2xl font-bold tracking-tight">{restaurant?.name ?? "Restaurant"}</h1>
+              <p className="text-xs text-muted-foreground/70">
+                {t("menu_table")}: <span className="font-medium">{tableCode}</span>
               </p>
             </div>
           </div>
 
-          {/* Language Toggle */}
+          {/* Language Toggle - Icon only */}
           <Button
-            variant="outline"
-            size="sm"
+            variant="ghost"
+            size="icon"
             onClick={() => setLanguage(language === "ar" ? "en" : "ar")}
-            className="flex items-center gap-1"
+            className="h-10 w-10 rounded-full"
+            title={language === "ar" ? "Switch to English" : "التبديل إلى العربية"}
           >
-            <Globe className="h-4 w-4" />
-            <span>{language === "ar" ? "EN" : "عربي"}</span>
+            <Globe className="h-5 w-5 text-muted-foreground" />
           </Button>
         </div>
 
@@ -772,73 +787,100 @@ export default function Menu() {
           </div>
         )}
 
-        {/* Menu */}
-        <div className="space-y-3">
+        {/* Menu - Polished */}
+        <div className="space-y-4">
           {categoriesWithItems.map((category) => {
             const isOpen = openCategoryId === category.id;
             const iconInfo = getCategoryIcon(category.name);
             const IconComponent = iconInfo.icon;
+            const isOfferCategory = (category as any).isOfferCategory;
 
             return (
-              <div key={category.id} className="border rounded-xl overflow-hidden shadow-sm">
+              <div 
+                key={category.id} 
+                className={`rounded-xl overflow-hidden shadow-sm ${
+                  isOfferCategory 
+                    ? "border-2 border-primary/30 ring-1 ring-primary/10" 
+                    : "border border-border"
+                }`}
+              >
+                {/* Category Header - Darker background */}
                 <button
                   type="button"
                   onClick={() => setOpenCategoryId(isOpen ? null : category.id)}
-                  className="w-full flex justify-between items-center p-4 font-semibold bg-gradient-to-r from-muted/80 to-muted/40 hover:from-muted hover:to-muted/60 transition-all"
+                  className="w-full flex justify-between items-center p-4 bg-muted/60 dark:bg-muted/40 hover:bg-muted/80 dark:hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${iconInfo.bgColor}`}>
-                      <IconComponent className={`h-5 w-5 ${iconInfo.color}`} />
+                    <div className={`p-2.5 rounded-xl ${iconInfo.bgColor}`}>
+                      <IconComponent className={`h-6 w-6 ${iconInfo.color}`} />
                     </div>
-                    <span>{translateCategoryName(category.name, language)}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-base">{translateCategoryName(category.name, language)}</span>
+                      {isOfferCategory && (
+                        <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-primary text-primary-foreground rounded-full">
+                          {language === "ar" ? "عرض" : "Special"}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-lg">{isOpen ? "−" : "+"}</span>
+                  <span className="text-muted-foreground text-sm font-medium">{isOpen ? "−" : "+"}</span>
                 </button>
 
+                {/* Divider */}
+                {isOpen && <div className="h-px bg-border/60" />}
+
                 {isOpen && (
-                  <div className="p-4">
+                  <div className="p-4 bg-background">
                     {category.items.length === 0 ? (
                       <p className="text-sm text-muted-foreground">{t("menu_no_items")}</p>
                     ) : (
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         {category.items.map((item) => {
                           const qty = getItemQuantity(item.id);
                           return (
-                            <div key={item.id} className="flex justify-between items-center p-2 rounded-lg bg-muted/30">
-                              <div className="flex-1">
-                                <p className="font-medium">
-                                  {translateItemName(item.name, language)}{" "}
-                                  {item.is_offer && <span className={isRTL ? "mr-1" : "ml-1"}>🔥</span>}
+                            <div key={item.id} className="flex justify-between items-center py-2">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-foreground">
+                                  {translateItemName(item.name, language)}
+                                  {item.is_offer && (
+                                    <span className={`inline-flex items-center ${isRTL ? "mr-2" : "ml-2"}`}>
+                                      <Tag className="h-3 w-3 text-primary" />
+                                    </span>
+                                  )}
                                 </p>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-xs text-muted-foreground/80 mt-0.5">
                                   {formatJOD(item.price)} {t("menu_currency")}
                                 </p>
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-shrink-0">
                                 {qty > 0 ? (
                                   <>
                                     <Button
                                       variant="outline"
                                       size="icon"
-                                      className="h-8 w-8"
+                                      className="h-9 w-9 rounded-full"
                                       onClick={() => decrementItem(item.id)}
                                     >
                                       <Minus className="h-4 w-4" />
                                     </Button>
-                                    <span className="w-6 text-center font-semibold">{qty}</span>
+                                    <span className="w-6 text-center font-semibold tabular-nums">{qty}</span>
                                     <Button
                                       variant="outline"
                                       size="icon"
-                                      className="h-8 w-8"
+                                      className="h-9 w-9 rounded-full"
                                       onClick={() => incrementItem(item)}
                                     >
                                       <Plus className="h-4 w-4" />
                                     </Button>
                                   </>
                                 ) : (
-                                  <Button variant="default" size="sm" onClick={() => incrementItem(item)}>
-                                    <Plus className={`h-4 w-4 ${isRTL ? "ml-1" : "mr-1"}`} />
-                                    {t("add")}
+                                  <Button 
+                                    variant="default" 
+                                    size="icon"
+                                    className="h-9 w-9 rounded-full"
+                                    onClick={() => incrementItem(item)}
+                                  >
+                                    <Plus className="h-4 w-4" />
                                   </Button>
                                 )}
                               </div>
