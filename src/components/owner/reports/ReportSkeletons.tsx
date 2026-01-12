@@ -210,3 +210,15 @@ export function BranchReportsSkeleton() {
     </div>
   );
 }
+
+// Complete loading state for Costing Reports
+export function CostingReportsSkeleton() {
+  return (
+    <div className="space-y-8">
+      <ReportSectionSkeleton type="kpi" />
+      <ReportSectionSkeleton type="table" />
+      <ReportSectionSkeleton type="table" />
+      <ReportSectionSkeleton type="table" />
+    </div>
+  );
+}
