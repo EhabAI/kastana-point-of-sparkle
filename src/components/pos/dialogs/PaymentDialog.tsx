@@ -373,7 +373,7 @@ export function PaymentDialog({
             <Button
               onClick={handleConfirm}
               disabled={isLoading || isSubmitting || !hasValidPayments || isOrderBlocked || !(isExactMatch || (hasOverpayment && allPaymentsCash))}
-              className="h-12 min-w-[180px] font-semibold"
+              className="h-12 min-w-[180px] font-semibold text-sm"
             >
               {isLoading || isSubmitting ? t("processing") : `✓ ${t("complete_payment")}`}
             </Button>
