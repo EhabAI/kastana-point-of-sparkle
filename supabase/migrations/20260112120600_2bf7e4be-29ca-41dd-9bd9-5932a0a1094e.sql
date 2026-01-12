@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Cashiers can update non-pending orders" ON public.orders;
