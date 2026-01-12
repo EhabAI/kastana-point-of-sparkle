@@ -8,6 +8,11 @@ export type PaymentMethod = AllowedPaymentMethod;
 // Helper: round to 3 decimals using HALF-UP (JOD standard)
 const roundJOD = (n: number): number => Math.round(n * 1000) / 1000;
 
+/**
+ * @deprecated Use useCompletePayment for atomic payment processing
+ * This hook is kept for backwards compatibility but should not be used
+ * for new payment flows as it doesn't prevent race conditions.
+ */
 export function useAddPayment() {
   const { data: restaurant } = useCashierRestaurant();
   const queryClient = useQueryClient();
@@ -50,6 +55,9 @@ export function useAddPayment() {
   });
 }
 
+/**
+ * @deprecated Use useCompletePayment for atomic payment processing
+ */
 export function useCompleteOrder() {
   const queryClient = useQueryClient();
 
@@ -105,6 +113,56 @@ export function useCompleteOrder() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["current-order"] });
       queryClient.invalidateQueries({ queryKey: ["recent-orders"] });
+    },
+  });
+}
+
+/**
+ * Atomic payment completion - prevents double payments via race conditions.
+ * This hook calls the complete-payment edge function which:
+ * 1. Validates JWT and user role (cashier/owner)
+ * 2. Validates restaurant is active
+ * 3. Atomically checks order status and updates to 'paid'
+ * 4. Inserts all payment records
+ * 5. Rolls back on any failure
+ */
+export function useCompletePayment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      orderId, 
+      payments 
+    }: { 
+      orderId: string; 
+      payments: { method: string; amount: number }[] 
+    }) => {
+      // Call the atomic edge function
+      const { data, error } = await supabase.functions.invoke("complete-payment", {
+        body: { orderId, payments },
+      });
+
+      if (error) {
+        console.error("[useCompletePayment] Edge function error:", error);
+        throw new Error(error.message || "Payment failed");
+      }
+
+      if (!data?.success) {
+        console.error("[useCompletePayment] Payment rejected:", data?.error);
+        throw new Error(data?.error || "Payment failed");
+      }
+
+      return {
+        order: data.order,
+        payments: data.payments,
+        change: data.change,
+      };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["current-order"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["open-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["branch-tables"] });
     },
   });
 }
