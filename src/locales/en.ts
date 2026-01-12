@@ -970,4 +970,11 @@ export default {
   merge_with_another: "Merge with another table",
   cancelled_from_held: "Cancelled from held orders",
   empty_order_cancelled: "Empty order cancelled by cashier",
+
+  // Menu language guidance
+  menu_language_title: "Menu Item Language",
+  menu_language_description: "Item and category names are displayed in the language they were entered. Changing the system language (Arabic / English) only affects the interface, not the menu items.",
+  menu_language_example_intro: "If your restaurant serves bilingual customers, you can enter names like:",
+  menu_language_future_note: "Multi-language menu support will be available in future updates.",
+  menu_language_tooltip: "Item name displays in the same language it was entered, regardless of system language.",
 } as const;

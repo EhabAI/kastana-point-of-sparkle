@@ -968,4 +968,11 @@ export default {
   merge_with_another: "دمج مع طاولة أخرى",
   cancelled_from_held: "تم الإلغاء من الطلبات المعلقة",
   empty_order_cancelled: "تم إلغاء الطلب الفارغ بواسطة الكاشير",
+
+  // Menu language guidance
+  menu_language_title: "لغة عرض الأصناف",
+  menu_language_description: "يتم عرض أسماء الأصناف والتصنيفات باللغة التي يتم إدخالها عند الإنشاء. تغيير لغة النظام (عربي / English) يؤثر على واجهة النظام فقط ولا يغيّر لغة عناصر القائمة.",
+  menu_language_example_intro: "إذا كان مطعمك يخدم زبائن بلغتين، يمكنك إدخال الاسم بالشكل التالي:",
+  menu_language_future_note: "سيتم دعم إدخال أسماء الأصناف بأكثر من لغة في تحديثات قادمة من النظام.",
+  menu_language_tooltip: "اسم الصنف يظهر بنفس اللغة التي يتم إدخالها، بغضّ النظر عن لغة النظام.",
 } as const;

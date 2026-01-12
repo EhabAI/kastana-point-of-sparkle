@@ -63,6 +63,7 @@ import { BranchManagement } from "@/components/owner/BranchManagement";
 import { BranchMenuItemsManager } from "@/components/owner/BranchMenuItemsManager";
 import { PaymentMethodsSettings } from "@/components/owner/PaymentMethodsSettings";
 import { AuditLogViewer } from "@/components/owner/AuditLogViewer";
+import { MenuLanguageGuidance } from "@/components/owner/MenuLanguageGuidance";
 import { useRestaurantTables } from "@/hooks/useRestaurantTables";
 import { useCashiers } from "@/hooks/useCashiers";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
@@ -367,13 +368,17 @@ function CategoriesSection({
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="category-name">{t("category_name")}</Label>
+                    <Label htmlFor="category-name" className="flex items-center">
+                      {t("category_name")}
+                      <MenuLanguageGuidance variant="tooltip" />
+                    </Label>
                     <Input
                       id="category-name"
                       value={newCategoryName}
                       onChange={(e) => setNewCategoryName(e.target.value)}
                     />
                   </div>
+                  <MenuLanguageGuidance variant="inline" />
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
@@ -558,7 +563,10 @@ function MenuItemsSection({
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="item-name">{t("name")}</Label>
+                  <Label htmlFor="item-name" className="flex items-center">
+                    {t("name")}
+                    <MenuLanguageGuidance variant="tooltip" />
+                  </Label>
                   <Input
                     id="item-name"
                     value={newItem.name}
@@ -592,6 +600,7 @@ function MenuItemsSection({
                   />
                   <Label htmlFor="item-offer">{t("mark_as_offer")}</Label>
                 </div>
+                <MenuLanguageGuidance variant="inline" />
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
