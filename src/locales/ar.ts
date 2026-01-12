@@ -948,4 +948,22 @@ export default {
   order_number: "رقم الطلب",
   cash_movements: "حركات النقد",
   rows_per_page: "صفوف",
+
+  // NumericKeypad translations
+  keypad_enter_value: "أدخل القيمة",
+  keypad_whole_number: "الرجاء إدخال رقم صحيح",
+  keypad_min_value: "الحد الأدنى للقيمة هو",
+  keypad_max_value: "الحد الأقصى للقيمة هو",
+  keypad_clear: "مسح",
+
+  // POS hardcoded strings
+  no_restaurant_or_branch: "لم يتم تعيين مطعم أو فرع لهذا الكاشير.",
+  failed_load_session: "فشل تحميل الجلسة. يرجى المحاولة مرة أخرى.",
+  search_items_placeholder: "البحث في الأصناف... (Ctrl+F)",
+  no_tables_found: "لم يتم العثور على طاولات",
+  ask_owner_create_tables: "اطلب من المالك إنشاء طاولات لهذا الفرع.",
+  ready_to_merge: "جاهز للدمج",
+  merge_with_another: "دمج مع طاولة أخرى",
+  cancelled_from_held: "تم الإلغاء من الطلبات المعلقة",
+  empty_order_cancelled: "تم إلغاء الطلب الفارغ بواسطة الكاشير",
 } as const;

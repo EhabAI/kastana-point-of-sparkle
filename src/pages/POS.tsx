@@ -692,14 +692,14 @@ export default function POS() {
       setRemoveLastItemDialogOpen(false);
       setSelectedItemForRemoval(null);
     } catch (error) {
-      toast.error("Failed to remove item");
+      toast.error(t("failed_remove_item"));
     }
   };
 
   const handleVoidItem = (itemId: string) => {
     // Only allow void on open orders
     if (currentOrder?.status !== "open") {
-      toast.error("Can only void items on open orders");
+      toast.error(t("cannot_void_must_be_open"));
       return;
     }
     const item = currentOrder?.order_items?.find((i: { id: string }) => i.id === itemId);
@@ -1030,7 +1030,7 @@ export default function POS() {
     try {
       const orderToCancel = heldOrders.find(o => o.id === orderId);
       
-      await cancelOrderMutation.mutateAsync({ orderId, reason: "Cancelled from held orders" });
+      await cancelOrderMutation.mutateAsync({ orderId, reason: t("cancelled_from_held") });
       
       // Log audit
       if (orderToCancel) {
@@ -1455,7 +1455,7 @@ export default function POS() {
     try {
       await cancelOrderMutation.mutateAsync({ 
         orderId, 
-        reason: "Empty order cancelled by cashier" 
+        reason: t("empty_order_cancelled") 
       });
       
       // Update the selectedTableForOrders to remove the cancelled order
@@ -1560,8 +1560,8 @@ export default function POS() {
     const isPrimaryFirst = order1Date <= order2Date;
 
     return {
-      primaryTableName: isPrimaryFirst ? table1?.table_name || "Table" : table2?.table_name || "Table",
-      secondaryTableName: isPrimaryFirst ? table2?.table_name || "Table" : table1?.table_name || "Table",
+      primaryTableName: isPrimaryFirst ? table1?.table_name || t("table") : table2?.table_name || t("table"),
+      secondaryTableName: isPrimaryFirst ? table2?.table_name || t("table") : table1?.table_name || t("table"),
       primaryOrderNumber: isPrimaryFirst ? order1.order_number : order2.order_number,
       secondaryOrderNumber: isPrimaryFirst ? order2.order_number : order1.order_number,
     };
@@ -1585,9 +1585,9 @@ export default function POS() {
   if (sessionError instanceof NoCashierRoleError || !session || !restaurant || !branch) {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col gap-4">
-        <p className="text-muted-foreground">No restaurant or branch assigned to this cashier.</p>
+        <p className="text-muted-foreground">{t("no_restaurant_or_branch")}</p>
         <button onClick={signOut} className="text-primary underline">
-          Sign Out
+          {t("sign_out")}
         </button>
       </div>
     );
@@ -1596,9 +1596,9 @@ export default function POS() {
   if (sessionError) {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col gap-4">
-        <p className="text-destructive">Failed to load session. Please try again.</p>
+        <p className="text-destructive">{t("failed_load_session")}</p>
         <button onClick={signOut} className="text-primary underline">
-          Sign Out
+          {t("sign_out")}
         </button>
       </div>
     );
@@ -1640,13 +1640,13 @@ export default function POS() {
                 />
               </svg>
             </div>
-            <h2 className="text-xl font-semibold mb-2">No Active Shift</h2>
-            <p className="text-muted-foreground mb-6">You must open a shift before starting work.</p>
+            <h2 className="text-xl font-semibold mb-2">{t("no_active_shift")}</h2>
+            <p className="text-muted-foreground mb-6">{t("must_open_shift")}</p>
             <button
               onClick={handleOpenShift}
               className="px-8 py-4 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors min-h-[48px]"
             >
-              Open Shift
+              {t("open_shift")}
             </button>
           </div>
         </div>
@@ -1708,7 +1708,7 @@ export default function POS() {
                     type="text"
                     value={menuSearch}
                     onChange={(e) => setMenuSearch(e.target.value)}
-                    placeholder="Search items... (Ctrl+F)"
+                    placeholder={t("search_items_placeholder")}
                     className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
@@ -1830,14 +1830,14 @@ export default function POS() {
                 <div className="mb-4 p-3 bg-primary/10 border border-primary/30 rounded-lg flex items-center justify-between">
                   <span className="text-sm font-medium">
                     {mergeSelection.length === 1 
-                      ? "Select second table to merge" 
-                      : "Ready to merge"}
+                      ? t("select_second_table") 
+                      : t("ready_to_merge")}
                   </span>
                   <button
                     onClick={handleCancelMerge}
                     className="text-sm text-destructive hover:underline"
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                 </div>
               )}
@@ -1848,8 +1848,8 @@ export default function POS() {
                 </div>
               ) : tables.length === 0 ? (
                 <div className="text-center text-muted-foreground py-12">
-                  <p className="text-lg font-medium">No tables found</p>
-                  <p className="text-sm mt-1">Ask owner to create tables for this branch.</p>
+                  <p className="text-lg font-medium">{t("no_tables_found")}</p>
+                  <p className="text-sm mt-1">{t("ask_owner_create_tables")}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
@@ -1881,7 +1881,7 @@ export default function POS() {
                               handleStartMerge(table.id);
                             }}
                             className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center hover:bg-primary/90 shadow-md"
-                            title="Merge with another table"
+                            title={t("merge_with_another")}
                           >
                             M
                           </button>

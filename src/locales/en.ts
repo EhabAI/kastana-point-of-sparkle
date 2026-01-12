@@ -950,4 +950,22 @@ export default {
   order_number: "Order #",
   cash_movements: "Cash Movements",
   rows_per_page: "Rows",
+
+  // NumericKeypad translations
+  keypad_enter_value: "Enter Value",
+  keypad_whole_number: "Please enter a whole number",
+  keypad_min_value: "Minimum value is",
+  keypad_max_value: "Maximum value is",
+  keypad_clear: "Clear",
+
+  // POS hardcoded strings
+  no_restaurant_or_branch: "No restaurant or branch assigned to this cashier.",
+  failed_load_session: "Failed to load session. Please try again.",
+  search_items_placeholder: "Search items... (Ctrl+F)",
+  no_tables_found: "No tables found",
+  ask_owner_create_tables: "Ask owner to create tables for this branch.",
+  ready_to_merge: "Ready to merge",
+  merge_with_another: "Merge with another table",
+  cancelled_from_held: "Cancelled from held orders",
+  empty_order_cancelled: "Empty order cancelled by cashier",
 } as const;
