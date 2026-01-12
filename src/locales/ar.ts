@@ -163,6 +163,8 @@ export default {
   inv_supplier_created: "تم إنشاء المورد",
   inv_receipt_no: "رقم الفاتورة",
   inv_receipt_no_placeholder: "مثال: INV-001",
+  inv_unit_cost: "التكلفة",
+  inv_unit_cost_helper: "اختياري – اتركه فارغاً إذا كان غير معروف",
   inv_add_line: "إضافة سطر",
   inv_select_item: "اختر الصنف",
   inv_qty: "الكمية",

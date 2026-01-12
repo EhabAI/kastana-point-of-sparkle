@@ -38,6 +38,7 @@ interface LineItem {
   itemId: string;
   qty: string;
   unitId: string;
+  unitCost: string;
 }
 
 export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: ReceivePurchaseDialogProps) {
@@ -54,14 +55,14 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
   const [showAddSupplier, setShowAddSupplier] = useState(false);
   const [receiptNo, setReceiptNo] = useState("");
   const [notes, setNotes] = useState("");
-  const [lines, setLines] = useState<LineItem[]>([{ id: "1", itemId: "", qty: "", unitId: "" }]);
+  const [lines, setLines] = useState<LineItem[]>([{ id: "1", itemId: "", qty: "", unitId: "", unitCost: "" }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: items = [] } = useInventoryItems(restaurantId);
   const branchItems = items.filter((item) => item.branchId === selectedBranch && item.isActive);
 
   const addLine = () => {
-    setLines([...lines, { id: Date.now().toString(), itemId: "", qty: "", unitId: "" }]);
+    setLines([...lines, { id: Date.now().toString(), itemId: "", qty: "", unitId: "", unitCost: "" }]);
   };
 
   const removeLine = (id: string) => {
@@ -115,6 +116,7 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
             itemId: line.itemId,
             qty: parseFloat(line.qty),
             unitId: line.unitId,
+            unitCost: line.unitCost ? parseFloat(line.unitCost) : null,
           })),
         },
       });
@@ -246,13 +248,13 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
                       placeholder={t("inv_qty")}
                       value={line.qty}
                       onChange={(e) => updateLine(line.id, "qty", e.target.value)}
-                      className="w-24"
+                      className="w-20"
                     />
                     <Select
                       value={line.unitId}
                       onValueChange={(v) => updateLine(line.id, "unitId", v)}
                     >
-                      <SelectTrigger className="w-28">
+                      <SelectTrigger className="w-24">
                         <SelectValue placeholder={t("inv_unit")} />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border shadow-lg z-50">
@@ -263,6 +265,16 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
                         ))}
                       </SelectContent>
                     </Select>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.001"
+                      placeholder={t("inv_unit_cost")}
+                      value={line.unitCost}
+                      onChange={(e) => updateLine(line.id, "unitCost", e.target.value)}
+                      className="w-24"
+                      title={t("inv_unit_cost_helper")}
+                    />
                     <Button
                       size="icon"
                       variant="ghost"
