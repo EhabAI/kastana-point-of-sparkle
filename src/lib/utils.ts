@@ -22,3 +22,16 @@ export function roundJOD(value: number): number {
 export function formatJOD(value: number): string {
   return roundJOD(value).toFixed(3);
 }
+
+/**
+ * Get localized currency symbol based on language
+ * @param currency - The currency code (e.g., "JOD")
+ * @param language - The language code ("en" or "ar")
+ * @returns Localized currency symbol
+ */
+export function getCurrencySymbol(currency: string, language: string): string {
+  if (currency === "JOD") {
+    return language === "ar" ? "د.أ" : "JOD";
+  }
+  return currency;
+}

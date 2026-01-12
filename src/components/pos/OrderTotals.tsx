@@ -1,5 +1,5 @@
 import { Separator } from "@/components/ui/separator";
-import { formatJOD } from "@/lib/utils";
+import { formatJOD, getCurrencySymbol } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OrderTotalsProps {
@@ -23,8 +23,9 @@ export function OrderTotals({
   total,
   currency,
 }: OrderTotalsProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const hasDiscount = discountValue && discountValue > 0;
+  const localizedCurrency = getCurrencySymbol(currency, language);
 
   // Calculate actual discount amount
   const discountAmount = hasDiscount
@@ -37,40 +38,40 @@ export function OrderTotals({
   const discountLabel = hasDiscount
     ? discountType === "percentage"
       ? `${discountValue}%`
-      : formatJOD(discountAmount) + " " + currency
+      : formatJOD(discountAmount) + " " + localizedCurrency
     : null;
 
   return (
     <div className="space-y-2 text-sm">
       <div className="flex justify-between">
         <span className="text-muted-foreground">{t("subtotal")}</span>
-        <span>{formatJOD(subtotal)} {currency}</span>
+        <span>{formatJOD(subtotal)} {localizedCurrency}</span>
       </div>
 
       {hasDiscount && (
         <div className="flex justify-between text-green-600">
           <span>{t("discount")} ({discountLabel})</span>
-          <span>-{formatJOD(discountAmount)} {currency}</span>
+          <span>-{formatJOD(discountAmount)} {localizedCurrency}</span>
         </div>
       )}
 
       {serviceCharge > 0 && (
         <div className="flex justify-between">
           <span className="text-muted-foreground">{t("service_charge")}</span>
-          <span>{formatJOD(serviceCharge)} {currency}</span>
+          <span>{formatJOD(serviceCharge)} {localizedCurrency}</span>
         </div>
       )}
 
       <div className="flex justify-between">
         <span className="text-muted-foreground">{t("tax")} ({(taxRate * 100).toFixed(0)}%)</span>
-        <span>{formatJOD(taxAmount)} {currency}</span>
+        <span>{formatJOD(taxAmount)} {localizedCurrency}</span>
       </div>
 
       <Separator />
 
       <div className="flex justify-between items-center text-lg font-bold">
         <span>{t("total")}</span>
-        <span className="text-primary ltr:ml-2 rtl:mr-2">{formatJOD(total)} {currency}</span>
+        <span className="text-primary ltr:ml-2 rtl:mr-2">{formatJOD(total)} {localizedCurrency}</span>
       </div>
     </div>
   );

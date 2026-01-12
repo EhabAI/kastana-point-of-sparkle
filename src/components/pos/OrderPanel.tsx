@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { OrderItemRow } from "./OrderItemRow";
 import { OrderTotals } from "./OrderTotals";
 import { Percent, CreditCard, Pause, Ban, User, Phone, Plus } from "lucide-react";
-import { formatJOD, cn } from "@/lib/utils";
+import { formatJOD, cn, getCurrencySymbol } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 // Status badge configuration
@@ -103,11 +103,12 @@ export function OrderPanel({
   onNewOrder,
   shiftOpen,
 }: OrderPanelProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const activeItems = items.filter((item) => !item.voided);
   const customerInfo = parseCustomerInfo(orderNotes);
   const orderType = parseOrderType(orderNotes);
   const isOpen = orderStatus === "open";
+  const localizedCurrency = getCurrencySymbol(currency, language);
 
   return (
     <Card className="h-full flex flex-col">
@@ -248,7 +249,7 @@ export function OrderPanel({
             disabled={!hasItems || total <= 0 || !isOpen}
           >
             <CreditCard className="h-5 w-5 mr-2" />
-            {t("pay")} {formatJOD(total)}
+            {t("pay")} {formatJOD(total)} {localizedCurrency}
           </Button>
         </div>
       </CardFooter>
