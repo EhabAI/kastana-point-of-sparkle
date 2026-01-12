@@ -83,6 +83,8 @@ export default {
   menu: "القائمة",
   manage: "الإدارة",
   branches: "الفروع",
+  inventory: "المخزون",
+  inventory_coming_soon: "إدارة المخزون قريباً",
   settings: "الإعدادات",
 
   // Dashboard
