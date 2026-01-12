@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.stock-count-approve]
 verify_jwt = false
+
+[functions.recipe-upsert]
+verify_jwt = true

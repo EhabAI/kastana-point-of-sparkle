@@ -555,6 +555,83 @@ export type Database = {
           },
         ]
       }
+      menu_item_recipe_lines: {
+        Row: {
+          created_at: string
+          id: string
+          inventory_item_id: string
+          qty: number
+          qty_in_base: number
+          recipe_id: string
+          restaurant_id: string
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inventory_item_id: string
+          qty: number
+          qty_in_base: number
+          recipe_id: string
+          restaurant_id: string
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inventory_item_id?: string
+          qty?: number
+          qty_in_base?: number
+          recipe_id?: string
+          restaurant_id?: string
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_item_recipe_lines_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "menu_item_recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      menu_item_recipes: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          menu_item_id: string
+          notes: string | null
+          restaurant_id: string
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          menu_item_id: string
+          notes?: string | null
+          restaurant_id: string
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          menu_item_id?: string
+          notes?: string | null
+          restaurant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       menu_items: {
         Row: {
           category_id: string
