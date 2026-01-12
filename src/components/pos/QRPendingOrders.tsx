@@ -55,7 +55,7 @@ function LiveTimer({ createdAt }: { createdAt: string }) {
     return () => clearInterval(interval);
   }, [createdAt]);
 
-  return <span className="font-mono text-sm">{elapsed}</span>;
+  return <span className="font-mono text-sm font-semibold">{elapsed}</span>;
 }
 
 export function QRPendingOrders({
@@ -172,10 +172,11 @@ export function QRPendingOrders({
                     </div>
                   )}
 
-                  {/* Customer notes */}
+                  {/* Customer notes - max 2 lines with ellipsis */}
                   {order.notes && (
                     <div className="py-2 px-3 mb-2 rounded bg-muted/50 text-sm">
-                      <span className="font-medium">{t("notes")}:</span> {order.notes}
+                      <span className="font-medium">{t("notes")}:</span>{" "}
+                      <span className="line-clamp-2">{order.notes}</span>
                     </div>
                   )}
 
@@ -185,10 +186,10 @@ export function QRPendingOrders({
                   </div>
                 </CardContent>
 
-                <CardFooter className="py-3 px-4 bg-muted/30 gap-2">
+                <CardFooter className="py-3 px-4 bg-muted/30 gap-3">
                   <Button
-                    variant="destructive"
-                    className="flex-1 h-12"
+                    variant="outline"
+                    className="flex-1 h-12 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
                     onClick={() => handleRejectClick(order.id)}
                     disabled={isLoading}
                   >
@@ -196,7 +197,7 @@ export function QRPendingOrders({
                     {t("qr_reject")}
                   </Button>
                   <Button
-                    className="flex-1 h-12"
+                    className="flex-1 h-12 shadow-md"
                     onClick={() => onConfirm(order.id)}
                     disabled={isLoading}
                   >

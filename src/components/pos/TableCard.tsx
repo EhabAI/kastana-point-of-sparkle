@@ -70,13 +70,13 @@ export function TableCard({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "relative flex flex-col items-center justify-center p-3.5 rounded-xl border transition-all duration-200 min-h-[130px] group",
+        "relative flex flex-col items-center justify-center p-3.5 rounded-xl border-2 transition-all duration-200 min-h-[130px] group",
         "hover:shadow-md active:scale-[0.98]",
         selected
           ? "border-primary bg-primary/10 ring-2 ring-primary ring-offset-2"
           : isOccupied
-            ? "border-amber-300 bg-amber-50/80 dark:bg-amber-950/20 dark:border-amber-700 shadow-sm"
-            : "border-emerald-300 bg-emerald-50/80 dark:bg-emerald-950/20 dark:border-emerald-700 hover:border-emerald-400",
+            ? "border-amber-400 bg-amber-50/90 dark:bg-amber-950/30 dark:border-amber-600 shadow-md"
+            : "border-emerald-200/80 bg-emerald-50/50 dark:bg-emerald-950/10 dark:border-emerald-800/60 hover:border-emerald-300",
         disabled && "opacity-50 cursor-not-allowed hover:shadow-none"
       )}
     >
@@ -104,7 +104,7 @@ export function TableCard({
 
       {/* Multiple Orders Indicator */}
       {orderCount && orderCount > 1 && (
-        <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-primary/90 text-primary-foreground">
+        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary text-primary-foreground shadow-sm">
           {orderCount} {t("orders")}
         </div>
       )}
