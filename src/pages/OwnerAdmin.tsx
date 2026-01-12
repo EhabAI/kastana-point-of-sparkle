@@ -65,6 +65,7 @@ import { BranchMenuItemsManager } from "@/components/owner/BranchMenuItemsManage
 import { PaymentMethodsSettings } from "@/components/owner/PaymentMethodsSettings";
 import { AuditLogViewer } from "@/components/owner/AuditLogViewer";
 import { MenuLanguageGuidance } from "@/components/owner/MenuLanguageGuidance";
+import { InventoryDashboard } from "@/components/owner/InventoryDashboard";
 import { useRestaurantTables } from "@/hooks/useRestaurantTables";
 import { useCashiers } from "@/hooks/useCashiers";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
@@ -287,12 +288,7 @@ export default function OwnerAdmin() {
 
           {/* Inventory Tab */}
           <TabsContent value="inventory" className="space-y-6 mt-6">
-            {role === "owner" && (
-              <div className="flex items-center justify-center py-12 text-muted-foreground">
-                <Package className="h-8 w-8 mr-3 opacity-50" />
-                <span>{t("inventory_coming_soon")}</span>
-              </div>
-            )}
+            {role === "owner" && <InventoryDashboard restaurantId={restaurant.id} />}
           </TabsContent>
 
           {/* Settings Tab */}
