@@ -68,9 +68,9 @@ export function OrderTotals({
 
       <Separator />
 
-      <div className="flex justify-between text-lg font-bold">
+      <div className="flex justify-between items-center text-lg font-bold">
         <span>{t("total")}</span>
-        <span className="text-primary">{formatJOD(total)} {currency}</span>
+        <span className="text-primary ltr:ml-2 rtl:mr-2">{formatJOD(total)} {currency}</span>
       </div>
     </div>
   );
