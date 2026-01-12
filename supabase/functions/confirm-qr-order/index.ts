@@ -83,13 +83,13 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceKey);
 
     // ═══════════════════════════════════════════════════════════════════
-    // 3. AUTHORIZATION: Verify user is a cashier and get their branch
+    // 3. AUTHORIZATION: Verify user is a cashier or owner and get their branch
     // ═══════════════════════════════════════════════════════════════════
     const { data: roleData, error: roleError } = await supabase
       .from("user_roles")
       .select("role, branch_id, restaurant_id")
       .eq("user_id", userId)
-      .eq("role", "cashier")
+      .in("role", ["cashier", "owner"])
       .eq("is_active", true)
       .maybeSingle();
 
@@ -101,19 +101,19 @@ serve(async (req) => {
       );
     }
 
-    if (!roleData || roleData.role !== "cashier") {
+    if (!roleData || !["cashier", "owner"].includes(roleData.role)) {
       return new Response(
-        JSON.stringify({ error: "Forbidden: Only cashiers can confirm QR orders" }),
+        JSON.stringify({ error: "Forbidden: Only cashiers or owners can confirm QR orders" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const cashierBranchId = roleData.branch_id;
-    const cashierRestaurantId = roleData.restaurant_id;
+    const userBranchId = roleData.branch_id;
+    const userRestaurantId = roleData.restaurant_id;
 
-    if (!cashierBranchId || !cashierRestaurantId) {
+    if (!userBranchId || !userRestaurantId) {
       return new Response(
-        JSON.stringify({ error: "Forbidden: Cashier not assigned to a branch" }),
+        JSON.stringify({ error: "Forbidden: User not assigned to a branch" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -124,7 +124,7 @@ serve(async (req) => {
     const { data: restaurantData, error: restaurantError } = await supabase
       .from("restaurants")
       .select("is_active")
-      .eq("id", cashierRestaurantId)
+      .eq("id", userRestaurantId)
       .maybeSingle();
 
     if (restaurantError) {
@@ -272,8 +272,8 @@ serve(async (req) => {
       );
     }
 
-    // Must match cashier's branch
-    if (order.branch_id !== cashierBranchId) {
+    // Must match user's branch
+    if (order.branch_id !== userBranchId) {
       return new Response(
         JSON.stringify({ error: "Forbidden: Order belongs to a different branch" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -281,7 +281,7 @@ serve(async (req) => {
     }
 
     // Restaurant must match (extra security layer)
-    if (order.restaurant_id !== cashierRestaurantId) {
+    if (order.restaurant_id !== userRestaurantId) {
       return new Response(
         JSON.stringify({ error: "Forbidden: Order belongs to a different restaurant" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -330,7 +330,7 @@ serve(async (req) => {
       .from("audit_logs")
       .insert({
         user_id: userId,
-        restaurant_id: cashierRestaurantId,
+        restaurant_id: userRestaurantId,
         entity_type: "order",
         entity_id: orderId,
         action: "QR_ORDER_CONFIRMED", // UPPER_SNAKE_CASE
@@ -338,7 +338,7 @@ serve(async (req) => {
           source: "qr",
           order_number: order.order_number,
           shift_id: openShift.id,
-          branch_id: cashierBranchId,
+          branch_id: userBranchId,
           previous_status: "pending",
           new_status: "open",
           confirmed_at: new Date().toISOString(),

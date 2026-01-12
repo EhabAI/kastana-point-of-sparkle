@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Check, X, ChevronDown, ChevronUp } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { Clock, Check, X, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
 import { cn, formatJOD } from "@/lib/utils";
 import type { PendingOrder } from "@/hooks/pos/usePendingOrders";
 import {
@@ -24,8 +23,39 @@ interface QRPendingOrdersProps {
   orders: PendingOrder[];
   currency: string;
   onConfirm: (orderId: string) => void;
-  onReject: (orderId: string, reason?: string) => void;
+  onReject: (orderId: string, reason: string) => void;
   isLoading?: boolean;
+}
+
+// Live timer component for elapsed time
+function LiveTimer({ createdAt }: { createdAt: string }) {
+  const [elapsed, setElapsed] = useState("");
+
+  useEffect(() => {
+    const updateElapsed = () => {
+      const created = new Date(createdAt);
+      const now = new Date();
+      const diffMs = now.getTime() - created.getTime();
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffSecs = Math.floor((diffMs % 60000) / 1000);
+
+      if (diffMins >= 60) {
+        const hrs = Math.floor(diffMins / 60);
+        const mins = diffMins % 60;
+        setElapsed(`${hrs}h ${mins}m`);
+      } else if (diffMins > 0) {
+        setElapsed(`${diffMins}m ${diffSecs}s`);
+      } else {
+        setElapsed(`${diffSecs}s`);
+      }
+    };
+
+    updateElapsed();
+    const interval = setInterval(updateElapsed, 1000);
+    return () => clearInterval(interval);
+  }, [createdAt]);
+
+  return <span className="font-mono text-sm">{elapsed}</span>;
 }
 
 export function QRPendingOrders({
@@ -40,18 +70,28 @@ export function QRPendingOrders({
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [reasonError, setReasonError] = useState(false);
 
   const handleRejectClick = (orderId: string) => {
     setSelectedOrderId(orderId);
     setRejectReason("");
+    setReasonError(false);
     setRejectDialogOpen(true);
   };
 
   const handleRejectConfirm = () => {
+    // Require reason
+    if (!rejectReason.trim()) {
+      setReasonError(true);
+      return;
+    }
+    
     if (selectedOrderId) {
-      onReject(selectedOrderId, rejectReason || undefined);
+      onReject(selectedOrderId, rejectReason.trim());
       setRejectDialogOpen(false);
       setSelectedOrderId(null);
+      setRejectReason("");
+      setReasonError(false);
     }
   };
 
@@ -59,7 +99,12 @@ export function QRPendingOrders({
     return !!order.table_id;
   };
 
-  if (orders.length === 0) {
+  // Sort by oldest first (already sorted by API, but ensure)
+  const sortedOrders = [...orders].sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  );
+
+  if (sortedOrders.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
         <Clock className="h-16 w-16 mb-4 opacity-50" />
@@ -73,31 +118,30 @@ export function QRPendingOrders({
     <>
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-3">
-          {orders.map((order) => {
+          {sortedOrders.map((order) => {
             const isExpanded = expandedOrderId === order.id;
             const tableAssigned = hasTable(order);
             const itemCount = order.order_items.reduce((sum, item) => sum + item.quantity, 0);
 
             return (
-              <Card key={order.id} className="overflow-hidden">
-                <CardHeader className="py-3 px-4">
+              <Card key={order.id} className="overflow-hidden border-2 border-primary/20">
+                <CardHeader className="py-3 px-4 bg-muted/30">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <CardTitle className="text-base">
+                      <CardTitle className="text-base font-semibold">
                         {t("order_prefix")} #{order.order_number}
                       </CardTitle>
                       <Badge variant="outline" className="text-xs">
                         {itemCount} {t("qr_items")}
                       </Badge>
-                      {tableAssigned && (
-                        <Badge variant="secondary" className="text-xs">
-                          {t("qr_table")}
-                        </Badge>
-                      )}
+                      <Badge variant={tableAssigned ? "secondary" : "outline"} className="text-xs">
+                        {tableAssigned ? t("qr_table") : t("takeaway")}
+                      </Badge>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    {/* Live timer */}
+                    <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
                       <Clock className="h-4 w-4" />
-                      {formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}
+                      <LiveTimer createdAt={order.created_at} />
                     </div>
                   </div>
                 </CardHeader>
@@ -128,9 +172,16 @@ export function QRPendingOrders({
                     </div>
                   )}
 
+                  {/* Customer notes */}
+                  {order.notes && (
+                    <div className="py-2 px-3 mb-2 rounded bg-muted/50 text-sm">
+                      <span className="font-medium">{t("notes")}:</span> {order.notes}
+                    </div>
+                  )}
+
                   <div className="flex justify-between items-center py-2 border-t font-medium">
                     <span>{t("qr_total")}</span>
-                    <span className="text-lg">{order.total.toFixed(3)} {currency}</span>
+                    <span className="text-lg">{formatJOD(order.total)} {currency}</span>
                   </div>
                 </CardContent>
 
@@ -150,7 +201,7 @@ export function QRPendingOrders({
                     disabled={isLoading}
                   >
                     <Check className="h-5 w-5 mr-2" />
-                    {t("qr_confirm")}
+                    {t("qr_accept")}
                   </Button>
                 </CardFooter>
               </Card>
@@ -159,6 +210,7 @@ export function QRPendingOrders({
         </div>
       </ScrollArea>
 
+      {/* Reject dialog with required reason */}
       <AlertDialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -171,14 +223,29 @@ export function QRPendingOrders({
             <Textarea
               placeholder={t("qr_reject_reason_placeholder")}
               value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              className="min-h-[80px]"
+              onChange={(e) => {
+                setRejectReason(e.target.value);
+                if (e.target.value.trim()) setReasonError(false);
+              }}
+              className={cn(
+                "min-h-[80px]",
+                reasonError && "border-destructive focus-visible:ring-destructive"
+              )}
             />
+            {reasonError && (
+              <p className="text-sm text-destructive mt-2 flex items-center gap-1">
+                <AlertCircle className="h-4 w-4" />
+                {t("qr_reject_reason_required")}
+              </p>
+            )}
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel className="h-12">{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleRejectConfirm}
+              onClick={(e) => {
+                e.preventDefault();
+                handleRejectConfirm();
+              }}
               className="h-12 bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {t("qr_reject_order")}
