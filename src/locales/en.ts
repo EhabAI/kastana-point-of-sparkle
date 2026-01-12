@@ -447,10 +447,12 @@ export default {
   qr_view_items: "View items",
   qr_total: "Total",
   qr_reject: "Reject",
+  qr_accept: "Accept",
   qr_confirm: "Confirm",
   qr_reject_order: "Reject Order",
   qr_reject_confirm_msg: "Are you sure you want to reject this order? This action cannot be undone.",
-  qr_reject_reason_placeholder: "Reason for rejection (optional)",
+  qr_reject_reason_placeholder: "Reason for rejection (required)",
+  qr_reject_reason_required: "Rejection reason is required",
 
   // POS - Payment Dialog
   payment: "Payment",
@@ -463,6 +465,7 @@ export default {
   complete_payment: "Complete Payment",
   payment_failed: "Payment failed",
   payment_success: "Payment complete",
+  payment_blocked_pending: "Cannot pay for pending QR orders - accept first",
 
   // POS - Receipt Dialog
   order: "Order",

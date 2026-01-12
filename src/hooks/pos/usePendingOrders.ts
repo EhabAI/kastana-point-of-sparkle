@@ -66,10 +66,15 @@ export function useRejectPendingOrder() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ orderId, reason }: { orderId: string; reason?: string }) => {
+    mutationFn: async ({ orderId, reason }: { orderId: string; reason: string }) => {
+      // Reason is now required
+      if (!reason.trim()) {
+        throw new Error("Rejection reason is required");
+      }
+      
       // Use secure edge function instead of direct update
       const { data, error } = await supabase.functions.invoke("reject-qr-order", {
-        body: { order_id: orderId, reason },
+        body: { order_id: orderId, reason: reason.trim() },
       });
 
       if (error) throw error;

@@ -447,10 +447,12 @@ export default {
   qr_view_items: "عرض العناصر",
   qr_total: "الإجمالي",
   qr_reject: "رفض",
+  qr_accept: "قبول",
   qr_confirm: "تأكيد",
   qr_reject_order: "رفض الطلب",
   qr_reject_confirm_msg: "هل أنت متأكد من رفض هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء.",
-  qr_reject_reason_placeholder: "سبب الرفض (اختياري)",
+  qr_reject_reason_placeholder: "سبب الرفض (مطلوب)",
+  qr_reject_reason_required: "سبب الرفض مطلوب",
 
   // POS - Payment Dialog
   payment: "الدفع",
@@ -463,6 +465,7 @@ export default {
   complete_payment: "إتمام الدفع",
   payment_failed: "فشل الدفع",
   payment_success: "تم الدفع بنجاح",
+  payment_blocked_pending: "لا يمكن الدفع لطلبات QR المعلقة - اقبل أولاً",
 
   // POS - Receipt Dialog
   order: "الطلب",

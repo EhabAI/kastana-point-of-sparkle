@@ -33,6 +33,8 @@ interface PaymentDialogProps {
   onConfirm: (payments: { method: string; amount: number }[]) => Promise<void>;
   isLoading?: boolean;
   paymentMethods?: PaymentMethodConfig[];
+  /** Order status - payment blocked if not 'open' */
+  orderStatus?: string;
 }
 
 // Icons for DB-allowed payment methods only
@@ -53,6 +55,7 @@ export function PaymentDialog({
   onConfirm,
   isLoading,
   paymentMethods,
+  orderStatus,
 }: PaymentDialogProps) {
   const { t } = useLanguage();
   
@@ -165,6 +168,9 @@ export function PaymentDialog({
   // Check if all payments are cash-only (allows overpayment with change)
   const allPaymentsCash = splitPayments.every((p) => p.method === "cash");
   const changeAmount = hasOverpayment ? roundJOD(Math.abs(remaining)) : 0;
+
+  // Block payment for non-open orders (e.g., pending QR orders)
+  const isOrderBlocked = orderStatus && orderStatus !== "open";
 
   // Cash quick amounts
   const cashDenominations = [1, 5, 10, 20, 50];
@@ -366,13 +372,18 @@ export function PaymentDialog({
           <div className="flex flex-col items-end gap-1">
             <Button
               onClick={handleConfirm}
-              disabled={isLoading || isSubmitting || !hasValidPayments || !(isExactMatch || (hasOverpayment && allPaymentsCash))}
-              className="h-12 min-w-[160px]"
+              disabled={isLoading || isSubmitting || !hasValidPayments || isOrderBlocked || !(isExactMatch || (hasOverpayment && allPaymentsCash))}
+              className="h-12 min-w-[180px] font-semibold"
             >
-              {isLoading || isSubmitting ? t("processing") : t("complete_payment")}
+              {isLoading || isSubmitting ? t("processing") : `✓ ${t("complete_payment")}`}
             </Button>
             {/* Helper text explaining why button is disabled */}
-            {!isExactMatch && !isLoading && !isSubmitting && hasValidPayments && (
+            {isOrderBlocked && !isLoading && !isSubmitting && (
+              <p className="text-xs text-destructive">
+                {t("payment_blocked_pending")}
+              </p>
+            )}
+            {!isOrderBlocked && !isExactMatch && !isLoading && !isSubmitting && hasValidPayments && (
               <p className="text-xs text-muted-foreground">
                 {remaining > 0 
                   ? t("remaining_must_be_zero")

@@ -1924,6 +1924,7 @@ export default function POS() {
         onConfirm={handlePaymentConfirm}
         isLoading={addPaymentMutation.isPending}
         paymentMethods={paymentMethods}
+        orderStatus={currentOrder?.status}
       />
 
       <DiscountDialog
