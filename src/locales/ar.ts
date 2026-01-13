@@ -1249,4 +1249,8 @@ export default {
   no_branch_profit_data: "لا توجد بيانات ربح للفروع",
   showing_top_20_of: "عرض أعلى 20 من",
   metric: "المؤشر",
+
+  // Inventory Module Disabled
+  inventory_module_disabled_title: "إدارة المخزون غير مفعّلة",
+  inventory_module_disabled_message: "إدارة المخزون غير مفعّلة لهذا المطعم. يمكن طلب تفعيلها من إدارة النظام.",
 } as const;

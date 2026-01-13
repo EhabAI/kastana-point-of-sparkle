@@ -66,9 +66,11 @@ import { PaymentMethodsSettings } from "@/components/owner/PaymentMethodsSetting
 import { AuditLogViewer } from "@/components/owner/AuditLogViewer";
 import { MenuLanguageGuidance } from "@/components/owner/MenuLanguageGuidance";
 import { InventoryDashboard } from "@/components/owner/InventoryDashboard";
+import { InventoryDisabledCard } from "@/components/owner/InventoryDisabledCard";
 import { useRestaurantTables } from "@/hooks/useRestaurantTables";
 import { useCashiers } from "@/hooks/useCashiers";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
+import { useInventoryEnabled } from "@/hooks/useInventoryEnabled";
 import { formatJOD } from "@/lib/utils";
 
 export default function OwnerAdmin() {
@@ -79,6 +81,7 @@ export default function OwnerAdmin() {
   const { data: tables = [] } = useRestaurantTables(restaurant?.id);
   const { data: cashiers = [] } = useCashiers(restaurant?.id);
   const { data: settings } = useOwnerRestaurantSettings();
+  const { isEnabled: inventoryEnabled } = useInventoryEnabled();
   const updateRestaurant = useUpdateRestaurant();
   const { toast } = useToast();
   const currency = settings?.currency || "JOD";
@@ -221,13 +224,15 @@ export default function OwnerAdmin() {
               <Building2 className="h-3.5 w-3.5" />
               <span>{t("branches")}</span>
             </TabsTrigger>
-            <TabsTrigger 
-              value="inventory" 
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
-            >
-              <Package className="h-3.5 w-3.5" />
-              <span>{t("inventory")}</span>
-            </TabsTrigger>
+            {inventoryEnabled && (
+              <TabsTrigger 
+                value="inventory" 
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
+              >
+                <Package className="h-3.5 w-3.5" />
+                <span>{t("inventory")}</span>
+              </TabsTrigger>
+            )}
             <TabsTrigger 
               value="settings" 
               className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
@@ -288,7 +293,8 @@ export default function OwnerAdmin() {
 
           {/* Inventory Tab */}
           <TabsContent value="inventory" className="space-y-6 mt-6">
-            {role === "owner" && <InventoryDashboard restaurantId={restaurant.id} />}
+            {role === "owner" && inventoryEnabled && <InventoryDashboard restaurantId={restaurant.id} />}
+            {role === "owner" && !inventoryEnabled && <InventoryDisabledCard />}
           </TabsContent>
 
           {/* Settings Tab */}

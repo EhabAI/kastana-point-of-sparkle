@@ -1251,4 +1251,8 @@ export default {
   no_branch_profit_data: "No branch profit data available",
   showing_top_20_of: "Showing top 20 of",
   metric: "Metric",
+
+  // Inventory Module Disabled
+  inventory_module_disabled_title: "Inventory Management Not Enabled",
+  inventory_module_disabled_message: "Inventory Management is not enabled for this restaurant. Please contact System Administration to enable it.",
 } as const;
