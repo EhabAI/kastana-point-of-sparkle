@@ -35,7 +35,12 @@ import {
   generateAlert,
   type SmartAlert,
 } from "@/lib/assistantAlerts";
+import {
+  findRelevantCard,
+  type TrainingCard,
+} from "@/lib/assistantTrainingCards";
 import { AIAssistantAlert } from "@/components/AIAssistantAlert";
+import { AIAssistantTrainingCard } from "@/components/AIAssistantTrainingCard";
 
 interface Message {
   id: string;
@@ -45,6 +50,7 @@ interface Message {
   intent?: AssistantIntent;
   isSuggestion?: boolean;
   alert?: SmartAlert;
+  trainingCard?: TrainingCard;
 }
 
 export function AIAssistantBubble() {
@@ -65,6 +71,7 @@ export function AIAssistantBubble() {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [dismissedCards, setDismissedCards] = useState<string[]>([]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -99,6 +106,7 @@ export function AIAssistantBubble() {
     let responseIntent: AssistantIntent = scopeCheck.intent;
     let isSuggestion = false;
     let alertData: SmartAlert | undefined;
+    let trainingCardData: TrainingCard | undefined;
 
     if (!scopeCheck.isInScope) {
       // Out of scope - return polite rejection
@@ -130,6 +138,12 @@ export function AIAssistantBubble() {
           
           if (knowledgeEntry) {
             responseContent = getKnowledgeContent(knowledgeEntry, systemLang);
+            
+            // Check for relevant training card (show alongside knowledge response)
+            const relevantCard = findRelevantCard(userMessage);
+            if (relevantCard && !dismissedCards.includes(relevantCard.id)) {
+              trainingCardData = relevantCard;
+            }
           } else {
             // No match found - return fallback
             responseContent = getFallbackResponse(systemLang);
@@ -149,10 +163,26 @@ export function AIAssistantBubble() {
       intent: responseIntent,
       isSuggestion,
       alert: alertData,
+      trainingCard: trainingCardData,
     };
     
     setMessages((prev) => [...prev, assistantResponse]);
     setIsProcessing(false);
+  };
+
+  /**
+   * Handle dismissing a training card
+   */
+  const handleDismissCard = (cardId: string) => {
+    setDismissedCards((prev) => [...prev, cardId]);
+    // Update messages to remove the training card
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.trainingCard?.id === cardId
+          ? { ...msg, trainingCard: undefined }
+          : msg
+      )
+    );
   };
 
   /**
@@ -237,20 +267,32 @@ export function AIAssistantBubble() {
                     />
                   </div>
                 ) : (
-                  <div
-                    className={cn(
-                      "max-w-[85%] rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap",
-                      message.role === "user"
-                        ? "bg-primary text-primary-foreground rounded-br-sm"
-                        : message.isSuggestion
-                        ? "bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-foreground rounded-bl-sm"
-                        : "bg-muted text-foreground rounded-bl-sm"
+                  <div className="max-w-[85%] space-y-2">
+                    {/* Regular message content */}
+                    <div
+                      className={cn(
+                        "rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap",
+                        message.role === "user"
+                          ? "bg-primary text-primary-foreground rounded-br-sm"
+                          : message.isSuggestion
+                          ? "bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-foreground rounded-bl-sm"
+                          : "bg-muted text-foreground rounded-bl-sm"
+                      )}
+                    >
+                      {message.isSuggestion && (
+                        <Lightbulb className="inline-block h-4 w-4 text-amber-500 mr-1 mb-0.5" />
+                      )}
+                      {message.content}
+                    </div>
+                    
+                    {/* Training Card (if relevant and not dismissed) */}
+                    {message.trainingCard && (
+                      <AIAssistantTrainingCard
+                        card={message.trainingCard}
+                        language={systemLang}
+                        onDismiss={handleDismissCard}
+                      />
                     )}
-                  >
-                    {message.isSuggestion && (
-                      <Lightbulb className="inline-block h-4 w-4 text-amber-500 mr-1 mb-0.5" />
-                    )}
-                    {message.content}
                   </div>
                 )}
               </div>
