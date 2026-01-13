@@ -32,7 +32,8 @@ import { useOwners, useCreateOwner } from "@/hooks/useOwners";
 import { useMenuCategories } from "@/hooks/useMenuCategories";
 import { useAllMenuItems } from "@/hooks/useMenuItems";
 import { useToggleRestaurantActive } from "@/hooks/useToggleRestaurantActive";
-import { Store, Users, Plus, Link, Eye, Loader2, Upload, Image, Power } from "lucide-react";
+import { useAllRestaurantsInventoryStatus, useToggleInventoryModule } from "@/hooks/useInventoryModuleToggle";
+import { Store, Users, Plus, Link, Eye, Loader2, Upload, Image, Power, Package } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,11 +45,13 @@ const passwordSchema = z.string().min(6, "Password must be at least 6 characters
 export default function SystemAdmin() {
   const { data: restaurants = [], isLoading: loadingRestaurants } = useRestaurants();
   const { data: owners = [], isLoading: loadingOwners } = useOwners();
+  const { data: inventoryStatusMap = new Map() } = useAllRestaurantsInventoryStatus();
   const createRestaurant = useCreateRestaurant();
   const updateRestaurant = useUpdateRestaurant();
   const createOwner = useCreateOwner();
   const assignOwner = useAssignOwner();
   const toggleActive = useToggleRestaurantActive();
+  const toggleInventory = useToggleInventoryModule();
   const { toast } = useToast();
   const logoInputRef = useRef<HTMLInputElement>(null);
 
@@ -74,6 +77,10 @@ export default function SystemAdmin() {
   // Deactivation confirmation dialog
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
   const [restaurantToDeactivate, setRestaurantToDeactivate] = useState<{id: string; name: string} | null>(null);
+
+  // Inventory toggle confirmation dialog
+  const [inventoryToggleDialogOpen, setInventoryToggleDialogOpen] = useState(false);
+  const [inventoryToggleTarget, setInventoryToggleTarget] = useState<{id: string; name: string; currentEnabled: boolean} | null>(null);
 
   const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -198,6 +205,22 @@ export default function SystemAdmin() {
       toggleActive.mutate({ restaurantId: restaurantToDeactivate.id, isActive: false });
       setDeactivateDialogOpen(false);
       setRestaurantToDeactivate(null);
+    }
+  };
+
+  const handleInventoryToggle = (restaurantId: string, restaurantName: string, currentEnabled: boolean) => {
+    setInventoryToggleTarget({ id: restaurantId, name: restaurantName, currentEnabled });
+    setInventoryToggleDialogOpen(true);
+  };
+
+  const confirmInventoryToggle = () => {
+    if (inventoryToggleTarget) {
+      toggleInventory.mutate({ 
+        restaurantId: inventoryToggleTarget.id, 
+        enabled: !inventoryToggleTarget.currentEnabled 
+      });
+      setInventoryToggleDialogOpen(false);
+      setInventoryToggleTarget(null);
     }
   };
 
@@ -432,7 +455,9 @@ export default function SystemAdmin() {
               <p className="text-muted-foreground text-center py-8">No restaurants yet. Create one to get started.</p>
             ) : (
               <div className="space-y-3">
-                {restaurants.map((restaurant) => (
+                {restaurants.map((restaurant) => {
+                  const inventoryEnabled = inventoryStatusMap.get(restaurant.id) ?? false;
+                  return (
                   <div key={restaurant.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                     <div className="flex items-center gap-3">
                       {restaurant.logo_url ? (
@@ -468,6 +493,17 @@ export default function SystemAdmin() {
                           disabled={toggleActive.isPending}
                         />
                       </div>
+                      {/* Inventory Module Toggle */}
+                      <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-background border">
+                        <Package className={`h-3.5 w-3.5 ${inventoryEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
+                        <span className="text-xs text-muted-foreground">Inventory</span>
+                        <Switch
+                          checked={inventoryEnabled}
+                          onCheckedChange={() => handleInventoryToggle(restaurant.id, restaurant.name, inventoryEnabled)}
+                          disabled={toggleInventory.isPending}
+                          className="scale-75"
+                        />
+                      </div>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -493,7 +529,8 @@ export default function SystemAdmin() {
                       </Button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
@@ -513,6 +550,35 @@ export default function SystemAdmin() {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={confirmDeactivate} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                 Deactivate
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Inventory Module Toggle Confirmation Dialog */}
+        <AlertDialog open={inventoryToggleDialogOpen} onOpenChange={setInventoryToggleDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {inventoryToggleTarget?.currentEnabled ? "Disable Inventory Module?" : "Enable Inventory Module?"}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {inventoryToggleTarget?.currentEnabled 
+                  ? <>This will disable all Inventory features for <strong>{inventoryToggleTarget?.name}</strong>. Stock tracking, recipes, and COGS calculations will stop working.</>
+                  : <>This will activate Inventory features for <strong>{inventoryToggleTarget?.name}</strong>. Stock tracking, recipes, and COGS calculations will be enabled.</>
+                }
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={confirmInventoryToggle}
+                className={inventoryToggleTarget?.currentEnabled 
+                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" 
+                  : "bg-primary text-primary-foreground hover:bg-primary/90"
+                }
+              >
+                {inventoryToggleTarget?.currentEnabled ? "Disable" : "Enable"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
