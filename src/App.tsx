@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { BranchProvider } from "@/contexts/BranchContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AIAssistantBubble } from "@/components/AIAssistantBubble";
 import Login from "./pages/Login";
 import SystemAdmin from "./pages/SystemAdmin";
 import OwnerAdmin from "./pages/OwnerAdmin";
@@ -24,6 +25,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <AIAssistantBubble />
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route
