@@ -235,6 +235,8 @@ export default {
   inv_cancel_count_title: "Cancel Stock Count",
   inv_cancel_reason: "Cancellation Reason",
   inv_confirm_cancel: "Confirm Cancel",
+  inv_approve_count_title: "Approve Stock Count",
+  inv_confirm_approve: "Approve Count",
   inv_owner_only_feature: "This feature is available to owners only.",
   access_denied: "Access Denied",
   view: "View",

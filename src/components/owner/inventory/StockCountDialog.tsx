@@ -93,9 +93,12 @@ export function StockCountDialog({ restaurantId, open, onOpenChange }: StockCoun
   const [selectedBranch, setSelectedBranch] = useState("");
   const [notes, setNotes] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
   const [selectedCount, setSelectedCount] = useState<StockCount | null>(null);
   const [cancelCountId, setCancelCountId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
+  const [approveCountId, setApproveCountId] = useState<string | null>(null);
+  const [approvalSummary, setApprovalSummary] = useState<{ positiveVariance: number; negativeVariance: number; itemsWithVariance: number } | null>(null);
 
   const dateLocale = language === "ar" ? ar : enUS;
 
@@ -192,26 +195,65 @@ export function StockCountDialog({ restaurantId, open, onOpenChange }: StockCoun
     }
   };
 
-  const handleApproveCount = async (countId: string) => {
+  const handlePrepareApproval = async (countId: string) => {
+    // Fetch lines to calculate summary for confirmation dialog
+    const { data: lines } = await supabase
+      .from("stock_count_lines")
+      .select("expected_base, actual_base")
+      .eq("stock_count_id", countId);
+
+    if (lines) {
+      let positiveVariance = 0;
+      let negativeVariance = 0;
+      let itemsWithVariance = 0;
+
+      lines.forEach((line: { expected_base: number; actual_base: number }) => {
+        const variance = line.actual_base - line.expected_base;
+        if (Math.abs(variance) > 0.01) {
+          itemsWithVariance++;
+          if (variance > 0) {
+            positiveVariance += variance;
+          } else {
+            negativeVariance += Math.abs(variance);
+          }
+        }
+      });
+
+      setApprovalSummary({ positiveVariance, negativeVariance, itemsWithVariance });
+    }
+    
+    setApproveCountId(countId);
+  };
+
+  const handleApproveCount = async () => {
+    if (!approveCountId) return;
+
+    setIsApproving(true);
     try {
       const { data, error } = await supabase.functions.invoke("stock-count-approve", {
-        body: { stockCountId: countId },
+        body: { stockCountId: approveCountId },
       });
 
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Failed");
 
+      // Show success with detailed summary
       toast({ 
         title: t("inv_count_approved"),
         description: language === "ar" 
-          ? `تم إنشاء ${data.adjustmentsCreated} قيد تسوية` 
-          : `${data.adjustmentsCreated} adjustment entries created`
+          ? `✓ تم إنشاء ${data.adjustmentsCreated} قيد تسوية\nصافي الفرق: ${data.netVariance > 0 ? "+" : ""}${data.netVariance.toFixed(2)}`
+          : `✓ ${data.adjustmentsCreated} adjustment entries created\nNet variance: ${data.netVariance > 0 ? "+" : ""}${data.netVariance.toFixed(2)}`
       });
+      
       await refetch();
       setActiveTab("list");
       setSelectedCount(null);
+      setApproveCountId(null);
+      setApprovalSummary(null);
     } catch (error: any) {
       toast({ title: error.message || t("inv_operation_failed"), variant: "destructive" });
+    } finally {
+      setIsApproving(false);
     }
   };
 
@@ -358,7 +400,7 @@ export function StockCountDialog({ restaurantId, open, onOpenChange }: StockCoun
                                 <>
                                   <Button 
                                     size="sm" 
-                                    onClick={() => handleApproveCount(count.id)}
+                                    onClick={() => handlePrepareApproval(count.id)}
                                   >
                                     <Check className="h-4 w-4 ltr:mr-1 rtl:ml-1" />
                                     {t("inv_approve")}
@@ -429,7 +471,7 @@ export function StockCountDialog({ restaurantId, open, onOpenChange }: StockCoun
                 <StockCountLinesList 
                   stockCountId={selectedCount.id} 
                   status={selectedCount.status as CountStatus}
-                  onApprove={() => handleApproveCount(selectedCount.id)}
+                  onApprove={() => handlePrepareApproval(selectedCount.id)}
                   onSubmit={() => handleSubmitCount(selectedCount.id)}
                   onCancel={() => setCancelCountId(selectedCount.id)}
                 />
@@ -445,6 +487,80 @@ export function StockCountDialog({ restaurantId, open, onOpenChange }: StockCoun
         </DialogContent>
       </Dialog>
 
+      {/* Approval Confirmation Dialog - Irreversible Warning */}
+      <AlertDialog open={!!approveCountId} onOpenChange={() => { setApproveCountId(null); setApprovalSummary(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              {t("inv_approve_count_title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p className="text-destructive font-medium">
+                  {language === "ar"
+                    ? "⚠️ تحذير: هذا الإجراء لا يمكن التراجع عنه!"
+                    : "⚠️ Warning: This action is irreversible!"}
+                </p>
+                <p>
+                  {language === "ar"
+                    ? "عند الاعتماد، سيتم إنشاء قيود تسوية للمخزون تلقائياً ولا يمكن تعديل الجرد بعدها."
+                    : "Upon approval, inventory adjustment entries will be created automatically and the count cannot be modified afterwards."}
+                </p>
+                
+                {approvalSummary && (
+                  <div className="mt-4 p-3 bg-muted rounded-lg space-y-2">
+                    <p className="text-sm font-medium">{language === "ar" ? "ملخص الفروقات:" : "Variance Summary:"}</p>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4 text-green-600" />
+                        <span>{language === "ar" ? "زيادة:" : "Overage:"}</span>
+                        <span className="font-mono text-green-600">+{approvalSummary.positiveVariance.toFixed(2)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <TrendingDown className="h-4 w-4 text-red-600" />
+                        <span>{language === "ar" ? "نقص:" : "Shortage:"}</span>
+                        <span className="font-mono text-red-600">-{approvalSummary.negativeVariance.toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {language === "ar" 
+                        ? `${approvalSummary.itemsWithVariance} صنف بفروقات`
+                        : `${approvalSummary.itemsWithVariance} items with variance`}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => { setApproveCountId(null); setApprovalSummary(null); }}
+              disabled={isApproving}
+            >
+              {t("cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleApproveCount}
+              disabled={isApproving}
+              className="bg-green-600 text-white hover:bg-green-700"
+            >
+              {isApproving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" />
+                  {t("processing")}
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                  {t("inv_confirm_approve")}
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Cancel Confirmation Dialog */}
       <AlertDialog open={!!cancelCountId} onOpenChange={() => setCancelCountId(null)}>
         <AlertDialogContent>
@@ -452,8 +568,8 @@ export function StockCountDialog({ restaurantId, open, onOpenChange }: StockCoun
             <AlertDialogTitle>{t("inv_cancel_count_title")}</AlertDialogTitle>
             <AlertDialogDescription>
               {language === "ar"
-                ? "هل أنت متأكد من إلغاء هذا الجرد؟ لا يمكن التراجع عن هذا الإجراء."
-                : "Are you sure you want to cancel this stock count? This action cannot be undone."}
+                ? "هل أنت متأكد من إلغاء هذا الجرد؟ لا يمكن التراجع عن هذا الإجراء. لن يتم إنشاء أي قيود تسوية."
+                : "Are you sure you want to cancel this stock count? This action cannot be undone. No adjustment entries will be created."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-2">
