@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
 import { useLocation } from "react-router-dom";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 
 type UserRole = "cashier" | "owner" | "system_admin" | null;
@@ -40,10 +39,37 @@ const getScreenId = (pathname: string): string => {
   return "unknown";
 };
 
+// Get language from localStorage directly to avoid context dependency issues
+const getStoredLanguage = (): SystemLanguage => {
+  if (typeof window !== "undefined") {
+    const stored = localStorage.getItem("kastana_language");
+    if (stored === "ar" || stored === "en") return stored;
+  }
+  return "en";
+};
+
 export function AssistantContextProvider({ children }: { children: ReactNode }) {
   const location = useLocation();
-  const { language } = useLanguage();
   const { role } = useAuth();
+
+  // Get language from localStorage to avoid circular context dependencies
+  const [systemLanguage, setSystemLanguage] = useState<SystemLanguage>(getStoredLanguage);
+  
+  // Listen for language changes in localStorage
+  React.useEffect(() => {
+    const handleStorageChange = () => {
+      setSystemLanguage(getStoredLanguage());
+    };
+    
+    // Check periodically for language changes (since storage events don't fire in same tab)
+    const interval = setInterval(handleStorageChange, 1000);
+    window.addEventListener("storage", handleStorageChange);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   // Local state for dynamic values
   const [orderStatus, setOrderStatusState] = useState<OrderStatus>(null);
@@ -70,7 +96,6 @@ export function AssistantContextProvider({ children }: { children: ReactNode }) 
 
   // Derive values
   const current_screen_id = getScreenId(location.pathname);
-  const system_language: SystemLanguage = language as SystemLanguage;
   const user_role: UserRole = role as UserRole;
 
   const value: AssistantContextType = {
@@ -81,7 +106,7 @@ export function AssistantContextProvider({ children }: { children: ReactNode }) 
     shift_status: shiftStatus,
     selected_table_id: selectedTableId,
     payment_method: paymentMethod,
-    system_language,
+    system_language: systemLanguage,
     // Actions
     setOrderStatus,
     setShiftStatus,
