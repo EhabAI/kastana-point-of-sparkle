@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { MessageCircle, X, Send, Bot, Lightbulb, GraduationCap } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -46,9 +47,16 @@ import {
   recordErrorAndCheckTrigger,
   markCardTriggered,
 } from "@/lib/assistantTriggers";
+import {
+  isInventoryRelatedQuery,
+  getInventoryDisabledMessage,
+} from "@/lib/assistantInventoryGuard";
 import { AIAssistantAlert } from "@/components/AIAssistantAlert";
 import { AIAssistantTrainingCard } from "@/components/AIAssistantTrainingCard";
 import { AIAssistantTrainingList } from "@/components/AIAssistantTrainingList";
+import { useRestaurantInventoryStatus } from "@/hooks/useInventoryModuleToggle";
+import { useOwnerRestaurant } from "@/hooks/useRestaurants";
+import { useCashierRestaurant } from "@/hooks/pos/useCashierRestaurant";
 
 type ViewMode = "chat" | "training";
 
@@ -67,8 +75,19 @@ export function AIAssistantBubble() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isRTL, language } = useLanguage();
+  const { role } = useAuth();
   const systemLang = language as "ar" | "en";
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Get restaurant ID based on role
+  const { data: ownerRestaurant } = useOwnerRestaurant();
+  const { data: cashierRestaurant } = useCashierRestaurant();
+  const restaurantId = role === "owner" ? ownerRestaurant?.id : role === "cashier" ? cashierRestaurant?.id : undefined;
+  
+  // Check inventory enabled status (only for owner/cashier, not system_admin)
+  const { data: inventoryEnabled } = useRestaurantInventoryStatus(
+    role !== "system_admin" ? restaurantId : undefined
+  );
   
   const [open, setOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("chat");
@@ -174,6 +193,15 @@ export function AIAssistantBubble() {
     } else if (scopeCheck.intent === "greeting") {
       // Greeting response
       responseContent = getGreetingMessage(systemLang);
+    } else if (
+      // Check if user is asking about inventory when it's disabled (for owner/cashier only)
+      role !== "system_admin" && 
+      !inventoryEnabled && 
+      isInventoryRelatedQuery(userMessage)
+    ) {
+      // Inventory module is disabled - return friendly message
+      responseContent = getInventoryDisabledMessage(systemLang);
+      responseIntent = "why_disabled";
     } else {
       // Check if user is asking about an alert topic (e.g., "why are sales low?")
       const alertType = detectAlertType(userMessage);
