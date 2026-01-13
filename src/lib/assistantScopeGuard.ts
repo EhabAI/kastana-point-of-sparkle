@@ -13,7 +13,13 @@ export type AssistantIntent =
   | "z_report"
   | "refunds_report"
   | "payments_report"
-  | "inventory_variance_explain";
+  | "inventory_variance_explain"
+  // Smart suggestion intents
+  | "suggestion_low_sales"
+  | "suggestion_high_refunds"
+  | "suggestion_cash_mismatch"
+  | "suggestion_repeated_voids"
+  | "suggestion_inventory_variance";
 
 interface ScopeCheckResult {
   isInScope: boolean;
@@ -112,6 +118,27 @@ const INTENT_PATTERNS = {
   greeting: {
     ar: ["مرحبا", "السلام", "أهلا", "صباح", "مساء", "هلا"],
     en: ["hello", "hi", "hey", "good morning", "good evening", "greetings"],
+  },
+  // Smart suggestion intents
+  suggestion_low_sales: {
+    ar: ["مبيعات قليلة", "مبيعات منخفضة", "مبيعات أقل", "لماذا المبيعات قليلة", "سبب انخفاض"],
+    en: ["low sales", "sales down", "sales decreased", "why low sales", "sales dropped"],
+  },
+  suggestion_high_refunds: {
+    ar: ["مرتجعات كثيرة", "استرداد عالي", "لماذا المرتجعات كثيرة", "مرتجعات مرتفعة"],
+    en: ["high refunds", "many refunds", "refund rate high", "why many refunds"],
+  },
+  suggestion_cash_mismatch: {
+    ar: ["فرق النقد", "نقص في الدرج", "زيادة في الدرج", "النقد لا يطابق", "عجز نقدي"],
+    en: ["cash mismatch", "cash short", "cash over", "drawer difference", "cash variance"],
+  },
+  suggestion_repeated_voids: {
+    ar: ["إلغاءات كثيرة", "voids كثير", "لماذا إلغاءات كثيرة", "إلغاء متكرر"],
+    en: ["many voids", "repeated voids", "high void rate", "why many voids"],
+  },
+  suggestion_inventory_variance: {
+    ar: ["فرق مخزون بعد الجرد", "سبب فرق المخزون", "لماذا المخزون ناقص"],
+    en: ["inventory variance after count", "why stock variance", "stock count difference"],
   },
 };
 
