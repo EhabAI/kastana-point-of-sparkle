@@ -246,13 +246,22 @@ export function OperationsReports({ dateRange }: OperationsReportsProps) {
     enabled: !!restaurant?.id,
   });
 
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    if (hours > 0) {
-      return `${hours}h ${mins}m`;
+  // Format duration with Arabic support and proper spacing
+  // Note: durationMinutes here comes from differenceInMinutes, so it's already in minutes
+  const formatDuration = (durationValue: number) => {
+    // Normalize: if value > 1440 (24 hours in minutes), it's likely in seconds
+    const totalMinutes = durationValue > 1440 
+      ? Math.floor(durationValue / 60) 
+      : Math.floor(durationValue);
+    
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+    const paddedMins = mins.toString().padStart(2, "0");
+    
+    if (language === "ar") {
+      return `${hours} س ${paddedMins} د`;
     }
-    return `${mins}m`;
+    return `${hours}h ${paddedMins}m`;
   };
 
   const handleExportCSV = () => {
