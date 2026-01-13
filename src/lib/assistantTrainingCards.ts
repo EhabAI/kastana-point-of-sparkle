@@ -90,35 +90,36 @@ export function getCardsByContext(context: string): TrainingCard[] {
 
 /**
  * Training cards data - sourced from assistant_knowledge.json patterns
+ * Arabic primary, English POS terms allowed
  */
 const TRAINING_CARDS: TrainingCard[] = [
   {
-    id: "training_payment_flow",
+    id: "training_new_order",
     title: {
-      ar: "إتمام عملية الدفع",
-      en: "Completing a Payment",
+      ar: "إنشاء طلب جديد",
+      en: "Creating a New Order",
     },
     whyMatters: {
-      ar: "الدفع الصحيح يضمن دقة التقارير والمحاسبة",
-      en: "Correct payment ensures accurate reports and accounting",
+      ar: "كل طلب لازم يبدأ صح عشان يتسجل في النظام",
+      en: "Every order must start correctly to be recorded in the system",
     },
     steps: {
       ar: [
-        "اضغط \"دفع\" بعد إضافة الأصناف",
-        "اختر طريقة الدفع وأدخل المبلغ",
-        "اضغط \"تأكيد\" لإتمام العملية",
+        "اضغط 'New Order' واختر نوع الطلب",
+        "اختر Takeaway للسفري أو Dine-in للصالة",
+        "ابدأ بإضافة الأصناف للطلب",
       ],
       en: [
-        "Click \"Pay\" after adding items",
-        "Select payment method and enter amount",
-        "Click \"Confirm\" to complete",
+        "Click 'New Order' and select order type",
+        "Choose Takeaway or Dine-in",
+        "Start adding items to the order",
       ],
     },
     tip: {
-      ar: "يمكنك تقسيم الدفع على أكثر من طريقة",
-      en: "You can split payment across multiple methods",
+      ar: "Dine-in يتطلب اختيار طاولة",
+      en: "Dine-in requires selecting a table",
     },
-    keywords: ["دفع", "فاتورة", "payment", "pay", "checkout"],
+    keywords: ["طلب جديد", "new order", "takeaway", "سفري", "dine-in", "صالة", "طاولة"],
     context: ["pos"],
   },
   {
@@ -128,134 +129,142 @@ const TRAINING_CARDS: TrainingCard[] = [
       en: "Hold and Resume Orders",
     },
     whyMatters: {
-      ar: "يتيح لك خدمة عدة عملاء دون فقدان الطلبات",
-      en: "Allows serving multiple customers without losing orders",
+      ar: "تقدر تخدم أكثر من عميل بدون ما تضيع الطلبات",
+      en: "Serve multiple customers without losing orders",
     },
     steps: {
       ar: [
-        "اضغط \"Hold\" لحفظ الطلب مؤقتاً",
-        "افتح \"Held Orders\" لعرض المعلقة",
-        "اختر الطلب واضغط \"Resume\"",
+        "اضغط 'Hold' لحفظ الطلب مؤقتاً",
+        "افتح قائمة 'Held Orders'",
+        "اختر الطلب واضغط 'Resume' لإكماله",
       ],
       en: [
-        "Click \"Hold\" to save order temporarily",
-        "Open \"Held Orders\" to view pending",
-        "Select order and click \"Resume\"",
-      ],
-    },
-    keywords: ["تعليق", "hold", "معلق", "استئناف", "resume"],
-    context: ["pos"],
-  },
-  {
-    id: "training_shift_open",
-    title: {
-      ar: "فتح الوردية",
-      en: "Opening a Shift",
-    },
-    whyMatters: {
-      ar: "الوردية المفتوحة مطلوبة لتسجيل أي مبيعات",
-      en: "Open shift is required to record any sales",
-    },
-    steps: {
-      ar: [
-        "اضغط \"فتح وردية\"",
-        "أدخل المبلغ الافتتاحي في الدرج",
-        "اضغط \"تأكيد\"",
-      ],
-      en: [
-        "Click \"Open Shift\"",
-        "Enter opening cash in drawer",
-        "Click \"Confirm\"",
+        "Click 'Hold' to save order temporarily",
+        "Open 'Held Orders' list",
+        "Select order and click 'Resume' to continue",
       ],
     },
     tip: {
-      ar: "احرص على عد النقود بدقة قبل الإدخال",
-      en: "Count cash carefully before entering",
+      ar: "الطلبات المعلقة تظهر برقم تسلسلي",
+      en: "Held orders show with a sequence number",
     },
-    keywords: ["وردية", "شفت", "shift", "فتح", "open", "بداية"],
+    keywords: ["تعليق", "hold", "معلق", "استئناف", "resume", "held orders"],
+    context: ["pos"],
+  },
+  {
+    id: "training_payment_flow",
+    title: {
+      ar: "إتمام الدفع",
+      en: "Completing Payment",
+    },
+    whyMatters: {
+      ar: "الدفع الصحيح يضمن دقة الكاش والتقارير",
+      en: "Correct payment ensures accurate cash and reports",
+    },
+    steps: {
+      ar: [
+        "اضغط 'Pay' بعد إضافة كل الأصناف",
+        "اختر طريقة الدفع (Cash / Card / Split)",
+        "أدخل المبلغ واضغط 'Confirm'",
+      ],
+      en: [
+        "Click 'Pay' after adding all items",
+        "Select payment method (Cash / Card / Split)",
+        "Enter amount and click 'Confirm'",
+      ],
+    },
+    tip: {
+      ar: "Split يتيح تقسيم الفاتورة على أكثر من طريقة",
+      en: "Split allows dividing bill across multiple methods",
+    },
+    keywords: ["دفع", "فاتورة", "payment", "pay", "checkout", "cash", "card", "split"],
+    context: ["pos"],
+  },
+  {
+    id: "training_close_shift",
+    title: {
+      ar: "إغلاق الوردية",
+      en: "Closing the Shift",
+    },
+    whyMatters: {
+      ar: "الإغلاق الصحيح يحفظ بيانات اليوم ويكشف الفروقات",
+      en: "Proper closing saves daily data and reveals variances",
+    },
+    steps: {
+      ar: [
+        "اضغط 'Close Shift' من القائمة",
+        "عدّ الكاش في الدرج وأدخل المبلغ",
+        "راجع الفرق واضغط 'Confirm'",
+      ],
+      en: [
+        "Click 'Close Shift' from menu",
+        "Count drawer cash and enter amount",
+        "Review variance and click 'Confirm'",
+      ],
+    },
+    tip: {
+      ar: "الفرق السالب = نقص في الكاش",
+      en: "Negative variance = cash shortage",
+    },
+    keywords: ["إغلاق", "وردية", "close shift", "شفت", "نهاية اليوم", "درج"],
     context: ["pos"],
   },
   {
     id: "training_z_report",
     title: {
-      ar: "فهم تقرير Z",
-      en: "Understanding Z Report",
+      ar: "قراءة تقرير Z",
+      en: "Reading Z Report",
     },
     whyMatters: {
-      ar: "يلخص أداء الوردية ويكشف الفروقات",
-      en: "Summarizes shift performance and reveals variances",
+      ar: "Z Report يعطيك ملخص كامل لأداء الوردية",
+      en: "Z Report gives complete summary of shift performance",
     },
     steps: {
       ar: [
-        "راجع Gross vs Net للمبيعات",
-        "تحقق من توزيع طرق الدفع",
-        "قارن النقد المتوقع بالفعلي",
+        "راجع Gross Sales (الإجمالي) و Net Sales (الصافي)",
+        "تحقق من توزيع المدفوعات (Cash / Card)",
+        "قارن Expected Cash بالمبلغ الفعلي في الدرج",
       ],
       en: [
-        "Review Gross vs Net sales",
-        "Check payment method breakdown",
-        "Compare expected vs actual cash",
+        "Review Gross Sales and Net Sales",
+        "Check payment breakdown (Cash / Card)",
+        "Compare Expected Cash with actual drawer amount",
       ],
     },
     tip: {
-      ar: "الفرق السالب = نقص في النقد",
-      en: "Negative variance = cash shortage",
+      ar: "Net = Gross - Refunds - Discounts",
+      en: "Net = Gross - Refunds - Discounts",
     },
-    keywords: ["تقرير z", "z report", "إغلاق", "وردية", "shift report"],
-    context: ["reports", "pos"],
-  },
-  {
-    id: "training_refund",
-    title: {
-      ar: "معالجة الاسترداد",
-      en: "Processing Refunds",
-    },
-    whyMatters: {
-      ar: "المرتجعات تؤثر على صافي المبيعات والتقارير",
-      en: "Refunds affect net sales and reports",
-    },
-    steps: {
-      ar: [
-        "افتح الطلب المدفوع",
-        "اضغط \"Refund\" واختر السبب",
-        "أكد المبلغ المسترد",
-      ],
-      en: [
-        "Open the paid order",
-        "Click \"Refund\" and select reason",
-        "Confirm refund amount",
-      ],
-    },
-    tip: {
-      ar: "Void قبل الدفع لا يُسجل كمرتجع",
-      en: "Void before payment is not recorded as refund",
-    },
-    keywords: ["استرداد", "مرتجع", "refund", "return", "إرجاع"],
+    keywords: ["تقرير z", "z report", "تقرير الوردية", "shift report", "ملخص"],
     context: ["pos", "reports"],
   },
   {
     id: "training_inventory_count",
     title: {
-      ar: "الجرد اليومي",
-      en: "Daily Stock Count",
+      ar: "جرد المخزون",
+      en: "Inventory Stock Count",
     },
     whyMatters: {
-      ar: "يكشف الفروقات ويحافظ على دقة المخزون",
-      en: "Reveals variances and maintains inventory accuracy",
+      ar: "الجرد يكشف الفروقات ويحافظ على دقة الكميات",
+      en: "Stock count reveals variances and maintains quantity accuracy",
     },
     steps: {
       ar: [
-        "اذهب لإدارة المخزون",
-        "اختر \"جرد جديد\" وأدخل الكميات",
+        "اذهب لصفحة Inventory واختر 'Stock Count'",
+        "أدخل الكميات الفعلية لكل صنف",
         "راجع الفروقات وأرسل للاعتماد",
       ],
       en: [
-        "Go to Inventory Management",
-        "Select \"New Count\" and enter quantities",
+        "Go to Inventory page and select 'Stock Count'",
+        "Enter actual quantities for each item",
         "Review variances and submit for approval",
       ],
     },
-    keywords: ["جرد", "مخزون", "stock count", "inventory", "count"],
+    tip: {
+      ar: "الفرق الكبير يحتاج مراجعة قبل الاعتماد",
+      en: "Large variance needs review before approval",
+    },
+    keywords: ["جرد", "مخزون", "stock count", "inventory", "كميات", "فروقات"],
     context: ["inventory"],
   },
 ];
