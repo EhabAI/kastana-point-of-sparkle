@@ -26,9 +26,11 @@ export type AuditAction =
   | "ITEM_QTY_CHANGED"
   | "CLOSE_ORDER"
   | "SPLIT_ORDER"
-  | "TRANSFER_ORDER_ITEM";
+  | "TRANSFER_ORDER_ITEM"
+  | "STOCK_COUNT_APPROVED"
+  | "INVENTORY_ADJUSTMENT";
 
-export type EntityType = "shift" | "order" | "order_item" | "payment" | "refund" | "shift_transaction";
+export type EntityType = "shift" | "order" | "order_item" | "payment" | "refund" | "shift_transaction" | "stock_count" | "inventory_transaction";
 
 export function useAuditLog() {
   const { user } = useAuth();
