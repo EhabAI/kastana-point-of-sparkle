@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MessageCircle, X, Send, Bot } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -16,9 +16,14 @@ import {
   checkScope,
   getOutOfScopeMessage,
   getGreetingMessage,
-  getIntentContext,
   type AssistantIntent,
 } from "@/lib/assistantScopeGuard";
+import {
+  searchKnowledge,
+  getKnowledgeContent,
+  getFallbackResponse,
+  getQuickReplies,
+} from "@/lib/assistantKnowledge";
 
 interface Message {
   id: string;
@@ -31,6 +36,7 @@ interface Message {
 export function AIAssistantBubble() {
   const { isRTL, language } = useLanguage();
   const systemLang = language as "ar" | "en";
+  const scrollRef = useRef<HTMLDivElement>(null);
   
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -45,10 +51,20 @@ export function AIAssistantBubble() {
   const [inputValue, setInputValue] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim() || isProcessing) return;
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
 
-    const userMessage = inputValue.trim();
+  // Get quick replies
+  const quickReplies = getQuickReplies(systemLang);
+
+  const handleSendMessage = async (messageText?: string) => {
+    const userMessage = (messageText || inputValue).trim();
+    if (!userMessage || isProcessing) return;
+
     setInputValue("");
     setIsProcessing(true);
 
@@ -75,13 +91,19 @@ export function AIAssistantBubble() {
       // Greeting response
       responseContent = getGreetingMessage(systemLang);
     } else {
-      // In-scope query - provide guidance based on intent
-      const intentContext = getIntentContext(scopeCheck.intent);
-      responseContent = generateScopedResponse(userMessage, scopeCheck.intent, systemLang, intentContext);
+      // Search knowledge base
+      const knowledgeEntry = searchKnowledge(userMessage, systemLang, scopeCheck.intent);
+      
+      if (knowledgeEntry) {
+        responseContent = getKnowledgeContent(knowledgeEntry, systemLang);
+      } else {
+        // No match found - return fallback
+        responseContent = getFallbackResponse(systemLang);
+      }
     }
 
     // Simulate processing delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 400));
 
     const assistantResponse: Message = {
       id: (Date.now() + 1).toString(),
@@ -168,6 +190,26 @@ export function AIAssistantBubble() {
           </div>
         </ScrollArea>
 
+        {/* Quick Replies */}
+        {messages.length <= 2 && (
+          <div className="px-4 pb-2">
+            <div className="flex flex-wrap gap-2">
+              {quickReplies.slice(0, 3).map((reply, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => handleSendMessage(reply)}
+                  disabled={isProcessing}
+                >
+                  {reply}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="p-4 border-t bg-background">
           <div className="flex gap-2">
             <Input
@@ -180,7 +222,7 @@ export function AIAssistantBubble() {
             />
             <Button
               size="icon"
-              onClick={handleSendMessage}
+              onClick={() => handleSendMessage()}
               disabled={!inputValue.trim() || isProcessing}
             >
               <Send className={cn("h-4 w-4", isRTL && "rotate-180")} />
@@ -190,38 +232,4 @@ export function AIAssistantBubble() {
       </SheetContent>
     </Sheet>
   );
-}
-
-/**
- * Generate a scoped response based on intent (placeholder - will connect to AI later)
- */
-function generateScopedResponse(
-  message: string,
-  intent: AssistantIntent,
-  language: "ar" | "en",
-  _intentContext: string
-): string {
-  // Placeholder responses based on intent
-  // This will be replaced with actual AI integration
-  
-  const responses = {
-    how_to: {
-      ar: "أفهم أنك تريد معرفة كيفية تنفيذ مهمة معينة. هذه نسخة تجريبية من المساعد الذكي.\n\nللحصول على إرشادات مفصلة، يرجى التواصل مع فريق الدعم أو مراجعة دليل المستخدم.",
-      en: "I understand you want to know how to perform a specific task. This is a demo version of the AI assistant.\n\nFor detailed guidance, please contact support or refer to the user guide.",
-    },
-    why_disabled: {
-      ar: "أفهم أن هناك ميزة معطلة. الأسباب الشائعة تشمل:\n\n• عدم فتح وردية\n• صلاحيات غير كافية\n• بيانات مفقودة\n• المطعم غير نشط\n\nهل يمكنك إخباري بالميزة المحددة؟",
-      en: "I understand a feature is disabled. Common reasons include:\n\n• Shift not opened\n• Insufficient permissions\n• Missing data\n• Restaurant inactive\n\nCan you tell me which specific feature?",
-    },
-    explain_report: {
-      ar: "أفهم أنك تريد شرح تقرير معين. هذه نسخة تجريبية.\n\nالتقارير المتاحة تشمل:\n• تقارير المبيعات\n• تقارير الأرباح والتكاليف\n• تقارير المخزون\n• تقارير الموظفين",
-      en: "I understand you want a report explained. This is a demo version.\n\nAvailable reports include:\n• Sales reports\n• Profit & cost reports\n• Inventory reports\n• Staff reports",
-    },
-    troubleshooting: {
-      ar: "أفهم أنك تواجه مشكلة. للمساعدة بشكل أفضل، يرجى وصف:\n\n1. ماذا كنت تحاول فعله؟\n2. ما هي رسالة الخطأ (إن وجدت)؟\n3. متى بدأت المشكلة؟",
-      en: "I understand you're facing an issue. To help better, please describe:\n\n1. What were you trying to do?\n2. What error message appeared (if any)?\n3. When did the problem start?",
-    },
-  };
-
-  return responses[intent]?.[language] || responses.how_to[language];
 }
