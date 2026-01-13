@@ -1,5 +1,5 @@
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "lastUpdated": "2026-01-13",
   "description": "Kastana POS Assistant Knowledge Base - Condensed format (max 6 lines). Report explanations use on-screen data only.",
   "entries": {
@@ -194,6 +194,34 @@
         "ar": "ماذا يعرض:\n• المتوقع = الكمية حسب النظام\n• الفعلي = الكمية بعد الجرد\n• الفرق = فعلي - متوقع\n\nسالب = نقص (هدر/سرقة)\nموجب = زيادة (خطأ إدخال سابق)\n💡 لا يؤثر على المبيعات",
         "en": "What it shows:\n• Expected = Quantity per system\n• Actual = Quantity after count\n• Variance = Actual - Expected\n\nNegative = shortage (waste/theft)\nPositive = overage (prior entry error)\n💡 Does not affect sales"
       }
+    },
+    "stock_count_variance": {
+      "id": "stock_count_variance",
+      "intent": ["how_to", "explain_report"],
+      "keywords": {
+        "ar": ["جرد", "جرد المخزون", "عد المخزون", "تسوية المخزون", "فرق الجرد", "اعتماد الجرد", "stock count"],
+        "en": ["stock count", "inventory count", "physical count", "count variance", "approve count", "stock take"]
+      },
+      "content": {
+        "ar": "جرد مخزون كامل مع احتساب الفرق وتصحيحه تلقائيًا:\n1. إنشاء الجرد ← اختر الفرع\n2. إدخال الكميات ← أدخل الكمية الفعلية لكل صنف\n3. اعتماد الجرد ← يتم إنشاء قيود تسوية تلقائياً\n\n⚠️ لا يمكن التعديل بعد الاعتماد\n💡 الفرق يُحسب: فعلي - متوقع",
+        "en": "Full stock count with automatic variance calculation and adjustment:\n1. Create count → Select branch\n2. Enter quantities → Input actual count for each item\n3. Approve count → Adjustment entries created automatically\n\n⚠️ Cannot modify after approval\n💡 Variance = Actual - Expected"
+      },
+      "metadata": {
+        "feature_id": "stock_count_variance",
+        "affected_screens": ["OWNER_INVENTORY", "OWNER_REPORTS"],
+        "user_roles": ["owner"],
+        "is_new": true,
+        "training_required": true,
+        "alert_or_guidance_needed": true,
+        "common_issues": {
+          "ar": "لا يمكن التعديل بعد الاعتماد",
+          "en": "Cannot modify after approval"
+        },
+        "steps": {
+          "ar": "إنشاء الجرد → إدخال الكميات → اعتماد الجرد",
+          "en": "Create count → Enter quantities → Approve count"
+        }
+      }
     }
   },
   "fallbackResponses": {
@@ -206,14 +234,16 @@
       "زر الدفع معطل",
       "ما هو تقرير Z؟",
       "لماذا المبيعات قليلة؟",
-      "فرق النقد في الدرج"
+      "فرق النقد في الدرج",
+      "كيف أعمل جرد؟"
     ],
     "en": [
       "How to pay?",
       "Pay button disabled",
       "What is Z Report?",
       "Why are sales low?",
-      "Cash drawer mismatch"
+      "Cash drawer mismatch",
+      "How to do stock count?"
     ]
   }
 }
