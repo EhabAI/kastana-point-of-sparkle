@@ -205,15 +205,15 @@
       "كيف أدفع الطلب؟",
       "زر الدفع معطل",
       "ما هو تقرير Z؟",
-      "اشرح ملخص المبيعات",
-      "ما معنى فرق المخزون؟"
+      "لماذا المبيعات قليلة؟",
+      "فرق النقد في الدرج"
     ],
     "en": [
       "How to pay?",
       "Pay button disabled",
       "What is Z Report?",
-      "Explain sales summary",
-      "What is inventory variance?"
+      "Why are sales low?",
+      "Cash drawer mismatch"
     ]
   }
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { MessageCircle, X, Send, Bot, Lightbulb } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,12 @@ import {
   formatSuggestion,
   type SuggestionType,
 } from "@/lib/assistantSuggestions";
+import {
+  detectAlertType,
+  generateAlert,
+  type SmartAlert,
+} from "@/lib/assistantAlerts";
+import { AIAssistantAlert } from "@/components/AIAssistantAlert";
 
 interface Message {
   id: string;
@@ -37,9 +44,11 @@ interface Message {
   timestamp: Date;
   intent?: AssistantIntent;
   isSuggestion?: boolean;
+  alert?: SmartAlert;
 }
 
 export function AIAssistantBubble() {
+  const navigate = useNavigate();
   const { isRTL, language } = useLanguage();
   const systemLang = language as "ar" | "en";
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -86,9 +95,10 @@ export function AIAssistantBubble() {
     // Check scope
     const scopeCheck = checkScope(userMessage);
     
-    let responseContent: string;
+    let responseContent: string = "";
     let responseIntent: AssistantIntent = scopeCheck.intent;
     let isSuggestion = false;
+    let alertData: SmartAlert | undefined;
 
     if (!scopeCheck.isInScope) {
       // Out of scope - return polite rejection
@@ -98,25 +108,32 @@ export function AIAssistantBubble() {
       // Greeting response
       responseContent = getGreetingMessage(systemLang);
     } else {
-      // Check if user is asking for a smart suggestion
-      const suggestionType = detectSuggestionType(userMessage);
+      // Check if user is asking about an alert topic (e.g., "why are sales low?")
+      const alertType = detectAlertType(userMessage);
       
-      if (suggestionType) {
-        // Smart suggestion flow
-        isSuggestion = true;
-        // For now, assume we don't have data context (would need integration with actual screen data)
-        // This marks the suggestion as needing data, which we explain clearly
-        const hasDataContext = checkForDataContext(userMessage, suggestionType);
-        responseContent = formatSuggestion(suggestionType, systemLang, hasDataContext);
+      if (alertType) {
+        // Generate smart alert with explanation and report button
+        alertData = generateAlert(alertType);
+        responseContent = ""; // Content will be rendered by AIAssistantAlert component
       } else {
-        // Regular knowledge base search
-        const knowledgeEntry = searchKnowledge(userMessage, systemLang, scopeCheck.intent);
+        // Check if user is asking for a smart suggestion
+        const suggestionType = detectSuggestionType(userMessage);
         
-        if (knowledgeEntry) {
-          responseContent = getKnowledgeContent(knowledgeEntry, systemLang);
+        if (suggestionType) {
+          // Smart suggestion flow
+          isSuggestion = true;
+          const hasDataContext = checkForDataContext(userMessage, suggestionType);
+          responseContent = formatSuggestion(suggestionType, systemLang, hasDataContext);
         } else {
-          // No match found - return fallback
-          responseContent = getFallbackResponse(systemLang);
+          // Regular knowledge base search
+          const knowledgeEntry = searchKnowledge(userMessage, systemLang, scopeCheck.intent);
+          
+          if (knowledgeEntry) {
+            responseContent = getKnowledgeContent(knowledgeEntry, systemLang);
+          } else {
+            // No match found - return fallback
+            responseContent = getFallbackResponse(systemLang);
+          }
         }
       }
     }
@@ -131,10 +148,19 @@ export function AIAssistantBubble() {
       timestamp: new Date(),
       intent: responseIntent,
       isSuggestion,
+      alert: alertData,
     };
     
     setMessages((prev) => [...prev, assistantResponse]);
     setIsProcessing(false);
+  };
+
+  /**
+   * Handle opening a report from an alert
+   */
+  const handleOpenReport = (path: string) => {
+    setOpen(false); // Close the assistant panel
+    navigate(path);
   };
 
   /**
@@ -201,21 +227,32 @@ export function AIAssistantBubble() {
                   message.role === "user" ? "justify-end" : "justify-start"
                 )}
               >
-                <div
-                  className={cn(
-                    "max-w-[85%] rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap",
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground rounded-br-sm"
-                      : message.isSuggestion
-                      ? "bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-foreground rounded-bl-sm"
-                      : "bg-muted text-foreground rounded-bl-sm"
-                  )}
-                >
-                  {message.isSuggestion && (
-                    <Lightbulb className="inline-block h-4 w-4 text-amber-500 mr-1 mb-0.5" />
-                  )}
-                  {message.content}
-                </div>
+                {/* Alert message */}
+                {message.alert ? (
+                  <div className="max-w-[90%]">
+                    <AIAssistantAlert
+                      alert={message.alert}
+                      language={systemLang}
+                      onOpenReport={handleOpenReport}
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className={cn(
+                      "max-w-[85%] rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap",
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground rounded-br-sm"
+                        : message.isSuggestion
+                        ? "bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-foreground rounded-bl-sm"
+                        : "bg-muted text-foreground rounded-bl-sm"
+                    )}
+                  >
+                    {message.isSuggestion && (
+                      <Lightbulb className="inline-block h-4 w-4 text-amber-500 mr-1 mb-0.5" />
+                    )}
+                    {message.content}
+                  </div>
+                )}
               </div>
             ))}
             {isProcessing && (
