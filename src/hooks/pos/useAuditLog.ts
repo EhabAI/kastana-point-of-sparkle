@@ -27,7 +27,9 @@ export type AuditAction =
   | "CLOSE_ORDER"
   | "SPLIT_ORDER"
   | "TRANSFER_ORDER_ITEM"
+  | "STOCK_COUNT_CREATED"
   | "STOCK_COUNT_APPROVED"
+  | "STOCK_COUNT_CANCELLED"
   | "INVENTORY_ADJUSTMENT";
 
 export type EntityType = "shift" | "order" | "order_item" | "payment" | "refund" | "shift_transaction" | "stock_count" | "inventory_transaction";

@@ -15,7 +15,7 @@ export interface StockCount {
   restaurantId: string;
   branchId: string;
   branchName: string;
-  status: "DRAFT" | "SUBMITTED" | "APPROVED";
+  status: "DRAFT" | "SUBMITTED" | "APPROVED" | "CANCELLED";
   createdBy: string;
   approvedBy: string | null;
   createdAt: string;
@@ -192,6 +192,7 @@ export function useCreateStockCount() {
       createdBy: string;
       notes?: string;
     }) => {
+      // Create the stock count
       const { data, error } = await supabase
         .from("stock_counts")
         .insert({
@@ -205,6 +206,20 @@ export function useCreateStockCount() {
         .single();
 
       if (error) throw error;
+
+      // Write audit log for STOCK_COUNT_CREATED
+      await supabase.from("audit_logs").insert({
+        user_id: createdBy,
+        restaurant_id: restaurantId,
+        entity_type: "stock_count",
+        entity_id: data.id,
+        action: "STOCK_COUNT_CREATED",
+        details: {
+          branch_id: branchId,
+          notes: notes || null,
+        },
+      });
+
       return data;
     },
     onSuccess: () => {
@@ -220,10 +235,26 @@ export function useUpdateStockCountLine() {
     mutationFn: async ({
       lineId,
       actualBase,
+      stockCountId,
     }: {
       lineId: string;
       actualBase: number;
+      stockCountId: string;
     }) => {
+      // First check if stock count is still in DRAFT status
+      const { data: stockCount, error: fetchError } = await supabase
+        .from("stock_counts")
+        .select("status")
+        .eq("id", stockCountId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Block updates on APPROVED or CANCELLED stock counts (immutable)
+      if (stockCount.status === "APPROVED" || stockCount.status === "CANCELLED") {
+        throw new Error(`Cannot modify ${stockCount.status} stock count - immutable`);
+      }
+
       const { error } = await supabase
         .from("stock_count_lines")
         .update({ actual_base: actualBase })
@@ -242,12 +273,86 @@ export function useSubmitStockCount() {
 
   return useMutation({
     mutationFn: async ({ stockCountId }: { stockCountId: string }) => {
+      // First check if stock count is in DRAFT status
+      const { data: stockCount, error: fetchError } = await supabase
+        .from("stock_counts")
+        .select("status")
+        .eq("id", stockCountId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Only DRAFT can be submitted
+      if (stockCount.status !== "DRAFT") {
+        throw new Error(`Cannot submit ${stockCount.status} stock count`);
+      }
+
       const { error } = await supabase
         .from("stock_counts")
         .update({ status: "SUBMITTED" })
         .eq("id", stockCountId);
 
       if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["stock-counts"] });
+    },
+  });
+}
+
+export function useCancelStockCount() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      stockCountId,
+      userId,
+      restaurantId,
+      reason,
+    }: {
+      stockCountId: string;
+      userId: string;
+      restaurantId: string;
+      reason?: string;
+    }) => {
+      // First check current status
+      const { data: stockCount, error: fetchError } = await supabase
+        .from("stock_counts")
+        .select("status, branch_id")
+        .eq("id", stockCountId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Cannot cancel APPROVED or already CANCELLED
+      if (stockCount.status === "APPROVED") {
+        throw new Error("Cannot cancel APPROVED stock count - immutable");
+      }
+      if (stockCount.status === "CANCELLED") {
+        throw new Error("Stock count is already cancelled");
+      }
+
+      // Update status to CANCELLED
+      const { error } = await supabase
+        .from("stock_counts")
+        .update({ status: "CANCELLED" })
+        .eq("id", stockCountId);
+
+      if (error) throw error;
+
+      // Write audit log for STOCK_COUNT_CANCELLED
+      await supabase.from("audit_logs").insert({
+        user_id: userId,
+        restaurant_id: restaurantId,
+        entity_type: "stock_count",
+        entity_id: stockCountId,
+        action: "STOCK_COUNT_CANCELLED",
+        details: {
+          branch_id: stockCount.branch_id,
+          previous_status: stockCount.status,
+          reason: reason || null,
+        },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stock-counts"] });
