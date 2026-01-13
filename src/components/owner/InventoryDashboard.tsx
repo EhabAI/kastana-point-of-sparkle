@@ -10,9 +10,9 @@ import {
   useRecentTransactions,
   useWasteSummary,
 } from "@/hooks/useInventoryDashboard";
-import { InventoryItemsList, OperationsToolbar } from "./inventory";
+import { InventoryItemsList, OperationsToolbar, InventoryInsights } from "./inventory";
 import { RecipeBuilder } from "./recipes";
-import { AlertTriangle, PackageX, RefreshCw, Trash2, Package, LayoutDashboard, List, ChefHat } from "lucide-react";
+import { AlertTriangle, PackageX, RefreshCw, Trash2, Package, LayoutDashboard, List, ChefHat, Lightbulb } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 
@@ -39,7 +39,7 @@ export function InventoryDashboard({ restaurantId, isReadOnly = false }: Invento
     <div className="space-y-4">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="flex items-center justify-between gap-4 flex-wrap">
-          <TabsList className="grid w-full max-w-lg grid-cols-3">
+          <TabsList className="grid w-full max-w-2xl grid-cols-4">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <LayoutDashboard className="h-4 w-4" />
               {t("inv_dashboard")}
@@ -47,6 +47,10 @@ export function InventoryDashboard({ restaurantId, isReadOnly = false }: Invento
             <TabsTrigger value="items" className="flex items-center gap-2">
               <List className="h-4 w-4" />
               {t("inv_items")}
+            </TabsTrigger>
+            <TabsTrigger value="insights" className="flex items-center gap-2">
+              <Lightbulb className="h-4 w-4" />
+              {t("inv_insights")}
             </TabsTrigger>
             <TabsTrigger value="recipes" className="flex items-center gap-2">
               <ChefHat className="h-4 w-4" />
@@ -62,6 +66,10 @@ export function InventoryDashboard({ restaurantId, isReadOnly = false }: Invento
 
         <TabsContent value="items" className="mt-4">
           <InventoryItemsList restaurantId={restaurantId} isReadOnly={isReadOnly} />
+        </TabsContent>
+
+        <TabsContent value="insights" className="mt-4">
+          <InventoryInsights restaurantId={restaurantId} />
         </TabsContent>
 
         <TabsContent value="recipes" className="mt-4">
