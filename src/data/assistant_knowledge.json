@@ -1,38 +1,30 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "lastUpdated": "2026-01-13",
-  "description": "Kastana POS Assistant Knowledge Base - Static MVP entries",
+  "description": "Kastana POS Assistant Knowledge Base - Condensed format (max 6 lines)",
   "entries": {
     "payment_flow": {
       "id": "payment_flow",
-      "intent": ["how_to", "troubleshooting"],
+      "intent": ["how_to"],
       "keywords": {
-        "ar": ["دفع", "فاتورة", "نقد", "بطاقة", "فيزا", "ماستركارد", "محفظة", "تحصيل", "اغلاق الطلب"],
-        "en": ["payment", "pay", "invoice", "cash", "card", "visa", "mastercard", "wallet", "checkout", "complete order"]
-      },
-      "title": {
-        "ar": "تدفق الدفع",
-        "en": "Payment Flow"
+        "ar": ["دفع", "فاتورة", "نقد", "بطاقة", "فيزا", "ماستركارد", "محفظة", "تحصيل", "اغلاق الطلب", "كيف ادفع"],
+        "en": ["payment", "pay", "invoice", "cash", "card", "visa", "mastercard", "wallet", "checkout", "complete order", "how to pay"]
       },
       "content": {
-        "ar": "لإتمام عملية الدفع في Kastana POS:\n\n1. تأكد من أن الطلب يحتوي على أصناف\n2. اضغط على زر \"دفع\" في لوحة الطلب\n3. اختر طريقة الدفع (نقد، فيزا، ماستركارد، محفظة، إلخ)\n4. إذا كان الدفع نقداً:\n   • أدخل المبلغ المستلم\n   • سيحسب النظام الباقي تلقائياً\n5. اضغط \"تأكيد الدفع\"\n6. ستُطبع الفاتورة تلقائياً (إذا كانت الطابعة متصلة)\n\nملاحظة: يمكن تقسيم الدفع على عدة طرق (مثلاً: جزء نقد وجزء بطاقة)",
-        "en": "To complete a payment in Kastana POS:\n\n1. Ensure the order has items\n2. Click the \"Pay\" button in the order panel\n3. Select payment method (Cash, Visa, Mastercard, Wallet, etc.)\n4. If paying with cash:\n   • Enter the amount received\n   • System will calculate change automatically\n5. Click \"Confirm Payment\"\n6. Receipt will print automatically (if printer connected)\n\nNote: You can split payment across multiple methods (e.g., part cash, part card)"
+        "ar": "1. اضغط \"دفع\" في لوحة الطلب\n2. اختر طريقة الدفع (Cash / Card)\n3. أدخل المبلغ المستلم (للنقد)\n4. اضغط \"تأكيد\"\n💡 يمكن تقسيم الدفع على عدة طرق",
+        "en": "1. Click \"Pay\" in order panel\n2. Select payment method (Cash / Card)\n3. Enter received amount (for cash)\n4. Click \"Confirm\"\n💡 You can split across multiple methods"
       }
     },
     "hold_resume": {
       "id": "hold_resume",
       "intent": ["how_to"],
       "keywords": {
-        "ar": ["تعليق", "استئناف", "حفظ الطلب", "طلب معلق", "استرجاع طلب"],
+        "ar": ["تعليق", "استئناف", "حفظ الطلب", "طلب معلق", "استرجاع طلب", "hold"],
         "en": ["hold", "resume", "held order", "save order", "retrieve order", "pending"]
       },
-      "title": {
-        "ar": "تعليق واستئناف الطلبات",
-        "en": "Hold & Resume Orders"
-      },
       "content": {
-        "ar": "لتعليق طلب:\n\n1. أثناء العمل على طلب، اضغط زر \"تعليق\" (Hold)\n2. سيُحفظ الطلب مع جميع الأصناف والملاحظات\n3. يمكنك بدء طلب جديد\n\nلاستئناف طلب معلق:\n\n1. اضغط على \"الطلبات المعلقة\" في الشريط العلوي\n2. اختر الطلب المراد استئنافه\n3. اضغط \"استئناف\"\n4. سيُحمّل الطلب ويمكنك متابعة العمل عليه\n\nملاحظة: الطلبات المعلقة تبقى محفوظة حتى إغلاق الوردية أو استئنافها",
-        "en": "To hold an order:\n\n1. While working on an order, click \"Hold\" button\n2. Order will be saved with all items and notes\n3. You can start a new order\n\nTo resume a held order:\n\n1. Click \"Held Orders\" in the top bar\n2. Select the order to resume\n3. Click \"Resume\"\n4. Order will load and you can continue working on it\n\nNote: Held orders remain saved until shift closes or they are resumed"
+        "ar": "1. اضغط \"Hold\" لتعليق الطلب\n2. ابدأ طلباً جديداً\n3. لاستئناف: اضغط \"Held Orders\"\n4. اختر الطلب ← \"Resume\"",
+        "en": "1. Click \"Hold\" to save order\n2. Start a new order\n3. To resume: click \"Held Orders\"\n4. Select order → \"Resume\""
       }
     },
     "move_table": {
@@ -42,13 +34,9 @@
         "ar": ["نقل طاولة", "تغيير طاولة", "انتقال", "طاولة أخرى"],
         "en": ["move table", "change table", "transfer table", "switch table"]
       },
-      "title": {
-        "ar": "نقل الطلب لطاولة أخرى",
-        "en": "Move Order to Another Table"
-      },
       "content": {
-        "ar": "لنقل طلب من طاولة إلى أخرى:\n\n1. افتح الطلب المراد نقله\n2. اضغط على خيارات الطلب (⋮)\n3. اختر \"نقل لطاولة أخرى\"\n4. اختر الطاولة الجديدة من القائمة\n5. أكد عملية النقل\n\nشروط النقل:\n• الطاولة الجديدة يجب أن تكون فارغة أو بدون طلب مفتوح\n• لا يمكن النقل لطاولة لها طلب مفتوح (استخدم دمج الطلبات بدلاً من ذلك)",
-        "en": "To move an order to another table:\n\n1. Open the order you want to move\n2. Click order options (⋮)\n3. Select \"Move to another table\"\n4. Choose the new table from the list\n5. Confirm the transfer\n\nTransfer conditions:\n• New table must be empty or have no open order\n• Cannot move to a table with an open order (use merge orders instead)"
+        "ar": "1. افتح الطلب المراد نقله\n2. اضغط (⋮) ← \"نقل لطاولة\"\n3. اختر الطاولة الجديدة\n4. أكد النقل\n💡 الطاولة الجديدة يجب أن تكون فارغة",
+        "en": "1. Open the order to move\n2. Click (⋮) → \"Move to table\"\n3. Select new table\n4. Confirm transfer\n💡 New table must be empty"
       }
     },
     "merge_orders": {
@@ -58,61 +46,45 @@
         "ar": ["دمج", "دمج طلبات", "جمع طلبات", "طاولتين"],
         "en": ["merge", "merge orders", "combine orders", "join orders"]
       },
-      "title": {
-        "ar": "دمج الطلبات",
-        "en": "Merge Orders"
-      },
       "content": {
-        "ar": "لدمج طلبين في طلب واحد:\n\n1. افتح أحد الطلبات المراد دمجها\n2. اضغط على خيارات الطلب (⋮)\n3. اختر \"دمج مع طلب آخر\"\n4. اختر الطلب الهدف (الذي ستُنقل إليه الأصناف)\n5. أكد عملية الدمج\n\nبعد الدمج:\n• تُنقل جميع الأصناف للطلب الهدف\n• يُغلق الطلب الأصلي\n• يُحتفظ بملاحظات كلا الطلبين\n\nملاحظة: لا يمكن التراجع عن الدمج بعد تأكيده",
-        "en": "To merge two orders into one:\n\n1. Open one of the orders to merge\n2. Click order options (⋮)\n3. Select \"Merge with another order\"\n4. Choose the target order (where items will be transferred)\n5. Confirm the merge\n\nAfter merging:\n• All items are transferred to target order\n• Original order is closed\n• Notes from both orders are preserved\n\nNote: Merge cannot be undone after confirmation"
+        "ar": "1. افتح أحد الطلبين\n2. اضغط (⋮) ← \"دمج\"\n3. اختر الطلب الهدف\n4. أكد الدمج\n💡 لا يمكن التراجع بعد الدمج",
+        "en": "1. Open one of the orders\n2. Click (⋮) → \"Merge\"\n3. Select target order\n4. Confirm merge\n💡 Cannot undo after merge"
       }
     },
     "z_report": {
       "id": "z_report",
       "intent": ["explain_report", "how_to"],
       "keywords": {
-        "ar": ["تقرير زد", "z report", "إغلاق الوردية", "تقرير يومي", "إجمالي المبيعات"],
+        "ar": ["تقرير زد", "z report", "إغلاق الوردية", "تقرير يومي", "إجمالي المبيعات", "شفت"],
         "en": ["z report", "z-report", "end of day", "shift report", "daily report", "close shift"]
       },
-      "title": {
-        "ar": "تقرير Z (إغلاق الوردية)",
-        "en": "Z Report (End of Shift)"
-      },
       "content": {
-        "ar": "تقرير Z هو ملخص شامل لنشاط الوردية:\n\nالأقسام الرئيسية:\n\n1. ملخص المبيعات:\n   • إجمالي المبيعات\n   • عدد الطلبات\n   • متوسط قيمة الطلب\n\n2. تفصيل طرق الدفع:\n   • النقد المستلم\n   • مدفوعات البطاقات\n   • المحفظة الإلكترونية\n\n3. النقدية:\n   • الرصيد الافتتاحي\n   • المبيعات النقدية\n   • الإيداعات / السحوبات\n   • الرصيد المتوقع\n   • الرصيد الفعلي (عند الإغلاق)\n\n4. الخصومات والمرتجعات:\n   • إجمالي الخصومات\n   • عدد وقيمة المرتجعات\n\nكيفية إنشاء التقرير:\n• اضغط \"إغلاق الوردية\" ← أدخل النقد الفعلي ← يُعرض التقرير",
-        "en": "Z Report is a comprehensive summary of shift activity:\n\nMain Sections:\n\n1. Sales Summary:\n   • Total sales\n   • Number of orders\n   • Average order value\n\n2. Payment Methods Breakdown:\n   • Cash received\n   • Card payments\n   • E-wallet\n\n3. Cash Drawer:\n   • Opening balance\n   • Cash sales\n   • Deposits / Withdrawals\n   • Expected balance\n   • Actual balance (at closing)\n\n4. Discounts & Refunds:\n   • Total discounts given\n   • Number and value of refunds\n\nHow to generate:\n• Click \"Close Shift\" → Enter actual cash → Report displays"
+        "ar": "تقرير Z = ملخص الوردية:\n1. المبيعات: Gross + Net\n2. طرق الدفع: نقد / بطاقات / محفظة\n3. النقدية: افتتاحي → متوقع → فعلي\n4. الخصومات والمرتجعات\n💡 يُنشأ عند إغلاق الوردية",
+        "en": "Z Report = Shift summary:\n1. Sales: Gross + Net\n2. Payments: Cash / Cards / Wallet\n3. Drawer: Opening → Expected → Actual\n4. Discounts & Refunds\n💡 Generated when closing shift"
       }
     },
     "gross_vs_net": {
       "id": "gross_vs_net",
       "intent": ["explain_report"],
       "keywords": {
-        "ar": ["إجمالي", "صافي", "الفرق", "ضريبة", "خصم", "مبيعات"],
-        "en": ["gross", "net", "difference", "tax", "discount", "sales", "revenue"]
-      },
-      "title": {
-        "ar": "الفرق بين الإجمالي والصافي",
-        "en": "Gross vs Net Sales"
+        "ar": ["إجمالي", "صافي", "الفرق", "gross", "net", "مبيعات"],
+        "en": ["gross", "net", "difference", "sales", "revenue"]
       },
       "content": {
-        "ar": "الإجمالي (Gross):\n• المبلغ الكلي قبل أي خصومات أو استرجاعات\n• يشمل الضريبة ورسوم الخدمة\n• مثال: مجموع أسعار الأصناف = 100 دينار\n\nالصافي (Net):\n• المبلغ الفعلي بعد الخصومات والمرتجعات\n• الصافي = الإجمالي - الخصومات - المرتجعات\n• مثال: 100 - 10 (خصم) - 5 (مرتجع) = 85 دينار\n\nفي التقارير:\n• \"إجمالي المبيعات\" = المبلغ قبل الخصومات\n• \"صافي المبيعات\" = المبلغ النهائي المحصّل\n• \"هامش الربح\" يُحسب على الصافي\n\nملاحظة: الضريبة عادةً تُحسب على الصافي وليس الإجمالي",
-        "en": "Gross:\n• Total amount before any discounts or refunds\n• Includes tax and service charges\n• Example: Sum of item prices = 100 JOD\n\nNet:\n• Actual amount after discounts and refunds\n• Net = Gross - Discounts - Refunds\n• Example: 100 - 10 (discount) - 5 (refund) = 85 JOD\n\nIn Reports:\n• \"Gross Sales\" = Amount before discounts\n• \"Net Sales\" = Final collected amount\n• \"Profit Margin\" is calculated on net\n\nNote: Tax is usually calculated on net, not gross"
+        "ar": "1. Gross = المبلغ قبل الخصومات\n2. Net = المبلغ بعد الخصومات والمرتجعات\n3. المعادلة: Net = Gross - خصم - مرتجع\n💡 هامش الربح يُحسب على Net",
+        "en": "1. Gross = Amount before discounts\n2. Net = Amount after discounts & refunds\n3. Formula: Net = Gross - discount - refund\n💡 Profit margin calculated on Net"
       }
     },
     "refund_overview": {
       "id": "refund_overview",
       "intent": ["explain_report", "how_to"],
       "keywords": {
-        "ar": ["استرجاع", "مرتجع", "إرجاع", "استرداد", "إلغاء بعد الدفع"],
-        "en": ["refund", "return", "reimburse", "cancel after payment", "money back"]
-      },
-      "title": {
-        "ar": "نظرة عامة على المرتجعات",
-        "en": "Refund Overview"
+        "ar": ["استرجاع", "مرتجع", "إرجاع", "استرداد", "refund"],
+        "en": ["refund", "return", "reimburse", "money back"]
       },
       "content": {
-        "ar": "المرتجعات في Kastana POS:\n\nأنواع المرتجعات:\n1. مرتجع كامل: إرجاع كامل قيمة الطلب\n2. مرتجع جزئي: إرجاع قيمة صنف أو أصناف محددة\n\nمتى يُستخدم المرتجع:\n• العميل غير راضٍ عن الصنف\n• خطأ في الطلب بعد الدفع\n• إلغاء جزئي بعد إتمام الدفع\n\nالفرق بين الإلغاء والمرتجع:\n• الإلغاء (Void): قبل الدفع - لا يؤثر على التقارير\n• المرتجع (Refund): بعد الدفع - يُسجل في التقارير\n\nفي التقارير:\n• تظهر المرتجعات في تقرير Z\n• تُخصم من صافي المبيعات\n• يُحفظ سبب كل مرتجع للمراجعة\n\nملاحظة: المرتجعات تتطلب صلاحيات خاصة عادةً",
-        "en": "Refunds in Kastana POS:\n\nTypes of Refunds:\n1. Full Refund: Return entire order value\n2. Partial Refund: Return value of specific items\n\nWhen to use refunds:\n• Customer unsatisfied with item\n• Order mistake after payment\n• Partial cancellation after payment complete\n\nDifference between Void and Refund:\n• Void: Before payment - doesn't affect reports\n• Refund: After payment - recorded in reports\n\nIn Reports:\n• Refunds appear in Z Report\n• Deducted from net sales\n• Reason for each refund is saved for review\n\nNote: Refunds typically require special permissions"
+        "ar": "المرتجع = إرجاع المبلغ بعد الدفع:\n1. Void = قبل الدفع (لا يُسجل)\n2. Refund = بعد الدفع (يُسجل في التقارير)\n3. يُخصم من صافي المبيعات\n💡 يتطلب صلاحيات خاصة",
+        "en": "Refund = Return money after payment:\n1. Void = Before payment (not recorded)\n2. Refund = After payment (recorded in reports)\n3. Deducted from net sales\n💡 Requires special permissions"
       }
     },
     "disabled_button_reasons": {
@@ -122,32 +94,62 @@
         "ar": ["معطل", "لا يعمل", "رمادي", "مقفل", "ليش ما يشتغل", "غير متاح", "زر"],
         "en": ["disabled", "greyed out", "not working", "locked", "can't click", "unavailable", "button"]
       },
-      "title": {
-        "ar": "أسباب تعطل الأزرار",
-        "en": "Common Disabled Button Reasons"
+      "content": {
+        "ar": "أسباب تعطل الأزرار:\n1. الوردية غير مفتوحة ← افتح Shift\n2. الطلب فارغ ← أضف أصناف\n3. صلاحيات غير كافية ← راجع المالك\n4. الصنف غير متوفر ← تحقق من المخزون",
+        "en": "Disabled button reasons:\n1. Shift not open → Open Shift\n2. Order empty → Add items\n3. Insufficient permissions → Contact owner\n4. Item unavailable → Check inventory"
+      }
+    },
+    "payment_disabled": {
+      "id": "payment_disabled",
+      "intent": ["why_disabled"],
+      "keywords": {
+        "ar": ["زر الدفع معطل", "ما اقدر ادفع", "الدفع لا يعمل"],
+        "en": ["pay button disabled", "can't pay", "payment not working"]
       },
       "content": {
-        "ar": "الأسباب الشائعة لتعطل الأزرار:\n\n🔴 زر الدفع معطل:\n• لا توجد أصناف في الطلب\n• الوردية غير مفتوحة\n• الطلب مدفوع مسبقاً\n\n🔴 زر فتح الوردية معطل:\n• وردية مفتوحة بالفعل\n• حساب الكاشير غير نشط\n\n🔴 أزرار الأصناف معطلة:\n• الصنف غير متوفر\n• الصنف معطل من الإدارة\n• المخزون نفد\n\n🔴 زر الخصم معطل:\n• الخصومات معطلة في الإعدادات\n• الطلب فارغ\n• تم تطبيق الحد الأقصى للخصم\n\n🔴 زر المرتجع معطل:\n• صلاحيات غير كافية\n• الطلب غير مدفوع\n\n🔴 إعدادات المالك معطلة:\n• غير مسجل دخول كمالك\n• المطعم غير نشط\n\nالحل العام: تأكد من فتح الوردية وتوفر الصلاحيات اللازمة",
-        "en": "Common reasons for disabled buttons:\n\n🔴 Pay button disabled:\n• No items in order\n• Shift not opened\n• Order already paid\n\n🔴 Open Shift button disabled:\n• Shift already open\n• Cashier account inactive\n\n🔴 Menu items disabled:\n• Item unavailable\n• Item disabled by management\n• Stock depleted\n\n🔴 Discount button disabled:\n• Discounts disabled in settings\n• Order is empty\n• Maximum discount already applied\n\n🔴 Refund button disabled:\n• Insufficient permissions\n• Order not paid yet\n\n🔴 Owner settings disabled:\n• Not logged in as owner\n• Restaurant inactive\n\nGeneral fix: Ensure shift is open and you have necessary permissions"
+        "ar": "زر الدفع معطل لأحد الأسباب:\n1. تأكد من وجود أصناف في الطلب\n2. تأكد من فتح الوردية (Shift)\n3. تأكد أن الطلب غير مدفوع مسبقاً\n💡 افتح الوردية أولاً",
+        "en": "Pay button disabled because:\n1. Ensure order has items\n2. Ensure shift is open\n3. Ensure order isn't already paid\n💡 Open shift first"
+      }
+    },
+    "open_shift": {
+      "id": "open_shift",
+      "intent": ["how_to"],
+      "keywords": {
+        "ar": ["فتح وردية", "بداية العمل", "شفت", "افتح الشفت"],
+        "en": ["open shift", "start shift", "begin work"]
+      },
+      "content": {
+        "ar": "1. اضغط \"فتح وردية\" في الشاشة\n2. أدخل المبلغ الافتتاحي (Opening Cash)\n3. اضغط \"تأكيد\"\n💡 يجب فتح الوردية قبل أي عملية بيع",
+        "en": "1. Click \"Open Shift\" on screen\n2. Enter opening cash amount\n3. Click \"Confirm\"\n💡 Must open shift before any sale"
+      }
+    },
+    "close_shift": {
+      "id": "close_shift",
+      "intent": ["how_to"],
+      "keywords": {
+        "ar": ["إغلاق وردية", "نهاية العمل", "قفل الشفت"],
+        "en": ["close shift", "end shift", "finish work"]
+      },
+      "content": {
+        "ar": "1. اضغط \"إغلاق وردية\"\n2. أدخل النقد الفعلي في الدرج\n3. راجع تقرير Z\n4. اضغط \"تأكيد الإغلاق\"\n💡 تأكد من إتمام جميع الطلبات المفتوحة",
+        "en": "1. Click \"Close Shift\"\n2. Enter actual cash in drawer\n3. Review Z Report\n4. Click \"Confirm Close\"\n💡 Ensure all open orders are completed"
       }
     }
   },
   "fallbackResponses": {
-    "ar": "عذراً، لم أجد معلومات محددة عن هذا الموضوع في قاعدة المعرفة. يمكنني مساعدتك في:\n\n• تدفق الدفع\n• تعليق واستئناف الطلبات\n• نقل الطاولات\n• دمج الطلبات\n• شرح تقرير Z\n• الفرق بين الإجمالي والصافي\n• المرتجعات\n• أسباب تعطل الأزرار\n\nما الموضوع الذي تريد المساعدة فيه؟",
-    "en": "Sorry, I couldn't find specific information about this topic in the knowledge base. I can help you with:\n\n• Payment flow\n• Hold & resume orders\n• Move tables\n• Merge orders\n• Z Report explanation\n• Gross vs Net sales\n• Refunds\n• Disabled button reasons\n\nWhich topic would you like help with?"
+    "ar": "لم أجد معلومات عن هذا. يمكنني المساعدة في:\n• الدفع والطلبات\n• تعليق/دمج الطلبات\n• تقرير Z والمبيعات\n• أسباب تعطل الأزرار",
+    "en": "No info found. I can help with:\n• Payments & orders\n• Hold/merge orders\n• Z Report & sales\n• Disabled button reasons"
   },
   "quickReplies": {
     "ar": [
       "كيف أدفع الطلب؟",
-      "لماذا زر الدفع معطل؟",
-      "كيف أدمج طلبين؟",
+      "زر الدفع معطل",
       "ما هو تقرير Z؟"
     ],
     "en": [
-      "How do I pay an order?",
-      "Why is the pay button disabled?",
-      "How do I merge orders?",
-      "What is the Z Report?"
+      "How to pay?",
+      "Pay button disabled",
+      "What is Z Report?"
     ]
   }
 }
