@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { MessageCircle, X, Send, Bot, Lightbulb } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { MessageCircle, X, Send, Bot, Lightbulb, GraduationCap } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,10 +37,20 @@ import {
 } from "@/lib/assistantAlerts";
 import {
   findRelevantCard,
+  getCardById,
   type TrainingCard,
 } from "@/lib/assistantTrainingCards";
+import {
+  checkScreenVisitTrigger,
+  checkSystemUpdateTrigger,
+  recordErrorAndCheckTrigger,
+  markCardTriggered,
+} from "@/lib/assistantTriggers";
 import { AIAssistantAlert } from "@/components/AIAssistantAlert";
 import { AIAssistantTrainingCard } from "@/components/AIAssistantTrainingCard";
+import { AIAssistantTrainingList } from "@/components/AIAssistantTrainingList";
+
+type ViewMode = "chat" | "training";
 
 interface Message {
   id: string;
@@ -55,11 +65,13 @@ interface Message {
 
 export function AIAssistantBubble() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isRTL, language } = useLanguage();
   const systemLang = language as "ar" | "en";
   const scrollRef = useRef<HTMLDivElement>(null);
   
   const [open, setOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("chat");
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -72,6 +84,53 @@ export function AIAssistantBubble() {
   const [inputValue, setInputValue] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [dismissedCards, setDismissedCards] = useState<string[]>([]);
+  const [pendingTriggerCard, setPendingTriggerCard] = useState<TrainingCard | null>(null);
+
+  // Check for screen visit triggers
+  useEffect(() => {
+    const currentPath = location.pathname + location.search;
+    const cardId = checkScreenVisitTrigger(currentPath);
+    
+    if (cardId) {
+      const card = getCardById(cardId);
+      if (card) {
+        markCardTriggered("screen_visit", cardId);
+        setPendingTriggerCard(card);
+        setOpen(true); // Open assistant to show the card
+      }
+    }
+  }, [location.pathname, location.search]);
+
+  // Check for system update triggers on mount
+  useEffect(() => {
+    const updateCardIds = checkSystemUpdateTrigger();
+    
+    if (updateCardIds.length > 0) {
+      const firstCard = getCardById(updateCardIds[0]);
+      if (firstCard) {
+        markCardTriggered("system_update", updateCardIds[0]);
+        setPendingTriggerCard(firstCard);
+        setOpen(true);
+      }
+    }
+  }, []);
+
+  // Handle pending trigger card
+  useEffect(() => {
+    if (pendingTriggerCard && open) {
+      const triggerMessage: Message = {
+        id: `trigger_${Date.now()}`,
+        content: systemLang === "ar" 
+          ? "🎓 نصيحة سريعة لمساعدتك:"
+          : "🎓 Quick tip to help you:",
+        role: "assistant",
+        timestamp: new Date(),
+        trainingCard: pendingTriggerCard,
+      };
+      setMessages((prev) => [...prev, triggerMessage]);
+      setPendingTriggerCard(null);
+    }
+  }, [pendingTriggerCard, open, systemLang]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -175,7 +234,6 @@ export function AIAssistantBubble() {
    */
   const handleDismissCard = (cardId: string) => {
     setDismissedCards((prev) => [...prev, cardId]);
-    // Update messages to remove the training card
     setMessages((prev) =>
       prev.map((msg) =>
         msg.trainingCard?.id === cardId
@@ -189,24 +247,62 @@ export function AIAssistantBubble() {
    * Handle opening a report from an alert
    */
   const handleOpenReport = (path: string) => {
-    setOpen(false); // Close the assistant panel
+    setOpen(false);
     navigate(path);
   };
 
   /**
+   * Handle selecting a card from training list
+   */
+  const handleSelectTrainingCard = (card: TrainingCard) => {
+    const newMessage: Message = {
+      id: `selected_${Date.now()}`,
+      content: systemLang === "ar" 
+        ? `📖 ${card.title.ar}`
+        : `📖 ${card.title.en}`,
+      role: "assistant",
+      timestamp: new Date(),
+      trainingCard: card,
+    };
+    setMessages((prev) => [...prev, newMessage]);
+    setViewMode("chat");
+  };
+
+  /**
+   * Record user error for trigger tracking
+   * Call this from parent components when errors occur
+   */
+  const triggerErrorCard = (errorAction: string): void => {
+    const cardId = recordErrorAndCheckTrigger(errorAction);
+    if (cardId) {
+      const card = getCardById(cardId);
+      if (card) {
+        markCardTriggered("repeated_error", cardId);
+        setPendingTriggerCard(card);
+        setOpen(true);
+      }
+    }
+  };
+
+  // Expose error trigger function globally (for other components to use)
+  useEffect(() => {
+    (window as unknown as { triggerAssistantError?: typeof triggerErrorCard }).triggerAssistantError = triggerErrorCard;
+    return () => {
+      delete (window as unknown as { triggerAssistantError?: typeof triggerErrorCard }).triggerAssistantError;
+    };
+  }, []);
+
+  /**
    * Check if user message contains data context hints
-   * In a real implementation, this would check actual screen data
    */
   const checkForDataContext = (message: string, _type: SuggestionType): boolean => {
-    // Look for number patterns or comparative language that suggests user is looking at data
     const dataPatterns = [
-      /\d+/,                          // Contains numbers
-      /أقل|أكثر|زيادة|نقص/,            // Arabic comparison words
-      /less|more|lower|higher|down|up/, // English comparison words
-      /\%/,                            // Percentage sign
-      /ريال|دينار|jod|sar/i,          // Currency mentions
+      /\d+/,
+      /أقل|أكثر|زيادة|نقص/,
+      /less|more|lower|higher|down|up/,
+      /\%/,
+      /ريال|دينار|jod|sar/i,
     ];
-    
     return dataPatterns.some((pattern) => pattern.test(message));
   };
 
@@ -241,116 +337,147 @@ export function AIAssistantBubble() {
         className="w-full sm:w-[400px] flex flex-col p-0"
       >
         <SheetHeader className="p-4 border-b bg-primary text-primary-foreground">
-          <SheetTitle className="text-primary-foreground flex items-center gap-2">
-            <Bot className="h-5 w-5" />
-            مساعد Kastana الذكي
-          </SheetTitle>
+          <div className="flex items-center justify-between">
+            <SheetTitle className="text-primary-foreground flex items-center gap-2">
+              <Bot className="h-5 w-5" />
+              {systemLang === "ar" ? "مساعد Kastana الذكي" : "Kastana AI Assistant"}
+            </SheetTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/10"
+              onClick={() => setViewMode(viewMode === "chat" ? "training" : "chat")}
+            >
+              <GraduationCap className="h-4 w-4" />
+            </Button>
+          </div>
         </SheetHeader>
 
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={cn(
-                  "flex",
-                  message.role === "user" ? "justify-end" : "justify-start"
-                )}
-              >
-                {/* Alert message */}
-                {message.alert ? (
-                  <div className="max-w-[90%]">
-                    <AIAssistantAlert
-                      alert={message.alert}
-                      language={systemLang}
-                      onOpenReport={handleOpenReport}
-                    />
-                  </div>
-                ) : (
-                  <div className="max-w-[85%] space-y-2">
-                    {/* Regular message content */}
-                    <div
-                      className={cn(
-                        "rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap",
-                        message.role === "user"
-                          ? "bg-primary text-primary-foreground rounded-br-sm"
-                          : message.isSuggestion
-                          ? "bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-foreground rounded-bl-sm"
-                          : "bg-muted text-foreground rounded-bl-sm"
-                      )}
-                    >
-                      {message.isSuggestion && (
-                        <Lightbulb className="inline-block h-4 w-4 text-amber-500 mr-1 mb-0.5" />
-                      )}
-                      {message.content}
-                    </div>
-                    
-                    {/* Training Card (if relevant and not dismissed) */}
-                    {message.trainingCard && (
-                      <AIAssistantTrainingCard
-                        card={message.trainingCard}
-                        language={systemLang}
-                        onDismiss={handleDismissCard}
-                      />
+        {/* Training List View */}
+        {viewMode === "training" ? (
+          <AIAssistantTrainingList
+            language={systemLang}
+            onSelectCard={handleSelectTrainingCard}
+            onClose={() => setViewMode("chat")}
+          />
+        ) : (
+          <>
+            <ScrollArea className="flex-1 p-4">
+              <div className="space-y-4">
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={cn(
+                      "flex",
+                      message.role === "user" ? "justify-end" : "justify-start"
                     )}
+                  >
+                    {/* Alert message */}
+                    {message.alert ? (
+                      <div className="max-w-[90%]">
+                        <AIAssistantAlert
+                          alert={message.alert}
+                          language={systemLang}
+                          onOpenReport={handleOpenReport}
+                        />
+                      </div>
+                    ) : (
+                      <div className="max-w-[85%] space-y-2">
+                        {/* Regular message content */}
+                        {message.content && (
+                          <div
+                            className={cn(
+                              "rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap",
+                              message.role === "user"
+                                ? "bg-primary text-primary-foreground rounded-br-sm"
+                                : message.isSuggestion
+                                ? "bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-foreground rounded-bl-sm"
+                                : "bg-muted text-foreground rounded-bl-sm"
+                            )}
+                          >
+                            {message.isSuggestion && (
+                              <Lightbulb className="inline-block h-4 w-4 text-amber-500 mr-1 mb-0.5" />
+                            )}
+                            {message.content}
+                          </div>
+                        )}
+                        
+                        {/* Training Card (if relevant and not dismissed) */}
+                        {message.trainingCard && (
+                          <AIAssistantTrainingCard
+                            card={message.trainingCard}
+                            language={systemLang}
+                            onDismiss={handleDismissCard}
+                          />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {isProcessing && (
+                  <div className="flex justify-start">
+                    <div className="bg-muted text-foreground rounded-2xl rounded-bl-sm px-4 py-3 text-sm">
+                      <span className="flex items-center gap-1">
+                        <span className="animate-bounce">●</span>
+                        <span className="animate-bounce" style={{ animationDelay: "0.1s" }}>●</span>
+                        <span className="animate-bounce" style={{ animationDelay: "0.2s" }}>●</span>
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
-            ))}
-            {isProcessing && (
-              <div className="flex justify-start">
-                <div className="bg-muted text-foreground rounded-2xl rounded-bl-sm px-4 py-3 text-sm">
-                  <span className="flex items-center gap-1">
-                    <span className="animate-bounce">●</span>
-                    <span className="animate-bounce" style={{ animationDelay: "0.1s" }}>●</span>
-                    <span className="animate-bounce" style={{ animationDelay: "0.2s" }}>●</span>
-                  </span>
+            </ScrollArea>
+
+            {/* Quick Replies */}
+            {messages.length <= 2 && (
+              <div className="px-4 pb-2">
+                <div className="flex flex-wrap gap-2">
+                  {quickReplies.slice(0, 3).map((reply, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => handleSendMessage(reply)}
+                      disabled={isProcessing}
+                    >
+                      {reply}
+                    </Button>
+                  ))}
                 </div>
               </div>
             )}
-          </div>
-        </ScrollArea>
 
-        {/* Quick Replies */}
-        {messages.length <= 2 && (
-          <div className="px-4 pb-2">
-            <div className="flex flex-wrap gap-2">
-              {quickReplies.slice(0, 3).map((reply, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  size="sm"
-                  className="text-xs"
-                  onClick={() => handleSendMessage(reply)}
+            <div className="p-4 border-t bg-background">
+              <div className="flex gap-2">
+                <Input
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={isRTL ? "اكتب سؤالك هنا..." : "Type your question..."}
+                  className="flex-1"
                   disabled={isProcessing}
+                />
+                <Button
+                  size="icon"
+                  onClick={() => handleSendMessage()}
+                  disabled={!inputValue.trim() || isProcessing}
                 >
-                  {reply}
+                  <Send className={cn("h-4 w-4", isRTL && "rotate-180")} />
                 </Button>
-              ))}
+              </div>
             </div>
-          </div>
+          </>
         )}
-
-        <div className="p-4 border-t bg-background">
-          <div className="flex gap-2">
-            <Input
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={isRTL ? "اكتب سؤالك هنا..." : "Type your question..."}
-              className="flex-1"
-              disabled={isProcessing}
-            />
-            <Button
-              size="icon"
-              onClick={() => handleSendMessage()}
-              disabled={!inputValue.trim() || isProcessing}
-            >
-              <Send className={cn("h-4 w-4", isRTL && "rotate-180")} />
-            </Button>
-          </div>
-        </div>
       </SheetContent>
     </Sheet>
   );
+}
+
+// Export function for external components to trigger error cards
+export function triggerAssistantError(errorAction: string): void {
+  const fn = (window as unknown as { triggerAssistantError?: (action: string) => void }).triggerAssistantError;
+  if (fn) {
+    fn(errorAction);
+  }
 }
