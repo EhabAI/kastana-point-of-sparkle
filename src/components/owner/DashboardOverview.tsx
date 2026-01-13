@@ -58,8 +58,14 @@ function getNextOpenTime(businessHours: BusinessHours | null, t: (key: string) =
 }
 
 // Format duration for display with proper Arabic-friendly spacing
-// Examples: 306 min => "5 س 06 د", 38 min => "0 س 38 د"
-function formatShiftDuration(totalMinutes: number, language: string): string {
+// Normalizes input: if > 1440, treat as seconds; else treat as minutes
+// Examples: 18400 (sec) => "5 س 06 د", 306 (min) => "5 س 06 د", 41 (min) => "0 س 41 د"
+function formatShiftDuration(durationValue: number, language: string): string {
+  // Normalize: if value > 1440 (24 hours in minutes), it's likely in seconds
+  const totalMinutes = durationValue > 1440 
+    ? Math.floor(durationValue / 60) 
+    : Math.floor(durationValue);
+  
   const hours = Math.floor(totalMinutes / 60);
   const mins = totalMinutes % 60;
   
