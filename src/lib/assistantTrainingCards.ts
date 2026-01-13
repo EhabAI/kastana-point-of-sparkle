@@ -64,6 +64,31 @@ export function resetDismissedCards(): void {
 }
 
 /**
+ * Un-dismiss a specific card (for re-opening)
+ */
+export function undismissCard(cardId: string): void {
+  const dismissed = getDismissedCards();
+  const updated = dismissed.filter((id) => id !== cardId);
+  localStorage.setItem(DISMISSED_CARDS_KEY, JSON.stringify(updated));
+}
+
+/**
+ * Get a training card by ID
+ */
+export function getCardById(cardId: string): TrainingCard | null {
+  return TRAINING_CARDS.find((card) => card.id === cardId) || null;
+}
+
+/**
+ * Get cards by context (screen)
+ */
+export function getCardsByContext(context: string): TrainingCard[] {
+  return TRAINING_CARDS.filter(
+    (card) => card.context && card.context.includes(context)
+  );
+}
+
+/**
  * Training cards data - sourced from assistant_knowledge.json patterns
  */
 const TRAINING_CARDS: TrainingCard[] = [
