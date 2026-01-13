@@ -21,21 +21,31 @@ interface TableCardProps {
   selected?: boolean;
 }
 
-function formatDuration(startTime: string): string {
+function formatDuration(startTime: string, language: string): string {
   const start = new Date(startTime).getTime();
   const now = Date.now();
   const diffMs = now - start;
   
-  if (diffMs < 0) return "0m";
-  
-  const totalMinutes = Math.floor(diffMs / 60000);
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  
-  if (hours > 0) {
-    return `${hours}h ${minutes.toString().padStart(2, "0")}m`;
+  if (diffMs < 0) {
+    return language === "ar" ? "0 س 00 د" : "0h 00m";
   }
-  return `${minutes}m`;
+  
+  // Calculate duration in minutes from milliseconds
+  let durationValue = Math.floor(diffMs / 60000);
+  
+  // Normalize: if value > 1440 (24 hours in minutes), it's likely in seconds
+  const totalMinutes = durationValue > 1440 
+    ? Math.floor(durationValue / 60) 
+    : Math.floor(durationValue);
+  
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  const paddedMins = mins.toString().padStart(2, "0");
+  
+  if (language === "ar") {
+    return `${hours} س ${paddedMins} د`;
+  }
+  return `${hours}h ${paddedMins}m`;
 }
 
 export function TableCard({
@@ -49,10 +59,11 @@ export function TableCard({
   disabled,
   selected,
 }: TableCardProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const effectiveCapacity = capacity || 4;
+  const defaultDuration = language === "ar" ? "0 س 00 د" : "0h 00m";
   const [duration, setDuration] = useState(() => 
-    orderCreatedAt ? formatDuration(orderCreatedAt) : "0m"
+    orderCreatedAt ? formatDuration(orderCreatedAt, language) : defaultDuration
   );
   
   const hasMergedOrders = orderCount && orderCount > 1;
@@ -61,14 +72,14 @@ export function TableCard({
   useEffect(() => {
     if (!isOccupied || !orderCreatedAt) return;
     
-    setDuration(formatDuration(orderCreatedAt));
+    setDuration(formatDuration(orderCreatedAt, language));
     
     const interval = setInterval(() => {
-      setDuration(formatDuration(orderCreatedAt));
+      setDuration(formatDuration(orderCreatedAt, language));
     }, 60000);
     
     return () => clearInterval(interval);
-  }, [isOccupied, orderCreatedAt]);
+  }, [isOccupied, orderCreatedAt, language]);
 
   return (
     <button
