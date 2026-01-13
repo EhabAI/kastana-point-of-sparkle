@@ -57,17 +57,27 @@ function getNextOpenTime(businessHours: BusinessHours | null, t: (key: string) =
   return null;
 }
 
-// Format duration for display
+// Format duration for display with proper Arabic-friendly spacing
 function formatShiftDuration(minutes: number, language: string): string {
-  if (minutes < 60) {
-    return language === "ar" ? `${minutes}د` : `${minutes}m`;
-  }
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
+  
+  // Pad minutes to always show 2 digits for consistency
+  const paddedMins = mins.toString().padStart(2, "0");
+  
   if (language === "ar") {
-    return mins > 0 ? `${hours}س ${mins}د` : `${hours}س`;
+    // Arabic format: "5 س 06 د" with proper spacing
+    if (hours === 0) {
+      return `${mins} د`;
+    }
+    return mins > 0 ? `${hours} س ${paddedMins} د` : `${hours} س`;
   }
-  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+  
+  // English format: "5h 06m"
+  if (hours === 0) {
+    return `${mins}m`;
+  }
+  return mins > 0 ? `${hours}h ${paddedMins}m` : `${hours}h`;
 }
 
 export function DashboardOverview({ restaurantId, tableCount, staffCount, currency }: DashboardOverviewProps) {
