@@ -8,3 +8,4 @@ export { AdjustmentDialog } from "./AdjustmentDialog";
 export { WasteDialog } from "./WasteDialog";
 export { TransferDialog } from "./TransferDialog";
 export { StockCountDialog } from "./StockCountDialog";
+export { StockCountHistoryDialog } from "./StockCountHistoryDialog";
