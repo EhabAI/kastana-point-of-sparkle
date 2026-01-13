@@ -331,42 +331,96 @@ export function StockCountDialog({ restaurantId, open, onOpenChange }: StockCoun
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {stockCounts.map((count) => {
                       const isImmutable = count.status === "APPROVED" || count.status === "CANCELLED";
+                      const isApproved = count.status === "APPROVED";
                       
                       return (
                         <div
                           key={count.id}
                           className={`p-4 rounded-lg border ${
-                            isImmutable ? "bg-muted/10" : "bg-muted/20"
+                            isApproved 
+                              ? "bg-green-50/50 dark:bg-green-950/20 border-green-200 dark:border-green-800" 
+                              : isImmutable 
+                                ? "bg-muted/10" 
+                                : "bg-muted/20"
                           } ${count.status === "CANCELLED" ? "opacity-60" : ""}`}
                         >
-                          <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 space-y-2">
+                              {/* Header row */}
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-medium">{count.branchName}</span>
                                 {renderStatusBadge(count.status as CountStatus)}
                                 {isImmutable && (
                                   <Lock className="h-3 w-3 text-muted-foreground" />
                                 )}
                               </div>
-                              <span className="text-xs text-muted-foreground">
-                                {format(new Date(count.createdAt), "PPp", { locale: dateLocale })}
-                              </span>
+                              
+                              {/* Date info */}
+                              <div className="text-xs text-muted-foreground space-y-0.5">
+                                <div className="flex items-center gap-1">
+                                  <span>{t("created")}:</span>
+                                  <span>{format(new Date(count.createdAt), "PPp", { locale: dateLocale })}</span>
+                                </div>
+                                
+                                {/* Approved info for APPROVED counts */}
+                                {isApproved && count.approvedAt && (
+                                  <div className="flex items-center gap-1">
+                                    <span>{t("inv_approved_at")}:</span>
+                                    <span>{format(new Date(count.approvedAt), "PPp", { locale: dateLocale })}</span>
+                                    {count.approvedByName && (
+                                      <span className="text-foreground font-medium">({count.approvedByName})</span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Variance summary for APPROVED counts */}
+                              {isApproved && count.totalItems !== undefined && (
+                                <div className="flex items-center gap-4 text-xs mt-2 p-2 bg-muted/30 rounded">
+                                  <div className="flex items-center gap-1">
+                                    <Package className="h-3 w-3" />
+                                    <span>{count.totalItems} {t("items")}</span>
+                                  </div>
+                                  {count.itemsWithVariance !== undefined && count.itemsWithVariance > 0 && (
+                                    <>
+                                      <div className="flex items-center gap-1 text-green-600">
+                                        <TrendingUp className="h-3 w-3" />
+                                        <span>+{count.totalPositiveVariance?.toFixed(1) || 0}</span>
+                                      </div>
+                                      <div className="flex items-center gap-1 text-red-600">
+                                        <TrendingDown className="h-3 w-3" />
+                                        <span>-{count.totalNegativeVariance?.toFixed(1) || 0}</span>
+                                      </div>
+                                      <div className="text-muted-foreground">
+                                        ({count.itemsWithVariance} {t("inv_with_variance")})
+                                      </div>
+                                    </>
+                                  )}
+                                  {count.itemsWithVariance === 0 && (
+                                    <span className="text-green-600">{t("inv_no_variance")}</span>
+                                  )}
+                                </div>
+                              )}
+                              
                               {count.notes && (
                                 <p className="text-xs text-muted-foreground italic">{count.notes}</p>
                               )}
                             </div>
-                            <div className="flex items-center gap-2">
-                              {/* View button for all statuses */}
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleViewCount(count)}
-                              >
-                                {t("view")}
-                              </Button>
+                            
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              {/* View button for APPROVED/CANCELLED (read-only) */}
+                              {isImmutable && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleViewCount(count)}
+                                >
+                                  {t("view")}
+                                </Button>
+                              )}
                               
                               {/* DRAFT actions */}
                               {count.status === "DRAFT" && (
@@ -398,6 +452,13 @@ export function StockCountDialog({ restaurantId, open, onOpenChange }: StockCoun
                               {/* SUBMITTED actions */}
                               {count.status === "SUBMITTED" && (
                                 <>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleViewCount(count)}
+                                  >
+                                    {t("view")}
+                                  </Button>
                                   <Button 
                                     size="sm" 
                                     onClick={() => handlePrepareApproval(count.id)}

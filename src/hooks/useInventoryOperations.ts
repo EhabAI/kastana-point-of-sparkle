@@ -18,9 +18,15 @@ export interface StockCount {
   status: "DRAFT" | "SUBMITTED" | "APPROVED" | "CANCELLED";
   createdBy: string;
   approvedBy: string | null;
+  approvedByName?: string | null;
   createdAt: string;
   approvedAt: string | null;
   notes: string | null;
+  // Variance summary (populated for APPROVED counts)
+  totalPositiveVariance?: number;
+  totalNegativeVariance?: number;
+  itemsWithVariance?: number;
+  totalItems?: number;
 }
 
 export interface StockCountLine {
@@ -99,6 +105,7 @@ export function useStockCounts(restaurantId: string | undefined) {
     queryFn: async (): Promise<StockCount[]> => {
       if (!restaurantId) return [];
 
+      // Fetch stock counts with branch name
       const { data, error } = await supabase
         .from("stock_counts")
         .select(`
@@ -121,18 +128,98 @@ export function useStockCounts(restaurantId: string | undefined) {
         return [];
       }
 
-      return (data || []).map((sc: any) => ({
-        id: sc.id,
-        restaurantId: sc.restaurant_id,
-        branchId: sc.branch_id,
-        branchName: sc.restaurant_branches.name,
-        status: sc.status,
-        createdBy: sc.created_by,
-        approvedBy: sc.approved_by,
-        createdAt: sc.created_at,
-        approvedAt: sc.approved_at,
-        notes: sc.notes,
-      }));
+      // Get unique approver IDs to fetch their names
+      const approverIds = [...new Set(
+        (data || [])
+          .filter((sc: any) => sc.approved_by)
+          .map((sc: any) => sc.approved_by)
+      )];
+
+      // Fetch approver profiles
+      let approverMap = new Map<string, string>();
+      if (approverIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, email")
+          .in("id", approverIds);
+        
+        if (profiles) {
+          profiles.forEach((p: any) => {
+            approverMap.set(p.id, p.email?.split("@")[0] || "Unknown");
+          });
+        }
+      }
+
+      // For APPROVED counts, fetch variance summaries
+      const approvedCountIds = (data || [])
+        .filter((sc: any) => sc.status === "APPROVED")
+        .map((sc: any) => sc.id);
+
+      let varianceSummaries = new Map<string, { positive: number; negative: number; itemsWithVariance: number; totalItems: number }>();
+      
+      if (approvedCountIds.length > 0) {
+        const { data: lines } = await supabase
+          .from("stock_count_lines")
+          .select("stock_count_id, expected_base, actual_base")
+          .in("stock_count_id", approvedCountIds);
+
+        if (lines) {
+          // Group by stock_count_id
+          const grouped = new Map<string, { expected_base: number; actual_base: number }[]>();
+          lines.forEach((line: any) => {
+            const existing = grouped.get(line.stock_count_id) || [];
+            existing.push({ expected_base: line.expected_base, actual_base: line.actual_base });
+            grouped.set(line.stock_count_id, existing);
+          });
+
+          // Calculate summaries
+          grouped.forEach((countLines, countId) => {
+            let positive = 0;
+            let negative = 0;
+            let itemsWithVariance = 0;
+            
+            countLines.forEach((line) => {
+              const variance = line.actual_base - line.expected_base;
+              if (Math.abs(variance) > 0.01) {
+                itemsWithVariance++;
+                if (variance > 0) {
+                  positive += variance;
+                } else {
+                  negative += Math.abs(variance);
+                }
+              }
+            });
+
+            varianceSummaries.set(countId, {
+              positive,
+              negative,
+              itemsWithVariance,
+              totalItems: countLines.length,
+            });
+          });
+        }
+      }
+
+      return (data || []).map((sc: any) => {
+        const summary = varianceSummaries.get(sc.id);
+        return {
+          id: sc.id,
+          restaurantId: sc.restaurant_id,
+          branchId: sc.branch_id,
+          branchName: sc.restaurant_branches.name,
+          status: sc.status,
+          createdBy: sc.created_by,
+          approvedBy: sc.approved_by,
+          approvedByName: sc.approved_by ? approverMap.get(sc.approved_by) : null,
+          createdAt: sc.created_at,
+          approvedAt: sc.approved_at,
+          notes: sc.notes,
+          totalPositiveVariance: summary?.positive,
+          totalNegativeVariance: summary?.negative,
+          itemsWithVariance: summary?.itemsWithVariance,
+          totalItems: summary?.totalItems,
+        };
+      });
     },
     enabled: !!restaurantId,
   });
