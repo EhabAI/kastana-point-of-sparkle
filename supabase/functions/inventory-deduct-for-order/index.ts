@@ -134,6 +134,31 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ============ INVENTORY MODULE GUARD ============
+    const { data: settings, error: settingsError } = await supabaseAdmin
+      .from("restaurant_settings")
+      .select("inventory_enabled")
+      .eq("restaurant_id", order.restaurant_id)
+      .maybeSingle();
+
+    if (settingsError) {
+      console.error("[inventory-deduct] Settings check failed:", settingsError);
+      // Don't fail the payment flow - just skip deduction
+      return new Response(
+        JSON.stringify({ success: true, warnings: [], error: null, deducted_count: 0, cogs_computed: false }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!settings?.inventory_enabled) {
+      console.log("[inventory-deduct] Inventory module disabled, skipping deduction for restaurant:", order.restaurant_id);
+      return new Response(
+        JSON.stringify({ success: true, warnings: [], error: null, deducted_count: 0, cogs_computed: false }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    // ============ END INVENTORY MODULE GUARD ============
+
     // Only process paid orders
     if (order.status !== "paid") {
       console.log("[inventory-deduct] Order not paid, skipping deduction");
@@ -469,51 +494,55 @@ Deno.serve(async (req) => {
       await supabaseAdmin.from("audit_logs").insert({
         restaurant_id: order.restaurant_id,
         user_id: userId,
-        action: "INVENTORY_NEGATIVE_AFTER_SALE",
+        action: "INVENTORY_NEGATIVE_STOCK_WARNING",
         entity_type: "order",
         entity_id: order_id,
         details: {
           order_id,
-          warnings: warnings.slice(0, 10), // Limit to 10 for storage
+          warnings_count: warnings.length,
+          warnings: warnings.map(w => ({
+            item_id: w.inventory_item_id,
+            name: w.name,
+            current: w.current_on_hand,
+            required: w.required,
+            new_on_hand: w.new_on_hand,
+          })),
         },
       });
     }
 
-    // Write COGS audit log
     if (cogsComputed) {
-      const totalCogs = Object.values(cogsPerMenuItem).reduce((sum, c) => sum + c, 0);
       await supabaseAdmin.from("audit_logs").insert({
         restaurant_id: order.restaurant_id,
         user_id: userId,
-        action: "COGS_COMPUTED_FOR_ORDER",
+        action: "COGS_COMPUTED",
         entity_type: "order",
         entity_id: order_id,
         details: {
           order_id,
-          total_cogs: totalCogs,
-          menu_items_with_cogs: Object.keys(cogsPerMenuItem).length,
+          cogs_per_menu_item: cogsPerMenuItem,
         },
       });
     }
 
-    console.log("[inventory-deduct] Deduction complete. Success:", deductions.length, "Warnings:", warnings.length, "COGS computed:", cogsComputed);
+    console.log(`[inventory-deduct] Success: ${deductions.length} items deducted, ${warnings.length} warnings, COGS computed: ${cogsComputed}`);
+
+    const response: DeductionResponse = {
+      success: true,
+      warnings,
+      error: null,
+      deducted_count: deductions.length,
+      cogs_computed: cogsComputed,
+    };
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        warnings,
-        error: null,
-        deducted_count: deductions.length,
-        cogs_computed: cogsComputed,
-      } as DeductionResponse),
+      JSON.stringify(response),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-
   } catch (error) {
     console.error("[inventory-deduct] Unexpected error:", error);
-    const message = error instanceof Error ? error.message : "Internal server error";
     return new Response(
-      JSON.stringify({ success: false, warnings: [], error: message, deducted_count: 0, cogs_computed: false }),
+      JSON.stringify({ success: false, warnings: [], error: "Internal server error", deducted_count: 0, cogs_computed: false }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

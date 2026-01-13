@@ -72,6 +72,30 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ============ INVENTORY MODULE GUARD ============
+    const { data: settings, error: settingsError } = await supabase
+      .from("restaurant_settings")
+      .select("inventory_enabled")
+      .eq("restaurant_id", restaurantId)
+      .maybeSingle();
+
+    if (settingsError) {
+      console.error("[stock-count-approve] Settings check failed:", settingsError);
+      return new Response(
+        JSON.stringify({ success: false, error: "Failed to check inventory module status" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!settings?.inventory_enabled) {
+      console.warn("[stock-count-approve] Inventory module disabled for restaurant:", restaurantId);
+      return new Response(
+        JSON.stringify({ success: false, error: "Inventory module is not enabled for this restaurant" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    // ============ END INVENTORY MODULE GUARD ============
+
     // Parse request body
     const body: ApproveRequest = await req.json();
     const { stockCountId } = body;

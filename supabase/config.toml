@@ -44,3 +44,6 @@ verify_jwt = true
 
 [functions.inventory-deduct-for-order]
 verify_jwt = true
+
+[functions.toggle-inventory-module]
+verify_jwt = false
