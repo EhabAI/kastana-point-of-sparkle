@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOwnerRestaurant } from "@/hooks/useRestaurants";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { startOfDay, endOfDay } from "date-fns";
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatJOD } from "@/lib/utils";
 
@@ -22,7 +22,7 @@ interface VoidReasonData {
   count: number;
 }
 
-export function RefundVoidInsights() {
+export const RefundVoidInsights = forwardRef<HTMLDivElement, object>(function RefundVoidInsights(_, ref) {
   const { data: restaurant } = useOwnerRestaurant();
   const { data: settings } = useOwnerRestaurantSettings();
   const { t, language } = useLanguage();
@@ -150,7 +150,7 @@ export function RefundVoidInsights() {
   const showRefundWarning = (insightsData?.refundCount || 0) > REFUND_WARNING_THRESHOLD;
 
   return (
-    <div className="mt-4 bg-muted/20 dark:bg-muted/10 rounded-lg p-3 transition-all duration-200 hover:shadow-md">
+    <div ref={ref} className="mt-4 bg-muted/20 dark:bg-muted/10 rounded-lg p-3 transition-all duration-200 hover:shadow-md">
       {/* Section Header - Consistent with other sections */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
@@ -246,4 +246,4 @@ export function RefundVoidInsights() {
       )}
     </div>
   );
-}
+});
