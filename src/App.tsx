@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { BranchProvider } from "@/contexts/BranchContext";
+import { AssistantContextProvider } from "@/contexts/AssistantContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AIAssistantBubble } from "@/components/AIAssistantBubble";
 import Login from "./pages/Login";
@@ -25,40 +26,42 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <AIAssistantBubble />
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route
-                path="/system-admin"
-                element={
-                  <ProtectedRoute allowedRoles={['system_admin']}>
-                    <SystemAdmin />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute allowedRoles={['owner']}>
-                    <BranchProvider>
-                      <OwnerAdmin />
-                    </BranchProvider>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/pos"
-                element={
-                  <ProtectedRoute allowedRoles={['cashier']}>
-                    <POS />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/menu/:restaurantId/:branchId/:tableCode" element={<Menu />} />
-              <Route path="/menu/:restaurantId/:tableCode" element={<Menu />} />
-              <Route path="/" element={<Navigate to="/login" replace />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <AssistantContextProvider>
+              <AIAssistantBubble />
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route
+                  path="/system-admin"
+                  element={
+                    <ProtectedRoute allowedRoles={['system_admin']}>
+                      <SystemAdmin />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute allowedRoles={['owner']}>
+                      <BranchProvider>
+                        <OwnerAdmin />
+                      </BranchProvider>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/pos"
+                  element={
+                    <ProtectedRoute allowedRoles={['cashier']}>
+                      <POS />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="/menu/:restaurantId/:branchId/:tableCode" element={<Menu />} />
+                <Route path="/menu/:restaurantId/:tableCode" element={<Menu />} />
+                <Route path="/" element={<Navigate to="/login" replace />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AssistantContextProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
