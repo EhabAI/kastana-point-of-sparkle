@@ -1291,6 +1291,7 @@ export type Database = {
           discount_type: string
           discounts_enabled: boolean
           id: string
+          inventory_enabled: boolean
           max_discount_value: number | null
           prices_include_tax: boolean
           restaurant_id: string
@@ -1306,6 +1307,7 @@ export type Database = {
           discount_type?: string
           discounts_enabled?: boolean
           id?: string
+          inventory_enabled?: boolean
           max_discount_value?: number | null
           prices_include_tax?: boolean
           restaurant_id: string
@@ -1321,6 +1323,7 @@ export type Database = {
           discount_type?: string
           discounts_enabled?: boolean
           id?: string
+          inventory_enabled?: boolean
           max_discount_value?: number | null
           prices_include_tax?: boolean
           restaurant_id?: string
