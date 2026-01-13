@@ -235,6 +235,8 @@ export default {
   inv_cancel_count_title: "إلغاء الجرد",
   inv_cancel_reason: "سبب الإلغاء",
   inv_confirm_cancel: "تأكيد الإلغاء",
+  inv_approve_count_title: "اعتماد الجرد",
+  inv_confirm_approve: "اعتماد الجرد",
   inv_owner_only_feature: "هذه الميزة متاحة للمالك فقط.",
   access_denied: "غير مصرح",
   view: "عرض",
