@@ -254,6 +254,38 @@
           "en": "No data? Approve stock counts first"
         }
       }
+    },
+    "inventory_addon_toggle": {
+      "id": "inventory_addon_toggle",
+      "intent": ["why_disabled", "how_to"],
+      "keywords": {
+        "ar": ["تفعيل المخزون", "إيقاف المخزون", "إدارة المخزون غير مفعلة", "المخزون معطل", "تشغيل المخزون", "addon"],
+        "en": ["enable inventory", "disable inventory", "inventory not enabled", "inventory disabled", "inventory addon", "toggle inventory"]
+      },
+      "content": {
+        "ar": "إدارة المخزون كإضافة:\n• يتم تفعيلها/إيقافها من إدارة النظام فقط\n• عند التعطيل: جميع شاشات المخزون مخفية\n• عند التفعيل: تظهر جميع الميزات\n\n⚠️ المالك لا يستطيع التفعيل/الإيقاف\n💡 تواصل مع إدارة النظام للتفعيل",
+        "en": "Inventory as add-on:\n• Enabled/disabled by System Admin only\n• When disabled: All inventory screens hidden\n• When enabled: All features visible\n\n⚠️ Owner cannot enable/disable\n💡 Contact System Admin to enable"
+      },
+      "metadata": {
+        "feature_id": "inventory_addon_toggle",
+        "description": {
+          "ar": "إمكانية تفعيل أو إيقاف إدارة المخزون لكل مطعم من إدارة النظام.",
+          "en": "Ability to enable or disable Inventory Management per restaurant from System Admin."
+        },
+        "affected_screens": ["SYSTEM_ADMIN", "OWNER_INVENTORY"],
+        "user_roles": ["system_admin", "owner"],
+        "is_new": true,
+        "training_required": false,
+        "alert_or_guidance_needed": true,
+        "steps": {
+          "ar": "في حال التعطيل: الميزة مخفية وغير متاحة ← في حال التفعيل: تظهر جميع شاشات المخزون",
+          "en": "When disabled: Feature hidden and unavailable → When enabled: All inventory screens visible"
+        },
+        "common_issues": {
+          "ar": "لا أرى المخزون؟ اطلب التفعيل من إدارة النظام",
+          "en": "Can't see inventory? Request activation from System Admin"
+        }
+      }
     }
   },
   "fallbackResponses": {
