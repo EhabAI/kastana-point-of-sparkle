@@ -9,3 +9,4 @@ export { WasteDialog } from "./WasteDialog";
 export { TransferDialog } from "./TransferDialog";
 export { StockCountDialog } from "./StockCountDialog";
 export { StockCountHistoryDialog } from "./StockCountHistoryDialog";
+export { InventoryInsights } from "./InventoryInsights";
