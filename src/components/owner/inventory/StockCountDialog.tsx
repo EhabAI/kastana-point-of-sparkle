@@ -285,7 +285,7 @@ function StockCountLinesList({ stockCountId }: { stockCountId: string }) {
   const handleUpdateActual = async (lineId: string, value: string) => {
     const actualBase = parseFloat(value) || 0;
     try {
-      await updateLine.mutateAsync({ lineId, actualBase });
+      await updateLine.mutateAsync({ lineId, actualBase, stockCountId });
     } catch (error) {
       console.error("Failed to update line:", error);
     }
