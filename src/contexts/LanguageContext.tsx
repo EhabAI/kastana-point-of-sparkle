@@ -54,8 +54,24 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
 export function useLanguage() {
   const context = useContext(LanguageContext);
-  if (!context) {
-    throw new Error("useLanguage must be used within a LanguageProvider");
+  if (context) return context;
+
+  // Fallback (shouldn't happen, but prevents a full app crash if a component
+  // is rendered outside the provider due to routing/provider timing issues).
+  const stored = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
+  const language: Language = stored === "ar" || stored === "en" ? stored : "en";
+
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line no-console
+    console.warn("useLanguage used outside LanguageProvider; falling back to localStorage/default.");
   }
-  return context;
+
+  return {
+    language,
+    setLanguage: (lang: Language) => {
+      if (typeof window !== "undefined") localStorage.setItem(STORAGE_KEY, lang);
+    },
+    t: (key: string) => translations[language][key] || key,
+    isRTL: language === "ar",
+  };
 }
