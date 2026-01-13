@@ -11,7 +11,7 @@ export interface KnowledgeEntry {
     ar: string[];
     en: string[];
   };
-  title: {
+  title?: {
     ar: string;
     en: string;
   };
@@ -77,8 +77,8 @@ export function searchKnowledge(
       score += 15;
     }
     
-    // Check title match
-    if (lowerQuery.includes(entry.title[language].toLowerCase())) {
+    // Check title match (if title exists)
+    if (entry.title && lowerQuery.includes(entry.title[language].toLowerCase())) {
       score += 20;
     }
     
@@ -122,7 +122,7 @@ export function getQuickReplies(language: "ar" | "en"): string[] {
 export function getAllTopics(language: "ar" | "en"): Array<{ id: string; title: string }> {
   return Object.values(knowledge.entries).map((entry) => ({
     id: entry.id,
-    title: entry.title[language],
+    title: entry.title?.[language] || entry.id.replace(/_/g, ' '),
   }));
 }
 

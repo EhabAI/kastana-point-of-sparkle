@@ -7,7 +7,13 @@ export type AssistantIntent =
   | "explain_report" 
   | "troubleshooting" 
   | "out_of_scope"
-  | "greeting";
+  | "greeting"
+  // Report-specific intents
+  | "sales_summary"
+  | "z_report"
+  | "refunds_report"
+  | "payments_report"
+  | "inventory_variance_explain";
 
 interface ScopeCheckResult {
   isInScope: boolean;
@@ -65,6 +71,28 @@ const KASTANA_KEYWORDS = {
 
 // Intent detection patterns
 const INTENT_PATTERNS = {
+  // Report-specific intents (check first for specificity)
+  sales_summary: {
+    ar: ["ملخص المبيعات", "تقرير المبيعات", "مبيعات اليوم", "إجمالي المبيعات", "كم بعنا", "مجموع المبيعات"],
+    en: ["sales summary", "sales report", "today sales", "total sales", "how much sold", "sales overview"],
+  },
+  z_report: {
+    ar: ["تقرير زد", "تقرير z", "z report", "تقرير الوردية", "تقرير الشفت", "تقرير نهاية اليوم"],
+    en: ["z report", "z-report", "shift report", "end of day report", "daily summary", "shift summary"],
+  },
+  refunds_report: {
+    ar: ["تقرير المرتجعات", "تقرير الاسترداد", "كم المرتجع", "مجموع المرتجعات", "تقرير الإرجاع"],
+    en: ["refunds report", "refund summary", "returns report", "how much refunded", "refund total"],
+  },
+  payments_report: {
+    ar: ["تقرير المدفوعات", "طرق الدفع", "تقرير الدفع", "كم نقد", "كم بطاقات", "توزيع الدفع"],
+    en: ["payments report", "payment methods", "payment breakdown", "how much cash", "how much card", "payment summary"],
+  },
+  inventory_variance_explain: {
+    ar: ["فرق المخزون", "انحراف المخزون", "فروقات الجرد", "نقص المخزون", "زيادة المخزون", "variance"],
+    en: ["inventory variance", "stock variance", "count difference", "inventory discrepancy", "stock difference"],
+  },
+  // General intents
   how_to: {
     ar: ["كيف", "طريقة", "خطوات", "أريد أن", "ممكن أ", "اشلون", "شلون"],
     en: ["how to", "how do i", "how can i", "steps to", "way to", "guide"],
@@ -199,6 +227,17 @@ export function getIntentContext(intent: AssistantIntent): string {
       return "User has a problem. Ask clarifying questions and suggest solutions.";
     case "greeting":
       return "User is greeting. Respond warmly and offer to help.";
+    // Report-specific intents
+    case "sales_summary":
+      return "User wants to understand sales figures. Explain what the displayed numbers mean - no recalculation.";
+    case "z_report":
+      return "User wants to understand Z Report. Explain sections and what changed vs expectations.";
+    case "refunds_report":
+      return "User wants to understand refunds. Explain refund types and impact on net sales.";
+    case "payments_report":
+      return "User wants to understand payment breakdown. Explain distribution across payment methods.";
+    case "inventory_variance_explain":
+      return "User wants to understand inventory variance. Explain difference between expected and actual counts.";
     default:
       return "Provide helpful guidance about Kastana POS.";
   }

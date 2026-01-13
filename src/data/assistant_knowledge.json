@@ -1,7 +1,7 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "lastUpdated": "2026-01-13",
-  "description": "Kastana POS Assistant Knowledge Base - Condensed format (max 6 lines)",
+  "description": "Kastana POS Assistant Knowledge Base - Condensed format (max 6 lines). Report explanations use on-screen data only.",
   "entries": {
     "payment_flow": {
       "id": "payment_flow",
@@ -134,6 +134,66 @@
         "ar": "1. اضغط \"إغلاق وردية\"\n2. أدخل النقد الفعلي في الدرج\n3. راجع تقرير Z\n4. اضغط \"تأكيد الإغلاق\"\n💡 تأكد من إتمام جميع الطلبات المفتوحة",
         "en": "1. Click \"Close Shift\"\n2. Enter actual cash in drawer\n3. Review Z Report\n4. Click \"Confirm Close\"\n💡 Ensure all open orders are completed"
       }
+    },
+    "sales_summary_report": {
+      "id": "sales_summary_report",
+      "intent": ["sales_summary", "explain_report"],
+      "keywords": {
+        "ar": ["ملخص المبيعات", "تقرير المبيعات", "مبيعات اليوم", "إجمالي المبيعات", "كم بعنا", "صافي المبيعات"],
+        "en": ["sales summary", "sales report", "today sales", "total sales", "how much sold", "net sales"]
+      },
+      "content": {
+        "ar": "ماذا يعرض:\n• Gross Sales = إجمالي قبل الخصم\n• Net Sales = صافي بعد الخصم والمرتجع\n• عدد الطلبات ومتوسط قيمة الطلب\n\nالتغيير: قارن بالرقم السابق في الشاشة\n💡 لا حاجة لحساب يدوي",
+        "en": "What it shows:\n• Gross Sales = Total before discounts\n• Net Sales = After discounts & refunds\n• Order count & average order value\n\nChange: Compare with previous number on screen\n💡 No manual calculation needed"
+      }
+    },
+    "z_report_explain": {
+      "id": "z_report_explain",
+      "intent": ["z_report", "explain_report"],
+      "keywords": {
+        "ar": ["تقرير زد", "تقرير z", "تقرير الوردية", "شرح تقرير z", "ماذا يعني z"],
+        "en": ["z report", "z-report", "shift report", "explain z report", "what is z report"]
+      },
+      "content": {
+        "ar": "ماذا يعرض:\n1. المبيعات: Gross و Net وعدد الطلبات\n2. المدفوعات: توزيع نقد/بطاقات/محفظة\n3. النقدية: افتتاحي ← متوقع ← فعلي\n4. الفرق: زيادة أو نقص في الدرج\n\n💡 الفرق السالب = نقص في النقد",
+        "en": "What it shows:\n1. Sales: Gross, Net & order count\n2. Payments: Cash/Card/Wallet breakdown\n3. Cash: Opening → Expected → Actual\n4. Variance: Over or short in drawer\n\n💡 Negative variance = cash shortage"
+      }
+    },
+    "refunds_report_explain": {
+      "id": "refunds_report_explain",
+      "intent": ["refunds_report", "explain_report"],
+      "keywords": {
+        "ar": ["تقرير المرتجعات", "مجموع المرتجع", "استرداد", "تقرير الإرجاع", "كم تم استرجاعه"],
+        "en": ["refunds report", "refund total", "returns", "how much refunded", "refund breakdown"]
+      },
+      "content": {
+        "ar": "ماذا يعرض:\n• إجمالي المرتجعات خلال الفترة\n• عدد عمليات الاسترداد\n• أسباب الاسترداد (إن وجدت)\n\nالتأثير: يُخصم من صافي المبيعات (Net)\n💡 Void قبل الدفع لا يظهر هنا",
+        "en": "What it shows:\n• Total refunds in period\n• Number of refund transactions\n• Refund reasons (if recorded)\n\nImpact: Deducted from Net Sales\n💡 Voids before payment not shown here"
+      }
+    },
+    "payments_report_explain": {
+      "id": "payments_report_explain",
+      "intent": ["payments_report", "explain_report"],
+      "keywords": {
+        "ar": ["تقرير المدفوعات", "طرق الدفع", "توزيع الدفع", "كم نقد", "كم بطاقة", "كم محفظة"],
+        "en": ["payments report", "payment methods", "payment breakdown", "how much cash", "how much card", "payment types"]
+      },
+      "content": {
+        "ar": "ماذا يعرض:\n• Cash (نقد): المبلغ المستلم نقداً\n• Card (بطاقة): Visa + Mastercard\n• Wallet (محفظة): مدفوعات رقمية\n\nالمجموع يساوي صافي المبيعات\n💡 الدفع المقسم يظهر في كل طريقة",
+        "en": "What it shows:\n• Cash: Amount received in cash\n• Card: Visa + Mastercard combined\n• Wallet: Digital payments\n\nTotal equals Net Sales\n💡 Split payments appear in each method"
+      }
+    },
+    "inventory_variance_report": {
+      "id": "inventory_variance_report",
+      "intent": ["inventory_variance_explain", "explain_report"],
+      "keywords": {
+        "ar": ["فرق المخزون", "انحراف المخزون", "فروقات الجرد", "نقص", "زيادة", "variance", "فرق الكمية"],
+        "en": ["inventory variance", "stock variance", "count difference", "shortage", "overage", "discrepancy"]
+      },
+      "content": {
+        "ar": "ماذا يعرض:\n• المتوقع = الكمية حسب النظام\n• الفعلي = الكمية بعد الجرد\n• الفرق = فعلي - متوقع\n\nسالب = نقص (هدر/سرقة)\nموجب = زيادة (خطأ إدخال سابق)\n💡 لا يؤثر على المبيعات",
+        "en": "What it shows:\n• Expected = Quantity per system\n• Actual = Quantity after count\n• Variance = Actual - Expected\n\nNegative = shortage (waste/theft)\nPositive = overage (prior entry error)\n💡 Does not affect sales"
+      }
     }
   },
   "fallbackResponses": {
@@ -144,12 +204,16 @@
     "ar": [
       "كيف أدفع الطلب؟",
       "زر الدفع معطل",
-      "ما هو تقرير Z؟"
+      "ما هو تقرير Z؟",
+      "اشرح ملخص المبيعات",
+      "ما معنى فرق المخزون؟"
     ],
     "en": [
       "How to pay?",
       "Pay button disabled",
-      "What is Z Report?"
+      "What is Z Report?",
+      "Explain sales summary",
+      "What is inventory variance?"
     ]
   }
 }
