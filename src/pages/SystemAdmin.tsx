@@ -454,81 +454,109 @@ export default function SystemAdmin() {
             {restaurants.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">No restaurants yet. Create one to get started.</p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {restaurants.map((restaurant) => {
                   const inventoryEnabled = inventoryStatusMap.get(restaurant.id) ?? false;
                   return (
-                  <div key={restaurant.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      {restaurant.logo_url ? (
-                        <img 
-                          src={restaurant.logo_url} 
-                          alt={`${restaurant.name} logo`}
-                          className="w-9 h-9 object-contain rounded-lg"
-                        />
-                      ) : (
-                        <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
-                          <Store className="h-4 w-4 text-primary" />
+                    <div key={restaurant.id} className="p-4 bg-muted/50 rounded-lg space-y-3">
+                      {/* Top row: Restaurant info + Status + Actions */}
+                      <div className="flex items-center justify-between">
+                        {/* Restaurant Info */}
+                        <div className="flex items-center gap-3">
+                          {restaurant.logo_url ? (
+                            <img 
+                              src={restaurant.logo_url} 
+                              alt={`${restaurant.name} logo`}
+                              className="w-10 h-10 object-contain rounded-lg"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                              <Store className="h-5 w-5 text-primary" />
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-medium text-foreground">{restaurant.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {restaurant.owner_id 
+                                ? `Owner: ${owners.find(o => o.user_id === restaurant.owner_id)?.email || restaurant.owner_id.slice(0, 8) + '...'}`
+                                : "No owner assigned"}
+                            </p>
+                          </div>
                         </div>
-                      )}
-                      <div>
-                        <p className="font-medium text-foreground">{restaurant.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {restaurant.owner_id 
-                            ? `Owner: ${owners.find(o => o.user_id === restaurant.owner_id)?.email || restaurant.owner_id.slice(0, 8) + '...'}`
-                            : "No owner assigned"}
-                        </p>
+
+                        {/* Status Section */}
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <Badge variant={restaurant.is_active ? "default" : "destructive"} className="text-xs">
+                              {restaurant.is_active ? "ACTIVE" : "INACTIVE"}
+                            </Badge>
+                            <Switch
+                              checked={restaurant.is_active}
+                              onCheckedChange={() => handleToggleActive(restaurant.id, restaurant.name, restaurant.is_active)}
+                              disabled={toggleActive.isPending}
+                            />
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center gap-1 border-l pl-3">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setEditLogoRestaurantId(restaurant.id);
+                                setLogoPreview(restaurant.logo_url || null);
+                                setEditLogoDialogOpen(true);
+                              }}
+                            >
+                              <Image className="h-4 w-4 mr-1.5" />
+                              Logo
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setViewingRestaurant(restaurant.id);
+                                setViewDialogOpen(true);
+                              }}
+                            >
+                              <Eye className="h-4 w-4 mr-1.5" />
+                              Menu
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bottom row: Add-ons/Modules Section */}
+                      <div className="flex items-center gap-3 pt-2 border-t border-border/50">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Add-ons</span>
+                        
+                        {/* Inventory Module */}
+                        <div 
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-md border transition-colors ${
+                            inventoryEnabled 
+                              ? 'bg-primary/5 border-primary/20' 
+                              : 'bg-muted/50 border-border'
+                          }`}
+                        >
+                          <Package className={`h-4 w-4 ${inventoryEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
+                          <span className={`text-sm ${inventoryEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
+                            Inventory Management
+                          </span>
+                          <Badge 
+                            variant={inventoryEnabled ? "default" : "secondary"} 
+                            className="text-[10px] px-1.5 py-0"
+                          >
+                            {inventoryEnabled ? "ON" : "OFF"}
+                          </Badge>
+                          <Switch
+                            checked={inventoryEnabled}
+                            onCheckedChange={() => handleInventoryToggle(restaurant.id, restaurant.name, inventoryEnabled)}
+                            disabled={toggleInventory.isPending}
+                            className="ml-1"
+                          />
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {/* Active/Inactive Badge */}
-                      <Badge variant={restaurant.is_active ? "default" : "destructive"} className="text-xs">
-                        {restaurant.is_active ? "ACTIVE" : "INACTIVE"}
-                      </Badge>
-                      {/* Active Toggle */}
-                      <div className="flex items-center gap-1">
-                        <Switch
-                          checked={restaurant.is_active}
-                          onCheckedChange={() => handleToggleActive(restaurant.id, restaurant.name, restaurant.is_active)}
-                          disabled={toggleActive.isPending}
-                        />
-                      </div>
-                      {/* Inventory Module Toggle */}
-                      <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-background border">
-                        <Package className={`h-3.5 w-3.5 ${inventoryEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
-                        <span className="text-xs text-muted-foreground">Inventory</span>
-                        <Switch
-                          checked={inventoryEnabled}
-                          onCheckedChange={() => handleInventoryToggle(restaurant.id, restaurant.name, inventoryEnabled)}
-                          disabled={toggleInventory.isPending}
-                          className="scale-75"
-                        />
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setEditLogoRestaurantId(restaurant.id);
-                          setLogoPreview(restaurant.logo_url || null);
-                          setEditLogoDialogOpen(true);
-                        }}
-                      >
-                        <Image className="h-4 w-4 mr-2" />
-                        Logo
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setViewingRestaurant(restaurant.id);
-                          setViewDialogOpen(true);
-                        }}
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Menu
-                      </Button>
-                    </div>
-                  </div>
                   );
                 })}
               </div>
