@@ -27,7 +27,6 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <AssistantContextProvider>
-              <AIAssistantBubble />
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route
@@ -62,6 +61,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AssistantContextProvider>
+            <AIAssistantBubble />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
