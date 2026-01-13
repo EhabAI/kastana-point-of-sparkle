@@ -42,17 +42,21 @@ export const NotificationsAlerts = forwardRef<HTMLDivElement>(function Notificat
     return branch?.name || t("unknown");
   };
 
-  // Format duration for display
-  const formatDuration = (minutes: number): string => {
-    if (minutes < 60) {
-      return `${minutes}${language === "ar" ? "د" : "m"}`;
-    }
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
+  // Format duration for display with normalization
+  // If durationValue > 1440, treat as seconds; else treat as minutes
+  const formatDuration = (durationValue: number): string => {
+    const totalMinutes = durationValue > 1440 
+      ? Math.floor(durationValue / 60) 
+      : Math.floor(durationValue);
+    
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+    const paddedMins = mins.toString().padStart(2, "0");
+    
     if (language === "ar") {
-      return mins > 0 ? `${hours}س ${mins}د` : `${hours}س`;
+      return `${hours} س ${paddedMins} د`;
     }
-    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+    return `${hours}h ${paddedMins}m`;
   };
 
   const { data: alertsData, isLoading } = useQuery({
