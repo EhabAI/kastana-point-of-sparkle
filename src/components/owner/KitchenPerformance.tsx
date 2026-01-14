@@ -18,7 +18,7 @@ export function KitchenPerformance() {
   const { t, language } = useLanguage();
   const { data: restaurant } = useOwnerRestaurant();
   const { selectedBranch } = useBranchContext();
-  const { isEnabled: kdsEnabled } = useKDSEnabled(restaurant?.id);
+  const { data: kdsEnabled } = useKDSEnabled(restaurant?.id);
   const { data, isLoading } = useKitchenPerformance(restaurant?.id, selectedBranch?.id);
 
   // Don't show if KDS is not enabled
