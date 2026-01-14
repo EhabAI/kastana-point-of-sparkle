@@ -1299,6 +1299,8 @@ export default {
   clear_after: "Clear after",
   minutes: "min",
   back_to_cooking: "Back to Cooking",
+  enter_fullscreen: "Enter Fullscreen",
+  exit_fullscreen: "Exit Fullscreen",
 
   // Kitchen Performance Reports
   kitchen_performance: "Kitchen Performance",

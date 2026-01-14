@@ -2,6 +2,8 @@ import { useMemo, useState, useCallback } from "react";
 import { useKDSOrders, useUpdateOrderStatus, KDSOrderStatus } from "@/hooks/kds/useKDSOrders";
 import { useKDSSound } from "@/hooks/kds/useKDSSound";
 import { useKDSAutoClear, AutoClearDelay } from "@/hooks/kds/useKDSAutoClear";
+import { useKDSFullscreen } from "@/hooks/kds/useKDSFullscreen";
+import { useKDSKeyboardShortcuts } from "@/hooks/kds/useKDSKeyboardShortcuts";
 import { KDSHeader } from "./KDSHeader";
 import { KDSColumn } from "./KDSColumn";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -22,6 +24,11 @@ interface KDSLayoutProps {
  * - Uses KDSHeader which enforces role-aware navigation
  * - No prices, payments, edits, or reports visible
  * - Both Owner and Kitchen operate with same restricted permissions
+ * 
+ * UX ENHANCEMENTS:
+ * - Delayed orders highlight (amber/red borders)
+ * - Fullscreen mode for maximum visibility
+ * - Keyboard shortcuts for speed (optional)
  */
 export function KDSLayout({ restaurantId, branchId }: KDSLayoutProps) {
   const { t, language } = useLanguage();
@@ -51,6 +58,9 @@ export function KDSLayout({ restaurantId, branchId }: KDSLayoutProps) {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const { playSound } = useKDSSound();
 
+  // Fullscreen hook
+  const { isFullscreen, toggleFullscreen } = useKDSFullscreen();
+
   // Handle new order callback
   const handleNewOrder = useCallback((orderId: string) => {
     if (soundEnabled) {
@@ -75,7 +85,7 @@ export function KDSLayout({ restaurantId, branchId }: KDSLayoutProps) {
 
   const updateStatus = useUpdateOrderStatus();
 
-  const handleUpdateStatus = (orderId: string, status: KDSOrderStatus) => {
+  const handleUpdateStatus = useCallback((orderId: string, status: KDSOrderStatus) => {
     updateStatus.mutate(
       { orderId, status },
       {
@@ -94,7 +104,20 @@ export function KDSLayout({ restaurantId, branchId }: KDSLayoutProps) {
         },
       }
     );
-  };
+  }, [updateStatus, toast, t]);
+
+  const handleRefresh = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  // Keyboard shortcuts hook
+  useKDSKeyboardShortcuts({
+    orders: visibleOrders,
+    onUpdateStatus: handleUpdateStatus,
+    onRefresh: handleRefresh,
+    onToggleFullscreen: toggleFullscreen,
+    isUpdating: updateStatus.isPending,
+  });
 
   const { newOrders, inProgressOrders, readyOrders, hasAnyOrders } = useMemo(() => {
     const newOrd = visibleOrders.filter((o) => o.status === "new");
@@ -129,7 +152,9 @@ export function KDSLayout({ restaurantId, branchId }: KDSLayoutProps) {
         onAutoClearToggle={toggleAutoClear}
         onAutoClearDelayChange={setDelay}
         isRefetching={isRefetching}
-        onRefresh={() => refetch()}
+        onRefresh={handleRefresh}
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={toggleFullscreen}
       />
 
       {/* Kanban Columns */}
