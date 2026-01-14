@@ -1,14 +1,49 @@
 // Kastana POS Assistant - Smart Alerts Generator
-// Non-binding alerts with explanations and report navigation
+// Non-binding alerts with explanations, severity levels, and report navigation
 
 export type AlertType =
   | "sales_drop"
   | "high_refunds"
   | "cash_mismatch"
   | "inventory_variance"
-  | "repeated_voids";
+  | "repeated_voids"
+  | "payment_blocked"
+  | "shift_left_open"
+  | "inventory_mismatch";
 
 export type AlertSeverity = "info" | "warning" | "critical";
+
+// Severity thresholds and descriptions
+export const SEVERITY_CONFIG: Record<AlertSeverity, {
+  priority: number;
+  description: { ar: string; en: string };
+  cssClass: string;
+}> = {
+  critical: {
+    priority: 1,
+    description: {
+      ar: "يتطلب اهتمام فوري",
+      en: "Requires immediate attention",
+    },
+    cssClass: "border-red-500 bg-red-50 dark:bg-red-950/30 animate-pulse",
+  },
+  warning: {
+    priority: 2,
+    description: {
+      ar: "يحتاج مراجعة قريبة",
+      en: "Needs review soon",
+    },
+    cssClass: "border-amber-500 bg-amber-50 dark:bg-amber-950/30",
+  },
+  info: {
+    priority: 3,
+    description: {
+      ar: "للعلم فقط",
+      en: "For your information",
+    },
+    cssClass: "border-blue-500 bg-blue-50 dark:bg-blue-950/30",
+  },
+};
 
 export interface SmartAlert {
   id: string;
@@ -27,6 +62,7 @@ export interface SmartAlert {
     ar: string;
     en: string;
   };
+  auditRelevant?: boolean;
 }
 
 // Alert definitions with explanations
@@ -83,6 +119,7 @@ const ALERT_TEMPLATES: Record<AlertType, Omit<SmartAlert, "id">> = {
       ar: "فتح تقرير الورديات",
       en: "Open Shifts Report",
     },
+    auditRelevant: true,
   },
 
   inventory_variance: {
@@ -119,6 +156,64 @@ const ALERT_TEMPLATES: Record<AlertType, Omit<SmartAlert, "id">> = {
       ar: "فتح تقرير الموظفين",
       en: "Open Staff Report",
     },
+  },
+
+  // New critical alerts
+  payment_blocked: {
+    type: "payment_blocked",
+    severity: "critical",
+    reason: {
+      ar: "عملية الدفع محظورة بسبب مشكلة في النظام أو الصلاحيات",
+      en: "Payment is blocked due to system or permission issue",
+    },
+    nextCheck: {
+      ar: "تأكد من فتح الوردية وصلاحيات الكاشير",
+      en: "Verify shift is open and cashier permissions",
+    },
+    reportPath: "/pos",
+    reportLabel: {
+      ar: "العودة لشاشة المبيعات",
+      en: "Return to POS Screen",
+    },
+    auditRelevant: true,
+  },
+
+  shift_left_open: {
+    type: "shift_left_open",
+    severity: "critical",
+    reason: {
+      ar: "الوردية مفتوحة لفترة طويلة (أكثر من 12 ساعة)",
+      en: "Shift has been open for too long (over 12 hours)",
+    },
+    nextCheck: {
+      ar: "أغلق الوردية الحالية وافتح وردية جديدة",
+      en: "Close current shift and open a new one",
+    },
+    reportPath: "/pos",
+    reportLabel: {
+      ar: "إغلاق الوردية",
+      en: "Close Shift",
+    },
+    auditRelevant: true,
+  },
+
+  inventory_mismatch: {
+    type: "inventory_mismatch",
+    severity: "critical",
+    reason: {
+      ar: "اختلاف كبير في كميات المخزون يحتاج مراجعة عاجلة",
+      en: "Significant inventory quantity mismatch requires urgent review",
+    },
+    nextCheck: {
+      ar: "راجع حركات المخزون وقم بجرد فوري",
+      en: "Review inventory transactions and perform immediate count",
+    },
+    reportPath: "/admin?tab=inventory",
+    reportLabel: {
+      ar: "فتح المخزون",
+      en: "Open Inventory",
+    },
+    auditRelevant: true,
   },
 };
 
@@ -166,6 +261,18 @@ export function detectAlertType(message: string): AlertType | null {
     repeated_voids: [
       "إلغاءات كثيرة", "void كثير", "إلغاء متكرر", "كثرة الإلغاءات",
       "many voids", "repeated voids", "void spike", "too many voids",
+    ],
+    payment_blocked: [
+      "الدفع محظور", "لا أستطيع الدفع", "الدفع معطل", "payment blocked",
+      "can't pay", "payment disabled", "payment failed",
+    ],
+    shift_left_open: [
+      "الوردية مفتوحة", "shift مفتوح", "نسيت أغلق الشفت",
+      "shift still open", "forgot to close shift", "shift open too long",
+    ],
+    inventory_mismatch: [
+      "اختلاف المخزون", "كميات غير متطابقة", "مخزون غير صحيح",
+      "inventory mismatch", "stock not matching", "wrong inventory",
     ],
   };
 

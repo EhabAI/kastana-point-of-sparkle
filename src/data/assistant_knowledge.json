@@ -1,7 +1,16 @@
 {
-  "version": "1.4.0",
+  "version": "2.0.0",
   "lastUpdated": "2026-01-14",
-  "description": "Kastana POS Assistant Knowledge Base - Condensed format (max 6 lines). Report explanations use on-screen data only.",
+  "product": "Kastana POS",
+  "description": "Kastana POS Assistant Knowledge Base - Domain-locked, role-filtered, with detail levels (short/detailed/training).",
+  "meta": {
+    "supportedRoles": ["system_admin", "owner", "cashier", "kitchen"],
+    "availableAddons": ["inventory", "kds"],
+    "defaultDetailLevel": "short",
+    "maxLinesShort": 6,
+    "maxLinesDetailed": 14,
+    "maxLinesTraining": 24
+  },
   "entries": {
     "kds_overview": {
       "id": "kds_overview",
