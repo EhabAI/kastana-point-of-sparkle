@@ -1,25 +1,38 @@
 // Kastana POS Assistant Response Formatter
-// Rules: Arabic primary, English terms OK, max 6 lines, structured output
+// Rules: Arabic primary, English terms OK, structured output with detail levels
+
+export type DetailLevel = "short" | "detailed" | "training";
 
 export interface FormattedResponse {
   reason?: string;
   steps: string[];
   note?: string;
+  examples?: string[];
 }
+
+// Line limits per detail level
+const LINE_LIMITS: Record<DetailLevel, number> = {
+  short: 6,
+  detailed: 14,
+  training: 24,
+};
 
 /**
  * Format a response following the strict structure:
  * 1) Reason (if exists)
  * 2) Steps (numbered)
  * 3) Optional note
+ * 4) Optional examples (training mode only)
  * 
- * Max 6 lines total
+ * Respects line limits based on detail level
  */
 export function formatResponse(
   response: FormattedResponse,
-  language: "ar" | "en"
+  language: "ar" | "en",
+  detailLevel: DetailLevel = "short"
 ): string {
   const lines: string[] = [];
+  const maxLines = LINE_LIMITS[detailLevel];
   
   // 1) Reason (optional)
   if (response.reason) {
@@ -27,22 +40,34 @@ export function formatResponse(
   }
   
   // 2) Steps (numbered)
-  const maxSteps = response.reason ? 4 : 5; // Leave room for reason/note
+  const maxSteps = detailLevel === "training" ? 8 : detailLevel === "detailed" ? 6 : 4;
   const stepsToShow = response.steps.slice(0, maxSteps);
   
   stepsToShow.forEach((step, index) => {
-    const num = language === "ar" ? `${index + 1}.` : `${index + 1}.`;
+    const num = `${index + 1}.`;
     lines.push(`${num} ${step}`);
   });
   
-  // 3) Note (optional) - only if we have room
-  if (response.note && lines.length < 6) {
-    const notePrefix = language === "ar" ? "💡" : "💡";
+  // 3) Note (optional)
+  if (response.note && lines.length < maxLines - 1) {
+    const notePrefix = "💡";
     lines.push(`${notePrefix} ${response.note}`);
   }
   
-  // Enforce max 6 lines
-  return lines.slice(0, 6).join("\n");
+  // 4) Examples (training mode only)
+  if (detailLevel === "training" && response.examples && lines.length < maxLines - 2) {
+    const exampleLabel = language === "ar" ? "مثال:" : "Example:";
+    lines.push("");
+    lines.push(`📝 ${exampleLabel}`);
+    for (const example of response.examples.slice(0, 2)) {
+      if (lines.length < maxLines) {
+        lines.push(`   • ${example}`);
+      }
+    }
+  }
+  
+  // Enforce max lines
+  return lines.slice(0, maxLines).join("\n");
 }
 
 /**
@@ -51,11 +76,14 @@ export function formatResponse(
  */
 export function parseAndCondense(
   rawContent: string,
-  language: "ar" | "en"
+  language: "ar" | "en",
+  detailLevel: DetailLevel = "short"
 ): string {
-  // If already short, return as-is
+  const maxLines = LINE_LIMITS[detailLevel];
+  
+  // If already within limit, return as-is
   const lines = rawContent.split("\n").filter(l => l.trim());
-  if (lines.length <= 6) {
+  if (lines.length <= maxLines) {
     return rawContent;
   }
   
@@ -63,6 +91,7 @@ export function parseAndCondense(
   const condensed: string[] = [];
   let foundSteps = false;
   let stepCount = 0;
+  const maxSteps = detailLevel === "training" ? 8 : detailLevel === "detailed" ? 6 : 4;
   
   for (const line of lines) {
     const trimmed = line.trim();
@@ -73,7 +102,7 @@ export function parseAndCondense(
     // Check if it's a numbered step
     const isStep = /^[0-9١٢٣٤٥٦٧٨٩][\.\)]/.test(trimmed) || /^•/.test(trimmed);
     
-    if (isStep && stepCount < 4) {
+    if (isStep && stepCount < maxSteps) {
       foundSteps = true;
       condensed.push(trimmed);
       stepCount++;
@@ -84,7 +113,7 @@ export function parseAndCondense(
   }
   
   // Add a note if there's room
-  if (condensed.length < 6) {
+  if (condensed.length < maxLines) {
     const noteKeywords = language === "ar" 
       ? ["ملاحظة", "تنبيه", "💡"]
       : ["note", "tip", "💡"];
@@ -97,7 +126,36 @@ export function parseAndCondense(
     }
   }
   
-  return condensed.slice(0, 6).join("\n");
+  return condensed.slice(0, maxLines).join("\n");
+}
+
+/**
+ * Detect if user is asking for more detail
+ */
+export function detectDetailEscalation(message: string): DetailLevel | null {
+  const lowerMessage = message.toLowerCase();
+  
+  const trainingPatterns = [
+    "اشرح أكثر", "تفصيل", "بالتفصيل", "دربني", "علمني",
+    "خطوات كاملة", "شرح مفصل", "أريد أتعلم",
+    "explain more", "in detail", "detailed", "train me", "teach me",
+    "full steps", "detailed explanation", "want to learn",
+  ];
+  
+  if (trainingPatterns.some(p => lowerMessage.includes(p))) {
+    return "training";
+  }
+  
+  const detailedPatterns = [
+    "وضح أكثر", "كيف بالضبط", "مثال",
+    "elaborate", "how exactly", "example",
+  ];
+  
+  if (detailedPatterns.some(p => lowerMessage.includes(p))) {
+    return "detailed";
+  }
+  
+  return null;
 }
 
 /**

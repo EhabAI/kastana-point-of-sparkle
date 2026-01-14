@@ -21,6 +21,20 @@ import {
   type AssistantIntent,
 } from "@/lib/assistantScopeGuard";
 import {
+  domainGuard,
+  getDomainRefusal,
+} from "@/lib/assistantDomainGuard";
+import {
+  resolveIntent,
+  getModePrefix,
+  shouldMentionAudit,
+} from "@/lib/assistantIntentResolver";
+import {
+  detectDetailEscalation,
+  parseAndCondense,
+  type DetailLevel,
+} from "@/lib/assistantResponseFormatter";
+import {
   searchKnowledge,
   getKnowledgeContent,
   getFallbackResponse,
@@ -177,22 +191,27 @@ export function AIAssistantBubble() {
     };
     setMessages((prev) => [...prev, newUserMessage]);
 
-    // Check scope
-    const scopeCheck = checkScope(userMessage);
+    // Step 1: Domain Guard - hard lock to Kastana POS
+    const domainCheck = domainGuard(userMessage, { role, screen: location.pathname });
     
-    let responseContent: string = "";
-    let responseIntent: AssistantIntent = scopeCheck.intent;
-    let isSuggestion = false;
-    let alertData: SmartAlert | undefined;
-    let trainingCardData: TrainingCard | undefined;
-
-    if (!scopeCheck.isInScope) {
-      // Out of scope - return polite rejection
-      responseContent = getOutOfScopeMessage(systemLang);
+    if (!domainCheck.isAllowed) {
+      // Out of domain - polite refusal
+      responseContent = getDomainRefusal(systemLang);
       responseIntent = "out_of_scope";
-    } else if (scopeCheck.intent === "greeting") {
-      // Greeting response
-      responseContent = getGreetingMessage(systemLang);
+    } else {
+      // Step 2: Scope check for intent detection
+      const scopeCheck = checkScope(userMessage);
+      
+      // Step 3: Resolve intent with mode
+      const resolved = resolveIntent(userMessage, scopeCheck.intent, { userRole: role });
+      
+      // Step 4: Check for detail escalation
+      const detailLevel: DetailLevel = detectDetailEscalation(userMessage) || "short";
+      
+      if (scopeCheck.intent === "greeting") {
+        // Greeting response
+        responseContent = getGreetingMessage(systemLang);
+      } else if (
     } else if (
       // Check if user is asking about inventory when it's disabled (for owner/cashier only)
       role !== "system_admin" && 
