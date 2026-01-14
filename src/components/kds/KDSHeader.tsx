@@ -62,17 +62,17 @@ export function KDSHeader({
   const isKitchen = role === "kitchen";
   const showHomeButton = isOwner || isKitchen;
 
-  // SECURITY: Role-aware home button behavior
-  const handleHomeClick = async () => {
+  // SECURITY: Home button for Owner only
+  const handleHomeClick = () => {
     if (isOwner) {
-      // Owner: Redirect to Owner Dashboard
       navigate("/admin", { replace: true });
-    } else if (isKitchen) {
-      // Kitchen: Safe logout to login screen
-      await signOut();
-      navigate("/login", { replace: true });
     }
-    // Cashier/System Admin should never reach here (blocked by route guards)
+  };
+
+  // Sign out handler for both Owner and Kitchen
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -184,22 +184,34 @@ export function KDSHeader({
             {/* Divider */}
             <div className="hidden sm:block w-px h-5 bg-border/60 mx-1.5" />
 
-            {/* Home Button - Role-aware */}
-            {showHomeButton && (
+            {/* Home Button - Owner only */}
+            {isOwner && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleHomeClick}
                 className="text-muted-foreground hover:text-foreground h-8 px-2"
-                title={isOwner ? t("dashboard") : t("sign_out")}
+                title={t("dashboard")}
               >
-                {isOwner ? (
-                  <Home className="h-3.5 w-3.5" />
-                ) : (
-                  <LogOut className="h-3.5 w-3.5" />
-                )}
+                <Home className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline ltr:ml-1.5 rtl:mr-1.5 text-xs">
-                  {isOwner ? t("dashboard") : t("sign_out")}
+                  {t("dashboard")}
+                </span>
+              </Button>
+            )}
+
+            {/* Sign Out Button - Always visible for Owner and Kitchen */}
+            {showHomeButton && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSignOut}
+                className="text-muted-foreground hover:text-destructive h-8 px-2"
+                title={t("sign_out")}
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline ltr:ml-1.5 rtl:mr-1.5 text-xs">
+                  {t("sign_out")}
                 </span>
               </Button>
             )}
