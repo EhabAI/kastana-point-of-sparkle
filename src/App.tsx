@@ -59,7 +59,7 @@ const App = () => (
                 <Route
                   path="/kds"
                   element={
-                    <ProtectedRoute allowedRoles={['kitchen']}>
+                    <ProtectedRoute allowedRoles={['kitchen', 'owner']}>
                       <KDS />
                     </ProtectedRoute>
                   }
