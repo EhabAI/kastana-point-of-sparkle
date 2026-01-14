@@ -61,19 +61,28 @@ export function KDSHeader({
   const navigate = useNavigate();
   const isRTL = language === "ar";
 
-  // SECURITY: Only owner and kitchen should see this header
+  // Role-based navigation
   const isOwner = role === "owner";
   const isKitchen = role === "kitchen";
-  const showHomeButton = isOwner || isKitchen;
+  const isCashier = role === "cashier";
+  const isSystemAdmin = role === "system_admin";
+  
+  // Home button visible for owner only (kitchen stays on KDS)
+  const showHomeButton = isOwner;
 
-  // SECURITY: Home button for Owner only
-  const handleHomeClick = () => {
-    if (isOwner) {
-      navigate("/admin", { replace: true });
-    }
+  // Get home destination based on role
+  const getHomeDestination = () => {
+    if (isSystemAdmin) return "/system-admin";
+    if (isOwner) return "/owner";
+    if (isCashier) return "/pos";
+    return "/kds"; // kitchen
   };
 
-  // Sign out handler for both Owner and Kitchen
+  const handleHomeClick = () => {
+    navigate(getHomeDestination(), { replace: true });
+  };
+
+  // Sign out handler - ALWAYS available for any role
   const handleSignOut = async () => {
     await signOut();
     navigate("/login", { replace: true });
@@ -213,7 +222,7 @@ export function KDSHeader({
             )}
 
             {/* Home Button - Owner only */}
-            {isOwner && (
+            {showHomeButton && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -228,21 +237,19 @@ export function KDSHeader({
               </Button>
             )}
 
-            {/* Sign Out Button - Always visible for Owner and Kitchen */}
-            {showHomeButton && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSignOut}
-                className="text-muted-foreground hover:text-destructive h-8 px-2"
-                title={t("sign_out")}
-              >
-                <LogOut className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline ltr:ml-1.5 rtl:mr-1.5 text-xs">
-                  {t("sign_out")}
-                </span>
-              </Button>
-            )}
+            {/* Sign Out Button - ALWAYS visible for ANY role */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSignOut}
+              className="text-muted-foreground hover:text-destructive h-8 px-2"
+              title={t("sign_out")}
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline ltr:ml-1.5 rtl:mr-1.5 text-xs">
+                {t("sign_out")}
+              </span>
+            </Button>
           </div>
         </div>
       </div>

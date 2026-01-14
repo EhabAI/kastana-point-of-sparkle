@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCashierRestaurant } from "./useCashierRestaurant";
 import type { Json } from "@/integrations/supabase/types";
+import { useRef } from "react";
 
 export type AuditAction = 
   | "SHIFT_OPEN"
@@ -34,6 +35,10 @@ export type AuditAction =
 
 export type EntityType = "shift" | "order" | "order_item" | "payment" | "refund" | "shift_transaction" | "stock_count" | "inventory_transaction";
 
+// Session-level guard to prevent spamming console on 403 errors
+let auditLogDisabledForSession = false;
+let hasWarnedOnce = false;
+
 export function useAuditLog() {
   const { user } = useAuth();
   const { data: restaurant } = useCashierRestaurant();
@@ -50,23 +55,57 @@ export function useAuditLog() {
       action: AuditAction;
       details?: Json;
     }) => {
-      if (!user?.id || !restaurant?.id) throw new Error("Missing user or restaurant");
+      // Skip if audit logging was disabled due to previous 403 errors
+      if (auditLogDisabledForSession) {
+        return null;
+      }
 
-      const { data, error } = await supabase
-        .from("audit_logs")
-        .insert([{
-          user_id: user.id,
-          restaurant_id: restaurant.id,
-          entity_type: entityType,
-          entity_id: entityId,
-          action,
-          details: details ?? null,
-        }])
-        .select()
-        .single();
+      if (!user?.id || !restaurant?.id) {
+        // Silently skip if missing context - don't block operations
+        return null;
+      }
 
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await supabase
+          .from("audit_logs")
+          .insert([{
+            user_id: user.id,
+            restaurant_id: restaurant.id,
+            entity_type: entityType,
+            entity_id: entityId,
+            action,
+            details: details ?? null,
+          }])
+          .select()
+          .single();
+
+        if (error) {
+          // Check for 403 Forbidden (RLS policy violation)
+          if (error.code === "42501" || error.message?.includes("denied") || error.message?.includes("policy")) {
+            if (!hasWarnedOnce) {
+              console.warn("[Audit] Logging disabled for this session due to permission restrictions.");
+              hasWarnedOnce = true;
+            }
+            auditLogDisabledForSession = true;
+            return null; // Don't throw - allow operations to continue
+          }
+          // For other errors, log once but don't block
+          if (!hasWarnedOnce) {
+            console.warn("[Audit] Error logging audit event:", error.message);
+            hasWarnedOnce = true;
+          }
+          return null;
+        }
+        return data;
+      } catch (err) {
+        // Catch any unexpected errors - don't block POS operations
+        if (!hasWarnedOnce) {
+          console.warn("[Audit] Unexpected error during audit logging");
+          hasWarnedOnce = true;
+        }
+        return null;
+      }
     },
+    // Don't use onError callback - we handle errors internally
   });
 }
