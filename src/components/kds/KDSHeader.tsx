@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Home, LogOut, RefreshCw, Volume2, VolumeX, Clock, Settings2 } from "lucide-react";
+import { Home, LogOut, RefreshCw, Volume2, VolumeX, Clock, Settings2, Maximize, Minimize } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -29,6 +29,8 @@ interface KDSHeaderProps {
   onAutoClearDelayChange: (delay: AutoClearDelay) => void;
   isRefetching: boolean;
   onRefresh: () => void;
+  isFullscreen: boolean;
+  onToggleFullscreen: () => void;
 }
 
 /**
@@ -51,6 +53,8 @@ export function KDSHeader({
   onAutoClearDelayChange,
   isRefetching,
   onRefresh,
+  isFullscreen,
+  onToggleFullscreen,
 }: KDSHeaderProps) {
   const { t, language } = useLanguage();
   const { user, role, signOut } = useAuth();
@@ -110,6 +114,21 @@ export function KDSHeader({
                 <Volume2 className="h-3.5 w-3.5" />
               ) : (
                 <VolumeX className="h-3.5 w-3.5" />
+              )}
+            </Button>
+
+            {/* Fullscreen Toggle */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onToggleFullscreen}
+              title={isFullscreen ? t("exit_fullscreen") : t("enter_fullscreen")}
+              className="h-8 px-2"
+            >
+              {isFullscreen ? (
+                <Minimize className="h-3.5 w-3.5" />
+              ) : (
+                <Maximize className="h-3.5 w-3.5" />
               )}
             </Button>
 

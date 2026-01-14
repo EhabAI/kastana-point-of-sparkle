@@ -24,10 +24,31 @@ function formatElapsedTime(minutes: number): string {
   return `${hours}h ${mins}m`;
 }
 
+/**
+ * Get timer badge color based on elapsed time
+ * - < 5min: green (on track)
+ * - 5-10min: yellow (approaching)
+ * - > 10min: red (delayed)
+ */
 function getTimerColor(minutes: number): string {
   if (minutes < 5) return "text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30";
   if (minutes <= 10) return "text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30";
   return "text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30";
+}
+
+/**
+ * Get card border/highlight based on delay status
+ * - < 10min: normal
+ * - 10-15min: warning (amber border)
+ * - > 15min: delayed (red border with pulse)
+ */
+function getDelayClass(minutes: number, status: string): string {
+  // Ready orders don't need delay highlighting
+  if (status === "ready") return "";
+  
+  if (minutes < 10) return "";
+  if (minutes <= 15) return "ring-2 ring-amber-400/70 dark:ring-amber-500/50";
+  return "ring-2 ring-red-500/80 dark:ring-red-400/60 animate-pulse";
 }
 
 function getSourceIcon(source: string) {
@@ -65,12 +86,14 @@ export function KDSOrderCard({ order, onUpdateStatus, isUpdating }: KDSOrderCard
   }, [order.created_at]);
 
   const timerColorClass = getTimerColor(elapsedMinutes);
+  const delayClass = getDelayClass(elapsedMinutes, order.status);
   const isReady = order.status === "ready";
 
   return (
     <Card className={cn(
       "transition-all duration-200 hover:shadow-md",
-      isReady && "opacity-75"
+      isReady && "opacity-75",
+      delayClass
     )}>
       <CardHeader className="pb-2 space-y-2">
         <div className="flex items-center justify-between">
@@ -123,7 +146,7 @@ export function KDSOrderCard({ order, onUpdateStatus, isUpdating }: KDSOrderCard
           </div>
         )}
 
-        {/* Actions */}
+        {/* Actions - No confirmation dialogs, instant action */}
         {order.status === "new" && (
           <Button
             className="w-full"

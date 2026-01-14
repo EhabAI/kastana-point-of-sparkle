@@ -1297,6 +1297,8 @@ export default {
   clear_after: "إخفاء بعد",
   minutes: "دقيقة",
   back_to_cooking: "العودة للتحضير",
+  enter_fullscreen: "ملء الشاشة",
+  exit_fullscreen: "الخروج من ملء الشاشة",
 
   // Kitchen Performance Reports
   kitchen_performance: "أداء المطبخ",
