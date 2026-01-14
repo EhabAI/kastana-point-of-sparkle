@@ -1126,6 +1126,17 @@ export default {
   orders_count: "عدد الطلبات",
   no_orders_data: "لا توجد بيانات طلبات لهذه الفترة.",
   
+  // Orders Hidden from Kitchen (Owner-only)
+  orders_hidden_from_kitchen: "الطلبات المخفية عن المطبخ",
+  show_hidden_orders: "إظهار الطلبات المخفية",
+  hidden_orders_tooltip: "عرض الطلبات غير المعروضة في شاشة المطبخ (KDS) وفهم سبب إخفائها.",
+  hidden_orders_description: "هذه الطلبات غير معروضة في شاشة المطبخ بسبب حالتها أو النطاق الزمني أو مصدرها.",
+  reason_hidden: "سبب الإخفاء",
+  status_excluded: "حالة مكتملة/مدفوعة",
+  outside_time_window: "خارج نطاق 12 ساعة",
+  pending_qr_order: "طلب QR معلق",
+  no_hidden_orders: "جميع الطلبات معروضة حاليًا في شاشة المطبخ.",
+  
   // Menu Reports
   top_selling_items: "الأصناف الأكثر مبيعاً",
   least_selling_items: "الأصناف الأقل مبيعاً",
