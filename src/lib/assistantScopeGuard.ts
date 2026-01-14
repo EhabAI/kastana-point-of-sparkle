@@ -50,6 +50,9 @@ const KASTANA_KEYWORDS = {
     "kastana", "كاستانا", "نظام", "البرنامج", "التطبيق", "الشاشة",
     // Actions
     "كيف", "لماذا", "أين", "متى", "مشكلة", "خطأ", "لا يعمل", "معطل",
+    // KDS
+    "مطبخ", "شاشة المطبخ", "kds", "موظف مطبخ", "تحضير", "جاهز", "قيد التحضير",
+    "شيف", "طباخ", "أداء المطبخ", "وقت التحضير",
   ],
   // English keywords
   en: [
@@ -72,6 +75,9 @@ const KASTANA_KEYWORDS = {
     "kastana", "system", "app", "application", "screen",
     // Actions
     "how", "why", "where", "when", "problem", "error", "not working", "disabled",
+    // KDS
+    "kitchen", "kitchen display", "kds", "kitchen staff", "cooking", "ready", "in progress",
+    "chef", "cook", "kitchen performance", "prep time", "preparation",
   ],
 };
 
