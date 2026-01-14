@@ -435,6 +435,98 @@
           "en": "Can't see inventory? Request activation from System Admin"
         }
       }
+    },
+    "split_order": {
+      "id": "split_order",
+      "intent": ["how_to"],
+      "keywords": {
+        "ar": ["تقسيم الطلب", "فصل الطلب", "فاتورتين", "فاتورة منفصلة", "تقسيم الفاتورة", "دفع جزئي منفصل"],
+        "en": ["split order", "separate order", "two bills", "separate check", "split bill", "divide order"]
+      },
+      "content": {
+        "ar": "تقسيم الطلب:\n1. افتح الطلب المراد تقسيمه\n2. اضغط (⋮) ← \"تقسيم\"\n3. اختر الأصناف للفاتورة الجديدة\n4. أكد التقسيم\n💡 كل جزء يصبح طلباً مستقلاً للدفع",
+        "en": "Split Order:\n1. Open the order to split\n2. Click (⋮) → \"Split\"\n3. Select items for new bill\n4. Confirm split\n💡 Each part becomes independent order for payment"
+      },
+      "applies_to": ["cashier", "owner"],
+      "requires_addons": [],
+      "screens": ["POS"],
+      "metadata": {
+        "feature_id": "split_order",
+        "affected_screens": ["POS"],
+        "user_roles": ["cashier", "owner"],
+        "is_new": false,
+        "training_required": true,
+        "alert_or_guidance_needed": false
+      }
+    },
+    "transfer_items_between_orders": {
+      "id": "transfer_items_between_orders",
+      "intent": ["how_to"],
+      "keywords": {
+        "ar": ["نقل صنف", "تحويل صنف", "نقل بين الطلبات", "تحويل أصناف", "نقل من طلب لطلب"],
+        "en": ["transfer item", "move item", "transfer between orders", "move items", "item transfer"]
+      },
+      "content": {
+        "ar": "نقل صنف بين الطلبات:\n1. افتح الطلب المصدر\n2. اضغط على الصنف المراد نقله\n3. اختر \"نقل لطلب آخر\"\n4. اختر الطلب الهدف\n5. أكد النقل\n💡 يُستخدم عند طلب العميل الخطأ",
+        "en": "Transfer Item Between Orders:\n1. Open source order\n2. Click on item to transfer\n3. Select \"Transfer to another order\"\n4. Choose target order\n5. Confirm transfer\n💡 Used when item ordered at wrong table"
+      },
+      "applies_to": ["cashier", "owner"],
+      "requires_addons": [],
+      "screens": ["POS"],
+      "metadata": {
+        "feature_id": "transfer_items_between_orders",
+        "affected_screens": ["POS"],
+        "user_roles": ["cashier", "owner"],
+        "is_new": false,
+        "training_required": true,
+        "alert_or_guidance_needed": false
+      }
+    },
+    "modifiers_addons": {
+      "id": "modifiers_addons",
+      "intent": ["how_to", "explain_feature"],
+      "keywords": {
+        "ar": ["إضافات", "تعديلات", "خيارات الصنف", "بدون", "إكسترا", "حجم", "نكهة", "modifier"],
+        "en": ["modifiers", "add-ons", "item options", "without", "extra", "size", "flavor", "customization"]
+      },
+      "content": {
+        "ar": "الإضافات والتعديلات:\n1. عند إضافة صنف للطلب، تظهر نافذة الخيارات\n2. اختر الحجم/النكهة/الإضافات\n3. بعض الخيارات إلزامية (✓) وبعضها اختيارية\n4. الأسعار تتغير حسب الاختيار\n💡 المالك يُعد المجموعات من قائمة الأصناف",
+        "en": "Modifiers & Add-ons:\n1. When adding item, options dialog appears\n2. Select size/flavor/add-ons\n3. Some options required (✓), some optional\n4. Prices adjust based on selection\n💡 Owner configures groups in Menu Items"
+      },
+      "applies_to": ["cashier", "owner"],
+      "requires_addons": [],
+      "screens": ["POS", "OWNER_MENU"],
+      "metadata": {
+        "feature_id": "modifiers_addons",
+        "affected_screens": ["POS", "OWNER_MENU"],
+        "user_roles": ["cashier", "owner"],
+        "is_new": false,
+        "training_required": true,
+        "alert_or_guidance_needed": false
+      }
+    },
+    "inventory_receiving": {
+      "id": "inventory_receiving",
+      "intent": ["how_to"],
+      "keywords": {
+        "ar": ["استلام مخزون", "استلام بضاعة", "إضافة مخزون", "شراء مخزون", "فاتورة شراء", "توريد"],
+        "en": ["receive inventory", "receive stock", "add inventory", "purchase receipt", "stock receipt", "receiving"]
+      },
+      "content": {
+        "ar": "استلام المخزون:\n1. اذهب للمخزون ← \"استلام\"\n2. أدخل رقم فاتورة المورد\n3. أضف الأصناف والكميات\n4. أدخل سعر الوحدة (اختياري)\n5. اضغط \"تأكيد الاستلام\"\n💡 يُحدّث الكميات ومتوسط التكلفة تلقائياً",
+        "en": "Receive Inventory:\n1. Go to Inventory → \"Receive\"\n2. Enter supplier invoice number\n3. Add items and quantities\n4. Enter unit cost (optional)\n5. Click \"Confirm Receipt\"\n💡 Updates quantities and avg cost automatically"
+      },
+      "applies_to": ["owner"],
+      "requires_addons": ["inventory"],
+      "screens": ["OWNER_INVENTORY"],
+      "metadata": {
+        "feature_id": "inventory_receiving",
+        "affected_screens": ["OWNER_INVENTORY"],
+        "user_roles": ["owner"],
+        "is_new": false,
+        "training_required": true,
+        "alert_or_guidance_needed": false
+      }
     }
   },
   "fallbackResponses": {
