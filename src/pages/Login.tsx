@@ -71,6 +71,10 @@ export default function Login() {
         navigate("/pos", {
           replace: true
         });
+      } else if (role === "kitchen") {
+        navigate("/kds", {
+          replace: true
+        });
       }
     }
   }, [user, role, loading, navigate]);
