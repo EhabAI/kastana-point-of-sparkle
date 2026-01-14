@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
+import { useEffect, useRef, useCallback } from "react";
 
 export type KDSOrderStatus = "new" | "in_progress" | "ready";
 
@@ -24,8 +24,18 @@ export interface KDSOrder {
   items: KDSOrderItem[];
 }
 
-export function useKDSOrders(restaurantId: string | null, branchId: string | null) {
+interface UseKDSOrdersOptions {
+  onNewOrder?: (orderId: string) => void;
+}
+
+export function useKDSOrders(
+  restaurantId: string | null,
+  branchId: string | null,
+  options?: UseKDSOrdersOptions
+) {
   const queryClient = useQueryClient();
+  const knownOrderIdsRef = useRef<Set<string>>(new Set());
+  const isInitialLoadRef = useRef(true);
 
   const ordersQuery = useQuery({
     queryKey: ["kds-orders", restaurantId, branchId],
@@ -75,6 +85,32 @@ export function useKDSOrders(restaurantId: string | null, branchId: string | nul
     enabled: !!restaurantId,
     refetchInterval: 30000, // Fallback polling every 30s
   });
+
+  // Detect new orders and trigger callback
+  useEffect(() => {
+    if (!ordersQuery.data) return;
+
+    const currentOrders = ordersQuery.data;
+    const newOrders = currentOrders.filter((o) => o.status === "new");
+
+    // Skip initial load to avoid playing sound for existing orders
+    if (isInitialLoadRef.current) {
+      newOrders.forEach((o) => knownOrderIdsRef.current.add(o.id));
+      isInitialLoadRef.current = false;
+      return;
+    }
+
+    // Find truly new orders
+    newOrders.forEach((order) => {
+      if (!knownOrderIdsRef.current.has(order.id)) {
+        knownOrderIdsRef.current.add(order.id);
+        options?.onNewOrder?.(order.id);
+      }
+    });
+
+    // Update known orders set
+    currentOrders.forEach((o) => knownOrderIdsRef.current.add(o.id));
+  }, [ordersQuery.data, options]);
 
   // Set up realtime subscription
   useEffect(() => {
