@@ -1283,6 +1283,7 @@ export default {
   auto_clear_ready: "إخفاء الجاهز تلقائياً",
   clear_after: "إخفاء بعد",
   minutes: "دقيقة",
+  back_to_cooking: "العودة للتحضير",
 
   // Kitchen Performance Reports
   kitchen_performance: "أداء المطبخ",
