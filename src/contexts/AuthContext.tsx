@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-type AppRole = "system_admin" | "owner" | "cashier" | null;
+type AppRole = "system_admin" | "owner" | "cashier" | "kitchen" | null;
 
 interface AuthContextType {
   user: User | null;
@@ -49,6 +49,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Owner غير نشط → ممنوع الدخول
     if (data?.role === "owner" && data?.is_active === false) {
+      return { role: null as AppRole, isActive: false, restaurantId: data?.restaurant_id || null };
+    }
+
+    // Kitchen غير نشط → ممنوع الدخول
+    if (data?.role === "kitchen" && data?.is_active === false) {
       return { role: null as AppRole, isActive: false, restaurantId: data?.restaurant_id || null };
     }
 
@@ -102,7 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const restaurantActive = await fetchRestaurantActiveStatus(restaurantId);
     setIsRestaurantActive(restaurantActive);
     
-    if (!restaurantActive && (role === "owner" || role === "cashier")) {
+    if (!restaurantActive && (role === "owner" || role === "cashier" || role === "kitchen")) {
       await handleInactiveRestaurant();
     }
   }, [restaurantId, role, handleInactiveRestaurant]);
@@ -126,7 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setRestaurantId(restaurantId);
 
     // For owners and cashiers, check restaurant active status
-    if ((role === "owner" || role === "cashier") && restaurantId) {
+    if ((role === "owner" || role === "cashier" || role === "kitchen") && restaurantId) {
       const restaurantActive = await fetchRestaurantActiveStatus(restaurantId);
       setIsRestaurantActive(restaurantActive);
 

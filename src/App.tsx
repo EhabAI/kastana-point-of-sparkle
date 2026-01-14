@@ -13,6 +13,7 @@ import Login from "./pages/Login";
 import SystemAdmin from "./pages/SystemAdmin";
 import OwnerAdmin from "./pages/OwnerAdmin";
 import POS from "./pages/POS";
+import KDS from "./pages/KDS";
 import Menu from "./pages/Menu";
 import NotFound from "./pages/NotFound";
 
@@ -52,6 +53,14 @@ const App = () => (
                   element={
                     <ProtectedRoute allowedRoles={['cashier']}>
                       <POS />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/kds"
+                  element={
+                    <ProtectedRoute allowedRoles={['kitchen']}>
+                      <KDS />
                     </ProtectedRoute>
                   }
                 />
