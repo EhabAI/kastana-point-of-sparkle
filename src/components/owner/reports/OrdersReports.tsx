@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOwnerRestaurant } from "@/hooks/useRestaurants";
@@ -6,12 +6,19 @@ import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatJOD } from "@/lib/utils";
 import { DateRange } from "../DateRangeFilter";
-import { format } from "date-fns";
+import { format, startOfDay, subHours } from "date-fns";
 import { ReportFilters, ReportFilterValues } from "./ReportFilters";
 import { ReportSection } from "./ReportSection";
 import { DrillDownDialog, DrillDownColumn } from "./DrillDownDialog";
 import { exportToCSV, printReport } from "./utils/reportUtils";
 import { OrdersReportsSkeleton } from "./ReportSkeletons";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { EyeOff, Info } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface OrdersReportsProps {
   dateRange: DateRange;
@@ -26,6 +33,15 @@ interface OrderDetail {
   time: string;
 }
 
+interface HiddenOrderDetail {
+  order_number: number;
+  status: string;
+  source: string;
+  branch_name: string;
+  created_at: string;
+  hidden_reason: string;
+}
+
 export function OrdersReports({ dateRange }: OrdersReportsProps) {
   const { t, language } = useLanguage();
   const { data: restaurant } = useOwnerRestaurant();
@@ -34,7 +50,9 @@ export function OrdersReports({ dateRange }: OrdersReportsProps) {
 
   const [filters, setFilters] = useState<ReportFilterValues>({});
   const [showOrdersDialog, setShowOrdersDialog] = useState(false);
+  const [showHiddenOrders, setShowHiddenOrders] = useState(false);
 
+  // Main orders data query
   const { data, isLoading } = useQuery({
     queryKey: ["orders-reports", restaurant?.id, dateRange.from.toISOString(), dateRange.to.toISOString(), filters],
     queryFn: async () => {
@@ -120,6 +138,78 @@ export function OrdersReports({ dateRange }: OrdersReportsProps) {
       };
     },
     enabled: !!restaurant?.id,
+  });
+
+  // Query for orders hidden from KDS (Owner-only feature)
+  const { data: hiddenOrdersData, isLoading: hiddenOrdersLoading } = useQuery({
+    queryKey: ["hidden-kds-orders", restaurant?.id, showHiddenOrders],
+    queryFn: async () => {
+      if (!restaurant?.id || !showHiddenOrders) return [];
+
+      // Calculate KDS time window (same logic as useKDSOrders)
+      const now = new Date();
+      const twelveHoursAgo = subHours(now, 12);
+      const todayStart = startOfDay(now);
+      const timeWindowStart = twelveHoursAgo < todayStart ? todayStart : twelveHoursAgo;
+
+      // Fetch all orders from the restaurant
+      const { data: allOrders, error } = await supabase
+        .from("orders")
+        .select(`
+          id,
+          order_number,
+          status,
+          source,
+          created_at,
+          branch_id,
+          restaurant_branches(name)
+        `)
+        .eq("restaurant_id", restaurant.id)
+        .order("created_at", { ascending: false })
+        .limit(200);
+
+      if (error) throw error;
+
+      // Determine which orders are hidden from KDS and why
+      const hiddenOrders: HiddenOrderDetail[] = [];
+      const kdsStatuses = ["new", "in_progress", "ready"];
+      const excludedStatuses = ["paid", "completed", "cancelled", "void", "closed", "refunded"];
+
+      allOrders?.forEach((order: any) => {
+        const orderDate = new Date(order.created_at);
+        const reasons: string[] = [];
+
+        // Check if status is excluded
+        if (excludedStatuses.includes(order.status)) {
+          reasons.push(t("status_excluded") || `Status: ${order.status}`);
+        }
+
+        // Check if order is outside time window
+        if (orderDate < timeWindowStart) {
+          reasons.push(t("outside_time_window") || "Outside 12h window");
+        }
+
+        // Check if QR order is pending (not yet accepted into kitchen flow)
+        if (order.source === "qr" && !kdsStatuses.includes(order.status) && !excludedStatuses.includes(order.status)) {
+          reasons.push(t("pending_qr_order") || "Pending QR order");
+        }
+
+        // If there are reasons, this order is hidden from KDS
+        if (reasons.length > 0) {
+          hiddenOrders.push({
+            order_number: order.order_number,
+            status: order.status,
+            source: order.source,
+            branch_name: order.restaurant_branches?.name || t("unknown"),
+            created_at: format(orderDate, "MMM d, HH:mm"),
+            hidden_reason: reasons.join(", "),
+          });
+        }
+      });
+
+      return hiddenOrders;
+    },
+    enabled: !!restaurant?.id && showHiddenOrders,
   });
 
   const handleExportCSV = () => {
@@ -282,6 +372,88 @@ export function OrdersReports({ dateRange }: OrdersReportsProps) {
         columns={orderColumns}
         exportFilename="orders_details"
       />
+
+      {/* Owner-Only: Orders Hidden from Kitchen Filter */}
+      <Card className="mt-6 border-dashed border-muted-foreground/30">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <EyeOff className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-base">{t("orders_hidden_from_kitchen")}</CardTitle>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>{t("hidden_orders_tooltip")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="show-hidden" className="text-sm text-muted-foreground">
+                {t("show_hidden_orders")}
+              </Label>
+              <Switch
+                id="show-hidden"
+                checked={showHiddenOrders}
+                onCheckedChange={setShowHiddenOrders}
+              />
+            </div>
+          </div>
+          <CardDescription>{t("hidden_orders_description")}</CardDescription>
+        </CardHeader>
+        
+        {showHiddenOrders && (
+          <CardContent>
+            {hiddenOrdersLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+              </div>
+            ) : hiddenOrdersData && hiddenOrdersData.length > 0 ? (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t("order_number")}</TableHead>
+                      <TableHead>{t("status")}</TableHead>
+                      <TableHead>{t("source")}</TableHead>
+                      <TableHead>{t("branch")}</TableHead>
+                      <TableHead>{t("created_at")}</TableHead>
+                      <TableHead>{t("reason_hidden")}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {hiddenOrdersData.map((order, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell className="font-medium">#{order.order_number}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="text-xs">
+                            {t(order.status) || order.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{order.source === "pos" ? "POS" : order.source === "qr" ? "QR" : order.source}</TableCell>
+                        <TableCell>{order.branch_name}</TableCell>
+                        <TableCell className="text-muted-foreground">{order.created_at}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs text-muted-foreground">
+                            {order.hidden_reason}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                {t("no_hidden_orders")}
+              </div>
+            )}
+          </CardContent>
+        )}
+      </Card>
     </div>
   );
 }

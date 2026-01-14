@@ -1128,6 +1128,17 @@ export default {
   orders_count: "Orders Count",
   no_orders_data: "No orders data for this period.",
   
+  // Orders Hidden from Kitchen (Owner-only)
+  orders_hidden_from_kitchen: "Orders Hidden from Kitchen",
+  show_hidden_orders: "Show hidden orders",
+  hidden_orders_tooltip: "View orders that are not displayed in the Kitchen Display System (KDS) and understand why they are hidden.",
+  hidden_orders_description: "These orders are not shown in the Kitchen Display System due to their status, time window, or source.",
+  reason_hidden: "Reason Hidden",
+  status_excluded: "Completed/Paid status",
+  outside_time_window: "Outside 12h window",
+  pending_qr_order: "Pending QR order",
+  no_hidden_orders: "All orders are currently visible in the Kitchen Display System.",
+  
   // Menu Reports
   top_selling_items: "Top Selling Items",
   least_selling_items: "Least Selling Items",
