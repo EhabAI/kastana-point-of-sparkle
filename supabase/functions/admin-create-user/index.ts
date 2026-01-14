@@ -1,5 +1,5 @@
 // Supabase backend function: admin-create-user
-// Creates an auth user + assigns role, callable by system_admin or owner.
+// Creates an auth user + assigns role, callable by owner only for cashier/kitchen.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.89.0'
 
@@ -54,19 +54,23 @@ Deno.serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
-    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+    if (!supabaseUrl || !serviceRoleKey) {
       console.error('Missing required env vars for admin-create-user')
       return errorResponse('unexpected', 'Unexpected error. Please try again.', 500)
     }
 
+    // Extract JWT from Authorization header
     const authHeader = req.headers.get('Authorization')
     if (!authHeader || !authHeader.toLowerCase().startsWith('bearer ')) {
+      console.error('Missing or invalid Authorization header')
       return errorResponse('not_authorized', 'Please sign in to perform this action.', 401)
     }
 
+    const jwt = authHeader.replace(/^bearer\s+/i, '')
+
+    // Parse request body
     const body = (await req.json().catch(() => null)) as null | {
       email?: string
       password?: string
@@ -86,7 +90,7 @@ Deno.serve(async (req) => {
 
     // Validate the requested role
     if (!isValidRole(requestedRole)) {
-      return errorResponse('invalid_role', 'Invalid role specified. Must be owner, cashier, or kitchen.', 400)
+      return errorResponse('invalid_role', 'Invalid role specified. Must be cashier or kitchen.', 400)
     }
 
     // Quick weak password check for clearer UX
@@ -94,96 +98,100 @@ Deno.serve(async (req) => {
       return errorResponse('weak_password', 'Password is too weak. Use at least 6 characters.', 400)
     }
 
-    // Client authenticated as the caller (JWT from Authorization header)
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
+    // Create service-role client for ALL privileged operations
+    // This client bypasses RLS and can perform admin operations
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
       auth: { persistSession: false },
     })
 
-    const { data: userData, error: userErr } = await userClient.auth.getUser()
+    // Step 1: Verify caller identity using JWT
+    // Use getUser with the JWT to verify the caller's identity
+    const { data: userData, error: userErr } = await supabaseAdmin.auth.getUser(jwt)
+    
     if (userErr || !userData?.user) {
+      console.error('JWT verification failed:', userErr?.message || 'No user data')
       return errorResponse('not_authorized', 'Your session is invalid. Please sign in again.', 401)
     }
 
     const callerId = userData.user.id
+    console.log(`Caller verified: ${callerId}`)
 
-    // Check if caller is system_admin
-    const { data: isSystemAdmin, error: sysAdminErr } = await userClient.rpc('has_role', {
-      _user_id: callerId,
-      _role: 'system_admin',
-    })
+    // Step 2: Check caller's role using the service client (bypasses RLS)
+    // Only owners can create cashier/kitchen staff
+    const { data: callerRole, error: roleErr } = await supabaseAdmin
+      .from('user_roles')
+      .select('role, restaurant_id')
+      .eq('user_id', callerId)
+      .eq('is_active', true)
+      .single()
 
-    if (sysAdminErr) {
-      console.error('System admin role check failed', sysAdminErr)
-      return errorResponse('not_authorized', 'Unable to verify your permissions. Please try again.', 403)
+    if (roleErr || !callerRole) {
+      console.error('Role lookup failed:', roleErr?.message || 'No role found')
+      return errorResponse('not_authorized', 'Unable to verify your permissions.', 403)
     }
 
-    // Check if caller is owner
-    const { data: isOwner, error: ownerErr } = await userClient.rpc('has_role', {
-      _user_id: callerId,
-      _role: 'owner',
-    })
+    console.log(`Caller role: ${callerRole.role}`)
 
-    if (ownerErr) {
-      console.error('Owner role check failed', ownerErr)
-      return errorResponse('not_authorized', 'Unable to verify your permissions. Please try again.', 403)
+    // Step 3: Enforce authorization rules
+    // Only owners can use this function to create cashier/kitchen
+    if (callerRole.role !== 'owner') {
+      console.error(`Unauthorized role: ${callerRole.role}`)
+      return errorResponse('not_authorized', 'Only restaurant owners can create staff accounts.', 403)
     }
 
-    // Must be either system_admin or owner
-    if (!isSystemAdmin && !isOwner) {
-      return errorResponse('not_authorized', 'Not authorized. Only system admins and owners can create users.', 403)
+    // Owners can only create cashier or kitchen staff
+    if (requestedRole !== 'cashier' && requestedRole !== 'kitchen') {
+      return errorResponse('not_authorized', 'Owners can only create cashier or kitchen staff accounts.', 403)
     }
 
-    // Service-role client to create users + bypass RLS safely
-    const serviceClient = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { persistSession: false },
-    })
-
-    // Owners can only create cashiers or kitchen staff for their restaurant
-    if (isOwner && !isSystemAdmin) {
-      if (requestedRole !== 'cashier' && requestedRole !== 'kitchen') {
-        return errorResponse('not_authorized', 'Owners can only create cashier or kitchen staff accounts.', 403)
-      }
-      if (!restaurantId) {
-        return errorResponse('missing_restaurant', 'Restaurant ID is required when creating staff.', 400)
-      }
-      // Verify the owner owns this restaurant
-      const { data: ownerRestaurantId, error: restErr } = await userClient.rpc('get_owner_restaurant_id', {
-        _user_id: callerId,
-      })
-      if (restErr || ownerRestaurantId !== restaurantId) {
-        return errorResponse('not_authorized', 'You can only create staff for your own restaurant.', 403)
-      }
-      
-      // For kitchen role, verify KDS is enabled
-      if (requestedRole === 'kitchen') {
-        const { data: kdsSettings, error: kdsErr } = await serviceClient
-          .from('restaurant_settings')
-          .select('kds_enabled')
-          .eq('restaurant_id', restaurantId)
-          .maybeSingle()
-        
-        if (kdsErr || !kdsSettings?.kds_enabled) {
-          return errorResponse('kds_disabled', 'KDS must be enabled to create kitchen staff.', 400)
-        }
-      }
-    }
-
-    // System admins creating owners don't need restaurant_id
-    // System admins creating cashiers or kitchen staff need restaurant_id
-    if (isSystemAdmin && (requestedRole === 'cashier' || requestedRole === 'kitchen') && !restaurantId) {
+    // Restaurant ID is required for staff creation
+    if (!restaurantId) {
       return errorResponse('missing_restaurant', 'Restaurant ID is required when creating staff.', 400)
     }
 
-    const { data: created, error: createErr } = await serviceClient.auth.admin.createUser({
+    // Verify the owner owns this restaurant
+    if (callerRole.restaurant_id !== restaurantId) {
+      console.error(`Restaurant mismatch: owner has ${callerRole.restaurant_id}, requested ${restaurantId}`)
+      return errorResponse('not_authorized', 'You can only create staff for your own restaurant.', 403)
+    }
+
+    // For kitchen role, verify KDS is enabled
+    if (requestedRole === 'kitchen') {
+      const { data: kdsSettings, error: kdsErr } = await supabaseAdmin
+        .from('restaurant_settings')
+        .select('kds_enabled')
+        .eq('restaurant_id', restaurantId)
+        .maybeSingle()
+
+      if (kdsErr) {
+        console.error('KDS settings lookup failed:', kdsErr.message)
+        return errorResponse('unexpected', 'Unable to verify KDS settings.', 500)
+      }
+
+      if (!kdsSettings?.kds_enabled) {
+        return errorResponse('kds_disabled', 'KDS must be enabled to create kitchen staff.', 400)
+      }
+    }
+
+    // Step 4: Create the user using admin API (service role)
+    console.log(`Creating user: ${email} with role: ${requestedRole}`)
+    
+    const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
+      user_metadata: {
+        role: requestedRole,
+        restaurant_id: restaurantId,
+        branch_id: branchId || null,
+      },
     })
 
     if (createErr || !created?.user) {
       const msg = createErr?.message ?? 'Failed to create user.'
       const authCode = (createErr as unknown as { code?: string })?.code
+
+      console.error('Create user failed:', msg, 'Code:', authCode)
 
       if (authCode === 'email_exists' || isLikelyUserExists(msg)) {
         return errorResponse('user_exists', 'This email is already registered.', 409)
@@ -193,51 +201,50 @@ Deno.serve(async (req) => {
         return errorResponse('weak_password', 'Password is too weak. Use at least 6 characters.', 400)
       }
 
-      console.error('Create user failed', createErr)
       return errorResponse('unexpected', 'Unexpected error while creating the user. Please try again.', 500)
     }
 
     const newUserId = created.user.id
+    console.log(`User created: ${newUserId}`)
 
-    // Insert role with restaurant_id and branch_id if applicable
-    const roleInsertData: { user_id: string; role: AppRole; restaurant_id?: string; branch_id?: string } = {
+    // Step 5: Insert role record
+    const roleInsertData: { user_id: string; role: AppRole; restaurant_id: string; branch_id?: string } = {
       user_id: newUserId,
       role: requestedRole as AppRole,
-    }
-    
-    // Add restaurant_id for cashiers and optionally for owners if provided
-    if (restaurantId) {
-      roleInsertData.restaurant_id = restaurantId
+      restaurant_id: restaurantId,
     }
 
-    // Add branch_id for cashiers
     if (branchId) {
       roleInsertData.branch_id = branchId
     }
 
-    const { error: roleInsertErr } = await serviceClient
+    const { error: roleInsertErr } = await supabaseAdmin
       .from('user_roles')
       .insert(roleInsertData)
 
     if (roleInsertErr) {
-      console.error('Role insert failed', roleInsertErr)
+      console.error('Role insert failed:', roleInsertErr.message)
+      // Attempt to clean up the created user
+      await supabaseAdmin.auth.admin.deleteUser(newUserId).catch((e) => {
+        console.error('Failed to cleanup user after role insert failure:', e)
+      })
       return errorResponse('unexpected', `User created, but assigning the ${requestedRole} role failed. Please try again.`, 500)
     }
 
-    // Insert profile record (trigger should also create it, but this ensures it exists)
-    const { error: profileInsertErr } = await serviceClient
+    // Step 6: Insert profile record (trigger should also create it, but this ensures it exists)
+    const { error: profileInsertErr } = await supabaseAdmin
       .from('profiles')
       .insert({ id: newUserId, email })
 
     if (profileInsertErr) {
-      console.error('Profile insert failed (non-fatal)', profileInsertErr)
+      console.error('Profile insert failed (non-fatal):', profileInsertErr.message)
       // Non-fatal - trigger should have created it
     }
 
     console.log(`User created successfully: ${newUserId} with role ${requestedRole}`)
     return json({ user_id: newUserId }, 200)
   } catch (e) {
-    console.error('admin-create-user unexpected error', e)
+    console.error('admin-create-user unexpected error:', e)
     return errorResponse('unexpected', 'Unexpected error. Please try again.', 500)
   }
 })
