@@ -1277,4 +1277,20 @@ export default {
   auto_clear_ready: "Auto-clear Ready",
   clear_after: "Clear after",
   minutes: "min",
+
+  // Kitchen Performance Reports
+  kitchen_performance: "Kitchen Performance",
+  kitchen_performance_desc: "Real-time kitchen metrics",
+  avg_prep_time: "Avg Prep Time",
+  vs_yesterday: "vs yesterday",
+  slower: "Slower",
+  faster: "Faster",
+  trend_same: "Same",
+  orders_by_status: "Orders by Status",
+  delayed_orders: "Delayed Orders",
+  delayed_definition: ">15 min prep time",
+  of_orders: "of",
+  orders_completed_today: "orders today",
+  kitchen_peak_hours: "Peak Hours",
+  week_peak: "This Week",
 } as const;

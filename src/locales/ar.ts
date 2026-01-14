@@ -1275,4 +1275,20 @@ export default {
   auto_clear_ready: "إخفاء الجاهز تلقائياً",
   clear_after: "إخفاء بعد",
   minutes: "دقيقة",
+
+  // Kitchen Performance Reports
+  kitchen_performance: "أداء المطبخ",
+  kitchen_performance_desc: "مقاييس المطبخ الحية",
+  avg_prep_time: "متوسط وقت التحضير",
+  vs_yesterday: "مقارنة بالأمس",
+  slower: "أبطأ",
+  faster: "أسرع",
+  trend_same: "نفسه",
+  orders_by_status: "الطلبات حسب الحالة",
+  delayed_orders: "طلبات متأخرة",
+  delayed_definition: "أكثر من 15 دقيقة تحضير",
+  of_orders: "من",
+  orders_completed_today: "طلب اليوم",
+  kitchen_peak_hours: "ساعات الذروة",
+  week_peak: "هذا الأسبوع",
 } as const;

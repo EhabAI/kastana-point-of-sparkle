@@ -64,6 +64,7 @@ import { BranchManagement } from "@/components/owner/BranchManagement";
 import { BranchMenuItemsManager } from "@/components/owner/BranchMenuItemsManager";
 import { PaymentMethodsSettings } from "@/components/owner/PaymentMethodsSettings";
 import { AuditLogViewer } from "@/components/owner/AuditLogViewer";
+import { KitchenPerformance } from "@/components/owner/KitchenPerformance";
 import { MenuLanguageGuidance } from "@/components/owner/MenuLanguageGuidance";
 import { InventoryDashboard } from "@/components/owner/InventoryDashboard";
 import { InventoryDisabledCard } from "@/components/owner/InventoryDisabledCard";
@@ -258,6 +259,7 @@ export default function OwnerAdmin() {
 
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6 mt-6">
+            {role === "owner" && <KitchenPerformance />}
             {role === "owner" && <AnalyticsCharts />}
             {role === "owner" && <BestWorstSellers />}
             {role === "owner" && <CashierPerformance />}
