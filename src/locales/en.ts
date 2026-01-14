@@ -1317,4 +1317,13 @@ export default {
   orders_completed_today: "orders today",
   kitchen_peak_hours: "Peak Hours",
   week_peak: "This Week",
+
+  // Empty state explanations
+  no_orders_possible_reasons: "Possible reasons:",
+  reason_no_active_shift: "No active shift open",
+  reason_different_branch: "Orders on a different branch",
+  reason_status_not_open: "Status is not open/confirmed",
+  no_qr_orders_possible_reasons: "Possible reasons:",
+  reason_no_qr_orders_yet: "No QR orders submitted yet",
+  reason_already_processed: "All orders already processed",
 } as const;

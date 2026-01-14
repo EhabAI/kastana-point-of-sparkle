@@ -1315,4 +1315,13 @@ export default {
   orders_completed_today: "طلب اليوم",
   kitchen_peak_hours: "ساعات الذروة",
   week_peak: "هذا الأسبوع",
+
+  // Empty state explanations
+  no_orders_possible_reasons: "الأسباب المحتملة:",
+  reason_no_active_shift: "لا يوجد شفت مفتوح",
+  reason_different_branch: "الطلبات على فرع مختلف",
+  reason_status_not_open: "الحالة ليست مفتوحة/مؤكدة",
+  no_qr_orders_possible_reasons: "الأسباب المحتملة:",
+  reason_no_qr_orders_yet: "لا توجد طلبات QR بعد",
+  reason_already_processed: "تمت معالجة جميع الطلبات",
 } as const;

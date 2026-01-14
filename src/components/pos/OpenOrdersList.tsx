@@ -109,10 +109,18 @@ export function OpenOrdersList({
 
   if (orders.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
+      <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-6">
         <Clock className="h-16 w-16 mb-4 opacity-50" />
-        <h3 className="text-lg font-medium mb-1">{t("no_open_orders_title")}</h3>
-        <p className="text-sm">{t("start_order_hint")}</p>
+        <h3 className="text-lg font-medium mb-2">{t("no_open_orders_title")}</h3>
+        <p className="text-sm text-center mb-4">{t("start_order_hint")}</p>
+        <div className="text-xs text-muted-foreground/70 bg-muted/50 rounded-lg p-4 max-w-sm text-center space-y-1">
+          <p>{t("no_orders_possible_reasons")}</p>
+          <ul className="list-disc ltr:text-left rtl:text-right ltr:pl-4 rtl:pr-4 mt-2 space-y-0.5">
+            <li>{t("reason_no_active_shift")}</li>
+            <li>{t("reason_different_branch")}</li>
+            <li>{t("reason_status_not_open")}</li>
+          </ul>
+        </div>
       </div>
     );
   }
