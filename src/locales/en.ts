@@ -1285,6 +1285,7 @@ export default {
   auto_clear_ready: "Auto-clear Ready",
   clear_after: "Clear after",
   minutes: "min",
+  back_to_cooking: "Back to Cooking",
 
   // Kitchen Performance Reports
   kitchen_performance: "Kitchen Performance",

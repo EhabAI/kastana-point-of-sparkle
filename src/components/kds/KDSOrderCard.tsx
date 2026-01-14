@@ -150,9 +150,21 @@ export function KDSOrderCard({ order, onUpdateStatus, isUpdating }: KDSOrderCard
         )}
 
         {order.status === "ready" && (
-          <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm py-1">
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-            {t("ready_for_pickup")}
+          <div className="space-y-2">
+            <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm py-1">
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              {t("ready_for_pickup")}
+            </div>
+            <Button
+              className="w-full"
+              size="sm"
+              variant="outline"
+              onClick={() => onUpdateStatus(order.id, "in_progress")}
+              disabled={isUpdating}
+            >
+              <ChefHat className="h-4 w-4 mr-2" />
+              {t("back_to_cooking")}
+            </Button>
           </div>
         )}
       </CardContent>
