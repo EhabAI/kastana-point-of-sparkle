@@ -67,6 +67,7 @@ export default {
   restaurant_inactive_title: "المطعم غير نشط",
   restaurant_inactive_message: "هذا المطعم غير نشط حالياً. يرجى التواصل مع الدعم.",
   owner_dashboard: "لوحة تحكم المالك",
+  dashboard: "لوحة التحكم",
   system_admin: "مدير النظام",
   cashier: "كاشير",
   owner: "مالك",

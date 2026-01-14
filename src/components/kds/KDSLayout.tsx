@@ -2,32 +2,50 @@ import { useMemo, useState, useCallback } from "react";
 import { useKDSOrders, useUpdateOrderStatus, KDSOrderStatus } from "@/hooks/kds/useKDSOrders";
 import { useKDSSound } from "@/hooks/kds/useKDSSound";
 import { useKDSAutoClear, AutoClearDelay } from "@/hooks/kds/useKDSAutoClear";
+import { KDSHeader } from "./KDSHeader";
 import { KDSColumn } from "./KDSColumn";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw, Volume2, VolumeX, Clock, Settings2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { Switch } from "@/components/ui/switch";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface KDSLayoutProps {
   restaurantId: string;
   branchId: string | null;
 }
 
+/**
+ * KDSLayout - Kitchen Display System main layout
+ * 
+ * SECURITY:
+ * - Uses KDSHeader which enforces role-aware navigation
+ * - No prices, payments, edits, or reports visible
+ * - Both Owner and Kitchen operate with same restricted permissions
+ */
 export function KDSLayout({ restaurantId, branchId }: KDSLayoutProps) {
   const { t, language } = useLanguage();
   const { toast } = useToast();
   const isRTL = language === "ar";
+  
+  // Fetch restaurant info for header
+  const { data: restaurant } = useQuery({
+    queryKey: ["kds-restaurant", restaurantId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("restaurants")
+        .select("name, logo_url")
+        .eq("id", restaurantId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error fetching restaurant:", error);
+        return null;
+      }
+      return data;
+    },
+    enabled: !!restaurantId,
+  });
   
   // Sound state
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -96,83 +114,19 @@ export function KDSLayout({ restaurantId, branchId }: KDSLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background flex flex-col" dir={isRTL ? "rtl" : "ltr"}>
-      {/* Header */}
-      <header className="border-b bg-card px-4 py-3 flex items-center justify-between shrink-0">
-        <h1 className="text-xl font-bold">{t("kitchen_display")}</h1>
-        <div className="flex items-center gap-2">
-          {/* Sound Toggle */}
-          <Button
-            variant={soundEnabled ? "default" : "outline"}
-            size="icon"
-            onClick={() => setSoundEnabled(!soundEnabled)}
-            title={soundEnabled ? t("sound_on") : t("sound_off")}
-          >
-            {soundEnabled ? (
-              <Volume2 className="h-4 w-4" />
-            ) : (
-              <VolumeX className="h-4 w-4" />
-            )}
-          </Button>
-
-          {/* Settings Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Settings2 className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>{t("kds_settings")}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              
-              {/* Auto-clear Toggle */}
-              <div className="flex items-center justify-between px-2 py-2">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{t("auto_clear_ready")}</span>
-                </div>
-                <Switch
-                  checked={autoClearEnabled}
-                  onCheckedChange={toggleAutoClear}
-                />
-              </div>
-              
-              {autoClearEnabled && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel className="text-xs text-muted-foreground">
-                    {t("clear_after")}
-                  </DropdownMenuLabel>
-                  {([3, 5, 10] as AutoClearDelay[]).map((delay) => (
-                    <DropdownMenuItem
-                      key={delay}
-                      onClick={() => setDelay(delay)}
-                      className="flex items-center justify-between"
-                    >
-                      <span>{delay} {t("minutes")}</span>
-                      {autoClearDelay === delay && (
-                        <Badge variant="secondary" className="text-xs">
-                          {t("selected")}
-                        </Badge>
-                      )}
-                    </DropdownMenuItem>
-                  ))}
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => refetch()}
-            disabled={isRefetching}
-          >
-            <RefreshCw className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`} />
-          </Button>
-          <ThemeToggle />
-        </div>
-      </header>
+      {/* Reusable KDS Header - follows system header style */}
+      <KDSHeader
+        restaurantName={restaurant?.name}
+        restaurantLogo={restaurant?.logo_url}
+        soundEnabled={soundEnabled}
+        onSoundToggle={() => setSoundEnabled(!soundEnabled)}
+        autoClearEnabled={autoClearEnabled}
+        autoClearDelay={autoClearDelay}
+        onAutoClearToggle={toggleAutoClear}
+        onAutoClearDelayChange={setDelay}
+        isRefetching={isRefetching}
+        onRefresh={() => refetch()}
+      />
 
       {/* Kanban Columns */}
       <main className="flex-1 p-4 overflow-hidden">
