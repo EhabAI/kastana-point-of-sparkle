@@ -8,8 +8,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-type ErrorCode = 'not_authorized' | 'user_exists' | 'weak_password' | 'invalid_role' | 'missing_restaurant' | 'unexpected'
-type AppRole = 'system_admin' | 'owner' | 'cashier'
+type ErrorCode = 'not_authorized' | 'user_exists' | 'weak_password' | 'invalid_role' | 'missing_restaurant' | 'kds_disabled' | 'unexpected'
+type AppRole = 'system_admin' | 'owner' | 'cashier' | 'kitchen'
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -43,7 +43,7 @@ function isLikelyWeakPassword(message: string) {
 }
 
 function isValidRole(role: string): role is AppRole {
-  return ['system_admin', 'owner', 'cashier'].includes(role)
+  return ['system_admin', 'owner', 'cashier', 'kitchen'].includes(role)
 }
 
 Deno.serve(async (req) => {
@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
 
     // Validate the requested role
     if (!isValidRole(requestedRole)) {
-      return errorResponse('invalid_role', 'Invalid role specified. Must be owner or cashier.', 400)
+      return errorResponse('invalid_role', 'Invalid role specified. Must be owner, cashier, or kitchen.', 400)
     }
 
     // Quick weak password check for clearer UX
@@ -134,33 +134,46 @@ Deno.serve(async (req) => {
       return errorResponse('not_authorized', 'Not authorized. Only system admins and owners can create users.', 403)
     }
 
-    // Owners can only create cashiers for their restaurant
+    // Service-role client to create users + bypass RLS safely
+    const serviceClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false },
+    })
+
+    // Owners can only create cashiers or kitchen staff for their restaurant
     if (isOwner && !isSystemAdmin) {
-      if (requestedRole !== 'cashier') {
-        return errorResponse('not_authorized', 'Owners can only create cashier accounts.', 403)
+      if (requestedRole !== 'cashier' && requestedRole !== 'kitchen') {
+        return errorResponse('not_authorized', 'Owners can only create cashier or kitchen staff accounts.', 403)
       }
       if (!restaurantId) {
-        return errorResponse('missing_restaurant', 'Restaurant ID is required when creating a cashier.', 400)
+        return errorResponse('missing_restaurant', 'Restaurant ID is required when creating staff.', 400)
       }
       // Verify the owner owns this restaurant
       const { data: ownerRestaurantId, error: restErr } = await userClient.rpc('get_owner_restaurant_id', {
         _user_id: callerId,
       })
       if (restErr || ownerRestaurantId !== restaurantId) {
-        return errorResponse('not_authorized', 'You can only create cashiers for your own restaurant.', 403)
+        return errorResponse('not_authorized', 'You can only create staff for your own restaurant.', 403)
+      }
+      
+      // For kitchen role, verify KDS is enabled
+      if (requestedRole === 'kitchen') {
+        const { data: kdsSettings, error: kdsErr } = await serviceClient
+          .from('restaurant_settings')
+          .select('kds_enabled')
+          .eq('restaurant_id', restaurantId)
+          .maybeSingle()
+        
+        if (kdsErr || !kdsSettings?.kds_enabled) {
+          return errorResponse('kds_disabled', 'KDS must be enabled to create kitchen staff.', 400)
+        }
       }
     }
 
     // System admins creating owners don't need restaurant_id
-    // System admins creating cashiers need restaurant_id
-    if (isSystemAdmin && requestedRole === 'cashier' && !restaurantId) {
-      return errorResponse('missing_restaurant', 'Restaurant ID is required when creating a cashier.', 400)
+    // System admins creating cashiers or kitchen staff need restaurant_id
+    if (isSystemAdmin && (requestedRole === 'cashier' || requestedRole === 'kitchen') && !restaurantId) {
+      return errorResponse('missing_restaurant', 'Restaurant ID is required when creating staff.', 400)
     }
-
-    // Service-role client to create users + bypass RLS safely
-    const serviceClient = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { persistSession: false },
-    })
 
     const { data: created, error: createErr } = await serviceClient.auth.admin.createUser({
       email,
