@@ -191,6 +191,13 @@ export function AIAssistantBubble() {
     };
     setMessages((prev) => [...prev, newUserMessage]);
 
+    // Initialize response variables
+    let responseContent = "";
+    let responseIntent: AssistantIntent = "how_to";
+    let isSuggestion = false;
+    let alertData: SmartAlert | undefined;
+    let trainingCardData: TrainingCard | undefined;
+
     // Step 1: Domain Guard - hard lock to Kastana POS
     const domainCheck = domainGuard(userMessage, { role, screen: location.pathname });
     
@@ -202,57 +209,57 @@ export function AIAssistantBubble() {
       // Step 2: Scope check for intent detection
       const scopeCheck = checkScope(userMessage);
       
-      // Step 3: Resolve intent with mode
-      const resolved = resolveIntent(userMessage, scopeCheck.intent, { userRole: role });
+      // Step 3: Resolve intent with mode (keeping for future use)
+      const _resolved = resolveIntent(userMessage, scopeCheck.intent, { userRole: role });
       
-      // Step 4: Check for detail escalation
-      const detailLevel: DetailLevel = detectDetailEscalation(userMessage) || "short";
+      // Step 4: Check for detail escalation (keeping for future use)
+      const _detailLevel: DetailLevel = detectDetailEscalation(userMessage) || "short";
       
       if (scopeCheck.intent === "greeting") {
         // Greeting response
         responseContent = getGreetingMessage(systemLang);
       } else if (
-    } else if (
-      // Check if user is asking about inventory when it's disabled (for owner/cashier only)
-      role !== "system_admin" && 
-      !inventoryEnabled && 
-      isInventoryRelatedQuery(userMessage)
-    ) {
-      // Inventory module is disabled - return friendly message
-      responseContent = getInventoryDisabledMessage(systemLang);
-      responseIntent = "why_disabled";
-    } else {
-      // Check if user is asking about an alert topic (e.g., "why are sales low?")
-      const alertType = detectAlertType(userMessage);
-      
-      if (alertType) {
-        // Generate smart alert with explanation and report button
-        alertData = generateAlert(alertType);
-        responseContent = ""; // Content will be rendered by AIAssistantAlert component
+        // Check if user is asking about inventory when it's disabled (for owner/cashier only)
+        role !== "system_admin" && 
+        !inventoryEnabled && 
+        isInventoryRelatedQuery(userMessage)
+      ) {
+        // Inventory module is disabled - return friendly message
+        responseContent = getInventoryDisabledMessage(systemLang);
+        responseIntent = "why_disabled";
       } else {
-        // Check if user is asking for a smart suggestion
-        const suggestionType = detectSuggestionType(userMessage);
+        // Check if user is asking about an alert topic (e.g., "why are sales low?")
+        const alertType = detectAlertType(userMessage);
         
-        if (suggestionType) {
-          // Smart suggestion flow
-          isSuggestion = true;
-          const hasDataContext = checkForDataContext(userMessage, suggestionType);
-          responseContent = formatSuggestion(suggestionType, systemLang, hasDataContext);
+        if (alertType) {
+          // Generate smart alert with explanation and report button
+          alertData = generateAlert(alertType);
+          responseContent = ""; // Content will be rendered by AIAssistantAlert component
         } else {
-          // Regular knowledge base search
-          const knowledgeEntry = searchKnowledge(userMessage, systemLang, scopeCheck.intent);
+          // Check if user is asking for a smart suggestion
+          const suggestionType = detectSuggestionType(userMessage);
           
-          if (knowledgeEntry) {
-            responseContent = getKnowledgeContent(knowledgeEntry, systemLang);
-            
-            // Check for relevant training card (show alongside knowledge response)
-            const relevantCard = findRelevantCard(userMessage);
-            if (relevantCard && !dismissedCards.includes(relevantCard.id)) {
-              trainingCardData = relevantCard;
-            }
+          if (suggestionType) {
+            // Smart suggestion flow
+            isSuggestion = true;
+            const hasDataContext = checkForDataContext(userMessage, suggestionType);
+            responseContent = formatSuggestion(suggestionType, systemLang, hasDataContext);
           } else {
-            // No match found - return fallback
-            responseContent = getFallbackResponse(systemLang);
+            // Regular knowledge base search
+            const knowledgeEntry = searchKnowledge(userMessage, systemLang, scopeCheck.intent);
+            
+            if (knowledgeEntry) {
+              responseContent = getKnowledgeContent(knowledgeEntry, systemLang);
+              
+              // Check for relevant training card (show alongside knowledge response)
+              const relevantCard = findRelevantCard(userMessage);
+              if (relevantCard && !dismissedCards.includes(relevantCard.id)) {
+                trainingCardData = relevantCard;
+              }
+            } else {
+              // No match found - return fallback
+              responseContent = getFallbackResponse(systemLang);
+            }
           }
         }
       }
