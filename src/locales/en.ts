@@ -67,6 +67,7 @@ export default {
   restaurant_inactive_title: "Restaurant Inactive",
   restaurant_inactive_message: "This restaurant is currently inactive. Please contact support.",
   owner_dashboard: "Owner Dashboard",
+  dashboard: "Dashboard",
   system_admin: "System Admin",
   cashier: "Cashier",
   owner: "Owner",
