@@ -53,7 +53,7 @@ export function KDSHeader({
   onRefresh,
 }: KDSHeaderProps) {
   const { t, language } = useLanguage();
-  const { role, signOut } = useAuth();
+  const { user, role, signOut } = useAuth();
   const navigate = useNavigate();
   const isRTL = language === "ar";
 
@@ -181,8 +181,17 @@ export function KDSHeader({
             {/* Language Toggle */}
             <LanguageToggle />
 
-            {/* Divider */}
+          {/* Divider */}
             <div className="hidden sm:block w-px h-5 bg-border/60 mx-1.5" />
+
+            {/* Current User */}
+            {user && (
+              <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground px-2">
+                <span className="truncate max-w-[120px]" title={user.email}>
+                  {user.email}
+                </span>
+              </div>
+            )}
 
             {/* Home Button - Owner only */}
             {isOwner && (
