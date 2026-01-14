@@ -1255,4 +1255,24 @@ export default {
   // Inventory Module Disabled
   inventory_module_disabled_title: "Inventory Management Not Enabled",
   inventory_module_disabled_message: "Inventory Management is not enabled for this restaurant. Please contact System Administration to enable it.",
+
+  // KDS
+  kitchen_display: "Kitchen Display",
+  new_orders: "New Orders",
+  in_progress: "In Progress",
+  ready: "Ready",
+  start_cooking: "Start Cooking",
+  mark_ready: "Mark Ready",
+  ready_for_pickup: "Ready for pickup",
+  status_updated: "Status Updated",
+  order_started: "Order preparation started",
+  order_ready: "Order is ready",
+  status_update_failed: "Failed to update status",
+  kds_disabled_title: "Kitchen Display Not Enabled",
+  kds_disabled_message: "KDS is not enabled for this restaurant. Please contact System Administration.",
+  dine_in: "Dine-in",
+  takeaway: "Takeaway",
+  notes: "Notes",
+  kitchen: "Kitchen",
+  error: "Error",
 } as const;

@@ -7,7 +7,7 @@ import { RestaurantInactiveScreen } from '@/components/RestaurantInactiveScreen'
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: ('system_admin' | 'owner' | 'cashier')[];
+  allowedRoles?: ('system_admin' | 'owner' | 'cashier' | 'kitchen')[];
 }
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
@@ -27,9 +27,9 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     }
   }, [loading, user, isActive, signOut, toast]);
 
-  // Handle inactive restaurant for owners and cashiers
+  // Handle inactive restaurant for owners, cashiers, and kitchen staff
   useEffect(() => {
-    if (!loading && user && role && (role === 'owner' || role === 'cashier') && !isRestaurantActive) {
+    if (!loading && user && role && (role === 'owner' || role === 'cashier' || role === 'kitchen') && !isRestaurantActive) {
       setShowInactiveScreen(true);
     } else {
       setShowInactiveScreen(false);
@@ -76,6 +76,9 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
       }
       if (role === 'cashier') {
         return <Navigate to="/pos" replace />;
+      }
+      if (role === 'kitchen') {
+        return <Navigate to="/kds" replace />;
       }
       return <Navigate to="/login" replace />;
     }

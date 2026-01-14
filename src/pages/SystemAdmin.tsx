@@ -33,7 +33,8 @@ import { useMenuCategories } from "@/hooks/useMenuCategories";
 import { useAllMenuItems } from "@/hooks/useMenuItems";
 import { useToggleRestaurantActive } from "@/hooks/useToggleRestaurantActive";
 import { useAllRestaurantsInventoryStatus, useToggleInventoryModule } from "@/hooks/useInventoryModuleToggle";
-import { Store, Users, Plus, Link, Eye, Loader2, Upload, Image, Power, Package } from "lucide-react";
+import { useAllRestaurantsKDSStatus, useToggleKDSModule } from "@/hooks/useKDSModuleToggle";
+import { Store, Users, Plus, Link, Eye, Loader2, Upload, Image, Power, Package, ChefHat } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,12 +47,14 @@ export default function SystemAdmin() {
   const { data: restaurants = [], isLoading: loadingRestaurants } = useRestaurants();
   const { data: owners = [], isLoading: loadingOwners } = useOwners();
   const { data: inventoryStatusMap = new Map() } = useAllRestaurantsInventoryStatus();
+  const { data: kdsStatusMap = new Map() } = useAllRestaurantsKDSStatus();
   const createRestaurant = useCreateRestaurant();
   const updateRestaurant = useUpdateRestaurant();
   const createOwner = useCreateOwner();
   const assignOwner = useAssignOwner();
   const toggleActive = useToggleRestaurantActive();
   const toggleInventory = useToggleInventoryModule();
+  const toggleKDS = useToggleKDSModule();
   const { toast } = useToast();
   const logoInputRef = useRef<HTMLInputElement>(null);
 
@@ -81,6 +84,10 @@ export default function SystemAdmin() {
   // Inventory toggle confirmation dialog
   const [inventoryToggleDialogOpen, setInventoryToggleDialogOpen] = useState(false);
   const [inventoryToggleTarget, setInventoryToggleTarget] = useState<{id: string; name: string; currentEnabled: boolean} | null>(null);
+
+  // KDS toggle confirmation dialog
+  const [kdsToggleDialogOpen, setKdsToggleDialogOpen] = useState(false);
+  const [kdsToggleTarget, setKdsToggleTarget] = useState<{id: string; name: string; currentEnabled: boolean} | null>(null);
 
   const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -221,6 +228,22 @@ export default function SystemAdmin() {
       });
       setInventoryToggleDialogOpen(false);
       setInventoryToggleTarget(null);
+    }
+  };
+
+  const handleKDSToggle = (restaurantId: string, restaurantName: string, currentEnabled: boolean) => {
+    setKdsToggleTarget({ id: restaurantId, name: restaurantName, currentEnabled });
+    setKdsToggleDialogOpen(true);
+  };
+
+  const confirmKDSToggle = () => {
+    if (kdsToggleTarget) {
+      toggleKDS.mutate({ 
+        restaurantId: kdsToggleTarget.id, 
+        enabled: !kdsToggleTarget.currentEnabled 
+      });
+      setKdsToggleDialogOpen(false);
+      setKdsToggleTarget(null);
     }
   };
 
@@ -457,6 +480,7 @@ export default function SystemAdmin() {
               <div className="space-y-4">
                 {restaurants.map((restaurant) => {
                   const inventoryEnabled = inventoryStatusMap.get(restaurant.id) ?? false;
+                  const kdsEnabled = kdsStatusMap.get(restaurant.id) ?? false;
                   return (
                     <div key={restaurant.id} className="p-4 bg-muted/50 rounded-lg space-y-3">
                       {/* Top row: Restaurant info + Status + Actions */}
@@ -555,6 +579,32 @@ export default function SystemAdmin() {
                             className="ml-1"
                           />
                         </div>
+
+                        {/* KDS Module */}
+                        <div 
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-md border transition-colors ${
+                            kdsEnabled 
+                              ? 'bg-primary/5 border-primary/20' 
+                              : 'bg-muted/50 border-border'
+                          }`}
+                        >
+                          <ChefHat className={`h-4 w-4 ${kdsEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
+                          <span className={`text-sm ${kdsEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
+                            Kitchen Display
+                          </span>
+                          <Badge 
+                            variant={kdsEnabled ? "default" : "secondary"} 
+                            className="text-[10px] px-1.5 py-0"
+                          >
+                            {kdsEnabled ? "ON" : "OFF"}
+                          </Badge>
+                          <Switch
+                            checked={kdsEnabled}
+                            onCheckedChange={() => handleKDSToggle(restaurant.id, restaurant.name, kdsEnabled)}
+                            disabled={toggleKDS.isPending}
+                            className="ml-1"
+                          />
+                        </div>
                       </div>
                     </div>
                   );
@@ -607,6 +657,35 @@ export default function SystemAdmin() {
                 }
               >
                 {inventoryToggleTarget?.currentEnabled ? "Disable" : "Enable"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* KDS Module Toggle Confirmation Dialog */}
+        <AlertDialog open={kdsToggleDialogOpen} onOpenChange={setKdsToggleDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {kdsToggleTarget?.currentEnabled ? "Disable Kitchen Display?" : "Enable Kitchen Display?"}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {kdsToggleTarget?.currentEnabled 
+                  ? <>This will disable KDS for <strong>{kdsToggleTarget?.name}</strong>. Kitchen staff will no longer have access.</>
+                  : <>This will activate KDS for <strong>{kdsToggleTarget?.name}</strong>. Kitchen staff can view and manage orders.</>
+                }
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={confirmKDSToggle}
+                className={kdsToggleTarget?.currentEnabled 
+                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" 
+                  : "bg-primary text-primary-foreground hover:bg-primary/90"
+                }
+              >
+                {kdsToggleTarget?.currentEnabled ? "Disable" : "Enable"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

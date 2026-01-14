@@ -1253,4 +1253,24 @@ export default {
   // Inventory Module Disabled
   inventory_module_disabled_title: "إدارة المخزون غير مفعّلة",
   inventory_module_disabled_message: "إدارة المخزون غير مفعّلة لهذا المطعم. يمكن طلب تفعيلها من إدارة النظام.",
+
+  // KDS
+  kitchen_display: "شاشة المطبخ",
+  new_orders: "طلبات جديدة",
+  in_progress: "قيد التحضير",
+  ready: "جاهز",
+  start_cooking: "بدء الطهي",
+  mark_ready: "تحديد كجاهز",
+  ready_for_pickup: "جاهز للتسليم",
+  status_updated: "تم تحديث الحالة",
+  order_started: "بدأ تحضير الطلب",
+  order_ready: "الطلب جاهز",
+  status_update_failed: "فشل تحديث الحالة",
+  kds_disabled_title: "شاشة المطبخ غير مفعّلة",
+  kds_disabled_message: "شاشة المطبخ غير مفعّلة لهذا المطعم. يرجى التواصل مع إدارة النظام.",
+  dine_in: "محلي",
+  takeaway: "سفري",
+  notes: "ملاحظات",
+  kitchen: "المطبخ",
+  error: "خطأ",
 } as const;

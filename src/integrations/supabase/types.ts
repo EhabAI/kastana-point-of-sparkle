@@ -1292,6 +1292,7 @@ export type Database = {
           discounts_enabled: boolean
           id: string
           inventory_enabled: boolean
+          kds_enabled: boolean
           max_discount_value: number | null
           prices_include_tax: boolean
           restaurant_id: string
@@ -1308,6 +1309,7 @@ export type Database = {
           discounts_enabled?: boolean
           id?: string
           inventory_enabled?: boolean
+          kds_enabled?: boolean
           max_discount_value?: number | null
           prices_include_tax?: boolean
           restaurant_id: string
@@ -1324,6 +1326,7 @@ export type Database = {
           discounts_enabled?: boolean
           id?: string
           inventory_enabled?: boolean
+          kds_enabled?: boolean
           max_discount_value?: number | null
           prices_include_tax?: boolean
           restaurant_id?: string
@@ -1726,6 +1729,7 @@ export type Database = {
     }
     Functions: {
       get_cashier_restaurant_id: { Args: { _user_id: string }; Returns: string }
+      get_kitchen_restaurant_id: { Args: { _user_id: string }; Returns: string }
       get_owner_restaurant_id: { Args: { _user_id: string }; Returns: string }
       get_public_restaurant: {
         Args: { p_restaurant_id: string }
@@ -1774,7 +1778,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "system_admin" | "owner" | "cashier"
+      app_role: "system_admin" | "owner" | "cashier" | "kitchen"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1902,7 +1906,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["system_admin", "owner", "cashier"],
+      app_role: ["system_admin", "owner", "cashier", "kitchen"],
     },
   },
 } as const
