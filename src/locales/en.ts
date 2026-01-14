@@ -1277,6 +1277,7 @@ export default {
   order_started: "Order preparation started",
   order_ready: "Order is ready",
   status_update_failed: "Failed to update status",
+  no_active_kitchen_orders: "No active kitchen orders at the moment",
   kds_disabled_title: "Kitchen Display Not Enabled",
   kds_disabled_message: "KDS is not enabled for this restaurant. Please contact System Administration.",
   kitchen: "Kitchen",

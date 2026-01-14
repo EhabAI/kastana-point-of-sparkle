@@ -1275,6 +1275,7 @@ export default {
   order_started: "بدأ تحضير الطلب",
   order_ready: "الطلب جاهز",
   status_update_failed: "فشل تحديث الحالة",
+  no_active_kitchen_orders: "لا توجد طلبات مطبخ نشطة حاليًا",
   kds_disabled_title: "شاشة المطبخ غير مفعّلة",
   kds_disabled_message: "شاشة المطبخ غير مفعّلة لهذا المطعم. يرجى التواصل مع إدارة النظام.",
   kitchen: "المطبخ",

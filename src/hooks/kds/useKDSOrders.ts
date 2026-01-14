@@ -60,6 +60,12 @@ export function useKDSOrders(
         return [];
       }
 
+      // Calculate time window: last 12 hours OR today (whichever is more recent)
+      const now = new Date();
+      const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const timeWindowStart = twelveHoursAgo < todayStart ? todayStart : twelveHoursAgo;
+
       let query = supabase
         .from("orders")
         .select(`
@@ -74,7 +80,10 @@ export function useKDSOrders(
           order_items(id, name, quantity, notes, voided)
         `)
         .eq("restaurant_id", restaurantId)
+        // Only active kitchen statuses - explicitly exclude paid/completed/cancelled/void/closed
         .in("status", ["new", "in_progress", "ready"])
+        // Time window: only recent orders (today or last 12 hours)
+        .gte("created_at", timeWindowStart.toISOString())
         .order("created_at", { ascending: true });
 
       // SECURITY: Kitchen users are restricted to their branch by RLS
@@ -91,17 +100,31 @@ export function useKDSOrders(
         throw new Error("Failed to load orders");
       }
 
-      return (data || []).map((order: any) => ({
-        id: order.id,
-        order_number: order.order_number,
-        source: order.source,
-        status: order.status,
-        table_id: order.table_id,
-        table_name: order.restaurant_tables?.table_name,
-        created_at: order.created_at,
-        order_notes: order.order_notes,
-        items: (order.order_items || []).filter((item: any) => !item.voided),
-      })) as KDSOrder[];
+      // Filter and map orders
+      const filteredOrders = (data || [])
+        // Exclude pending/unconfirmed QR orders (only include accepted QR orders or POS orders)
+        .filter((order: any) => {
+          // POS orders are always included
+          if (order.source === "pos") return true;
+          // QR orders only if they're in active kitchen statuses (already accepted into kitchen flow)
+          // Status 'new', 'in_progress', 'ready' means they've been accepted
+          if (order.source === "qr" && ["new", "in_progress", "ready"].includes(order.status)) return true;
+          // Exclude any other sources or pending QR orders
+          return false;
+        })
+        .map((order: any) => ({
+          id: order.id,
+          order_number: order.order_number,
+          source: order.source,
+          status: order.status,
+          table_id: order.table_id,
+          table_name: order.restaurant_tables?.table_name,
+          created_at: order.created_at,
+          order_notes: order.order_notes,
+          items: (order.order_items || []).filter((item: any) => !item.voided),
+        })) as KDSOrder[];
+
+      return filteredOrders;
     },
     // SECURITY: Only enable query if all security conditions are met
     enabled: !!restaurantId && !!user && isAllowedRole,
