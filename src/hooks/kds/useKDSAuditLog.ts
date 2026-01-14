@@ -5,6 +5,8 @@ import type { Json } from "@/integrations/supabase/types";
 
 export type KDSAuditAction = 
   | "KDS_DISABLED_ACCESS"
+  | "KDS_UNAUTHORIZED_ACCESS_ATTEMPT"
+  | "KDS_INACTIVE_RESTAURANT_ACCESS"
   | "KDS_ORDER_START"
   | "KDS_ORDER_READY";
 
