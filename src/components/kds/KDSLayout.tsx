@@ -96,11 +96,15 @@ export function KDSLayout({ restaurantId, branchId }: KDSLayoutProps) {
     );
   };
 
-  const { newOrders, inProgressOrders, readyOrders } = useMemo(() => {
+  const { newOrders, inProgressOrders, readyOrders, hasAnyOrders } = useMemo(() => {
+    const newOrd = visibleOrders.filter((o) => o.status === "new");
+    const inProgressOrd = visibleOrders.filter((o) => o.status === "in_progress");
+    const readyOrd = visibleOrders.filter((o) => o.status === "ready");
     return {
-      newOrders: visibleOrders.filter((o) => o.status === "new"),
-      inProgressOrders: visibleOrders.filter((o) => o.status === "in_progress"),
-      readyOrders: visibleOrders.filter((o) => o.status === "ready"),
+      newOrders: newOrd,
+      inProgressOrders: inProgressOrd,
+      readyOrders: readyOrd,
+      hasAnyOrders: newOrd.length > 0 || inProgressOrd.length > 0 || readyOrd.length > 0,
     };
   }, [visibleOrders]);
 
@@ -130,32 +134,43 @@ export function KDSLayout({ restaurantId, branchId }: KDSLayoutProps) {
 
       {/* Kanban Columns */}
       <main className="flex-1 p-4 overflow-hidden">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
-          <KDSColumn
-            title={t("new_orders")}
-            status="new"
-            orders={newOrders}
-            onUpdateStatus={handleUpdateStatus}
-            isUpdating={updateStatus.isPending}
-            colorClass="bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300"
-          />
-          <KDSColumn
-            title={t("in_progress")}
-            status="in_progress"
-            orders={inProgressOrders}
-            onUpdateStatus={handleUpdateStatus}
-            isUpdating={updateStatus.isPending}
-            colorClass="bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300"
-          />
-          <KDSColumn
-            title={t("ready")}
-            status="ready"
-            orders={readyOrders}
-            onUpdateStatus={handleUpdateStatus}
-            isUpdating={updateStatus.isPending}
-            colorClass="bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300"
-          />
-        </div>
+        {!hasAnyOrders ? (
+          /* Empty state - clean message without technical details */
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <p className="text-lg text-muted-foreground">
+                {t("no_active_kitchen_orders")}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
+            <KDSColumn
+              title={t("new_orders")}
+              status="new"
+              orders={newOrders}
+              onUpdateStatus={handleUpdateStatus}
+              isUpdating={updateStatus.isPending}
+              colorClass="bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300"
+            />
+            <KDSColumn
+              title={t("in_progress")}
+              status="in_progress"
+              orders={inProgressOrders}
+              onUpdateStatus={handleUpdateStatus}
+              isUpdating={updateStatus.isPending}
+              colorClass="bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300"
+            />
+            <KDSColumn
+              title={t("ready")}
+              status="ready"
+              orders={readyOrders}
+              onUpdateStatus={handleUpdateStatus}
+              isUpdating={updateStatus.isPending}
+              colorClass="bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300"
+            />
+          </div>
+        )}
       </main>
     </div>
   );
