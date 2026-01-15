@@ -1309,6 +1309,42 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                   value="help" 
                   className="mt-0 flex flex-col h-[calc(100vh-320px)]"
                 >
+                  {/* Navigation Bar - Chat and Browse as equal modes */}
+                  <div className="border-b px-3 py-2">
+                    <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+                      <button
+                        className={cn(
+                          "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-sm font-medium transition-all duration-200",
+                          showChat 
+                            ? "bg-background text-foreground shadow-sm" 
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        )}
+                        onClick={() => {
+                          setShowChat(true);
+                          setContentMode("chat");
+                        }}
+                      >
+                        <MessageCircle className="h-3.5 w-3.5" />
+                        <span>{language === "ar" ? "المحادثة" : "Chat"}</span>
+                      </button>
+                      <button
+                        className={cn(
+                          "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-sm font-medium transition-all duration-200",
+                          !showChat 
+                            ? "bg-background text-foreground shadow-sm" 
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        )}
+                        onClick={() => {
+                          setShowChat(false);
+                          setContentMode("browse");
+                        }}
+                      >
+                        <BookOpen className="h-3.5 w-3.5" />
+                        <span>{language === "ar" ? "تصفح المواضيع" : "Browse Topics"}</span>
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Chat Messages Area */}
                   <div 
                     ref={chatScrollRef}
@@ -1343,20 +1379,6 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                             </Button>
                           ))}
                         </div>
-                        
-                        {/* Browse topics link */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="mt-4 text-xs text-muted-foreground"
-                          onClick={() => {
-                            setShowChat(false);
-                            setContentMode("browse");
-                          }}
-                        >
-                          <BookOpen className="h-3 w-3 mr-1.5" />
-                          {language === "ar" ? "أو تصفح المواضيع" : "Or browse topics"}
-                        </Button>
                       </div>
                     ) : (
                       <>
@@ -1367,21 +1389,6 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                             language={language} 
                           />
                         ))}
-                        {/* Browse topics link after messages */}
-                        <div className="text-center pt-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-[10px] text-muted-foreground h-6"
-                            onClick={() => {
-                              setShowChat(false);
-                              setContentMode("browse");
-                            }}
-                          >
-                            <BookOpen className="h-3 w-3 mr-1" />
-                            {language === "ar" ? "تصفح المواضيع" : "Browse topics"}
-                          </Button>
-                        </div>
                       </>
                     )}
                   </div>
@@ -1432,21 +1439,40 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                     className="absolute inset-0 bg-background z-10 flex flex-col transition-all duration-300"
                     style={{ top: '100px' }}
                   >
-                    <div className="border-b flex items-center justify-between px-3 py-2">
-                      <span className="font-medium text-sm">
-                        {language === "ar" ? "تصفح المواضيع" : "Browse Topics"}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={() => {
-                          setShowChat(true);
-                          setContentMode("chat");
-                        }}
-                      >
-                        {language === "ar" ? "رجوع للمحادثة" : "Back to Chat"}
-                      </Button>
+                    {/* Navigation Bar - Chat and Browse as equal modes */}
+                    <div className="border-b px-3 py-2">
+                      <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+                        <button
+                          className={cn(
+                            "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-sm font-medium transition-all duration-200",
+                            showChat 
+                              ? "bg-background text-foreground shadow-sm" 
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                          )}
+                          onClick={() => {
+                            setShowChat(true);
+                            setContentMode("chat");
+                          }}
+                        >
+                          <MessageCircle className="h-3.5 w-3.5" />
+                          <span>{language === "ar" ? "المحادثة" : "Chat"}</span>
+                        </button>
+                        <button
+                          className={cn(
+                            "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-sm font-medium transition-all duration-200",
+                            !showChat 
+                              ? "bg-background text-foreground shadow-sm" 
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                          )}
+                          onClick={() => {
+                            setShowChat(false);
+                            setContentMode("browse");
+                          }}
+                        >
+                          <BookOpen className="h-3.5 w-3.5" />
+                          <span>{language === "ar" ? "تصفح المواضيع" : "Browse Topics"}</span>
+                        </button>
+                      </div>
                     </div>
                     <ScrollArea className="flex-1">
                       <div className="p-3 space-y-2">
