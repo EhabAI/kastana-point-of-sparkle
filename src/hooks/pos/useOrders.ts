@@ -316,3 +316,30 @@ export function useReopenOrder() {
     },
   });
 }
+
+/**
+ * Hook to send order to kitchen (KDS)
+ * Changes order status from "open" to "new" so it appears on KDS
+ */
+export function useSendToKitchen() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (orderId: string) => {
+      const { data, error } = await supabase
+        .from("orders")
+        .update({ status: "new" })
+        .eq("id", orderId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["current-order"] });
+      queryClient.invalidateQueries({ queryKey: ["open-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["kds-orders"] });
+    },
+  });
+}

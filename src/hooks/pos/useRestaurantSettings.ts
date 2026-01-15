@@ -9,6 +9,7 @@ export interface RestaurantSettings {
   service_charge_rate: number;
   currency: string;
   rounding_enabled: boolean;
+  kds_enabled?: boolean;
 }
 
 const DEFAULT_SETTINGS: Omit<RestaurantSettings, "id" | "restaurant_id"> = {
@@ -16,6 +17,7 @@ const DEFAULT_SETTINGS: Omit<RestaurantSettings, "id" | "restaurant_id"> = {
   service_charge_rate: 0,
   currency: "JOD",
   rounding_enabled: false,
+  kds_enabled: false,
 };
 
 export function useRestaurantSettings() {
