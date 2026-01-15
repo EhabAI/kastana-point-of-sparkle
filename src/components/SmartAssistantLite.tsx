@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { Bot, AlertCircle, AlertTriangle, Info, Lightbulb, ChevronRight, HelpCircle, BookOpen, Send, User } from "lucide-react";
+import { Bot, AlertCircle, AlertTriangle, Info, Lightbulb, ChevronRight, HelpCircle, BookOpen, Send, User, X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,18 @@ import {
 import { cn } from "@/lib/utils";
 import { useSmartAssistant, type SmartAssistantState } from "@/hooks/useSmartAssistant";
 import { getSeverityColor, getSeverityIcon, type SmartRule, type RuleSeverity } from "@/lib/smartAssistantRules";
-import { getQuickReplies, getAllTopics, getEntryById, searchKnowledge, getFallbackResponse, type KnowledgeEntry } from "@/lib/assistantKnowledge";
+import { 
+  getQuickReplies, 
+  getAllTopics, 
+  getEntryById, 
+  searchKnowledge, 
+  getFallbackResponse, 
+  formatChatResponse,
+  getUndismissedAnnouncements,
+  dismissAnnouncement,
+  type KnowledgeEntry,
+  type FeatureAnnouncement
+} from "@/lib/assistantKnowledge";
 
 // Badge indicator component for tabs
 interface TabBadgeProps {
@@ -244,13 +255,7 @@ function KnowledgeTopicCard({
 }
 
 // Quick tip component from knowledge base
-function QuickTipCard({ 
-  tip, 
-  language 
-}: { 
-  tip: string; 
-  language: "ar" | "en";
-}) {
+function QuickTipCard({ tip }: { tip: string }) {
   return (
     <div className="rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/50 p-3">
       <div className="flex items-start gap-2">
@@ -258,6 +263,41 @@ function QuickTipCard({
         <p className="text-xs text-amber-700 dark:text-amber-300">
           {tip}
         </p>
+      </div>
+    </div>
+  );
+}
+
+// Feature announcement card (dismissible)
+function FeatureAnnouncementCard({ 
+  announcement, 
+  language,
+  onDismiss 
+}: { 
+  announcement: FeatureAnnouncement; 
+  language: "ar" | "en";
+  onDismiss: (id: string) => void;
+}) {
+  return (
+    <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 relative">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="absolute top-1 right-1 h-6 w-6 p-0 hover:bg-primary/10"
+        onClick={() => onDismiss(announcement.id)}
+      >
+        <X className="h-3 w-3" />
+      </Button>
+      <div className="flex items-start gap-2 pr-6">
+        <Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+        <div className="flex-1 min-w-0">
+          <h4 className="font-medium text-sm text-foreground">
+            {announcement.title[language]}
+          </h4>
+          <p className="text-xs text-muted-foreground mt-1">
+            {announcement.description[language]}
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -326,6 +366,9 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   
+  // Feature announcements state
+  const [announcements, setAnnouncements] = useState<FeatureAnnouncement[]>([]);
+  
   // Chat state
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
@@ -353,6 +396,17 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
 
   const { language, contextHint, alerts, hasAlerts } = state;
   
+  // Load feature announcements on mount
+  useEffect(() => {
+    setAnnouncements(getUndismissedAnnouncements());
+  }, []);
+  
+  // Handle dismissing an announcement
+  const handleDismissAnnouncement = useCallback((id: string) => {
+    dismissAnnouncement(id);
+    setAnnouncements(prev => prev.filter(a => a.id !== id));
+  }, []);
+  
   // Get quick replies from knowledge base
   const quickRepliesFromKB = useMemo(() => getQuickReplies(language), [language]);
   
@@ -363,6 +417,10 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   const selectedEntry = useMemo(() => 
     selectedTopicId ? getEntryById(selectedTopicId) : null
   , [selectedTopicId]);
+  
+  // Combined count for alerts badge (alerts + announcements)
+  const totalAlertCount = alerts.length + announcements.length;
+  const hasAnyAlerts = hasAlerts || announcements.length > 0;
   
   // Track when alerts change to show badge
   useEffect(() => {
@@ -423,8 +481,8 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
     
     let responseContent: string;
     if (knowledgeMatch) {
-      // Found a match in knowledge base
-      responseContent = knowledgeMatch.content[language];
+      // Found a match - format for chat (shorter, clearer)
+      responseContent = formatChatResponse(knowledgeMatch.content[language]);
     } else {
       // No match found - use fallback
       responseContent = getFallbackResponse(language);
@@ -454,7 +512,7 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   }, [handleSendMessage]);
 
   // Badge visibility logic
-  const showAlertsBadge = hasAlerts && !alertsViewed;
+  const showAlertsBadge = (hasAnyAlerts) && !alertsViewed;
   const showSuggestionsBadge = !suggestionsViewed; // Show dot for unread suggestions
 
   // Don't render if not visible on current route
@@ -481,7 +539,7 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
         >
           <div className="relative">
             <Bot className="h-6 w-6" />
-            {hasAlerts && (
+            {hasAnyAlerts && (
               <span className="absolute -top-1 -right-1 flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-destructive" />
@@ -501,9 +559,9 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
               <Bot className="h-5 w-5" />
               {assistantTitle}
             </SheetTitle>
-            {hasAlerts && (
+            {hasAnyAlerts && (
               <Badge variant="destructive" className="text-xs">
-                {alerts.length}
+                {totalAlertCount}
               </Badge>
             )}
           </div>
@@ -520,7 +578,7 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
             <TabsTrigger value="alerts" className="flex items-center justify-center">
               <AlertCircle className="h-3.5 w-3.5 mr-1.5" />
               {language === "ar" ? "تنبيهات" : "Alerts"}
-              <TabBadge show={showAlertsBadge} count={alerts.length} variant="count" />
+              <TabBadge show={showAlertsBadge} count={totalAlertCount} variant="count" />
             </TabsTrigger>
             <TabsTrigger value="suggestions" className="flex items-center justify-center">
               <Lightbulb className="h-3.5 w-3.5 mr-1.5" />
@@ -537,8 +595,31 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
           <ScrollArea className="flex-1">
             {/* Alerts Tab */}
             <TabsContent value="alerts" className="p-4 space-y-3 mt-0">
-              {hasAlerts ? (
+              {/* Feature Announcements - Dismissible */}
+              {announcements.length > 0 && (
                 <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {language === "ar" ? "ميزات جديدة" : "What's New"}
+                  </p>
+                  {announcements.map((announcement) => (
+                    <FeatureAnnouncementCard
+                      key={announcement.id}
+                      announcement={announcement}
+                      language={language}
+                      onDismiss={handleDismissAnnouncement}
+                    />
+                  ))}
+                </div>
+              )}
+              
+              {/* System Alerts */}
+              {hasAlerts && (
+                <div className="space-y-2">
+                  {announcements.length > 0 && (
+                    <p className="text-xs font-medium text-muted-foreground pt-2">
+                      {language === "ar" ? "تنبيهات النظام" : "System Alerts"}
+                    </p>
+                  )}
                   {alerts.map((alert, index) => (
                     <AlertCard 
                       key={`${alert.id}-${index}`} 
@@ -547,7 +628,10 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                     />
                   ))}
                 </div>
-              ) : (
+              )}
+              
+              {/* Empty State */}
+              {!hasAnyAlerts && (
                 <div className="rounded-lg border border-dashed p-4 text-center">
                   <div className="mx-auto w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center mb-2">
                     <Info className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -570,28 +654,24 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                   ? "استخدم اختصارات لوحة المفاتيح: Enter للدفع، H للتعليق، Esc للإلغاء."
                   : "Use keyboard shortcuts: Enter to pay, H to hold, Esc to cancel."
                 }
-                language={language}
               />
               <QuickTipCard
                 tip={language === "ar" 
                   ? "تحقق من الطلبات المعلقة بانتظام لتجنب تأخير الخدمة."
                   : "Check held orders regularly to avoid service delays."
                 }
-                language={language}
               />
               <QuickTipCard
                 tip={language === "ar" 
                   ? "افتح الوردية قبل أي عملية بيع. الدفع لا يعمل بدون وردية مفتوحة."
                   : "Open shift before any sale. Payment won't work without an open shift."
                 }
-                language={language}
               />
               <QuickTipCard
                 tip={language === "ar" 
                   ? "Void = قبل الدفع (لا يُسجل). Refund = بعد الدفع (يُسجل في التقارير)."
                   : "Void = Before payment (not recorded). Refund = After payment (recorded in reports)."
                 }
-                language={language}
               />
               
               {/* Quick questions from KB */}

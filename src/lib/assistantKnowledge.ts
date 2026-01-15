@@ -19,6 +19,27 @@ export interface KnowledgeEntry {
     ar: string;
     en: string;
   };
+  metadata?: {
+    feature_id?: string;
+    is_new?: boolean;
+    training_required?: boolean;
+    alert_or_guidance_needed?: boolean;
+    affected_screens?: string[];
+    user_roles?: string[];
+  };
+}
+
+export interface FeatureAnnouncement {
+  id: string;
+  title: {
+    ar: string;
+    en: string;
+  };
+  description: {
+    ar: string;
+    en: string;
+  };
+  date: string;
 }
 
 export interface KnowledgeBase {
@@ -33,10 +54,69 @@ export interface KnowledgeBase {
     ar: string[];
     en: string[];
   };
+  featureAnnouncements?: FeatureAnnouncement[];
 }
 
 // Type-safe access to knowledge data
 const knowledge = knowledgeData as KnowledgeBase;
+
+// Storage key for dismissed announcements
+const DISMISSED_ANNOUNCEMENTS_KEY = "kastana_dismissed_announcements";
+
+/**
+ * Get feature announcements that haven't been dismissed
+ */
+export function getActiveAnnouncements(): FeatureAnnouncement[] {
+  // Get announcements from new features in knowledge base
+  const newFeatures = Object.values(knowledge.entries)
+    .filter(entry => entry.metadata?.is_new && entry.metadata?.alert_or_guidance_needed)
+    .map(entry => ({
+      id: entry.id,
+      title: entry.title || { ar: entry.id, en: entry.id },
+      description: {
+        ar: entry.content.ar.split('\n')[0] || '',
+        en: entry.content.en.split('\n')[0] || ''
+      },
+      date: knowledge.lastUpdated
+    }));
+
+  // Also include explicit announcements if defined
+  const explicitAnnouncements = knowledge.featureAnnouncements || [];
+  
+  return [...newFeatures, ...explicitAnnouncements];
+}
+
+/**
+ * Get dismissed announcement IDs from localStorage
+ */
+export function getDismissedAnnouncements(): string[] {
+  try {
+    const stored = localStorage.getItem(DISMISSED_ANNOUNCEMENTS_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Dismiss an announcement (persists to localStorage)
+ */
+export function dismissAnnouncement(id: string): void {
+  const dismissed = getDismissedAnnouncements();
+  if (!dismissed.includes(id)) {
+    dismissed.push(id);
+    localStorage.setItem(DISMISSED_ANNOUNCEMENTS_KEY, JSON.stringify(dismissed));
+  }
+}
+
+/**
+ * Get announcements that haven't been dismissed
+ */
+export function getUndismissedAnnouncements(): FeatureAnnouncement[] {
+  const all = getActiveAnnouncements();
+  const dismissed = getDismissedAnnouncements();
+  return all.filter(a => !dismissed.includes(a.id));
+}
 
 /**
  * Search the knowledge base for the best matching entry
@@ -93,13 +173,23 @@ export function searchKnowledge(
 }
 
 /**
+ * Format response for chat - shorter, clearer, instructional
+ */
+export function formatChatResponse(content: string): string {
+  // Shorten content: take first 4-5 meaningful lines
+  const lines = content.split('\n').filter(line => line.trim());
+  const shortened = lines.slice(0, 5).join('\n');
+  return shortened;
+}
+
+/**
  * Get the content from a knowledge entry in the specified language
  */
 export function getKnowledgeContent(
   entry: KnowledgeEntry,
   language: "ar" | "en"
 ): string {
-  return entry.content[language];
+  return formatChatResponse(entry.content[language]);
 }
 
 /**
