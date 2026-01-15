@@ -368,17 +368,51 @@ function AlertCard({
   );
 }
 
-// Context hint section
+// Storage key for guidance visibility
+const STORAGE_KEY_HIDE_GUIDANCE = "assistant_hide_current_guidance";
+
+// Get stored guidance visibility
+function getStoredGuidanceHidden(): boolean {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem(STORAGE_KEY_HIDE_GUIDANCE) === "true";
+  }
+  return false;
+}
+
+// Save guidance visibility
+function saveGuidanceHidden(hidden: boolean): void {
+  if (typeof window !== "undefined") {
+    if (hidden) {
+      localStorage.setItem(STORAGE_KEY_HIDE_GUIDANCE, "true");
+    } else {
+      localStorage.removeItem(STORAGE_KEY_HIDE_GUIDANCE);
+    }
+  }
+}
+
+// Context hint section with dismiss capability
 function ContextSection({ 
   hint, 
-  language 
+  language,
+  onDismiss
 }: { 
   hint: SmartAssistantState["contextHint"]; 
   language: "ar" | "en";
+  onDismiss?: () => void;
 }) {
   return (
-    <div className="rounded-lg bg-muted/50 border p-3">
-      <div className="flex items-center gap-2 mb-2">
+    <div className="rounded-lg bg-muted/50 border p-3 relative">
+      {onDismiss && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute top-1 right-1 h-6 w-6 p-0 hover:bg-muted text-muted-foreground hover:text-foreground"
+          onClick={onDismiss}
+        >
+          <X className="h-3.5 w-3.5" />
+        </Button>
+      )}
+      <div className="flex items-center gap-2 mb-2 pr-6">
         <ChevronRight className="h-4 w-4 text-primary" />
         <h4 className="font-medium text-sm text-foreground">
           {language === "ar" ? "ما تفعله الآن" : "What you're doing now"}
@@ -393,6 +427,30 @@ function ContextSection({
         </p>
       </div>
     </div>
+  );
+}
+
+// Re-show guidance button
+function ShowGuidanceButton({
+  language,
+  onClick
+}: {
+  language: "ar" | "en";
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg",
+        "bg-muted/30 hover:bg-muted/50 border border-dashed border-muted-foreground/30",
+        "text-muted-foreground hover:text-foreground text-xs",
+        "transition-all duration-150"
+      )}
+    >
+      <ChevronRight className="h-3 w-3" />
+      <span>{language === "ar" ? "إظهار الإرشاد الحالي" : "Show current guidance"}</span>
+    </button>
   );
 }
 
@@ -734,6 +792,43 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   // Check if in KDS mode (role = kitchen OR screen = kds)
   const isKDSMode = role === "kitchen" || screenContext === "kds";
   
+  // Current guidance visibility state with localStorage persistence
+  const [showCurrentGuidance, setShowCurrentGuidance] = useState<boolean>(() => {
+    return !getStoredGuidanceHidden();
+  });
+  
+  // Track previous screen/role for reset logic
+  const prevScreenRef = useRef(screenContext);
+  const prevRoleRef = useRef(role);
+  
+  // Reset guidance visibility when screen or role changes
+  useEffect(() => {
+    const screenChanged = prevScreenRef.current !== screenContext;
+    const roleChanged = prevRoleRef.current !== role;
+    
+    if (screenChanged || roleChanged) {
+      // Reset to show guidance on screen/role change
+      setShowCurrentGuidance(true);
+      saveGuidanceHidden(false);
+      
+      // Update refs
+      prevScreenRef.current = screenContext;
+      prevRoleRef.current = role;
+    }
+  }, [screenContext, role]);
+  
+  // Handle dismissing current guidance
+  const handleDismissGuidance = useCallback(() => {
+    setShowCurrentGuidance(false);
+    saveGuidanceHidden(true);
+  }, []);
+  
+  // Handle re-showing guidance
+  const handleShowGuidance = useCallback(() => {
+    setShowCurrentGuidance(true);
+    saveGuidanceHidden(false);
+  }, []);
+  
   // Load feature announcements on mount (from assistantChangelog, filtered by role)
   useEffect(() => {
     if (role) {
@@ -1024,8 +1119,12 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
         {isKDSMode ? (
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-3">
-              {/* Context Section */}
-              <ContextSection hint={contextHint} language={language} />
+              {/* Context Section - KDS mode (no dismiss in KDS) */}
+              {showCurrentGuidance ? (
+                <ContextSection hint={contextHint} language={language} onDismiss={handleDismissGuidance} />
+              ) : (
+                <ShowGuidanceButton language={language} onClick={handleShowGuidance} />
+              )}
               
               {/* Alerts Only - Compact */}
               {hasAlerts ? (
@@ -1056,9 +1155,13 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
           </ScrollArea>
         ) : (
           <>
-            {/* Context Hint Section - Always visible */}
+            {/* Context Hint Section - Dismissible */}
             <div className="p-4 border-b">
-              <ContextSection hint={contextHint} language={language} />
+              {showCurrentGuidance ? (
+                <ContextSection hint={contextHint} language={language} onDismiss={handleDismissGuidance} />
+              ) : (
+                <ShowGuidanceButton language={language} onClick={handleShowGuidance} />
+              )}
             </div>
 
             {/* Tabbed Content */}
