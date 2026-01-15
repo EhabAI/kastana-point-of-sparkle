@@ -54,6 +54,10 @@ export function MergeOrdersDialog({
               {t("all_items_moved")} {secondaryTableName} → {primaryTableName}. 
               {t("order_will_be_closed")}
             </p>
+            {/* Action Impact Warning */}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-md text-xs bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50 mt-3">
+              <span>⚠️ {t("action_affects_reports_inventory")}</span>
+            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
