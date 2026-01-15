@@ -1270,6 +1270,59 @@ export default {
   was: "Was",
   more_items: "more items",
 
+  // ═══════════════════════════════════════════════════════════════════
+  // CASHIER ERROR MESSAGES - User-friendly messages
+  // ═══════════════════════════════════════════════════════════════════
+  
+  // Inventory Insufficient (Recipe-based items)
+  error_inventory_insufficient_title: "Cannot complete payment",
+  error_inventory_insufficient_desc: "Insufficient inventory to complete this order",
+  error_inventory_insufficient_ingredient: "Missing ingredient",
+  error_inventory_insufficient_action: "Please notify restaurant owner or update inventory",
+  
+  // Empty or Invalid Recipe
+  error_recipe_invalid_title: "Cannot complete order",
+  error_recipe_invalid_desc: "This item is not ready for sale",
+  error_recipe_invalid_action: "Please notify management",
+  
+  // Unit Mismatch
+  error_unit_mismatch_title: "Item configuration issue",
+  error_unit_mismatch_desc: "Cannot deduct inventory due to configuration error",
+  error_unit_mismatch_action: "Please notify management",
+  
+  // Held Order Payment
+  error_order_held_title: "Cannot pay",
+  error_order_held_desc: "This order is on hold",
+  error_order_held_action: "Please resume the order first",
+  
+  // Empty Order
+  error_order_empty_title: "Cannot complete payment",
+  error_order_empty_desc: "Order has no items",
+  
+  // Already Paid/Closed Order
+  error_order_closed_title: "This order is closed",
+  error_order_closed_desc: "Cannot modify or re-pay",
+  
+  // Permission Error
+  error_permission_title: "Not authorized",
+  error_permission_desc: "You do not have permission to perform this action",
+  
+  // Technical Failure
+  error_technical_title: "Operation failed",
+  error_technical_desc: "A problem occurred while processing the order",
+  error_technical_action: "Please try again",
+  
+  // Global Fallback
+  error_fallback_title: "Operation failed",
+  error_fallback_desc: "An unexpected error occurred",
+  error_fallback_action: "Please try again or notify management",
+  
+  // Payment specific errors
+  error_payment_underpaid: "Payment amount is less than order total",
+  error_payment_card_overpay: "Card overpayment not allowed",
+  error_payment_duplicate: "This order has already been paid",
+  error_restaurant_inactive: "Restaurant is currently inactive",
+
   // Costing & Profit Reports
   costing_profit: "Costing & Profit",
   costing_overview: "Costing Overview",

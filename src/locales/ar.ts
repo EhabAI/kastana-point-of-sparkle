@@ -1268,6 +1268,59 @@ export default {
   was: "كان",
   more_items: "أصناف أخرى",
 
+  // ═══════════════════════════════════════════════════════════════════
+  // CASHIER ERROR MESSAGES - User-friendly Arabic messages
+  // ═══════════════════════════════════════════════════════════════════
+  
+  // Inventory Insufficient (Recipe-based items)
+  error_inventory_insufficient_title: "لا يمكن إتمام الدفع",
+  error_inventory_insufficient_desc: "المخزون غير كافٍ لإتمام هذا الطلب",
+  error_inventory_insufficient_ingredient: "المكوّن الناقص",
+  error_inventory_insufficient_action: "يرجى إبلاغ صاحب المطعم أو تحديث المخزون",
+  
+  // Empty or Invalid Recipe
+  error_recipe_invalid_title: "لا يمكن إتمام الطلب",
+  error_recipe_invalid_desc: "هذا الصنف غير جاهز للبيع",
+  error_recipe_invalid_action: "يرجى إبلاغ الإدارة",
+  
+  // Unit Mismatch
+  error_unit_mismatch_title: "مشكلة في إعداد الصنف",
+  error_unit_mismatch_desc: "لا يمكن خصم المخزون بسبب إعدادات غير صحيحة",
+  error_unit_mismatch_action: "يرجى إبلاغ الإدارة",
+  
+  // Held Order Payment
+  error_order_held_title: "لا يمكن الدفع",
+  error_order_held_desc: "هذا الطلب معلّق",
+  error_order_held_action: "يرجى استئناف الطلب أولًا",
+  
+  // Empty Order
+  error_order_empty_title: "لا يمكن إتمام الدفع",
+  error_order_empty_desc: "الطلب لا يحتوي على أي عناصر",
+  
+  // Already Paid/Closed Order
+  error_order_closed_title: "هذا الطلب مغلق",
+  error_order_closed_desc: "لا يمكن تعديل أو إعادة الدفع",
+  
+  // Permission Error
+  error_permission_title: "غير مصرح",
+  error_permission_desc: "لا تملك الصلاحية لتنفيذ هذه العملية",
+  
+  // Technical Failure
+  error_technical_title: "لم يتم إتمام العملية",
+  error_technical_desc: "حدثت مشكلة أثناء معالجة الطلب",
+  error_technical_action: "يرجى المحاولة مرة أخرى",
+  
+  // Global Fallback
+  error_fallback_title: "لم يتم إتمام العملية",
+  error_fallback_desc: "حدث خطأ غير متوقع",
+  error_fallback_action: "يرجى المحاولة مرة أخرى أو إبلاغ الإدارة",
+  
+  // Payment specific errors
+  error_payment_underpaid: "المبلغ المدفوع أقل من إجمالي الطلب",
+  error_payment_card_overpay: "لا يمكن الدفع الزائد بالبطاقة",
+  error_payment_duplicate: "تم دفع هذا الطلب مسبقًا",
+  error_restaurant_inactive: "المطعم غير نشط حاليًا",
+
   // Costing & Profit Reports
   costing_profit: "التكاليف والأرباح",
   costing_overview: "ملخص التكاليف",
