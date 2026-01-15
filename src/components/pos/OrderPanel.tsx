@@ -4,7 +4,8 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { OrderItemRow } from "./OrderItemRow";
 import { OrderTotals } from "./OrderTotals";
-import { Percent, CreditCard, Pause, Ban, User, Phone, Plus } from "lucide-react";
+import { OrderBadges, getOrderStatusBackground } from "./OrderBadges";
+import { Percent, CreditCard, Pause, Ban, User, Phone, Plus, Smartphone, StickyNote } from "lucide-react";
 import { formatJOD, cn, getCurrencySymbol } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -34,6 +35,7 @@ interface OrderPanelProps {
   orderNumber?: number;
   orderStatus?: string;
   orderNotes?: string | null;
+  orderSource?: string;
   items: OrderItem[];
   subtotal: number;
   discountType?: string | null;
@@ -56,6 +58,7 @@ interface OrderPanelProps {
   showTransfer?: boolean;
   onNewOrder: () => void;
   shiftOpen: boolean;
+  hasRefund?: boolean;
 }
 
 // Parse customer info from order_notes
@@ -80,6 +83,7 @@ export function OrderPanel({
   orderNumber,
   orderStatus,
   orderNotes,
+  orderSource,
   items,
   subtotal,
   discountType,
@@ -102,6 +106,7 @@ export function OrderPanel({
   showTransfer = false,
   onNewOrder,
   shiftOpen,
+  hasRefund = false,
 }: OrderPanelProps) {
   const { t, language } = useLanguage();
   const activeItems = items.filter((item) => !item.voided);
@@ -109,12 +114,15 @@ export function OrderPanel({
   const orderType = parseOrderType(orderNotes);
   const isOpen = orderStatus === "open";
   const localizedCurrency = getCurrencySymbol(currency, language);
+  const hasDiscount = (discountValue && discountValue > 0) || false;
+  const hasOrderNotes = orderNotes && !orderNotes.startsWith("customer:") && !orderNotes.startsWith("type:");
+  const orderBg = getOrderStatusBackground(orderStatus, hasDiscount);
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className={cn("h-full flex flex-col", orderBg)}>
       <CardHeader className="py-3 px-4">
         <CardTitle className="text-base flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span>{t("current_order")}</span>
             {/* Status Badge */}
             {orderStatus && STATUS_CONFIG[orderStatus] && (
@@ -134,6 +142,14 @@ export function OrderPanel({
             >
               {orderType === "DINE-IN" ? t("dine_in") : t("takeaway")}
             </Badge>
+            {/* Inline Order Indicators */}
+            <OrderBadges
+              source={orderSource}
+              hasDiscount={hasDiscount}
+              hasRefund={hasRefund}
+              hasNotes={!!hasOrderNotes}
+              compact
+            />
           </div>
           <div className="flex items-center gap-2">
             {orderNumber && (

@@ -7,8 +7,9 @@ import { Clock, Edit, ArrowRightLeft, ChevronDown, ChevronUp, XCircle, Scissors 
 import { formatDistanceToNow } from "date-fns";
 import type { OpenOrder } from "@/hooks/pos/useOpenOrders";
 import type { BranchTable } from "@/hooks/pos/useBranchTables";
-import { formatJOD } from "@/lib/utils";
+import { formatJOD, cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { OrderBadges, getOrderStatusBackground } from "./OrderBadges";
 import {
   Dialog,
   DialogContent,
@@ -136,12 +137,15 @@ export function OpenOrdersList({
             const itemCount = activeItems.reduce((sum, item) => sum + item.quantity, 0);
 
             const orderType = getOrderType(order);
+            const hasDiscount = !!(order as any).discount_value && (order as any).discount_value > 0;
+            const orderSource = (order as any).source || "pos";
+            const orderBg = getOrderStatusBackground(order.status, hasDiscount);
 
             return (
-              <Card key={order.id} className="overflow-hidden">
+              <Card key={order.id} className={cn("overflow-hidden", orderBg)}>
                 <CardHeader className="py-3 px-4">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-wrap">
                       <CardTitle className="text-base">
                         {t("order_prefix")} #{order.order_number}
                       </CardTitle>
@@ -156,6 +160,13 @@ export function OpenOrdersList({
                           {tableInfo.name}
                         </Badge>
                       )}
+                      {/* Order Badges */}
+                      <OrderBadges
+                        source={orderSource}
+                        status={order.status}
+                        hasDiscount={hasDiscount}
+                        compact
+                      />
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Clock className="h-4 w-4" />

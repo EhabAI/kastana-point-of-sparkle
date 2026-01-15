@@ -1345,4 +1345,31 @@ export default {
   no_qr_orders_possible_reasons: "Possible reasons:",
   reason_no_qr_orders_yet: "No QR orders submitted yet",
   reason_already_processed: "All orders already processed",
+
+  // Micro UX Badges
+  badge_qr: "QR",
+  badge_hold: "HOLD",
+  badge_merged: "MERGED",
+  badge_discount: "DISCOUNT",
+  badge_refund: "REFUND",
+  badge_notes: "NOTES",
+
+  // Quick Insights
+  quick_insights: "Quick Insights",
+  top_seller_today: "Top seller today",
+  highest_variance: "Highest variance",
+  no_sales_today: "No sales today",
+  variance_exceeds_normal: "Variance exceeds normal range",
+
+  // System Status
+  kds: "KDS",
+  smart_assistant: "Assistant",
+  enabled: "Enabled",
+
+  // Action Warnings
+  action_affects_reports_inventory: "This action will affect reports and inventory",
+
+  // Contextual Hints
+  hint_variance_report: "This report helps you detect waste early",
+  hint_z_report: "This is a daily report and not for long-term analysis",
 } as const;
