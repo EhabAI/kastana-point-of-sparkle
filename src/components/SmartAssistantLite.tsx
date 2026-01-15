@@ -5,12 +5,13 @@
  * Integrated with static knowledge base (assistant_knowledge.json)
  */
 
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { Bot, AlertCircle, AlertTriangle, Info, Lightbulb, ChevronRight, HelpCircle, BookOpen } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { Bot, AlertCircle, AlertTriangle, Info, Lightbulb, ChevronRight, HelpCircle, BookOpen, Send, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 import {
   Sheet,
   SheetContent,
@@ -21,7 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useSmartAssistant, type SmartAssistantState } from "@/hooks/useSmartAssistant";
 import { getSeverityColor, getSeverityIcon, type SmartRule, type RuleSeverity } from "@/lib/smartAssistantRules";
-import { getQuickReplies, getAllTopics, getEntryById, type KnowledgeEntry } from "@/lib/assistantKnowledge";
+import { getQuickReplies, getAllTopics, getEntryById, searchKnowledge, getFallbackResponse, type KnowledgeEntry } from "@/lib/assistantKnowledge";
 
 // Badge indicator component for tabs
 interface TabBadgeProps {
@@ -262,6 +263,60 @@ function QuickTipCard({
   );
 }
 
+// Chat message interface
+interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: Date;
+}
+
+// Chat bubble component
+function ChatBubble({ 
+  message, 
+  language 
+}: { 
+  message: ChatMessage; 
+  language: "ar" | "en";
+}) {
+  const isUser = message.role === "user";
+  
+  return (
+    <div className={cn(
+      "flex gap-2 mb-3",
+      isUser ? "flex-row-reverse" : "flex-row"
+    )}>
+      <div className={cn(
+        "flex-shrink-0 h-7 w-7 rounded-full flex items-center justify-center",
+        isUser 
+          ? "bg-primary text-primary-foreground" 
+          : "bg-secondary text-secondary-foreground"
+      )}>
+        {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+      </div>
+      <div className={cn(
+        "max-w-[80%] rounded-lg px-3 py-2",
+        isUser 
+          ? "bg-primary text-primary-foreground" 
+          : "bg-muted text-foreground"
+      )}>
+        <p className="text-xs whitespace-pre-wrap leading-relaxed">
+          {message.content}
+        </p>
+        <p className={cn(
+          "text-[10px] mt-1 opacity-60",
+          isUser ? "text-right" : "text-left"
+        )}>
+          {message.timestamp.toLocaleTimeString(language === "ar" ? "ar-SA" : "en-US", {
+            hour: "2-digit",
+            minute: "2-digit"
+          })}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("alerts");
@@ -270,6 +325,12 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   const [lastAlertCount, setLastAlertCount] = useState(0);
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  
+  // Chat state
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [showChat, setShowChat] = useState(false);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
   
   const state = useSmartAssistant({
     activeTab: props.activeTab,
@@ -333,6 +394,64 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
       }
     }
   }, [open, hasAlerts]);
+
+  // Auto-scroll chat to bottom when new messages appear
+  useEffect(() => {
+    if (chatScrollRef.current && chatMessages.length > 0) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
+
+  // Handle sending a chat message
+  const handleSendMessage = useCallback((messageText?: string) => {
+    const text = (messageText || chatInput).trim();
+    if (!text) return;
+
+    // Add user message
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      content: text,
+      timestamp: new Date()
+    };
+    
+    setChatMessages(prev => [...prev, userMessage]);
+    setChatInput("");
+
+    // Search knowledge base for answer
+    const knowledgeMatch = searchKnowledge(text, language);
+    
+    let responseContent: string;
+    if (knowledgeMatch) {
+      // Found a match in knowledge base
+      responseContent = knowledgeMatch.content[language];
+    } else {
+      // No match found - use fallback
+      responseContent = getFallbackResponse(language);
+    }
+
+    // Add assistant response with slight delay for natural feel
+    setTimeout(() => {
+      const assistantMessage: ChatMessage = {
+        id: `assistant-${Date.now()}`,
+        role: "assistant",
+        content: responseContent,
+        timestamp: new Date()
+      };
+      setChatMessages(prev => [...prev, assistantMessage]);
+    }, 300);
+  }, [chatInput, language]);
+
+  // Handle quick question click (from suggestions tab or chat)
+  const handleQuickQuestion = useCallback((question: string) => {
+    setActiveTab("help");
+    setShowChat(true);
+    setSelectedTopicId(null);
+    // Small delay to ensure tab switches first
+    setTimeout(() => {
+      handleSendMessage(question);
+    }, 100);
+  }, [handleSendMessage]);
 
   // Badge visibility logic
   const showAlertsBadge = hasAlerts && !alertsViewed;
@@ -487,10 +606,7 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                       variant="outline"
                       size="sm"
                       className="text-[10px] h-7 px-2"
-                      onClick={() => {
-                        // For now, switch to help tab - future: search knowledge
-                        setActiveTab("help");
-                      }}
+                      onClick={() => handleQuickQuestion(reply)}
                     >
                       {reply}
                     </Button>
@@ -499,100 +615,189 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
               </div>
             </TabsContent>
 
-            {/* Help Tab - Knowledge Base Browser */}
-            <TabsContent value="help" className="p-4 space-y-3 mt-0">
-              {/* Show selected topic if any */}
-              {selectedEntry ? (
-                <KnowledgeTopicCard 
-                  entry={selectedEntry} 
-                  language={language}
-                  onClose={() => setSelectedTopicId(null)}
-                />
+            {/* Help Tab - Chat + Knowledge Base Browser */}
+            <TabsContent value="help" className="mt-0 flex flex-col h-[calc(100vh-280px)]">
+              {/* Toggle between Chat and Browse modes */}
+              <div className="px-4 pt-3 pb-2 border-b">
+                <div className="flex gap-2">
+                  <Button
+                    variant={showChat ? "default" : "outline"}
+                    size="sm"
+                    className="flex-1 text-xs h-8"
+                    onClick={() => { setShowChat(true); setSelectedTopicId(null); }}
+                  >
+                    <Send className="h-3 w-3 mr-1.5" />
+                    {language === "ar" ? "اسألني" : "Ask Me"}
+                  </Button>
+                  <Button
+                    variant={!showChat ? "default" : "outline"}
+                    size="sm"
+                    className="flex-1 text-xs h-8"
+                    onClick={() => { setShowChat(false); setSelectedTopicId(null); }}
+                  >
+                    <BookOpen className="h-3 w-3 mr-1.5" />
+                    {language === "ar" ? "تصفح" : "Browse"}
+                  </Button>
+                </div>
+              </div>
+
+              {showChat ? (
+                /* Chat Mode */
+                <div className="flex-1 flex flex-col overflow-hidden">
+                  {/* Chat Messages Area */}
+                  <div 
+                    ref={chatScrollRef}
+                    className="flex-1 overflow-y-auto p-4"
+                  >
+                    {chatMessages.length === 0 ? (
+                      <div className="text-center py-8">
+                        <div className="mx-auto w-12 h-12 rounded-full bg-secondary/50 flex items-center justify-center mb-3">
+                          <Bot className="h-6 w-6 text-secondary-foreground/70" />
+                        </div>
+                        <p className="text-sm font-medium mb-1">
+                          {language === "ar" ? "مرحباً! كيف أساعدك؟" : "Hello! How can I help?"}
+                        </p>
+                        <p className="text-xs text-muted-foreground mb-4">
+                          {language === "ar" 
+                            ? "اسألني عن أي شيء يخص نظام Kastana POS"
+                            : "Ask me anything about Kastana POS system"
+                          }
+                        </p>
+                        {/* Quick question suggestions */}
+                        <div className="flex flex-wrap gap-1.5 justify-center">
+                          {quickRepliesFromKB.slice(0, 3).map((reply, idx) => (
+                            <Button
+                              key={idx}
+                              variant="outline"
+                              size="sm"
+                              className="text-[10px] h-7 px-2"
+                              onClick={() => handleSendMessage(reply)}
+                            >
+                              {reply}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      chatMessages.map((message) => (
+                        <ChatBubble 
+                          key={message.id} 
+                          message={message} 
+                          language={language} 
+                        />
+                      ))
+                    )}
+                  </div>
+
+                  {/* Chat Input */}
+                  <div className="p-3 border-t bg-muted/30">
+                    <form 
+                      onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
+                      className="flex gap-2"
+                    >
+                      <Input
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        placeholder={language === "ar" ? "اكتب سؤالك هنا..." : "Type your question..."}
+                        className="flex-1 h-9 text-sm"
+                      />
+                      <Button 
+                        type="submit" 
+                        size="sm" 
+                        className="h-9 w-9 p-0"
+                        disabled={!chatInput.trim()}
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </form>
+                  </div>
+                </div>
               ) : (
-                <>
-                  {/* About section */}
-                  <div className="rounded-lg border p-3 mb-3">
-                    <h4 className="text-sm font-medium mb-1">
-                      {language === "ar" ? "عن المساعد" : "About Assistant"}
-                    </h4>
-                    <p className="text-xs text-muted-foreground">
-                      {language === "ar" 
-                        ? "المساعد الذكي يساعدك في استخدام نظام Kastana POS. اختر موضوعاً من القائمة أدناه."
-                        : "Smart Assistant helps you use Kastana POS system. Choose a topic below."
-                      }
-                    </p>
-                  </div>
+                /* Browse Mode - existing knowledge browser */
+                <ScrollArea className="flex-1">
+                  <div className="p-4 space-y-3">
+                    {/* Show selected topic if any */}
+                    {selectedEntry ? (
+                      <KnowledgeTopicCard 
+                        entry={selectedEntry} 
+                        language={language}
+                        onClose={() => setSelectedTopicId(null)}
+                      />
+                    ) : (
+                      <>
+                        {/* Topic Categories */}
+                        <div className="space-y-2">
+                          {TOPIC_CATEGORIES.map((category) => (
+                            <div key={category.id} className="rounded-lg border overflow-hidden">
+                              <button
+                                className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors text-left"
+                                onClick={() => setExpandedCategory(
+                                  expandedCategory === category.id ? null : category.id
+                                )}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {category.icon}
+                                  <span className="text-sm font-medium">
+                                    {category.title[language]}
+                                  </span>
+                                </div>
+                                <ChevronRight className={cn(
+                                  "h-4 w-4 text-muted-foreground transition-transform",
+                                  expandedCategory === category.id && "rotate-90"
+                                )} />
+                              </button>
+                              
+                              {expandedCategory === category.id && (
+                                <div className="border-t bg-muted/30 p-2 space-y-1">
+                                  {category.topicIds.map((topicId) => {
+                                    const topic = allTopics.find(t => t.id === topicId);
+                                    if (!topic) return null;
+                                    return (
+                                      <button
+                                        key={topicId}
+                                        className="w-full text-left text-xs px-2 py-1.5 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                                        onClick={() => setSelectedTopicId(topicId)}
+                                      >
+                                        {topic.title}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
 
-                  {/* Topic Categories */}
-                  <div className="space-y-2">
-                    {TOPIC_CATEGORIES.map((category) => (
-                      <div key={category.id} className="rounded-lg border overflow-hidden">
-                        <button
-                          className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors text-left"
-                          onClick={() => setExpandedCategory(
-                            expandedCategory === category.id ? null : category.id
-                          )}
-                        >
-                          <div className="flex items-center gap-2">
-                            {category.icon}
-                            <span className="text-sm font-medium">
-                              {category.title[language]}
-                            </span>
+                        {/* Alert Types Legend */}
+                        <div className="rounded-lg border p-3 mt-3">
+                          <h4 className="text-sm font-medium mb-2">
+                            {language === "ar" ? "أنواع التنبيهات" : "Alert Types"}
+                          </h4>
+                          <div className="space-y-2 text-xs">
+                            <div className="flex items-center gap-2">
+                              <AlertCircle className="h-3.5 w-3.5 text-destructive" />
+                              <span className="text-muted-foreground">
+                                {language === "ar" ? "خطأ - يتطلب اهتمام فوري" : "Error - Requires immediate attention"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                              <span className="text-muted-foreground">
+                                {language === "ar" ? "تحذير - ينبغي مراجعته" : "Warning - Should be reviewed"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Info className="h-3.5 w-3.5 text-blue-500" />
+                              <span className="text-muted-foreground">
+                                {language === "ar" ? "معلومات - للعلم فقط" : "Info - For your awareness"}
+                              </span>
+                            </div>
                           </div>
-                          <ChevronRight className={cn(
-                            "h-4 w-4 text-muted-foreground transition-transform",
-                            expandedCategory === category.id && "rotate-90"
-                          )} />
-                        </button>
-                        
-                        {expandedCategory === category.id && (
-                          <div className="border-t bg-muted/30 p-2 space-y-1">
-                            {category.topicIds.map((topicId) => {
-                              const topic = allTopics.find(t => t.id === topicId);
-                              if (!topic) return null;
-                              return (
-                                <button
-                                  key={topicId}
-                                  className="w-full text-left text-xs px-2 py-1.5 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                                  onClick={() => setSelectedTopicId(topicId)}
-                                >
-                                  {topic.title}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                        </div>
+                      </>
+                    )}
                   </div>
-
-                  {/* Alert Types Legend */}
-                  <div className="rounded-lg border p-3 mt-3">
-                    <h4 className="text-sm font-medium mb-2">
-                      {language === "ar" ? "أنواع التنبيهات" : "Alert Types"}
-                    </h4>
-                    <div className="space-y-2 text-xs">
-                      <div className="flex items-center gap-2">
-                        <AlertCircle className="h-3.5 w-3.5 text-destructive" />
-                        <span className="text-muted-foreground">
-                          {language === "ar" ? "خطأ - يتطلب اهتمام فوري" : "Error - Requires immediate attention"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-                        <span className="text-muted-foreground">
-                          {language === "ar" ? "تحذير - ينبغي مراجعته" : "Warning - Should be reviewed"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Info className="h-3.5 w-3.5 text-blue-500" />
-                        <span className="text-muted-foreground">
-                          {language === "ar" ? "معلومات - للعلم فقط" : "Info - For your awareness"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </>
+                </ScrollArea>
               )}
             </TabsContent>
           </ScrollArea>
