@@ -561,6 +561,7 @@ export default function POS() {
         orderId: orderId,
         restaurantId: restaurant.id,
         menuItem: menuItemWithPrice,
+        kdsEnabled: settings?.kds_enabled ?? false,
       });
 
       // Add modifiers if any

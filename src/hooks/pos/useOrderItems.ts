@@ -18,12 +18,14 @@ export function useAddOrderItem() {
       menuItem,
       quantity = 1,
       notes,
+      kdsEnabled = false,
     }: {
       orderId: string;
       restaurantId: string;
       menuItem: MenuItem;
       quantity?: number;
       notes?: string;
+      kdsEnabled?: boolean;
     }) => {
       const { data, error } = await supabase
         .from("order_items")
@@ -40,10 +42,22 @@ export function useAddOrderItem() {
         .single();
 
       if (error) throw error;
+
+      // Auto-send to kitchen if KDS is enabled
+      // Update order status from "open" to "new" so it appears on KDS
+      if (kdsEnabled) {
+        await supabase
+          .from("orders")
+          .update({ status: "new" })
+          .eq("id", orderId)
+          .eq("status", "open"); // Only update if still "open"
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["current-order"] });
+      queryClient.invalidateQueries({ queryKey: ["kds-orders"] });
     },
   });
 }
