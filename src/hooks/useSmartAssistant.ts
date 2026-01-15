@@ -45,14 +45,20 @@ interface UseSmartAssistantOptions {
   orderItemCount?: number;
   orderStatus?: string | null;
   orderHeldAt?: Date | null;
+  orderCreatedAt?: Date | null;
   
   // Payment context
   paymentMethod?: string | null;
   paymentAmount?: number;
+  failedPaymentCount?: number;
+  lastPaymentFailedAt?: Date | null;
   
   // Shift context
   shiftOpenedAt?: Date | null;
+  averageShiftDuration?: number;
   voidCountThisShift?: number;
+  voidCountLastHour?: number;
+  holdCountThisShift?: number;
   
   // Discount context
   discountApplied?: boolean;
@@ -108,17 +114,21 @@ export function useSmartAssistant(options: UseSmartAssistantOptions = {}): Smart
       // Payment
       paymentMethod: options.paymentMethod,
       paymentAmount: options.paymentAmount,
+      failedPaymentCount: options.failedPaymentCount,
+      lastPaymentFailedAt: options.lastPaymentFailedAt,
       
       // Order - prefer options, fallback to assistant context
       orderStatus: options.orderStatus ?? order_status,
       orderItemCount: options.orderItemCount,
       orderHeldAt: options.orderHeldAt,
+      orderCreatedAt: options.orderCreatedAt,
       discountApplied: options.discountApplied,
       discountReason: options.discountReason,
       
       // Shift
       shiftStatus: shift_status,
       shiftOpenedAt: options.shiftOpenedAt,
+      averageShiftDuration: options.averageShiftDuration,
       
       // Table - prefer options, fallback to assistant context
       tableId: options.selectedTableId ?? selected_table_id,
@@ -127,6 +137,8 @@ export function useSmartAssistant(options: UseSmartAssistantOptions = {}): Smart
       // Actions
       lastAction: options.lastAction,
       voidCountThisShift: options.voidCountThisShift,
+      voidCountLastHour: options.voidCountLastHour,
+      holdCountThisShift: options.holdCountThisShift,
       refundAmountThisShift: options.refundAmountThisShift,
       averageRefundAmount: options.averageRefundAmount,
       
@@ -136,16 +148,22 @@ export function useSmartAssistant(options: UseSmartAssistantOptions = {}): Smart
   }, [
     options.paymentMethod,
     options.paymentAmount,
+    options.failedPaymentCount,
+    options.lastPaymentFailedAt,
     options.orderStatus,
     options.orderItemCount,
     options.orderHeldAt,
+    options.orderCreatedAt,
     options.discountApplied,
     options.discountReason,
     options.shiftOpenedAt,
+    options.averageShiftDuration,
     options.selectedTableId,
     options.tableHasActiveOrder,
     options.lastAction,
     options.voidCountThisShift,
+    options.voidCountLastHour,
+    options.holdCountThisShift,
     options.refundAmountThisShift,
     options.averageRefundAmount,
     options.trainingMode,
