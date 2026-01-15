@@ -1,12 +1,16 @@
 /**
- * Smart Assistant Lite V1
- * Floating contextual assistant with drawer UI
+ * Smart Assistant Lite V2
+ * Smart Coach floating assistant with drawer UI
  * Domain-locked to Kastana POS
  * Integrated with static knowledge base (assistant_knowledge.json)
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { Bot, AlertCircle, AlertTriangle, Info, Lightbulb, ChevronRight, HelpCircle, BookOpen, Send, User, X, Sparkles } from "lucide-react";
+import { 
+  Bot, AlertCircle, AlertTriangle, Info, Lightbulb, ChevronRight, 
+  HelpCircle, BookOpen, Send, User, X, Sparkles, GraduationCap, 
+  MessageCircle, Target, Search
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -121,6 +125,22 @@ const TOPIC_CATEGORIES: TopicCategory[] = [
   }
 ];
 
+// Quick action pills for common questions
+const QUICK_ACTION_PILLS = {
+  ar: [
+    { label: "اشرح النظام", query: "اشرح لي نظام كاستنا" },
+    { label: "ليش الزر مش شغال؟", query: "ليش زر الدفع مش شغال" },
+    { label: "كيف أدفع الطلب؟", query: "كيف أدفع الطلب" },
+    { label: "شو الجديد؟", query: "ما الجديد في النظام" },
+  ],
+  en: [
+    { label: "Explain System", query: "Explain Kastana system" },
+    { label: "Why is button disabled?", query: "Why is payment button disabled" },
+    { label: "How to pay order?", query: "How to pay order" },
+    { label: "What's new?", query: "What's new in the system" },
+  ]
+};
+
 interface SmartAssistantLiteProps {
   // POS-specific context passed from parent
   activeTab?: string;
@@ -145,6 +165,49 @@ interface SmartAssistantLiteProps {
   kdsIsFirstVisit?: boolean;
 }
 
+// Message type for visually distinct cards
+type MessageType = "training" | "warning" | "info";
+
+// Get message type from alert severity
+function getMessageType(severity: RuleSeverity): MessageType {
+  switch (severity) {
+    case "error":
+    case "warning":
+      return "warning";
+    case "info":
+    default:
+      return "info";
+  }
+}
+
+// Message type styles and icons
+function getMessageTypeStyles(type: MessageType) {
+  switch (type) {
+    case "training":
+      return {
+        bg: "bg-blue-50 dark:bg-blue-950/30",
+        border: "border-blue-200 dark:border-blue-800/50",
+        icon: <GraduationCap className="h-4 w-4 text-blue-600 dark:text-blue-400" />,
+        title: { ar: "تدريب سريع", en: "Quick Training" },
+      };
+    case "warning":
+      return {
+        bg: "bg-amber-50 dark:bg-amber-950/30",
+        border: "border-amber-200 dark:border-amber-800/50",
+        icon: <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />,
+        title: { ar: "تنبيه", en: "Alert" },
+      };
+    case "info":
+    default:
+      return {
+        bg: "bg-slate-50 dark:bg-slate-950/30",
+        border: "border-slate-200 dark:border-slate-700/50",
+        icon: <Lightbulb className="h-4 w-4 text-slate-600 dark:text-slate-400" />,
+        title: { ar: "معلومة", en: "Info" },
+      };
+  }
+}
+
 // Severity icon component
 function SeverityIcon({ severity, className }: { severity: RuleSeverity; className?: string }) {
   const iconName = getSeverityIcon(severity);
@@ -161,35 +224,69 @@ function SeverityIcon({ severity, className }: { severity: RuleSeverity; classNa
   }
 }
 
-// Alert card component
+// Enhanced Alert card component with visual distinction
 function AlertCard({ 
   alert, 
-  language 
+  language,
+  compact = false
 }: { 
   alert: SmartRule; 
   language: "ar" | "en";
+  compact?: boolean;
 }) {
-  const colorClass = getSeverityColor(alert.severity);
+  const messageType = getMessageType(alert.severity);
+  const styles = getMessageTypeStyles(messageType);
+  
+  if (compact) {
+    // Compact mode for KDS
+    return (
+      <div className={cn(
+        "rounded-lg border p-3",
+        styles.bg,
+        styles.border
+      )}>
+        <div className="flex items-start gap-2">
+          {styles.icon}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium">
+              {alert.title[language]}
+            </p>
+            {alert.suggestion && (
+              <p className="text-xs opacity-80 mt-1">
+                {alert.suggestion[language]}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className={cn(
       "rounded-lg border p-3 space-y-2",
-      colorClass
+      styles.bg,
+      styles.border
     )}>
-      <div className="flex items-start gap-2">
-        <SeverityIcon severity={alert.severity} className="mt-0.5 shrink-0" />
-        <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-sm">
-            {alert.title[language]}
-          </h4>
-          <p className="text-sm opacity-90 mt-1">
-            {alert.message[language]}
-          </p>
-        </div>
+      {/* Type Header */}
+      <div className="flex items-center gap-1.5 text-xs font-medium opacity-70">
+        {styles.icon}
+        <span>{styles.title[language]}</span>
       </div>
+      
+      {/* Content */}
+      <div className="space-y-1">
+        <h4 className="font-medium text-sm">
+          {alert.title[language]}
+        </h4>
+        <p className="text-sm opacity-90">
+          {alert.message[language]}
+        </p>
+      </div>
+      
       {alert.suggestion && (
-        <div className="flex items-start gap-2 pt-2 border-t border-current/20">
-          <Lightbulb className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+        <div className="flex items-start gap-2 pt-2 border-t border-current/10">
+          <Lightbulb className="h-3.5 w-3.5 mt-0.5 shrink-0 opacity-60" />
           <p className="text-xs opacity-80">
             {alert.suggestion[language]}
           </p>
@@ -346,7 +443,7 @@ function ChatBubble({
       isUser ? "flex-row-reverse" : "flex-row"
     )}>
       <div className={cn(
-        "flex-shrink-0 h-7 w-7 rounded-full flex items-center justify-center",
+        "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center",
         isUser 
           ? "bg-primary text-primary-foreground" 
           : "bg-secondary text-secondary-foreground"
@@ -354,16 +451,16 @@ function ChatBubble({
         {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
       </div>
       <div className={cn(
-        "max-w-[80%] rounded-lg px-3 py-2",
+        "max-w-[80%] rounded-xl px-4 py-2.5",
         isUser 
           ? "bg-primary text-primary-foreground" 
           : "bg-muted text-foreground"
       )}>
-        <p className="text-xs whitespace-pre-wrap leading-relaxed">
+        <p className="text-sm whitespace-pre-wrap leading-relaxed">
           {message.content}
         </p>
         <p className={cn(
-          "text-[10px] mt-1 opacity-60",
+          "text-[10px] mt-1.5 opacity-60",
           isUser ? "text-right" : "text-left"
         )}>
           {message.timestamp.toLocaleTimeString(language === "ar" ? "ar-SA" : "en-US", {
@@ -373,6 +470,53 @@ function ChatBubble({
         </p>
       </div>
     </div>
+  );
+}
+
+// Quick Action Pill Component
+function QuickActionPill({ 
+  label, 
+  onClick 
+}: { 
+  label: string; 
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium",
+        "bg-secondary/80 hover:bg-secondary text-secondary-foreground",
+        "border border-border/50 hover:border-border",
+        "transition-all duration-150 hover:shadow-sm"
+      )}
+    >
+      {label}
+    </button>
+  );
+}
+
+// Full Training CTA Button
+function FullTrainingCTA({ 
+  language,
+  onClick
+}: {
+  language: "ar" | "en";
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "w-full flex items-center justify-center gap-2 p-3 rounded-lg",
+        "bg-primary/10 hover:bg-primary/15 border-2 border-primary/30 hover:border-primary/50",
+        "text-primary font-medium text-sm",
+        "transition-all duration-200 hover:shadow-md"
+      )}
+    >
+      <Target className="h-4 w-4" />
+      <span>{language === "ar" ? "ابدأ تدريب النظام" : "Start System Training"}</span>
+    </button>
   );
 }
 
@@ -420,7 +564,10 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
     kdsIsFirstVisit: props.kdsIsFirstVisit,
   });
 
-  const { language, contextHint, alerts, hasAlerts } = state;
+  const { language, contextHint, alerts, hasAlerts, screenContext } = state;
+  
+  // Check if in KDS mode (role = kitchen OR screen = kds)
+  const isKDSMode = role === "kitchen" || screenContext === "kds";
   
   // Load feature announcements on mount (from assistantChangelog, filtered by role)
   useEffect(() => {
@@ -546,6 +693,14 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
     }, 100);
   }, [handleSendMessage]);
 
+  // Handle full training CTA
+  const handleStartFullTraining = useCallback(() => {
+    const trainingQuery = language === "ar" 
+      ? "ابدأ تدريب النظام الكامل" 
+      : "Start full system training";
+    handleQuickQuestion(trainingQuery);
+  }, [language, handleQuickQuestion]);
+
   // Badge visibility logic
   const showAlertsBadge = (hasAnyAlerts) && !alertsViewed;
   const showSuggestionsBadge = !suggestionsViewed; // Show dot for unread suggestions
@@ -558,7 +713,8 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   const isRTL = language === "ar";
   
   // Dynamic branding based on language
-  const assistantTitle = isRTL ? "مساعد كاستنا الذكي" : "Kastana AI Assistant";
+  const assistantTitle = isRTL ? "مساعد كاستنا الذكي" : "Kastana Smart Coach";
+  const assistantSubtitle = isRTL ? "مدربك أثناء العمل" : "Your coach while working";
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -567,7 +723,7 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
           size="lg"
           className={cn(
             "fixed bottom-6 z-50 h-14 w-14 rounded-full shadow-lg",
-            "bg-secondary hover:bg-secondary/90 text-secondary-foreground",
+            "bg-primary hover:bg-primary/90 text-primary-foreground",
             "transition-all duration-200 hover:scale-105",
             isRTL ? "right-6" : "left-6"
           )}
@@ -586,356 +742,424 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
       
       <SheetContent
         side={isRTL ? "right" : "left"}
-        className="w-full sm:w-[380px] flex flex-col p-0"
+        className="w-full sm:w-[400px] flex flex-col p-0"
       >
-        <SheetHeader className="p-4 border-b bg-secondary text-secondary-foreground">
-          <div className="flex items-center justify-between">
-            <SheetTitle className="text-secondary-foreground flex items-center gap-2">
-              <Bot className="h-5 w-5" />
-              {assistantTitle}
-            </SheetTitle>
+        {/* Enhanced Header */}
+        <SheetHeader className="p-5 border-b bg-gradient-to-br from-primary/10 to-primary/5">
+          <div className="flex items-start gap-3">
+            <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+              <Bot className="h-6 w-6 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <SheetTitle className="text-foreground text-lg font-semibold mb-0.5">
+                {assistantTitle}
+              </SheetTitle>
+              <p className="text-sm text-muted-foreground">
+                {assistantSubtitle}
+              </p>
+            </div>
             {hasAnyAlerts && (
-              <Badge variant="destructive" className="text-xs">
+              <Badge variant="destructive" className="text-xs shrink-0">
                 {totalAlertCount}
               </Badge>
             )}
           </div>
         </SheetHeader>
 
-        {/* Context Hint Section - Always visible */}
-        <div className="p-4 border-b">
-          <ContextSection hint={contextHint} language={language} />
-        </div>
-
-        {/* Tabbed Content */}
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col">
-          <TabsList className="mx-4 mt-3 grid w-auto grid-cols-3">
-            <TabsTrigger value="alerts" className="flex items-center justify-center">
-              <AlertCircle className="h-3.5 w-3.5 mr-1.5" />
-              {language === "ar" ? "تنبيهات" : "Alerts"}
-              <TabBadge show={showAlertsBadge} count={totalAlertCount} variant="count" />
-            </TabsTrigger>
-            <TabsTrigger value="suggestions" className="flex items-center justify-center">
-              <Lightbulb className="h-3.5 w-3.5 mr-1.5" />
-              {language === "ar" ? "اقتراحات" : "Tips"}
-              <TabBadge show={showSuggestionsBadge} variant="dot" />
-            </TabsTrigger>
-            <TabsTrigger value="help" className="flex items-center justify-center">
-              <HelpCircle className="h-3.5 w-3.5 mr-1.5" />
-              {language === "ar" ? "مساعدة" : "Help"}
-              {/* No badge for Help tab */}
-            </TabsTrigger>
-          </TabsList>
-
-          <ScrollArea className="flex-1">
-            {/* Alerts Tab */}
-            <TabsContent value="alerts" className="p-4 space-y-3 mt-0">
-              {/* Feature Announcements - Dismissible */}
-              {announcements.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {language === "ar" ? "ميزات جديدة" : "What's New"}
-                  </p>
-                  {announcements.map((announcement) => (
-                    <FeatureAnnouncementCard
-                      key={announcement.id}
-                      announcement={announcement}
-                      language={language}
-                      onDismiss={handleDismissAnnouncement}
-                      onExplain={handleExplainAnnouncement}
-                    />
-                  ))}
-                </div>
-              )}
+        {/* KDS Mode: Compact alert-only view */}
+        {isKDSMode ? (
+          <ScrollArea className="flex-1 p-4">
+            <div className="space-y-3">
+              {/* Context Section */}
+              <ContextSection hint={contextHint} language={language} />
               
-              {/* System Alerts */}
-              {hasAlerts && (
+              {/* Alerts Only - Compact */}
+              {hasAlerts ? (
                 <div className="space-y-2">
-                  {announcements.length > 0 && (
-                    <p className="text-xs font-medium text-muted-foreground pt-2">
-                      {language === "ar" ? "تنبيهات النظام" : "System Alerts"}
-                    </p>
-                  )}
                   {alerts.map((alert, index) => (
                     <AlertCard 
                       key={`${alert.id}-${index}`} 
                       alert={alert} 
-                      language={language} 
+                      language={language}
+                      compact
                     />
                   ))}
                 </div>
-              )}
-              
-              {/* Empty State */}
-              {!hasAnyAlerts && (
+              ) : (
                 <div className="rounded-lg border border-dashed p-4 text-center">
                   <div className="mx-auto w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center mb-2">
                     <Info className="h-5 w-5 text-green-600 dark:text-green-400" />
                   </div>
                   <p className="text-sm text-muted-foreground">
                     {language === "ar" 
-                      ? "لا توجد تنبيهات حالياً. كل شيء يعمل بشكل طبيعي."
-                      : "No alerts at the moment. Everything is running smoothly."
+                      ? "لا توجد تنبيهات. المطبخ يعمل بسلاسة."
+                      : "No alerts. Kitchen running smoothly."
                     }
                   </p>
                 </div>
               )}
-            </TabsContent>
+            </div>
+          </ScrollArea>
+        ) : (
+          <>
+            {/* Context Hint Section - Always visible */}
+            <div className="p-4 border-b">
+              <ContextSection hint={contextHint} language={language} />
+            </div>
 
-            {/* Suggestions Tab - Tips from Knowledge Base */}
-            <TabsContent value="suggestions" className="p-4 space-y-3 mt-0">
-              {/* Contextual tips */}
-              <QuickTipCard
-                tip={language === "ar" 
-                  ? "استخدم اختصارات لوحة المفاتيح: Enter للدفع، H للتعليق، Esc للإلغاء."
-                  : "Use keyboard shortcuts: Enter to pay, H to hold, Esc to cancel."
-                }
-              />
-              <QuickTipCard
-                tip={language === "ar" 
-                  ? "تحقق من الطلبات المعلقة بانتظام لتجنب تأخير الخدمة."
-                  : "Check held orders regularly to avoid service delays."
-                }
-              />
-              <QuickTipCard
-                tip={language === "ar" 
-                  ? "افتح الوردية قبل أي عملية بيع. الدفع لا يعمل بدون وردية مفتوحة."
-                  : "Open shift before any sale. Payment won't work without an open shift."
-                }
-              />
-              <QuickTipCard
-                tip={language === "ar" 
-                  ? "Void = قبل الدفع (لا يُسجل). Refund = بعد الدفع (يُسجل في التقارير)."
-                  : "Void = Before payment (not recorded). Refund = After payment (recorded in reports)."
-                }
-              />
-              
-              {/* Quick questions from KB */}
-              <div className="pt-2 border-t">
-                <p className="text-xs font-medium text-muted-foreground mb-2">
-                  {language === "ar" ? "أسئلة سريعة:" : "Quick questions:"}
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {quickRepliesFromKB.slice(0, 4).map((reply, idx) => (
-                    <Button
-                      key={idx}
-                      variant="outline"
-                      size="sm"
-                      className="text-[10px] h-7 px-2"
-                      onClick={() => handleQuickQuestion(reply)}
-                    >
-                      {reply}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </TabsContent>
+            {/* Tabbed Content */}
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col min-h-0">
+              <TabsList className="mx-4 mt-3 grid w-auto grid-cols-3">
+                <TabsTrigger value="alerts" className="flex items-center justify-center">
+                  <AlertCircle className="h-3.5 w-3.5 mr-1.5" />
+                  {language === "ar" ? "تنبيهات" : "Alerts"}
+                  <TabBadge show={showAlertsBadge} count={totalAlertCount} variant="count" />
+                </TabsTrigger>
+                <TabsTrigger value="suggestions" className="flex items-center justify-center">
+                  <Lightbulb className="h-3.5 w-3.5 mr-1.5" />
+                  {language === "ar" ? "اقتراحات" : "Tips"}
+                  <TabBadge show={showSuggestionsBadge} variant="dot" />
+                </TabsTrigger>
+                <TabsTrigger value="help" className="flex items-center justify-center">
+                  <HelpCircle className="h-3.5 w-3.5 mr-1.5" />
+                  {language === "ar" ? "مساعدة" : "Help"}
+                </TabsTrigger>
+              </TabsList>
 
-            {/* Help Tab - Chat with Knowledge Base */}
-            <TabsContent value="help" className="mt-0 flex flex-col h-[calc(100vh-280px)]">
-              {/* Chat Messages Area */}
-              <div 
-                ref={chatScrollRef}
-                className="flex-1 overflow-y-auto p-4"
-              >
-                {chatMessages.length === 0 ? (
-                  <div className="text-center py-6">
-                    <div className="mx-auto w-12 h-12 rounded-full bg-secondary/50 flex items-center justify-center mb-3">
-                      <Bot className="h-6 w-6 text-secondary-foreground/70" />
+              <ScrollArea className="flex-1">
+                {/* Alerts Tab */}
+                <TabsContent value="alerts" className="p-4 space-y-3 mt-0">
+                  {/* Feature Announcements - Dismissible */}
+                  {announcements.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground">
+                        {language === "ar" ? "ميزات جديدة" : "What's New"}
+                      </p>
+                      {announcements.map((announcement) => (
+                        <FeatureAnnouncementCard
+                          key={announcement.id}
+                          announcement={announcement}
+                          language={language}
+                          onDismiss={handleDismissAnnouncement}
+                          onExplain={handleExplainAnnouncement}
+                        />
+                      ))}
                     </div>
-                    <p className="text-sm font-medium mb-1">
-                      {language === "ar" ? "مرحباً! كيف أساعدك؟" : "Hello! How can I help?"}
+                  )}
+                  
+                  {/* System Alerts */}
+                  {hasAlerts && (
+                    <div className="space-y-2">
+                      {announcements.length > 0 && (
+                        <p className="text-xs font-medium text-muted-foreground pt-2">
+                          {language === "ar" ? "تنبيهات النظام" : "System Alerts"}
+                        </p>
+                      )}
+                      {alerts.map((alert, index) => (
+                        <AlertCard 
+                          key={`${alert.id}-${index}`} 
+                          alert={alert} 
+                          language={language} 
+                        />
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Empty State */}
+                  {!hasAnyAlerts && (
+                    <div className="rounded-lg border border-dashed p-4 text-center">
+                      <div className="mx-auto w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center mb-2">
+                        <Info className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {language === "ar" 
+                          ? "لا توجد تنبيهات حالياً. كل شيء يعمل بشكل طبيعي."
+                          : "No alerts at the moment. Everything is running smoothly."
+                        }
+                      </p>
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* Suggestions Tab - Tips from Knowledge Base */}
+                <TabsContent value="suggestions" className="p-4 space-y-3 mt-0">
+                  {/* Full Training CTA */}
+                  <FullTrainingCTA 
+                    language={language} 
+                    onClick={handleStartFullTraining}
+                  />
+                  
+                  {/* Contextual tips */}
+                  <QuickTipCard
+                    tip={language === "ar" 
+                      ? "استخدم اختصارات لوحة المفاتيح: Enter للدفع، H للتعليق، Esc للإلغاء."
+                      : "Use keyboard shortcuts: Enter to pay, H to hold, Esc to cancel."
+                    }
+                  />
+                  <QuickTipCard
+                    tip={language === "ar" 
+                      ? "تحقق من الطلبات المعلقة بانتظام لتجنب تأخير الخدمة."
+                      : "Check held orders regularly to avoid service delays."
+                    }
+                  />
+                  <QuickTipCard
+                    tip={language === "ar" 
+                      ? "افتح الوردية قبل أي عملية بيع. الدفع لا يعمل بدون وردية مفتوحة."
+                      : "Open shift before any sale. Payment won't work without an open shift."
+                    }
+                  />
+                  <QuickTipCard
+                    tip={language === "ar" 
+                      ? "Void = قبل الدفع (لا يُسجل). Refund = بعد الدفع (يُسجل في التقارير)."
+                      : "Void = Before payment (not recorded). Refund = After payment (recorded in reports)."
+                    }
+                  />
+                  
+                  {/* Quick questions from KB */}
+                  <div className="pt-2 border-t">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">
+                      {language === "ar" ? "أسئلة سريعة:" : "Quick questions:"}
                     </p>
-                    <p className="text-xs text-muted-foreground mb-4">
-                      {language === "ar" 
-                        ? "اسألني عن أي شيء يخص نظام Kastana POS"
-                        : "Ask me anything about Kastana POS system"
-                      }
-                    </p>
-                    {/* Quick question suggestions */}
-                    <div className="flex flex-wrap gap-1.5 justify-center">
-                      {quickRepliesFromKB.slice(0, 3).map((reply, idx) => (
+                    <div className="flex flex-wrap gap-1.5">
+                      {quickRepliesFromKB.slice(0, 4).map((reply, idx) => (
                         <Button
                           key={idx}
                           variant="outline"
                           size="sm"
                           className="text-[10px] h-7 px-2"
-                          onClick={() => handleSendMessage(reply)}
+                          onClick={() => handleQuickQuestion(reply)}
                         >
                           {reply}
                         </Button>
                       ))}
                     </div>
-                    
-                    {/* Browse topics link */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="mt-4 text-xs text-muted-foreground"
-                      onClick={() => setShowChat(false)}
-                    >
-                      <BookOpen className="h-3 w-3 mr-1.5" />
-                      {language === "ar" ? "أو تصفح المواضيع" : "Or browse topics"}
-                    </Button>
                   </div>
-                ) : (
-                  <>
-                    {chatMessages.map((message) => (
-                      <ChatBubble 
-                        key={message.id} 
-                        message={message} 
-                        language={language} 
-                      />
-                    ))}
-                    {/* Browse topics link after messages */}
-                    <div className="text-center pt-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-[10px] text-muted-foreground h-6"
-                        onClick={() => setShowChat(false)}
-                      >
-                        <BookOpen className="h-3 w-3 mr-1" />
-                        {language === "ar" ? "تصفح المواضيع" : "Browse topics"}
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </div>
+                </TabsContent>
 
-              {/* Chat Input - Always visible at bottom */}
-              <div className="p-3 border-t bg-background shrink-0">
-                <form 
-                  onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
-                  className="flex gap-2"
-                >
-                  <Input
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    placeholder={language === "ar" ? "اسأل أي شيء عن النظام…" : "Ask anything about the system…"}
-                    className="flex-1 h-10 text-sm"
-                  />
-                  <Button 
-                    type="submit" 
-                    size="sm" 
-                    className="h-10 w-10 p-0"
-                    disabled={!chatInput.trim()}
+                {/* Help Tab - Chat with Knowledge Base */}
+                <TabsContent value="help" className="mt-0 flex flex-col h-[calc(100vh-320px)]">
+                  {/* Chat Messages Area */}
+                  <div 
+                    ref={chatScrollRef}
+                    className="flex-1 overflow-y-auto p-4"
                   >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </form>
-              </div>
-            </TabsContent>
-
-            {/* Browse Topics - Separate from chat */}
-            {!showChat && (
-              <div className="absolute inset-0 bg-background z-10 flex flex-col" style={{ top: '180px' }}>
-                <div className="px-4 py-2 border-b flex items-center justify-between">
-                  <span className="text-sm font-medium">
-                    {language === "ar" ? "تصفح المواضيع" : "Browse Topics"}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => setShowChat(true)}
-                  >
-                    {language === "ar" ? "رجوع للمحادثة" : "Back to Chat"}
-                  </Button>
-                </div>
-                <ScrollArea className="flex-1">
-                  <div className="p-4 space-y-3">
-                    {/* Show selected topic if any */}
-                    {selectedEntry ? (
-                      <KnowledgeTopicCard 
-                        entry={selectedEntry} 
-                        language={language}
-                        onClose={() => setSelectedTopicId(null)}
-                      />
-                    ) : (
-                      <>
-                        {/* Topic Categories */}
-                        <div className="space-y-2">
-                          {TOPIC_CATEGORIES.map((category) => (
-                            <div key={category.id} className="rounded-lg border overflow-hidden">
-                              <button
-                                className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors text-left"
-                                onClick={() => setExpandedCategory(
-                                  expandedCategory === category.id ? null : category.id
-                                )}
-                              >
-                                <div className="flex items-center gap-2">
-                                  {category.icon}
-                                  <span className="text-sm font-medium">
-                                    {category.title[language]}
-                                  </span>
-                                </div>
-                                <ChevronRight className={cn(
-                                  "h-4 w-4 text-muted-foreground transition-transform",
-                                  expandedCategory === category.id && "rotate-90"
-                                )} />
-                              </button>
-                              
-                              {expandedCategory === category.id && (
-                                <div className="border-t bg-muted/30 p-2 space-y-1">
-                                  {category.topicIds.map((topicId) => {
-                                    const topic = allTopics.find(t => t.id === topicId);
-                                    if (!topic) return null;
-                                    return (
-                                      <button
-                                        key={topicId}
-                                        className="w-full text-left text-xs px-2 py-1.5 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                                        onClick={() => setSelectedTopicId(topicId)}
-                                      >
-                                        {topic.title}
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </div>
+                    {chatMessages.length === 0 ? (
+                      <div className="text-center py-6">
+                        <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                          <MessageCircle className="h-7 w-7 text-primary" />
+                        </div>
+                        <p className="text-base font-medium mb-1">
+                          {language === "ar" ? "مرحباً! كيف أساعدك؟" : "Hello! How can I help?"}
+                        </p>
+                        <p className="text-sm text-muted-foreground mb-5">
+                          {language === "ar" 
+                            ? "اسألني عن أي شيء يخص نظام Kastana POS"
+                            : "Ask me anything about Kastana POS system"
+                          }
+                        </p>
+                        
+                        {/* Quick question suggestions */}
+                        <div className="flex flex-wrap gap-1.5 justify-center">
+                          {quickRepliesFromKB.slice(0, 3).map((reply, idx) => (
+                            <Button
+                              key={idx}
+                              variant="outline"
+                              size="sm"
+                              className="text-xs h-8 px-3"
+                              onClick={() => handleSendMessage(reply)}
+                            >
+                              {reply}
+                            </Button>
                           ))}
                         </div>
-
-                        {/* Alert Types Legend */}
-                        <div className="rounded-lg border p-3 mt-3">
-                          <h4 className="text-sm font-medium mb-2">
-                            {language === "ar" ? "أنواع التنبيهات" : "Alert Types"}
-                          </h4>
-                          <div className="space-y-2 text-xs">
-                            <div className="flex items-center gap-2">
-                              <AlertCircle className="h-3.5 w-3.5 text-destructive" />
-                              <span className="text-muted-foreground">
-                                {language === "ar" ? "خطأ - يتطلب اهتمام فوري" : "Error - Requires immediate attention"}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-                              <span className="text-muted-foreground">
-                                {language === "ar" ? "تحذير - ينبغي مراجعته" : "Warning - Should be reviewed"}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Info className="h-3.5 w-3.5 text-blue-500" />
-                              <span className="text-muted-foreground">
-                                {language === "ar" ? "معلومات - للعلم فقط" : "Info - For your awareness"}
-                              </span>
-                            </div>
-                          </div>
+                        
+                        {/* Browse topics link */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="mt-4 text-xs text-muted-foreground"
+                          onClick={() => setShowChat(false)}
+                        >
+                          <BookOpen className="h-3 w-3 mr-1.5" />
+                          {language === "ar" ? "أو تصفح المواضيع" : "Or browse topics"}
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        {chatMessages.map((message) => (
+                          <ChatBubble 
+                            key={message.id} 
+                            message={message} 
+                            language={language} 
+                          />
+                        ))}
+                        {/* Browse topics link after messages */}
+                        <div className="text-center pt-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-[10px] text-muted-foreground h-6"
+                            onClick={() => setShowChat(false)}
+                          >
+                            <BookOpen className="h-3 w-3 mr-1" />
+                            {language === "ar" ? "تصفح المواضيع" : "Browse topics"}
+                          </Button>
                         </div>
                       </>
                     )}
                   </div>
-                </ScrollArea>
-              </div>
-            )}
-          </ScrollArea>
-        </Tabs>
+
+                  {/* Quick Action Pills - Above Input */}
+                  <div className="px-3 py-2 border-t bg-muted/30">
+                    <div className="flex flex-wrap gap-1.5">
+                      {QUICK_ACTION_PILLS[language].map((pill, idx) => (
+                        <QuickActionPill
+                          key={idx}
+                          label={pill.label}
+                          onClick={() => handleSendMessage(pill.query)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Enhanced Chat Input */}
+                  <div className="p-3 border-t bg-background shrink-0">
+                    <form 
+                      onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
+                      className="flex gap-2"
+                    >
+                      <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                        <Input
+                          value={chatInput}
+                          onChange={(e) => setChatInput(e.target.value)}
+                          placeholder={language === "ar" ? "اكتب سؤالك هنا..." : "Type your question here..."}
+                          className="flex-1 h-11 text-sm pl-9 pr-3"
+                        />
+                      </div>
+                      <Button 
+                        type="submit" 
+                        size="sm" 
+                        className="h-11 w-11 p-0"
+                        disabled={!chatInput.trim()}
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </form>
+                  </div>
+                </TabsContent>
+
+                {/* Browse Topics - Separate from chat */}
+                {!showChat && (
+                  <div className="absolute inset-0 bg-background z-10 flex flex-col" style={{ top: '180px' }}>
+                    <div className="px-4 py-2 border-b flex items-center justify-between">
+                      <span className="text-sm font-medium">
+                        {language === "ar" ? "تصفح المواضيع" : "Browse Topics"}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => setShowChat(true)}
+                      >
+                        {language === "ar" ? "رجوع للمحادثة" : "Back to Chat"}
+                      </Button>
+                    </div>
+                    <ScrollArea className="flex-1">
+                      <div className="p-4 space-y-3">
+                        {/* Show selected topic if any */}
+                        {selectedEntry ? (
+                          <KnowledgeTopicCard 
+                            entry={selectedEntry} 
+                            language={language}
+                            onClose={() => setSelectedTopicId(null)}
+                          />
+                        ) : (
+                          <>
+                            {/* Topic Categories */}
+                            <div className="space-y-2">
+                              {TOPIC_CATEGORIES.map((category) => (
+                                <div key={category.id} className="rounded-lg border overflow-hidden">
+                                  <button
+                                    className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors text-left"
+                                    onClick={() => setExpandedCategory(
+                                      expandedCategory === category.id ? null : category.id
+                                    )}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      {category.icon}
+                                      <span className="text-sm font-medium">
+                                        {category.title[language]}
+                                      </span>
+                                    </div>
+                                    <ChevronRight className={cn(
+                                      "h-4 w-4 text-muted-foreground transition-transform",
+                                      expandedCategory === category.id && "rotate-90"
+                                    )} />
+                                  </button>
+                                  
+                                  {expandedCategory === category.id && (
+                                    <div className="border-t bg-muted/30 p-2 space-y-1">
+                                      {category.topicIds.map((topicId) => {
+                                        const topic = allTopics.find(t => t.id === topicId);
+                                        if (!topic) return null;
+                                        return (
+                                          <button
+                                            key={topicId}
+                                            className="w-full text-left text-xs px-2 py-1.5 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                                            onClick={() => setSelectedTopicId(topicId)}
+                                          >
+                                            {topic.title}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Alert Types Legend */}
+                            <div className="rounded-lg border p-3 mt-3">
+                              <h4 className="text-sm font-medium mb-2">
+                                {language === "ar" ? "أنواع التنبيهات" : "Alert Types"}
+                              </h4>
+                              <div className="space-y-2 text-xs">
+                                <div className="flex items-center gap-2">
+                                  <GraduationCap className="h-3.5 w-3.5 text-blue-500" />
+                                  <span className="text-muted-foreground">
+                                    {language === "ar" ? "تدريب - تعلّم ميزة جديدة" : "Training - Learn a new feature"}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                                  <span className="text-muted-foreground">
+                                    {language === "ar" ? "تنبيه - ينبغي مراجعته" : "Alert - Should be reviewed"}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Lightbulb className="h-3.5 w-3.5 text-slate-500" />
+                                  <span className="text-muted-foreground">
+                                    {language === "ar" ? "معلومة - للعلم فقط" : "Info - For your awareness"}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                )}
+              </ScrollArea>
+            </Tabs>
+          </>
+        )}
         
         {/* Footer */}
         <div className="p-3 border-t bg-muted/30">
           <p className="text-xs text-center text-muted-foreground">
-            {assistantTitle}
+            {assistantTitle} • {assistantSubtitle}
           </p>
         </div>
       </SheetContent>
