@@ -6,6 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { getCashierErrorMessage } from "@/lib/cashierErrors";
 import {
   useCashierSession,
   NoCashierRoleError,
@@ -808,16 +809,41 @@ export default function POS() {
   };
 
   const handlePay = () => {
-    // Payment guard: only allow for OPEN orders
-    if (!currentOrder || currentOrder.status !== "open") {
-      toast.error(t("cannot_pay_not_open"));
+    // Guard: Order must exist
+    if (!currentOrder) {
+      toast.error(`${t("error_order_empty_title")}\n${t("error_order_empty_desc")}`);
       return;
     }
+    
+    // Guard: Order must have items
+    const activeItems = currentOrder.order_items?.filter((i: { voided: boolean }) => !i.voided) || [];
+    if (activeItems.length === 0) {
+      toast.error(`${t("error_order_empty_title")}\n${t("error_order_empty_desc")}`);
+      return;
+    }
+    
+    // Guard: Order must be OPEN status
+    if (currentOrder.status === "held") {
+      toast.error(`${t("error_order_held_title")}\n${t("error_order_held_desc")}\n${t("error_order_held_action")}`);
+      return;
+    }
+    
+    if (currentOrder.status === "paid" || currentOrder.status === "refunded") {
+      toast.info(`${t("error_order_closed_title")}\n${t("error_order_closed_desc")}`);
+      return;
+    }
+    
+    if (currentOrder.status !== "open") {
+      toast.error(`${t("error_order_closed_title")}\n${t("error_order_closed_desc")}`);
+      return;
+    }
+    
     setPaymentDialogOpen(true);
   };
 
   const handlePaymentConfirm = async (payments: { method: string; amount: number }[]): Promise<void> => {
     if (!currentOrder) return;
+    
     try {
       // Store order data before completing for receipt
       const orderForReceipt = {
@@ -868,7 +894,7 @@ export default function POS() {
       setSelectedOrderForReceipt(orderForReceipt as RecentOrder);
       setReceiptDialogOpen(true);
 
-      // Trigger inventory deduction (non-blocking)
+      // Trigger inventory deduction (non-blocking - payment already succeeded)
       try {
         const deductionResult = await inventoryDeductionMutation.mutateAsync(currentOrder.id);
         
@@ -891,17 +917,31 @@ export default function POS() {
         
         if (!deductionResult.success && deductionResult.error) {
           // Deduction failed but payment succeeded - show non-blocking warning
-          toast.error(t("inventory_deduction_failed"), { duration: 5000 });
-          console.error("[handlePaymentConfirm] Inventory deduction error:", deductionResult.error);
+          // This is informational only, not an error to the cashier
+          console.warn("[handlePaymentConfirm] Inventory deduction issue:", deductionResult.error);
+          toast.warning(t("inventory_deduction_failed"), { duration: 5000 });
         }
       } catch (deductError) {
         // Inventory deduction failed - payment still succeeded
-        console.error("[handlePaymentConfirm] Inventory deduction exception:", deductError);
-        toast.error(t("inventory_deduction_failed"), { duration: 5000 });
+        // Log but don't show system error to cashier
+        console.warn("[handlePaymentConfirm] Inventory deduction exception:", deductError);
+        // Show a gentle warning, not an error
+        toast.warning(t("inventory_deduction_failed"), { duration: 5000 });
       }
+      
     } catch (error) {
-      toast.error(t("payment_failed"));
-      throw error; // Re-throw to signal failure to PaymentDialog
+      // ═══════════════════════════════════════════════════════════════════
+      // CRITICAL: Convert all errors to user-friendly Arabic messages
+      // NEVER show raw system errors to cashier
+      // ═══════════════════════════════════════════════════════════════════
+      console.error("[handlePaymentConfirm] Payment error (internal):", error);
+      
+      // Use the cashier error handler to get user-friendly message
+      const errorMessage = getCashierErrorMessage(error, t);
+      toast.error(errorMessage);
+      
+      // Re-throw to signal failure to PaymentDialog (for state reset)
+      throw error;
     }
   };
 
@@ -1134,7 +1174,9 @@ export default function POS() {
       setVoidOrderDialogOpen(false);
       toast.success(t("order_voided"));
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : t("failed_void_order");
+      // Use user-friendly Arabic message instead of raw error
+      console.error("[handleVoidOrderConfirm] Error:", error);
+      const errorMessage = getCashierErrorMessage(error, t);
       toast.error(errorMessage);
     }
   };
@@ -1209,7 +1251,9 @@ export default function POS() {
       setReceiptDialogOpen(false);
       setSelectedOrderForRefund(null);
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : t("refund_failed");
+      // Use user-friendly Arabic message instead of raw error
+      console.error("[handleRefundConfirm] Error:", error);
+      const errorMessage = getCashierErrorMessage(error, t);
       toast.error(errorMessage);
       throw error;
     }
