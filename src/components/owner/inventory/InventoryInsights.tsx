@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { TrendingUp, BarChart3, PieChart, AlertTriangle, Lightbulb } from "lucide-react";
+import { TrendingUp, BarChart3, PieChart, AlertTriangle, Lightbulb, Calculator } from "lucide-react";
 import { VarianceTrendsChart } from "./insights/VarianceTrendsChart";
 import { TopVarianceItemsTable } from "./insights/TopVarianceItemsTable";
 import { VarianceBreakdownView } from "./insights/VarianceBreakdownView";
 import { InventoryAlertsPanel } from "./insights/InventoryAlertsPanel";
+import { ConsumptionVarianceAnalysis } from "./insights/ConsumptionVarianceAnalysis";
 
 interface InventoryInsightsProps {
   restaurantId: string;
@@ -13,7 +14,7 @@ interface InventoryInsightsProps {
 
 export function InventoryInsights({ restaurantId }: InventoryInsightsProps) {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState("trends");
+  const [activeTab, setActiveTab] = useState("consumption");
 
   return (
     <div className="space-y-4">
@@ -28,28 +29,32 @@ export function InventoryInsights({ restaurantId }: InventoryInsightsProps) {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full max-w-2xl grid-cols-4">
+        <TabsList className="grid w-full max-w-3xl grid-cols-5">
+          <TabsTrigger value="consumption" className="flex items-center gap-2">
+            <Calculator className="h-4 w-4" />
+            <span className="hidden sm:inline">{t("inv_consumption")}</span>
+          </TabsTrigger>
           <TabsTrigger value="trends" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("inv_variance_trends")}</span>
-            <span className="sm:hidden">{t("trends")}</span>
+            <span className="hidden sm:inline">{t("trends")}</span>
           </TabsTrigger>
           <TabsTrigger value="top-items" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("inv_top_variance")}</span>
-            <span className="sm:hidden">{t("top")}</span>
+            <span className="hidden sm:inline">{t("top")}</span>
           </TabsTrigger>
           <TabsTrigger value="breakdown" className="flex items-center gap-2">
             <PieChart className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("inv_breakdown")}</span>
-            <span className="sm:hidden">{t("breakdown")}</span>
+            <span className="hidden sm:inline">{t("breakdown")}</span>
           </TabsTrigger>
           <TabsTrigger value="alerts" className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("inv_alerts")}</span>
-            <span className="sm:hidden">{t("alerts")}</span>
+            <span className="hidden sm:inline">{t("alerts")}</span>
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="consumption" className="mt-4">
+          <ConsumptionVarianceAnalysis restaurantId={restaurantId} />
+        </TabsContent>
 
         <TabsContent value="trends" className="mt-4">
           <VarianceTrendsChart restaurantId={restaurantId} />

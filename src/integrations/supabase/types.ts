@@ -487,6 +487,76 @@ export type Database = {
           },
         ]
       }
+      inventory_variance_tags: {
+        Row: {
+          branch_id: string
+          id: string
+          inventory_item_id: string
+          notes: string | null
+          period_end: string
+          period_start: string
+          restaurant_id: string
+          root_cause: string
+          tagged_at: string
+          tagged_by: string
+          updated_at: string
+          variance_qty: number
+          variance_value: number
+        }
+        Insert: {
+          branch_id: string
+          id?: string
+          inventory_item_id: string
+          notes?: string | null
+          period_end: string
+          period_start: string
+          restaurant_id: string
+          root_cause: string
+          tagged_at?: string
+          tagged_by: string
+          updated_at?: string
+          variance_qty?: number
+          variance_value?: number
+        }
+        Update: {
+          branch_id?: string
+          id?: string
+          inventory_item_id?: string
+          notes?: string | null
+          period_end?: string
+          period_start?: string
+          restaurant_id?: string
+          root_cause?: string
+          tagged_at?: string
+          tagged_by?: string
+          updated_at?: string
+          variance_qty?: number
+          variance_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_variance_tags_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_variance_tags_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_variance_tags_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_categories: {
         Row: {
           created_at: string
