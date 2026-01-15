@@ -9,8 +9,14 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { 
   Bot, AlertCircle, AlertTriangle, Info, Lightbulb, ChevronRight, 
   HelpCircle, BookOpen, Send, User, X, Sparkles, GraduationCap, 
-  MessageCircle, Target, Search
+  MessageCircle, Target, Search, ArrowLeftRight
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -140,6 +146,50 @@ const QUICK_ACTION_PILLS = {
     { label: "What's new?", query: "What's new in the system" },
   ]
 };
+
+// Width mode types and configuration
+type WidthMode = "compact" | "default" | "expanded";
+
+const WIDTH_MODE_CONFIG: Record<WidthMode, { width: string; maxWidth: string }> = {
+  compact: { width: "320px", maxWidth: "320px" },
+  default: { width: "420px", maxWidth: "420px" },
+  expanded: { width: "55vw", maxWidth: "700px" },
+};
+
+const STORAGE_KEY_WIDTH_MODE = "kastana_assistant_width_mode";
+
+// Get stored width mode from localStorage
+function getStoredWidthMode(): WidthMode | null {
+  if (typeof window !== "undefined") {
+    const stored = localStorage.getItem(STORAGE_KEY_WIDTH_MODE);
+    if (stored === "compact" || stored === "default" || stored === "expanded") {
+      return stored;
+    }
+  }
+  return null;
+}
+
+// Save width mode to localStorage
+function saveWidthMode(mode: WidthMode): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(STORAGE_KEY_WIDTH_MODE, mode);
+  }
+}
+
+// Get default width mode based on role
+function getDefaultWidthMode(role: string | null): WidthMode {
+  if (role === "cashier" || role === "kitchen") {
+    return "compact";
+  }
+  return "default";
+}
+
+// Cycle to next width mode
+function getNextWidthMode(current: WidthMode): WidthMode {
+  const modes: WidthMode[] = ["compact", "default", "expanded"];
+  const currentIndex = modes.indexOf(current);
+  return modes[(currentIndex + 1) % modes.length];
+}
 
 interface SmartAssistantLiteProps {
   // POS-specific context passed from parent
@@ -541,6 +591,35 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   // Get user role for role-based changelog filtering
   const { role } = useAuth();
   
+  // Width mode state with localStorage persistence
+  const [widthMode, setWidthMode] = useState<WidthMode>(() => {
+    const stored = getStoredWidthMode();
+    return stored || getDefaultWidthMode(role);
+  });
+  
+  // Update width mode when role changes (if no stored preference)
+  useEffect(() => {
+    const stored = getStoredWidthMode();
+    if (!stored && role) {
+      setWidthMode(getDefaultWidthMode(role));
+    }
+  }, [role]);
+  
+  // Handle width mode toggle
+  const handleToggleWidth = useCallback(() => {
+    setWidthMode((current) => {
+      const next = getNextWidthMode(current);
+      saveWidthMode(next);
+      return next;
+    });
+  }, []);
+  
+  // Auto-expand on full training
+  const handleExpandForTraining = useCallback(() => {
+    setWidthMode("expanded");
+    saveWidthMode("expanded");
+  }, []);
+  
   const state = useSmartAssistant({
     activeTab: props.activeTab,
     orderItemCount: props.orderItemCount,
@@ -693,13 +772,15 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
     }, 100);
   }, [handleSendMessage]);
 
-  // Handle full training CTA
+  // Handle full training CTA - auto-expands width
   const handleStartFullTraining = useCallback(() => {
+    // Auto-expand for full training
+    handleExpandForTraining();
     const trainingQuery = language === "ar" 
       ? "ابدأ تدريب النظام الكامل" 
       : "Start full system training";
     handleQuickQuestion(trainingQuery);
-  }, [language, handleQuickQuestion]);
+  }, [language, handleQuickQuestion, handleExpandForTraining]);
 
   // Badge visibility logic
   const showAlertsBadge = (hasAnyAlerts) && !alertsViewed;
@@ -715,6 +796,14 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   // Dynamic branding based on language
   const assistantTitle = isRTL ? "مساعد كاستنا الذكي" : "Kastana Smart Coach";
   const assistantSubtitle = isRTL ? "مدربك أثناء العمل" : "Your coach while working";
+  
+  // Width configuration based on current mode
+  const widthConfig = WIDTH_MODE_CONFIG[widthMode];
+  const widthModeLabel = {
+    compact: { ar: "مضغوط", en: "Compact" },
+    default: { ar: "عادي", en: "Default" },
+    expanded: { ar: "موسّع", en: "Expanded" },
+  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -742,9 +831,14 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
       
       <SheetContent
         side={isRTL ? "right" : "left"}
-        className="w-full sm:w-[400px] flex flex-col p-0"
+        className="flex flex-col p-0 transition-all duration-300 ease-in-out"
+        style={{ 
+          width: widthConfig.width, 
+          maxWidth: widthConfig.maxWidth,
+          minWidth: "280px"
+        }}
       >
-        {/* Enhanced Header */}
+        {/* Enhanced Header with Width Toggle */}
         <SheetHeader className="p-5 border-b bg-gradient-to-br from-primary/10 to-primary/5">
           <div className="flex items-start gap-3">
             <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
@@ -758,11 +852,38 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                 {assistantSubtitle}
               </p>
             </div>
-            {hasAnyAlerts && (
-              <Badge variant="destructive" className="text-xs shrink-0">
-                {totalAlertCount}
-              </Badge>
-            )}
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Width Toggle Button */}
+              {!isKDSMode && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                        onClick={handleToggleWidth}
+                      >
+                        <ArrowLeftRight className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      <p className="text-xs">
+                        {language === "ar" ? "تغيير عرض المساعد" : "Change assistant width"}
+                        <span className="opacity-60 ml-1">
+                          ({widthModeLabel[widthMode][language]})
+                        </span>
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              {hasAnyAlerts && (
+                <Badge variant="destructive" className="text-xs">
+                  {totalAlertCount}
+                </Badge>
+              )}
+            </div>
           </div>
         </SheetHeader>
 
