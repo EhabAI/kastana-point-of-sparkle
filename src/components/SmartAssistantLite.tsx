@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { 
   Bot, AlertCircle, AlertTriangle, Info, Lightbulb, ChevronRight, 
   HelpCircle, BookOpen, Send, User, X, Sparkles, GraduationCap, 
-  MessageCircle, Target, Search, ArrowLeftRight
+  MessageCircle, Target, Search, ArrowLeftRight, Maximize2, Minimize2
 } from "lucide-react";
 import {
   Tooltip,
@@ -157,6 +157,10 @@ const WIDTH_MODE_CONFIG: Record<WidthMode, { width: string; maxWidth: string }> 
 };
 
 const STORAGE_KEY_WIDTH_MODE = "kastana_assistant_width_mode";
+const STORAGE_KEY_VIEW_MODE = "kastana_assistant_view_mode";
+
+// View mode types
+type ViewMode = "panel" | "fullscreen";
 
 // Get stored width mode from localStorage
 function getStoredWidthMode(): WidthMode | null {
@@ -173,6 +177,24 @@ function getStoredWidthMode(): WidthMode | null {
 function saveWidthMode(mode: WidthMode): void {
   if (typeof window !== "undefined") {
     localStorage.setItem(STORAGE_KEY_WIDTH_MODE, mode);
+  }
+}
+
+// Get stored view mode from localStorage
+function getStoredViewMode(): ViewMode {
+  if (typeof window !== "undefined") {
+    const stored = localStorage.getItem(STORAGE_KEY_VIEW_MODE);
+    if (stored === "panel" || stored === "fullscreen") {
+      return stored;
+    }
+  }
+  return "panel";
+}
+
+// Save view mode to localStorage
+function saveViewMode(mode: ViewMode): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(STORAGE_KEY_VIEW_MODE, mode);
   }
 }
 
@@ -597,13 +619,41 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
     return stored || getDefaultWidthMode(role);
   });
   
+  // View mode state (panel vs fullscreen) with localStorage persistence
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    // Don't restore fullscreen on KDS
+    if (role === "kitchen") return "panel";
+    return getStoredViewMode();
+  });
+  
+  // Track the width mode before entering fullscreen for training
+  const [preTrainingWidthMode, setPreTrainingWidthMode] = useState<WidthMode | null>(null);
+  const [wasInFullscreenBeforeTraining, setWasInFullscreenBeforeTraining] = useState(false);
+  
   // Update width mode when role changes (if no stored preference)
   useEffect(() => {
     const stored = getStoredWidthMode();
     if (!stored && role) {
       setWidthMode(getDefaultWidthMode(role));
     }
-  }, [role]);
+    // Disable fullscreen on KDS
+    if (role === "kitchen" && viewMode === "fullscreen") {
+      setViewMode("panel");
+      saveViewMode("panel");
+    }
+  }, [role, viewMode]);
+  
+  // ESC key to exit fullscreen
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && viewMode === "fullscreen" && open) {
+        handleExitFullscreen();
+      }
+    };
+    
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [viewMode, open]);
   
   // Handle width mode toggle
   const handleToggleWidth = useCallback(() => {
@@ -614,11 +664,47 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
     });
   }, []);
   
-  // Auto-expand on full training
-  const handleExpandForTraining = useCallback(() => {
-    setWidthMode("expanded");
-    saveWidthMode("expanded");
+  // Handle fullscreen toggle
+  const handleToggleFullscreen = useCallback(() => {
+    setViewMode((current) => {
+      const next: ViewMode = current === "fullscreen" ? "panel" : "fullscreen";
+      saveViewMode(next);
+      return next;
+    });
   }, []);
+  
+  // Exit fullscreen helper
+  const handleExitFullscreen = useCallback(() => {
+    setViewMode("panel");
+    saveViewMode("panel");
+  }, []);
+  
+  // Auto-expand on full training (enters fullscreen mode)
+  const handleExpandForTraining = useCallback(() => {
+    // Save current state before entering training fullscreen
+    setPreTrainingWidthMode(widthMode);
+    setWasInFullscreenBeforeTraining(viewMode === "fullscreen");
+    
+    // Enter fullscreen for training
+    setViewMode("fullscreen");
+    saveViewMode("fullscreen");
+  }, [widthMode, viewMode]);
+  
+  // Exit training fullscreen (restores previous state)
+  const handleExitTrainingFullscreen = useCallback(() => {
+    // Restore previous view mode
+    if (!wasInFullscreenBeforeTraining) {
+      setViewMode("panel");
+      saveViewMode("panel");
+    }
+    // Restore previous width mode if we had one
+    if (preTrainingWidthMode) {
+      setWidthMode(preTrainingWidthMode);
+      saveWidthMode(preTrainingWidthMode);
+    }
+    setPreTrainingWidthMode(null);
+    setWasInFullscreenBeforeTraining(false);
+  }, [preTrainingWidthMode, wasInFullscreenBeforeTraining]);
   
   const state = useSmartAssistant({
     activeTab: props.activeTab,
@@ -797,13 +883,27 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   const assistantTitle = isRTL ? "مساعد كاستنا الذكي" : "Kastana Smart Coach";
   const assistantSubtitle = isRTL ? "مدربك أثناء العمل" : "Your coach while working";
   
-  // Width configuration based on current mode
+  // Width configuration based on current mode (or fullscreen)
+  const isFullscreen = viewMode === "fullscreen" && !isKDSMode;
   const widthConfig = WIDTH_MODE_CONFIG[widthMode];
   const widthModeLabel = {
     compact: { ar: "مضغوط", en: "Compact" },
     default: { ar: "عادي", en: "Default" },
     expanded: { ar: "موسّع", en: "Expanded" },
   };
+  
+  // Fullscreen style overrides
+  const sheetStyle = isFullscreen
+    ? {
+        width: "100vw",
+        maxWidth: "100vw",
+        minWidth: "100vw",
+      }
+    : {
+        width: widthConfig.width,
+        maxWidth: widthConfig.maxWidth,
+        minWidth: "280px",
+      };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -831,12 +931,11 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
       
       <SheetContent
         side={isRTL ? "right" : "left"}
-        className="flex flex-col p-0 transition-all duration-300 ease-in-out"
-        style={{ 
-          width: widthConfig.width, 
-          maxWidth: widthConfig.maxWidth,
-          minWidth: "280px"
-        }}
+        className={cn(
+          "flex flex-col p-0 transition-all duration-300 ease-in-out",
+          isFullscreen && "!w-screen !max-w-none"
+        )}
+        style={sheetStyle}
       >
         {/* Enhanced Header with Width Toggle */}
         <SheetHeader className="p-5 border-b bg-gradient-to-br from-primary/10 to-primary/5">
@@ -852,9 +951,9 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                 {assistantSubtitle}
               </p>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              {/* Width Toggle Button */}
-              {!isKDSMode && (
+            <div className="flex items-center gap-1 shrink-0">
+              {/* Width Toggle Button - only show in panel mode */}
+              {!isKDSMode && !isFullscreen && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -878,8 +977,42 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                   </Tooltip>
                 </TooltipProvider>
               )}
+              
+              {/* Fullscreen Toggle Button - disabled on KDS */}
+              {!isKDSMode && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                          "h-8 w-8 p-0 text-muted-foreground hover:text-foreground",
+                          isFullscreen && "bg-primary/10 text-primary"
+                        )}
+                        onClick={handleToggleFullscreen}
+                      >
+                        {isFullscreen ? (
+                          <Minimize2 className="h-4 w-4" />
+                        ) : (
+                          <Maximize2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      <p className="text-xs">
+                        {isFullscreen 
+                          ? (language === "ar" ? "إنهاء العرض الكامل (ESC)" : "Exit full screen (ESC)")
+                          : (language === "ar" ? "عرض كامل للمساعد" : "Full screen view")
+                        }
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              
               {hasAnyAlerts && (
-                <Badge variant="destructive" className="text-xs">
+                <Badge variant="destructive" className="text-xs ml-1">
                   {totalAlertCount}
                 </Badge>
               )}
