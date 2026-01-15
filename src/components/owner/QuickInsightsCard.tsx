@@ -132,7 +132,7 @@ export function QuickInsightsCard({ restaurantId, currency }: QuickInsightsCardP
                 </span>
               </p>
             ) : (
-              <p className="text-sm text-muted-foreground">{t("no_sales_today")}</p>
+              <p className="text-sm text-muted-foreground">{t("no_top_seller_today")}</p>
             )}
           </div>
         </div>

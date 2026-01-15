@@ -1356,8 +1356,15 @@ export default {
   quick_insights: "نظرة سريعة",
   top_seller_today: "الأكثر مبيعاً اليوم",
   highest_variance: "أعلى فرق",
-  no_sales_data: "لا توجد بيانات مبيعات",
+  no_top_seller_today: "لا توجد مبيعات اليوم",
   variance_exceeds_normal: "الفرق يتجاوز المعدل الطبيعي",
+
+  // Assistant Quick Prompts
+  prompt_summarize_day: "لخص يومي",
+  prompt_what_changed: "شو تغيّر عن أمس؟",
+  prompt_why_alert: "ليش النظام أعطاني تنبيه؟",
+  prompt_explain_confidence: "اشرح مؤشر الثقة",
+  prompt_how_helps_today: "كيف يساعدني هذا النظام اليوم؟",
 
   // Smart Features
   end_of_day_summary: "ملخص نهاية اليوم",

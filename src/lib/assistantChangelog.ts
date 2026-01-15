@@ -17,6 +17,66 @@ export interface ChangelogEntry {
 // Changelog data - add new entries at the top
 const CHANGELOG: ChangelogEntry[] = [
   {
+    id: "smart_rules_bundle_1",
+    version: "2.1.0",
+    date: "2026-01-15",
+    title: { 
+      ar: "ميزات ذكية جديدة", 
+      en: "New Smart Features" 
+    },
+    description: { 
+      ar: "تنبيهات ذكية، ملخص نهاية اليوم، مؤشر الثقة، واقتراحات الإجراءات.",
+      en: "Smart alerts, end-of-day summary, confidence score, and action suggestions."
+    },
+    roles: ["owner", "cashier"],
+    knowledgeId: "smart_features_overview"
+  },
+  {
+    id: "time_based_alerts_1",
+    version: "2.1.0",
+    date: "2026-01-15",
+    title: { 
+      ar: "تنبيهات زمنية ذكية", 
+      en: "Time-Based Alerts" 
+    },
+    description: { 
+      ar: "تنبيهات تلقائية للطلبات المفتوحة طويلاً والورديات الممتدة.",
+      en: "Automatic alerts for long-open orders and extended shifts."
+    },
+    roles: ["cashier", "owner"],
+    knowledgeId: "time_based_alerts_explained"
+  },
+  {
+    id: "mistake_pattern_1",
+    version: "2.1.0",
+    date: "2026-01-15",
+    title: { 
+      ar: "كاشف الأنماط", 
+      en: "Mistake Pattern Detector" 
+    },
+    description: { 
+      ar: "يكتشف الأنماط المتكررة مثل الإلغاءات المتعددة.",
+      en: "Detects repeated patterns like multiple voids or refunds."
+    },
+    roles: ["owner"],
+    knowledgeId: "mistake_pattern_detector_explained"
+  },
+  {
+    id: "system_confidence_1",
+    version: "2.1.0",
+    date: "2026-01-15",
+    title: { 
+      ar: "مؤشر ثقة النظام", 
+      en: "System Confidence Score" 
+    },
+    description: { 
+      ar: "درجة يومية تعكس جودة العمليات: ممتاز، جيد، يحتاج انتباه.",
+      en: "Daily score reflecting operational quality: Excellent, Good, Needs Attention."
+    },
+    roles: ["owner"],
+    knowledgeId: "system_confidence_score_explained"
+  },
+  {
     id: "consumption_variance_2c",
     version: "2.0.0",
     date: "2026-01-15",

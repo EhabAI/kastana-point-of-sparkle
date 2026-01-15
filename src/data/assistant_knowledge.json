@@ -1495,6 +1495,292 @@
         "training_required": false,
         "alert_or_guidance_needed": false
       }
+    },
+    "time_based_alerts_explained": {
+      "id": "time_based_alerts_explained",
+      "intent": ["explain_feature", "why_alert"],
+      "keywords": {
+        "ar": ["تنبيهات", "تنبيه زمني", "طلب مفتوح طويل", "وردية طويلة", "طاولة بدون نشاط", "تنبيه تلقائي"],
+        "en": ["alerts", "time alert", "long open order", "long shift", "table no activity", "automatic alert"]
+      },
+      "title": {
+        "ar": "التنبيهات الزمنية الذكية",
+        "en": "Time-Based Smart Alerts"
+      },
+      "content": {
+        "ar": "التنبيهات الزمنية:\n• تظهر تلقائياً عند وجود مشكلة محتملة\n• طلب مفتوح أكثر من 30 دقيقة\n• طاولة مشغولة بدون طلبات جديدة\n• وردية مفتوحة أكثر من 12 ساعة\n\n💡 التنبيهات للتذكير فقط\n💡 لا تمنع أي إجراء\n💡 يمكن تجاهلها",
+        "en": "Time-Based Alerts:\n• Appear automatically when potential issue detected\n• Order open for more than 30 minutes\n• Table occupied with no new orders\n• Shift open for more than 12 hours\n\n💡 Alerts are reminders only\n💡 They don't block any action\n💡 Can be dismissed"
+      },
+      "metadata": {
+        "feature_id": "time_based_alerts_explained",
+        "roles": ["cashier", "owner"],
+        "screens": ["pos", "owner"],
+        "level": "explain",
+        "category": "operations",
+        "is_new": true,
+        "training_required": false,
+        "alert_or_guidance_needed": true
+      }
+    },
+    "end_of_day_summary_explained": {
+      "id": "end_of_day_summary_explained",
+      "intent": ["explain_feature", "explain_report"],
+      "keywords": {
+        "ar": ["ملخص اليوم", "نهاية اليوم", "ملخص يومي", "تقرير اليوم", "لخص يومي"],
+        "en": ["day summary", "end of day", "daily summary", "today report", "summarize day"]
+      },
+      "title": {
+        "ar": "ملخص نهاية اليوم",
+        "en": "End of Day Summary"
+      },
+      "content": {
+        "ar": "ملخص نهاية اليوم:\n• إجمالي المبيعات\n• الصنف الأكثر مبيعاً\n• أكثر مشكلة تكراراً (إلغاء/استرداد/فرق)\n• تحذير لطيف إن وجد\n\n💡 يظهر في لوحة المالك\n💡 المساعد يقترحه نهاية اليوم\n💡 للمالك فقط",
+        "en": "End of Day Summary:\n• Total sales\n• Top selling item\n• Most frequent issue (void/refund/variance)\n• Soft warning if applicable\n\n💡 Shown in Owner dashboard\n💡 Assistant suggests it at end of day\n💡 Owner only"
+      },
+      "metadata": {
+        "feature_id": "end_of_day_summary_explained",
+        "roles": ["owner"],
+        "screens": ["owner"],
+        "level": "explain",
+        "category": "insights",
+        "is_new": true,
+        "training_required": false,
+        "alert_or_guidance_needed": false
+      }
+    },
+    "mistake_pattern_detector_explained": {
+      "id": "mistake_pattern_detector_explained",
+      "intent": ["explain_feature", "why_alert"],
+      "keywords": {
+        "ar": ["نمط أخطاء", "أخطاء متكررة", "إلغاءات كثيرة", "استردادات متكررة", "لوحظ نمط"],
+        "en": ["mistake pattern", "repeated errors", "many voids", "frequent refunds", "pattern detected"]
+      },
+      "title": {
+        "ar": "كاشف أنماط الأخطاء",
+        "en": "Mistake Pattern Detector"
+      },
+      "content": {
+        "ar": "كاشف الأنماط:\n• يكتشف السلوكيات المتكررة تلقائياً\n• إلغاءات متعددة من نفس الكاشير\n• استردادات متكررة لنفس الصنف\n• عمليات دمج متتالية\n\n⚠️ ملاحظة محايدة، ليست اتهام\n💡 للمالك فقط\n💡 للتعلم والتحسين",
+        "en": "Pattern Detector:\n• Automatically detects repeated behaviors\n• Multiple voids by same cashier\n• Repeated refunds on same item\n• Consecutive merge operations\n\n⚠️ Neutral observation, not accusation\n💡 Owner only\n💡 For learning and improvement"
+      },
+      "metadata": {
+        "feature_id": "mistake_pattern_detector_explained",
+        "roles": ["owner"],
+        "screens": ["owner", "reports"],
+        "level": "explain",
+        "category": "insights",
+        "is_new": true,
+        "training_required": false,
+        "alert_or_guidance_needed": true
+      }
+    },
+    "what_changed_since_yesterday_explained": {
+      "id": "what_changed_since_yesterday_explained",
+      "intent": ["explain_feature", "explain_report"],
+      "keywords": {
+        "ar": ["تغير عن أمس", "مقارنة بالأمس", "فرق اليوم", "شو تغير", "ما الذي تغير"],
+        "en": ["changed since yesterday", "compared to yesterday", "difference today", "what changed"]
+      },
+      "title": {
+        "ar": "ما الذي تغير عن الأمس",
+        "en": "What Changed Since Yesterday"
+      },
+      "content": {
+        "ar": "مقارنة اليوم بالأمس:\n• المبيعات: ارتفعت أم انخفضت\n• أداء الأصناف: تغيرات ملحوظة\n• مشاكل جديدة: إن وجدت\n\n💡 مقارنة بسيطة وسريعة\n💡 بدون رسوم بيانية معقدة\n💡 للمالك فقط",
+        "en": "Today vs Yesterday:\n• Sales: Up or down\n• Item performance: Notable changes\n• New issues: If any\n\n💡 Simple and quick comparison\n💡 No complex charts\n💡 Owner only"
+      },
+      "metadata": {
+        "feature_id": "what_changed_since_yesterday_explained",
+        "roles": ["owner"],
+        "screens": ["owner"],
+        "level": "explain",
+        "category": "insights",
+        "is_new": true,
+        "training_required": false,
+        "alert_or_guidance_needed": false
+      }
+    },
+    "silent_loss_meter_explained": {
+      "id": "silent_loss_meter_explained",
+      "intent": ["explain_feature", "explain_report"],
+      "keywords": {
+        "ar": ["خسارة غير مباشرة", "خسارة صامتة", "مجموع الخسائر", "خصومات واستردادات"],
+        "en": ["indirect loss", "silent loss", "combined losses", "discounts and refunds"]
+      },
+      "title": {
+        "ar": "مؤشر الخسارة غير المباشرة",
+        "en": "Silent Loss Meter"
+      },
+      "content": {
+        "ar": "الخسارة غير المباشرة:\n• مجموع الخصومات اليوم\n• مجموع الاستردادات\n• فرق المخزون (إن كان مفعلاً)\n\n💡 رقم واحد يلخص الخسائر اليومية\n💡 يساعد على اكتشاف التسرب\n💡 للمالك فقط",
+        "en": "Silent Loss Meter:\n• Total discounts today\n• Total refunds\n• Inventory variance (if enabled)\n\n💡 One number summarizing daily losses\n💡 Helps detect leakage\n💡 Owner only"
+      },
+      "metadata": {
+        "feature_id": "silent_loss_meter_explained",
+        "roles": ["owner"],
+        "screens": ["owner"],
+        "level": "explain",
+        "category": "insights",
+        "is_new": true,
+        "training_required": false,
+        "alert_or_guidance_needed": false
+      }
+    },
+    "guided_first_shift_explained": {
+      "id": "guided_first_shift_explained",
+      "intent": ["explain_feature", "how_to"],
+      "keywords": {
+        "ar": ["أول وردية", "وردية جديدة", "كاشير جديد", "إرشاد المبتدئ", "تدريب أول"],
+        "en": ["first shift", "new shift", "new cashier", "beginner guide", "first training"]
+      },
+      "title": {
+        "ar": "إرشاد الوردية الأولى",
+        "en": "Guided First Shift"
+      },
+      "content": {
+        "ar": "عند أول وردية للكاشير:\n1. المساعد يرحب بك\n2. يشرح فتح الوردية\n3. يرشدك لإنشاء أول طلب\n4. يشرح إتمام الدفع\n5. يساعد في إغلاق الوردية\n\n💡 خطوة بخطوة\n💡 لا يعيق العمل\n💡 مرة واحدة فقط لكل كاشير",
+        "en": "On cashier's first shift:\n1. Assistant welcomes you\n2. Explains opening shift\n3. Guides first order creation\n4. Explains completing payment\n5. Helps with closing shift\n\n💡 Step by step\n💡 Non-blocking\n💡 Once per cashier only"
+      },
+      "metadata": {
+        "feature_id": "guided_first_shift_explained",
+        "roles": ["cashier", "owner"],
+        "screens": ["pos"],
+        "level": "training",
+        "category": "training",
+        "is_new": true,
+        "training_required": true,
+        "alert_or_guidance_needed": true
+      }
+    },
+    "explain_this_button_explained": {
+      "id": "explain_this_button_explained",
+      "intent": ["explain_feature", "how_to"],
+      "keywords": {
+        "ar": ["زر اشرح", "علامة استفهام", "شرح السياق", "اشرح هذا"],
+        "en": ["explain button", "question mark", "context explanation", "explain this"]
+      },
+      "title": {
+        "ar": "زر \"اشرح هذا\"",
+        "en": "\"Explain This\" Button"
+      },
+      "content": {
+        "ar": "زر الشرح (❓):\n• يظهر بجانب بعض العناصر المهمة\n• الفروقات في المخزون\n• تقرير Z\n• قسم الاستردادات\n\n💡 اضغط للحصول على شرح فوري\n💡 يستخدم قاعدة معرفة المساعد\n💡 بدون نوافذ منبثقة مزعجة",
+        "en": "Explain Button (❓):\n• Appears next to important elements\n• Inventory variances\n• Z Report\n• Refund section\n\n💡 Click for instant explanation\n💡 Uses assistant knowledge base\n💡 No annoying popups"
+      },
+      "metadata": {
+        "feature_id": "explain_this_button_explained",
+        "roles": ["cashier", "owner"],
+        "screens": ["pos", "reports", "inventory"],
+        "level": "hint",
+        "category": "general",
+        "is_new": true,
+        "training_required": false,
+        "alert_or_guidance_needed": false
+      }
+    },
+    "training_replay_explained": {
+      "id": "training_replay_explained",
+      "intent": ["explain_feature"],
+      "keywords": {
+        "ar": ["عرض التدريب", "إجراءات الكاشير", "سجل العمليات", "تسلسل الإجراءات"],
+        "en": ["training replay", "cashier actions", "operation log", "action sequence"]
+      },
+      "title": {
+        "ar": "وضع عرض التدريب",
+        "en": "Training Replay Mode"
+      },
+      "content": {
+        "ar": "عرض التدريب (للمالك):\n• يعرض تسلسل إجراءات الكاشير\n• من سجل العمليات (بدون فيديو)\n• للتعلم وليس للمراقبة\n• قراءة فقط\n\n💡 يساعد في تدريب الموظفين\n💡 يوضح سير العمل\n💡 للمالك فقط",
+        "en": "Training Replay (Owner):\n• Shows sequence of cashier actions\n• From audit logs (no video)\n• For learning, not policing\n• Read-only\n\n💡 Helps train staff\n💡 Clarifies workflow\n💡 Owner only"
+      },
+      "metadata": {
+        "feature_id": "training_replay_explained",
+        "roles": ["owner"],
+        "screens": ["owner"],
+        "level": "explain",
+        "category": "training",
+        "is_new": true,
+        "training_required": false,
+        "alert_or_guidance_needed": false
+      }
+    },
+    "system_confidence_score_explained": {
+      "id": "system_confidence_score_explained",
+      "intent": ["explain_feature", "why_alert"],
+      "keywords": {
+        "ar": ["مؤشر الثقة", "درجة النظام", "ثقة النظام", "درجة التشغيل", "ممتاز جيد انتباه"],
+        "en": ["confidence score", "system score", "system confidence", "operational score", "excellent good attention"]
+      },
+      "title": {
+        "ar": "مؤشر ثقة النظام",
+        "en": "System Confidence Score"
+      },
+      "content": {
+        "ar": "مؤشر الثقة اليومي:\n• ممتاز: عمليات سلسة، أخطاء قليلة\n• جيد: أداء مقبول مع بعض التنبيهات\n• يحتاج انتباه: مشاكل متعددة اليوم\n\nيُحسب من:\n• عدد الأخطاء والتنبيهات\n• سلاسة سير العمل\n\n💡 للمالك فقط\n💡 يُحدّث يومياً",
+        "en": "Daily Confidence Score:\n• Excellent: Smooth operations, few errors\n• Good: Acceptable performance with some alerts\n• Needs Attention: Multiple issues today\n\nCalculated from:\n• Number of errors and alerts\n• Workflow smoothness\n\n💡 Owner only\n💡 Updates daily"
+      },
+      "metadata": {
+        "feature_id": "system_confidence_score_explained",
+        "roles": ["owner"],
+        "screens": ["owner"],
+        "level": "explain",
+        "category": "insights",
+        "is_new": true,
+        "training_required": false,
+        "alert_or_guidance_needed": true
+      }
+    },
+    "suggested_next_actions_explained": {
+      "id": "suggested_next_actions_explained",
+      "intent": ["explain_feature"],
+      "keywords": {
+        "ar": ["اقتراح إجراء", "الخطوة التالية", "ماذا أفعل", "إجراء مقترح"],
+        "en": ["suggested action", "next step", "what to do", "recommended action"]
+      },
+      "title": {
+        "ar": "اقتراحات الإجراءات",
+        "en": "Suggested Next Actions"
+      },
+      "content": {
+        "ar": "اقتراحات ذكية بعد:\n• نهاية الوردية: \"أغلق الشفت\"\n• فرق كبير: \"راجع تقرير المخزون\"\n• طلبات معلقة: \"أكمل الطلبات المفتوحة\"\n\n💡 اقتراحات فقط\n💡 لا تمنع أي إجراء\n💡 تظهر بلطف",
+        "en": "Smart suggestions after:\n• End of shift: \"Close the shift\"\n• Large variance: \"Review inventory report\"\n• Held orders: \"Complete open orders\"\n\n💡 Suggestions only\n💡 Never block actions\n💡 Appear gently"
+      },
+      "metadata": {
+        "feature_id": "suggested_next_actions_explained",
+        "roles": ["cashier", "owner"],
+        "screens": ["pos", "owner"],
+        "level": "hint",
+        "category": "operations",
+        "is_new": true,
+        "training_required": false,
+        "alert_or_guidance_needed": false
+      }
+    },
+    "smart_features_overview": {
+      "id": "smart_features_overview",
+      "intent": ["explain_feature", "how_to"],
+      "keywords": {
+        "ar": ["ميزات ذكية", "النظام الذكي", "كيف يساعدني", "ماذا يفعل النظام"],
+        "en": ["smart features", "smart system", "how helps me", "what system does"]
+      },
+      "title": {
+        "ar": "الميزات الذكية في كستانة",
+        "en": "Smart Features in Kastana"
+      },
+      "content": {
+        "ar": "ميزات ذكية تعمل تلقائياً:\n\n📊 للمالك:\n• ملخص نهاية اليوم\n• مقارنة بالأمس\n• مؤشر الخسارة والثقة\n• كاشف الأنماط\n\n⏰ للكاشير:\n• تنبيهات زمنية\n• إرشاد الوردية الأولى\n• اقتراحات الإجراءات\n\n💡 كل هذا بدون ذكاء اصطناعي - قواعد ذكية فقط!",
+        "en": "Smart features working automatically:\n\n📊 For Owner:\n• End of day summary\n• Comparison with yesterday\n• Loss and confidence indicators\n• Pattern detector\n\n⏰ For Cashier:\n• Time-based alerts\n• First shift guidance\n• Action suggestions\n\n💡 All without AI - smart rules only!"
+      },
+      "metadata": {
+        "feature_id": "smart_features_overview",
+        "roles": ["cashier", "owner"],
+        "screens": ["pos", "owner"],
+        "level": "explain",
+        "category": "general",
+        "is_new": true,
+        "training_required": false,
+        "alert_or_guidance_needed": false
+      }
     }
   },
   "fallbackResponses": {
@@ -1507,16 +1793,20 @@
       "زر الدفع معطل",
       "ما هو تقرير Z؟",
       "كيف أفتح الوردية؟",
-      "فرق النقد في الدرج",
-      "كيف أعمل جرد؟"
+      "لخص يومي",
+      "شو تغيّر عن أمس؟",
+      "ليش النظام أعطاني تنبيه؟",
+      "كيف يساعدني هذا النظام؟"
     ],
     "en": [
       "How to pay?",
       "Pay button disabled",
       "What is Z Report?",
       "How to open shift?",
-      "Cash drawer mismatch",
-      "How to do stock count?"
+      "Summarize my day",
+      "What changed since yesterday?",
+      "Why did I get an alert?",
+      "How can this system help me?"
     ]
   }
 }
