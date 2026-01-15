@@ -216,6 +216,9 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   }
 
   const isRTL = language === "ar";
+  
+  // Dynamic branding based on language
+  const assistantTitle = isRTL ? "مساعد كاستنا الذكي" : "Kastana AI Assistant";
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -226,7 +229,7 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
             "fixed bottom-6 z-50 h-14 w-14 rounded-full shadow-lg",
             "bg-secondary hover:bg-secondary/90 text-secondary-foreground",
             "transition-all duration-200 hover:scale-105",
-            isRTL ? "left-6" : "right-6"
+            isRTL ? "right-6" : "left-6"
           )}
         >
           <div className="relative">
@@ -242,14 +245,14 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
       </SheetTrigger>
       
       <SheetContent
-        side={isRTL ? "left" : "right"}
+        side={isRTL ? "right" : "left"}
         className="w-full sm:w-[380px] flex flex-col p-0"
       >
         <SheetHeader className="p-4 border-b bg-secondary text-secondary-foreground">
           <div className="flex items-center justify-between">
             <SheetTitle className="text-secondary-foreground flex items-center gap-2">
               <Bot className="h-5 w-5" />
-              {language === "ar" ? "المساعد الذكي" : "Smart Assistant"}
+              {assistantTitle}
             </SheetTitle>
             {hasAlerts && (
               <Badge variant="destructive" className="text-xs">
@@ -377,10 +380,7 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
         {/* Footer */}
         <div className="p-3 border-t bg-muted/30">
           <p className="text-xs text-center text-muted-foreground">
-            {language === "ar" 
-              ? "المساعد الذكي - Kastana POS"
-              : "Smart Assistant - Kastana POS"
-            }
+            {assistantTitle}
           </p>
         </div>
       </SheetContent>
