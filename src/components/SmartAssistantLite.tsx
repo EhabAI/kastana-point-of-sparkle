@@ -472,35 +472,24 @@ function KnowledgeTopicCard({
   return (
     <div className={cn(
       "rounded-lg border bg-card space-y-2 transition-all duration-200",
-      isBrowseMode ? "p-5" : "p-3"
+      isBrowseMode ? "p-3" : "p-3"
     )}>
       {entry.title && (
         <div className="flex items-center justify-between">
-          <h4 className={cn(
-            "font-medium text-foreground transition-all duration-200",
-            isBrowseMode ? "text-lg" : "text-sm"
-          )}>
+          <h4 className="font-medium text-foreground text-sm">
             {entry.title[language]}
           </h4>
           <Button 
             variant="ghost" 
             size="sm" 
-            className={cn(
-              "transition-all duration-200",
-              isBrowseMode ? "h-8 px-3 text-sm" : "h-6 px-2 text-xs"
-            )}
+            className="h-6 px-2 text-xs"
             onClick={onClose}
           >
             {language === "ar" ? "رجوع" : "Back"}
           </Button>
         </div>
       )}
-      <div className={cn(
-        "text-muted-foreground whitespace-pre-wrap transition-all duration-200",
-        isBrowseMode 
-          ? "text-base leading-relaxed" 
-          : "text-xs leading-relaxed"
-      )}>
+      <div className="text-muted-foreground whitespace-pre-wrap text-xs leading-relaxed">
         {entry.content[language]}
       </div>
     </div>
@@ -1205,10 +1194,7 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                 </TabsTrigger>
               </TabsList>
 
-              <ScrollArea className={cn(
-                "flex-1 transition-all duration-200",
-                contentMode === "browse" && "assistant-browse-mode"
-              )}>
+              <ScrollArea className="flex-1">
                 {/* Alerts Tab */}
                 <TabsContent value="alerts" className="p-4 space-y-3 mt-0">
                   {/* Feature Announcements - Dismissible */}
@@ -1321,18 +1307,12 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                 {/* Help Tab - Chat with Knowledge Base */}
                 <TabsContent 
                   value="help" 
-                  className={cn(
-                    "mt-0 flex flex-col h-[calc(100vh-320px)] transition-all duration-200",
-                    contentMode === "browse" ? "assistant-browse-mode" : "assistant-chat-mode"
-                  )}
+                  className="mt-0 flex flex-col h-[calc(100vh-320px)]"
                 >
                   {/* Chat Messages Area */}
                   <div 
                     ref={chatScrollRef}
-                    className={cn(
-                      "flex-1 overflow-y-auto transition-all duration-200",
-                      contentMode === "browse" ? "p-6" : "p-4"
-                    )}
+                    className="flex-1 overflow-y-auto p-4"
                   >
                     {chatMessages.length === 0 ? (
                       <div className="text-center py-6">
@@ -1446,32 +1426,20 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                   </div>
                 </TabsContent>
 
-                {/* Browse Topics - Separate from chat with enhanced browse mode */}
+                {/* Browse Topics - Expanded container layout */}
                 {!showChat && (
                   <div 
-                    className={cn(
-                      "absolute inset-0 bg-background z-10 flex flex-col transition-all duration-300",
-                      contentMode === "browse" ? "assistant-browse-mode" : "assistant-chat-mode"
-                    )} 
-                    style={{ top: '180px' }}
+                    className="absolute inset-0 bg-background z-10 flex flex-col transition-all duration-300"
+                    style={{ top: '100px' }}
                   >
-                    <div className={cn(
-                      "border-b flex items-center justify-between transition-all duration-200",
-                      contentMode === "browse" ? "px-6 py-5" : "px-4 py-2"
-                    )}>
-                      <span className={cn(
-                        "font-medium transition-all duration-200",
-                        contentMode === "browse" ? "text-lg" : "text-sm"
-                      )}>
+                    <div className="border-b flex items-center justify-between px-3 py-2">
+                      <span className="font-medium text-sm">
                         {language === "ar" ? "تصفح المواضيع" : "Browse Topics"}
                       </span>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className={cn(
-                          "transition-all duration-200",
-                          contentMode === "browse" ? "h-9 text-sm px-4" : "h-7 text-xs"
-                        )}
+                        className="h-7 text-xs"
                         onClick={() => {
                           setShowChat(true);
                           setContentMode("chat");
@@ -1481,10 +1449,7 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                       </Button>
                     </div>
                     <ScrollArea className="flex-1">
-                      <div className={cn(
-                        "transition-all duration-200",
-                        contentMode === "browse" ? "p-6 space-y-4" : "p-4 space-y-3"
-                      )}>
+                      <div className="p-3 space-y-2">
                         {/* Show selected topic if any */}
                         {selectedEntry ? (
                           <KnowledgeTopicCard 
@@ -1496,62 +1461,36 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                         ) : (
                           <>
                             {/* Topic Categories */}
-                            <div className={cn(
-                              "transition-all duration-200",
-                              contentMode === "browse" ? "space-y-3" : "space-y-2"
-                            )}>
+                            <div className="space-y-2">
                               {TOPIC_CATEGORIES.map((category) => (
-                                <div key={category.id} className="rounded-lg border overflow-hidden transition-all duration-200">
+                                <div key={category.id} className="rounded-lg border overflow-hidden">
                                   <button
-                                    className={cn(
-                                      "w-full flex items-center justify-between hover:bg-muted/50 transition-all duration-200 text-left",
-                                      contentMode === "browse" ? "p-4" : "p-3"
-                                    )}
+                                    className="w-full flex items-center justify-between hover:bg-muted/50 transition-colors p-2.5 text-left"
                                     onClick={() => setExpandedCategory(
                                       expandedCategory === category.id ? null : category.id
                                     )}
                                   >
-                                    <div className={cn(
-                                      "flex items-center transition-all duration-200",
-                                      contentMode === "browse" ? "gap-3" : "gap-2"
-                                    )}>
-                                      <span className={cn(
-                                        "transition-all duration-200",
-                                        contentMode === "browse" && "[&>svg]:h-5 [&>svg]:w-5"
-                                      )}>
-                                        {category.icon}
-                                      </span>
-                                      <span className={cn(
-                                        "font-medium transition-all duration-200",
-                                        contentMode === "browse" ? "text-base" : "text-sm"
-                                      )}>
+                                    <div className="flex items-center gap-2">
+                                      <span>{category.icon}</span>
+                                      <span className="font-medium text-sm">
                                         {category.title[language]}
                                       </span>
                                     </div>
                                     <ChevronRight className={cn(
-                                      "text-muted-foreground transition-transform duration-200",
-                                      contentMode === "browse" ? "h-5 w-5" : "h-4 w-4",
+                                      "h-4 w-4 text-muted-foreground transition-transform",
                                       expandedCategory === category.id && "rotate-90"
                                     )} />
                                   </button>
                                   
                                   {expandedCategory === category.id && (
-                                    <div className={cn(
-                                      "border-t bg-muted/30 transition-all duration-200",
-                                      contentMode === "browse" ? "p-3 space-y-2" : "p-2 space-y-1"
-                                    )}>
+                                    <div className="border-t bg-muted/30 p-2 space-y-1">
                                       {category.topicIds.map((topicId) => {
                                         const topic = allTopics.find(t => t.id === topicId);
                                         if (!topic) return null;
                                         return (
                                           <button
                                             key={topicId}
-                                            className={cn(
-                                              "w-full text-left rounded hover:bg-muted transition-all duration-200 text-muted-foreground hover:text-foreground",
-                                              contentMode === "browse" 
-                                                ? "text-sm px-3 py-2.5 leading-relaxed" 
-                                                : "text-xs px-2 py-1.5"
-                                            )}
+                                            className="w-full text-left rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground text-xs px-2 py-1.5"
                                             onClick={() => setSelectedTopicId(topicId)}
                                           >
                                             {topic.title}
@@ -1565,52 +1504,25 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                             </div>
 
                             {/* Alert Types Legend */}
-                            <div className={cn(
-                              "rounded-lg border mt-3 transition-all duration-200",
-                              contentMode === "browse" ? "p-5" : "p-3"
-                            )}>
-                              <h4 className={cn(
-                                "font-medium transition-all duration-200",
-                                contentMode === "browse" ? "text-base mb-3" : "text-sm mb-2"
-                              )}>
+                            <div className="rounded-lg border mt-2 p-3">
+                              <h4 className="font-medium text-sm mb-2">
                                 {language === "ar" ? "أنواع التنبيهات" : "Alert Types"}
                               </h4>
-                              <div className={cn(
-                                "transition-all duration-200",
-                                contentMode === "browse" ? "space-y-3 text-sm" : "space-y-2 text-xs"
-                              )}>
-                                <div className={cn(
-                                  "flex items-center transition-all duration-200",
-                                  contentMode === "browse" ? "gap-3" : "gap-2"
-                                )}>
-                                  <GraduationCap className={cn(
-                                    "text-blue-500 transition-all duration-200",
-                                    contentMode === "browse" ? "h-5 w-5" : "h-3.5 w-3.5"
-                                  )} />
+                              <div className="space-y-1.5 text-xs">
+                                <div className="flex items-center gap-2">
+                                  <GraduationCap className="h-3.5 w-3.5 text-blue-500" />
                                   <span className="text-muted-foreground">
                                     {language === "ar" ? "تدريب - تعلّم ميزة جديدة" : "Training - Learn a new feature"}
                                   </span>
                                 </div>
-                                <div className={cn(
-                                  "flex items-center transition-all duration-200",
-                                  contentMode === "browse" ? "gap-3" : "gap-2"
-                                )}>
-                                  <AlertTriangle className={cn(
-                                    "text-amber-500 transition-all duration-200",
-                                    contentMode === "browse" ? "h-5 w-5" : "h-3.5 w-3.5"
-                                  )} />
+                                <div className="flex items-center gap-2">
+                                  <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
                                   <span className="text-muted-foreground">
                                     {language === "ar" ? "تنبيه - ينبغي مراجعته" : "Alert - Should be reviewed"}
                                   </span>
                                 </div>
-                                <div className={cn(
-                                  "flex items-center transition-all duration-200",
-                                  contentMode === "browse" ? "gap-3" : "gap-2"
-                                )}>
-                                  <Lightbulb className={cn(
-                                    "text-slate-500 transition-all duration-200",
-                                    contentMode === "browse" ? "h-5 w-5" : "h-3.5 w-3.5"
-                                  )} />
+                                <div className="flex items-center gap-2">
+                                  <Lightbulb className="h-3.5 w-3.5 text-slate-500" />
                                   <span className="text-muted-foreground">
                                     {language === "ar" ? "معلومة - للعلم فقط" : "Info - For your awareness"}
                                   </span>
