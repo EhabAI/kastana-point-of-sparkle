@@ -1343,4 +1343,58 @@ export default {
   no_qr_orders_possible_reasons: "الأسباب المحتملة:",
   reason_no_qr_orders_yet: "لا توجد طلبات QR بعد",
   reason_already_processed: "تمت معالجة جميع الطلبات",
+
+  // Micro UX Badges
+  badge_qr: "QR",
+  badge_hold: "معلق",
+  badge_merged: "مدمج",
+  badge_discount: "خصم",
+  badge_refund: "مسترد",
+  badge_notes: "ملاحظات",
+
+  // Quick Insights
+  quick_insights: "نظرة سريعة",
+  top_seller_today: "الأكثر مبيعاً اليوم",
+  highest_variance: "أعلى فرق",
+  no_sales_data: "لا توجد بيانات مبيعات",
+  variance_exceeds_normal: "الفرق يتجاوز المعدل الطبيعي",
+
+  // Smart Features
+  end_of_day_summary: "ملخص نهاية اليوم",
+  what_changed: "ما الذي تغير عن الأمس",
+  sales_comparison: "مقارنة المبيعات",
+  sales_up_today: "المبيعات ارتفعت اليوم",
+  sales_down_today: "المبيعات انخفضت اليوم",
+  sales_same: "المبيعات مشابهة للأمس",
+  most_frequent_issue: "المشكلة الأكثر تكراراً",
+  silent_loss_meter: "الخسارة غير المباشرة اليوم",
+  silent_loss_tooltip: "مجموع الخسائر من الخصومات والاستردادات وفروق المخزون",
+  system_confidence: "ثقة النظام",
+  confidence_excellent: "ممتاز",
+  confidence_good: "جيد",
+  confidence_needs_attention: "يحتاج انتباه",
+  suggested_action: "الإجراء المقترح",
+  close_shift_suggestion: "أغلق الوردية",
+  review_inventory_suggestion: "راجع تقرير المخزون",
+  complete_open_orders_suggestion: "أكمل الطلبات المفتوحة",
+  first_shift_welcome: "مرحباً بك في أول وردية!",
+  first_shift_guide: "دعني أرشدك للأساسيات",
+  explain_this: "اشرح هذا",
+  mistake_pattern_detected: "لوحظ نمط اليوم",
+  training_replay: "عرض التدريب",
+  view_cashier_actions: "عرض إجراءات الكاشير",
+  operational_score: "درجة التشغيل",
+  based_on_today: "بناءً على عمليات اليوم",
+
+  // System Status
+  kds: "شاشة المطبخ",
+  smart_assistant: "المساعد",
+  enabled: "مفعّل",
+
+  // Action Warnings
+  action_affects_reports_inventory: "هذا الإجراء سيؤثر على التقارير والمخزون",
+
+  // Contextual Hints
+  hint_variance_report: "هذا التقرير يساعدك على اكتشاف الهدر مبكرًا",
+  hint_z_report: "هذا تقرير يومي ولا يُستخدم للتحليل طويل المدى",
 } as const;
