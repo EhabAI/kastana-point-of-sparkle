@@ -1,5 +1,6 @@
 // Kastana POS Assistant Knowledge Loader
 // Reads from static assistant_knowledge.json
+// Enhanced with role/screen filtering for Smart Guided Assistant
 
 import knowledgeData from "@/data/assistant_knowledge.json";
 import type { AssistantIntent } from "@/lib/assistantScopeGuard";
@@ -63,6 +64,9 @@ const knowledge = knowledgeData as KnowledgeBase;
 // Storage key for dismissed announcements
 const DISMISSED_ANNOUNCEMENTS_KEY = "kastana_dismissed_announcements";
 
+// Confidence threshold for search results
+const CONFIDENCE_THRESHOLD = 10;
+
 /**
  * Get feature announcements that haven't been dismissed
  */
@@ -119,14 +123,32 @@ export function getUndismissedAnnouncements(): FeatureAnnouncement[] {
 }
 
 /**
- * Search the knowledge base for the best matching entry
+ * Normalize Arabic text for better matching
+ * Removes diacritics and normalizes common variations
+ */
+function normalizeArabic(text: string): string {
+  return text
+    .replace(/[\u064B-\u065F]/g, '') // Remove diacritics
+    .replace(/[أإآ]/g, 'ا') // Normalize alef variations
+    .replace(/ى/g, 'ي') // Normalize ya
+    .replace(/ة/g, 'ه') // Normalize ta marbuta
+    .toLowerCase();
+}
+
+/**
+ * Enhanced search with role/screen filtering and Arabic normalization
  */
 export function searchKnowledge(
   query: string,
   language: "ar" | "en",
-  intent?: AssistantIntent
+  intent?: AssistantIntent,
+  options?: {
+    role?: string;
+    screen?: string;
+  }
 ): KnowledgeEntry | null {
   const lowerQuery = query.toLowerCase();
+  const normalizedQuery = language === "ar" ? normalizeArabic(query) : lowerQuery;
   const entries = Object.values(knowledge.entries);
   
   let bestMatch: KnowledgeEntry | null = null;
@@ -135,11 +157,36 @@ export function searchKnowledge(
   for (const entry of entries) {
     let score = 0;
     
-    // Check keyword matches
+    // Role filtering boost/penalty
+    if (options?.role && entry.metadata?.user_roles) {
+      if (entry.metadata.user_roles.includes(options.role)) {
+        score += 5; // Boost for role match
+      } else {
+        score -= 3; // Slight penalty for non-matching role
+      }
+    }
+    
+    // Screen filtering boost
+    if (options?.screen && entry.metadata?.affected_screens) {
+      const screenMatch = entry.metadata.affected_screens.some(s => 
+        s.toLowerCase().includes(options.screen!.toLowerCase()) ||
+        options.screen!.toLowerCase().includes(s.toLowerCase())
+      );
+      if (screenMatch) {
+        score += 5; // Boost for screen match
+      }
+    }
+    
+    // Check keyword matches with normalization for Arabic
     const keywords = entry.keywords[language];
     for (const keyword of keywords) {
-      if (lowerQuery.includes(keyword.toLowerCase())) {
+      const normalizedKeyword = language === "ar" ? normalizeArabic(keyword) : keyword.toLowerCase();
+      if (normalizedQuery.includes(normalizedKeyword)) {
         score += 10;
+      }
+      // Partial match for longer keywords
+      if (normalizedKeyword.length > 3 && normalizedQuery.includes(normalizedKeyword.substring(0, 3))) {
+        score += 3;
       }
     }
     
@@ -147,7 +194,8 @@ export function searchKnowledge(
     const otherLang = language === "ar" ? "en" : "ar";
     const otherKeywords = entry.keywords[otherLang];
     for (const keyword of otherKeywords) {
-      if (lowerQuery.includes(keyword.toLowerCase())) {
+      const normalizedKeyword = otherLang === "ar" ? normalizeArabic(keyword) : keyword.toLowerCase();
+      if (lowerQuery.includes(normalizedKeyword)) {
         score += 5;
       }
     }
@@ -158,8 +206,15 @@ export function searchKnowledge(
     }
     
     // Check title match (if title exists)
-    if (entry.title && lowerQuery.includes(entry.title[language].toLowerCase())) {
-      score += 20;
+    if (entry.title) {
+      const titleText = language === "ar" ? normalizeArabic(entry.title[language]) : entry.title[language].toLowerCase();
+      if (normalizedQuery.includes(titleText)) {
+        score += 20;
+      }
+      // Partial title match
+      if (titleText.includes(normalizedQuery)) {
+        score += 10;
+      }
     }
     
     if (score > bestScore) {
@@ -168,8 +223,8 @@ export function searchKnowledge(
     }
   }
   
-  // Only return if we have a reasonable match
-  return bestScore >= 10 ? bestMatch : null;
+  // Only return if we have a reasonable match (above confidence threshold)
+  return bestScore >= CONFIDENCE_THRESHOLD ? bestMatch : null;
 }
 
 /**
@@ -217,8 +272,46 @@ export function getAllTopics(language: "ar" | "en"): Array<{ id: string; title: 
 }
 
 /**
+ * Get topics filtered by role
+ */
+export function getTopicsForRole(
+  language: "ar" | "en", 
+  role: string
+): Array<{ id: string; title: string }> {
+  return Object.values(knowledge.entries)
+    .filter(entry => 
+      !entry.metadata?.user_roles || 
+      entry.metadata.user_roles.includes(role)
+    )
+    .map((entry) => ({
+      id: entry.id,
+      title: entry.title?.[language] || entry.id.replace(/_/g, ' '),
+    }));
+}
+
+/**
  * Get a specific entry by ID
  */
 export function getEntryById(id: string): KnowledgeEntry | null {
   return knowledge.entries[id] || null;
+}
+
+/**
+ * Get entries by screen
+ */
+export function getEntriesByScreen(screen: string): KnowledgeEntry[] {
+  return Object.values(knowledge.entries).filter(entry =>
+    entry.metadata?.affected_screens?.some(s => 
+      s.toLowerCase().includes(screen.toLowerCase())
+    )
+  );
+}
+
+/**
+ * Get entries marked as requiring training
+ */
+export function getTrainingRequiredEntries(): KnowledgeEntry[] {
+  return Object.values(knowledge.entries).filter(entry =>
+    entry.metadata?.training_required === true
+  );
 }

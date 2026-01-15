@@ -15,11 +15,18 @@ export type RuleId =
   | "discount_no_reason"
   | "high_cash_refund"
   | "training_mode_active"
-  // New WOW rules
+  // WOW rules
   | "long_pending_order"
   | "repeated_void_actions"
   | "repeated_failed_payments"
-  | "void_instead_of_hold";
+  | "void_instead_of_hold"
+  // Role-specific rules
+  | "cashier_pay_held_order"
+  | "owner_high_variance"
+  | "owner_low_stock"
+  | "kds_stuck_orders"
+  | "kds_rush_accumulation"
+  | "kds_first_time";
 
 export type RuleSeverity = "info" | "warning" | "error";
 
@@ -244,6 +251,92 @@ const RULES: Record<RuleId, Omit<SmartRule, "id">> = {
       en: "Hold preserves the order for later without deleting it."
     },
     priority: 40
+  },
+  
+  // === ROLE-SPECIFIC RULES ===
+  
+  cashier_pay_held_order: {
+    severity: "warning",
+    title: { ar: "الطلب معلق", en: "Order is Held" },
+    message: { 
+      ar: "لا يمكن الدفع لطلب معلق. يجب استئنافه أولاً.",
+      en: "Cannot pay for a held order. Resume it first."
+    },
+    suggestion: {
+      ar: "افتح «الطلبات المعلقة» واضغط «استئناف» على هذا الطلب.",
+      en: "Open 'Held Orders' and click 'Resume' on this order."
+    },
+    priority: 85
+  },
+  
+  owner_high_variance: {
+    severity: "warning",
+    title: { ar: "فرق مخزون مرتفع", en: "High Inventory Variance" },
+    message: { 
+      ar: "فرق المخزون أعلى من الطبيعي. راجع الأسباب المحتملة.",
+      en: "Inventory variance is higher than normal. Review possible causes."
+    },
+    suggestion: {
+      ar: "الأسباب الشائعة: هدر، سرقة، خطأ تسجيل، أو تغيير في الوصفات.",
+      en: "Common causes: waste, theft, recording error, or recipe changes."
+    },
+    priority: 60
+  },
+  
+  owner_low_stock: {
+    severity: "warning",
+    title: { ar: "مخزون منخفض", en: "Low Stock" },
+    message: { 
+      ar: "بعض الأصناف قاربت على النفاد.",
+      en: "Some items are running low."
+    },
+    suggestion: {
+      ar: "راجع تنبيهات المخزون واطلب التوريد قبل النفاد.",
+      en: "Check inventory alerts and order supplies before stockout."
+    },
+    priority: 55
+  },
+  
+  kds_stuck_orders: {
+    severity: "warning",
+    title: { ar: "طلبات متأخرة", en: "Delayed Orders" },
+    message: { 
+      ar: "توجد طلبات في الانتظار لفترة طويلة.",
+      en: "Some orders have been waiting too long."
+    },
+    suggestion: {
+      ar: "ركز على الطلبات الحمراء أولاً.",
+      en: "Focus on red orders first."
+    },
+    priority: 75
+  },
+  
+  kds_rush_accumulation: {
+    severity: "info",
+    title: { ar: "ازدحام الطلبات", en: "Order Rush" },
+    message: { 
+      ar: "تراكم طلبات في الانتظار.",
+      en: "Orders accumulating in queue."
+    },
+    suggestion: {
+      ar: "ابدأ بالأقدم وحافظ على الترتيب.",
+      en: "Start with oldest and maintain order."
+    },
+    priority: 45
+  },
+  
+  kds_first_time: {
+    severity: "info",
+    title: { ar: "مرحباً بك في شاشة المطبخ", en: "Welcome to Kitchen Display" },
+    message: { 
+      ar: "الطلبات تظهر بالترتيب. اضغط لتغيير الحالة.",
+      en: "Orders appear in order. Click to change status."
+    },
+    suggestion: {
+      ar: "جديد → قيد التحضير → جاهز",
+      en: "New → In Progress → Ready"
+    },
+    priority: 30
   }
 };
 
