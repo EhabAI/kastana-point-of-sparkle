@@ -615,105 +615,118 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
               </div>
             </TabsContent>
 
-            {/* Help Tab - Chat + Knowledge Base Browser */}
+            {/* Help Tab - Chat with Knowledge Base */}
             <TabsContent value="help" className="mt-0 flex flex-col h-[calc(100vh-280px)]">
-              {/* Toggle between Chat and Browse modes */}
-              <div className="px-4 pt-3 pb-2 border-b">
-                <div className="flex gap-2">
-                  <Button
-                    variant={showChat ? "default" : "outline"}
-                    size="sm"
-                    className="flex-1 text-xs h-8"
-                    onClick={() => { setShowChat(true); setSelectedTopicId(null); }}
-                  >
-                    <Send className="h-3 w-3 mr-1.5" />
-                    {language === "ar" ? "اسألني" : "Ask Me"}
-                  </Button>
-                  <Button
-                    variant={!showChat ? "default" : "outline"}
-                    size="sm"
-                    className="flex-1 text-xs h-8"
-                    onClick={() => { setShowChat(false); setSelectedTopicId(null); }}
-                  >
-                    <BookOpen className="h-3 w-3 mr-1.5" />
-                    {language === "ar" ? "تصفح" : "Browse"}
-                  </Button>
-                </div>
+              {/* Chat Messages Area */}
+              <div 
+                ref={chatScrollRef}
+                className="flex-1 overflow-y-auto p-4"
+              >
+                {chatMessages.length === 0 ? (
+                  <div className="text-center py-6">
+                    <div className="mx-auto w-12 h-12 rounded-full bg-secondary/50 flex items-center justify-center mb-3">
+                      <Bot className="h-6 w-6 text-secondary-foreground/70" />
+                    </div>
+                    <p className="text-sm font-medium mb-1">
+                      {language === "ar" ? "مرحباً! كيف أساعدك؟" : "Hello! How can I help?"}
+                    </p>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      {language === "ar" 
+                        ? "اسألني عن أي شيء يخص نظام Kastana POS"
+                        : "Ask me anything about Kastana POS system"
+                      }
+                    </p>
+                    {/* Quick question suggestions */}
+                    <div className="flex flex-wrap gap-1.5 justify-center">
+                      {quickRepliesFromKB.slice(0, 3).map((reply, idx) => (
+                        <Button
+                          key={idx}
+                          variant="outline"
+                          size="sm"
+                          className="text-[10px] h-7 px-2"
+                          onClick={() => handleSendMessage(reply)}
+                        >
+                          {reply}
+                        </Button>
+                      ))}
+                    </div>
+                    
+                    {/* Browse topics link */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="mt-4 text-xs text-muted-foreground"
+                      onClick={() => setShowChat(false)}
+                    >
+                      <BookOpen className="h-3 w-3 mr-1.5" />
+                      {language === "ar" ? "أو تصفح المواضيع" : "Or browse topics"}
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    {chatMessages.map((message) => (
+                      <ChatBubble 
+                        key={message.id} 
+                        message={message} 
+                        language={language} 
+                      />
+                    ))}
+                    {/* Browse topics link after messages */}
+                    <div className="text-center pt-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-[10px] text-muted-foreground h-6"
+                        onClick={() => setShowChat(false)}
+                      >
+                        <BookOpen className="h-3 w-3 mr-1" />
+                        {language === "ar" ? "تصفح المواضيع" : "Browse topics"}
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
 
-              {showChat ? (
-                /* Chat Mode */
-                <div className="flex-1 flex flex-col overflow-hidden">
-                  {/* Chat Messages Area */}
-                  <div 
-                    ref={chatScrollRef}
-                    className="flex-1 overflow-y-auto p-4"
+              {/* Chat Input - Always visible at bottom */}
+              <div className="p-3 border-t bg-background shrink-0">
+                <form 
+                  onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
+                  className="flex gap-2"
+                >
+                  <Input
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder={language === "ar" ? "اسأل أي شيء عن النظام…" : "Ask anything about the system…"}
+                    className="flex-1 h-10 text-sm"
+                  />
+                  <Button 
+                    type="submit" 
+                    size="sm" 
+                    className="h-10 w-10 p-0"
+                    disabled={!chatInput.trim()}
                   >
-                    {chatMessages.length === 0 ? (
-                      <div className="text-center py-8">
-                        <div className="mx-auto w-12 h-12 rounded-full bg-secondary/50 flex items-center justify-center mb-3">
-                          <Bot className="h-6 w-6 text-secondary-foreground/70" />
-                        </div>
-                        <p className="text-sm font-medium mb-1">
-                          {language === "ar" ? "مرحباً! كيف أساعدك؟" : "Hello! How can I help?"}
-                        </p>
-                        <p className="text-xs text-muted-foreground mb-4">
-                          {language === "ar" 
-                            ? "اسألني عن أي شيء يخص نظام Kastana POS"
-                            : "Ask me anything about Kastana POS system"
-                          }
-                        </p>
-                        {/* Quick question suggestions */}
-                        <div className="flex flex-wrap gap-1.5 justify-center">
-                          {quickRepliesFromKB.slice(0, 3).map((reply, idx) => (
-                            <Button
-                              key={idx}
-                              variant="outline"
-                              size="sm"
-                              className="text-[10px] h-7 px-2"
-                              onClick={() => handleSendMessage(reply)}
-                            >
-                              {reply}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      chatMessages.map((message) => (
-                        <ChatBubble 
-                          key={message.id} 
-                          message={message} 
-                          language={language} 
-                        />
-                      ))
-                    )}
-                  </div>
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </form>
+              </div>
+            </TabsContent>
 
-                  {/* Chat Input */}
-                  <div className="p-3 border-t bg-muted/30">
-                    <form 
-                      onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
-                      className="flex gap-2"
-                    >
-                      <Input
-                        value={chatInput}
-                        onChange={(e) => setChatInput(e.target.value)}
-                        placeholder={language === "ar" ? "اكتب سؤالك هنا..." : "Type your question..."}
-                        className="flex-1 h-9 text-sm"
-                      />
-                      <Button 
-                        type="submit" 
-                        size="sm" 
-                        className="h-9 w-9 p-0"
-                        disabled={!chatInput.trim()}
-                      >
-                        <Send className="h-4 w-4" />
-                      </Button>
-                    </form>
-                  </div>
+            {/* Browse Topics - Separate from chat */}
+            {!showChat && (
+              <div className="absolute inset-0 bg-background z-10 flex flex-col" style={{ top: '180px' }}>
+                <div className="px-4 py-2 border-b flex items-center justify-between">
+                  <span className="text-sm font-medium">
+                    {language === "ar" ? "تصفح المواضيع" : "Browse Topics"}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => setShowChat(true)}
+                  >
+                    {language === "ar" ? "رجوع للمحادثة" : "Back to Chat"}
+                  </Button>
                 </div>
-              ) : (
-                /* Browse Mode - existing knowledge browser */
                 <ScrollArea className="flex-1">
                   <div className="p-4 space-y-3">
                     {/* Show selected topic if any */}
@@ -798,8 +811,8 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                     )}
                   </div>
                 </ScrollArea>
-              )}
-            </TabsContent>
+              </div>
+            )}
           </ScrollArea>
         </Tabs>
         
