@@ -1205,7 +1205,10 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                 </TabsTrigger>
               </TabsList>
 
-              <ScrollArea className="flex-1">
+              <ScrollArea className={cn(
+                "flex-1 transition-all duration-200",
+                contentMode === "browse" && "assistant-browse-mode"
+              )}>
                 {/* Alerts Tab */}
                 <TabsContent value="alerts" className="p-4 space-y-3 mt-0">
                   {/* Feature Announcements - Dismissible */}
@@ -1316,11 +1319,20 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                 </TabsContent>
 
                 {/* Help Tab - Chat with Knowledge Base */}
-                <TabsContent value="help" className="mt-0 flex flex-col h-[calc(100vh-320px)]">
+                <TabsContent 
+                  value="help" 
+                  className={cn(
+                    "mt-0 flex flex-col h-[calc(100vh-320px)] transition-all duration-200",
+                    contentMode === "browse" ? "assistant-browse-mode" : "assistant-chat-mode"
+                  )}
+                >
                   {/* Chat Messages Area */}
                   <div 
                     ref={chatScrollRef}
-                    className="flex-1 overflow-y-auto p-4"
+                    className={cn(
+                      "flex-1 overflow-y-auto transition-all duration-200",
+                      contentMode === "browse" ? "p-6" : "p-4"
+                    )}
                   >
                     {chatMessages.length === 0 ? (
                       <div className="text-center py-6">
@@ -1436,10 +1448,16 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
 
                 {/* Browse Topics - Separate from chat with enhanced browse mode */}
                 {!showChat && (
-                  <div className="absolute inset-0 bg-background z-10 flex flex-col transition-all duration-300" style={{ top: '180px' }}>
+                  <div 
+                    className={cn(
+                      "absolute inset-0 bg-background z-10 flex flex-col transition-all duration-300",
+                      contentMode === "browse" ? "assistant-browse-mode" : "assistant-chat-mode"
+                    )} 
+                    style={{ top: '180px' }}
+                  >
                     <div className={cn(
                       "border-b flex items-center justify-between transition-all duration-200",
-                      contentMode === "browse" ? "px-6 py-4" : "px-4 py-2"
+                      contentMode === "browse" ? "px-6 py-5" : "px-4 py-2"
                     )}>
                       <span className={cn(
                         "font-medium transition-all duration-200",

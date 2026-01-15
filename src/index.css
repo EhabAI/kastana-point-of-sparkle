@@ -190,6 +190,78 @@
   }
 }
 
+/* Smart Assistant Browse Mode Styles */
+@layer components {
+  .assistant-chat-mode {
+    /* Default chat mode - no special styling */
+  }
+  
+  .assistant-browse-mode {
+    /* Enhanced browse mode for better readability */
+    --browse-font-size: 1rem;
+    --browse-line-height: 1.75;
+    --browse-spacing: 1.5rem;
+  }
+  
+  .assistant-browse-mode .text-xs {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+  
+  .assistant-browse-mode .text-sm {
+    font-size: 1.0625rem;
+    line-height: 1.65;
+  }
+  
+  .assistant-browse-mode .text-base {
+    font-size: 1.1875rem;
+    line-height: 1.7;
+  }
+  
+  .assistant-browse-mode .text-lg {
+    font-size: 1.375rem;
+    line-height: 1.6;
+  }
+  
+  .assistant-browse-mode .p-3 {
+    padding: 1.25rem;
+  }
+  
+  .assistant-browse-mode .p-4 {
+    padding: 1.75rem;
+  }
+  
+  .assistant-browse-mode .space-y-2 > * + * {
+    margin-top: 0.875rem;
+  }
+  
+  .assistant-browse-mode .space-y-3 > * + * {
+    margin-top: 1.25rem;
+  }
+  
+  .assistant-browse-mode .gap-2 {
+    gap: 0.875rem;
+  }
+  
+  .assistant-browse-mode .gap-3 {
+    gap: 1.25rem;
+  }
+  
+  .assistant-browse-mode .rounded-lg {
+    border-radius: 0.75rem;
+  }
+  
+  /* Reduce visual density in browse mode */
+  .assistant-browse-mode .border {
+    border-width: 1.5px;
+  }
+  
+  .assistant-browse-mode button {
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+  }
+}
+
 /* Print styles for receipt */
 @media print {
   body * {
