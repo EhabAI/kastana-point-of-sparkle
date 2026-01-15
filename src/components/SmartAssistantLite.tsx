@@ -29,11 +29,14 @@ import {
   searchKnowledge, 
   getFallbackResponse, 
   formatChatResponse,
-  getUndismissedAnnouncements,
-  dismissAnnouncement,
   type KnowledgeEntry,
-  type FeatureAnnouncement
 } from "@/lib/assistantKnowledge";
+import {
+  getUnseenChangelog,
+  markChangelogSeen,
+  type ChangelogEntry,
+} from "@/lib/assistantChangelog";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Badge indicator component for tabs
 interface TabBadgeProps {
@@ -136,6 +139,10 @@ interface SmartAssistantLiteProps {
   refundAmountThisShift?: number;
   averageRefundAmount?: number;
   trainingMode?: boolean;
+  // KDS-specific context
+  kdsStuckOrderCount?: number;
+  kdsRushOrderCount?: number;
+  kdsIsFirstVisit?: boolean;
 }
 
 // Severity icon component
@@ -268,15 +275,17 @@ function QuickTipCard({ tip }: { tip: string }) {
   );
 }
 
-// Feature announcement card (dismissible)
+// Feature announcement card (dismissible) - now uses ChangelogEntry
 function FeatureAnnouncementCard({ 
   announcement, 
   language,
-  onDismiss 
+  onDismiss,
+  onExplain
 }: { 
-  announcement: FeatureAnnouncement; 
+  announcement: ChangelogEntry; 
   language: "ar" | "en";
   onDismiss: (id: string) => void;
+  onExplain?: (knowledgeId: string) => void;
 }) {
   return (
     <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 relative">
@@ -297,6 +306,16 @@ function FeatureAnnouncementCard({
           <p className="text-xs text-muted-foreground mt-1">
             {announcement.description[language]}
           </p>
+          {announcement.knowledgeId && onExplain && (
+            <Button
+              variant="link"
+              size="sm"
+              className="h-auto p-0 text-xs text-primary mt-1"
+              onClick={() => onExplain(announcement.knowledgeId!)}
+            >
+              {language === "ar" ? "اشرح المزيد" : "Explain more"}
+            </Button>
+          )}
         </div>
       </div>
     </div>
@@ -366,14 +385,17 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   
-  // Feature announcements state
-  const [announcements, setAnnouncements] = useState<FeatureAnnouncement[]>([]);
+  // Feature announcements state (using assistantChangelog as single source)
+  const [announcements, setAnnouncements] = useState<ChangelogEntry[]>([]);
   
   // Chat state
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [showChat, setShowChat] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+  
+  // Get user role for role-based changelog filtering
+  const { role } = useAuth();
   
   const state = useSmartAssistant({
     activeTab: props.activeTab,
@@ -392,19 +414,32 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
     refundAmountThisShift: props.refundAmountThisShift,
     averageRefundAmount: props.averageRefundAmount,
     trainingMode: props.trainingMode,
+    // KDS metrics
+    kdsStuckOrderCount: props.kdsStuckOrderCount,
+    kdsRushOrderCount: props.kdsRushOrderCount,
+    kdsIsFirstVisit: props.kdsIsFirstVisit,
   });
 
   const { language, contextHint, alerts, hasAlerts } = state;
   
-  // Load feature announcements on mount
+  // Load feature announcements on mount (from assistantChangelog, filtered by role)
   useEffect(() => {
-    setAnnouncements(getUndismissedAnnouncements());
-  }, []);
+    if (role) {
+      setAnnouncements(getUnseenChangelog(role));
+    }
+  }, [role]);
   
   // Handle dismissing an announcement
   const handleDismissAnnouncement = useCallback((id: string) => {
-    dismissAnnouncement(id);
+    markChangelogSeen(id);
     setAnnouncements(prev => prev.filter(a => a.id !== id));
+  }, []);
+  
+  // Handle explaining an announcement (navigate to knowledge entry)
+  const handleExplainAnnouncement = useCallback((knowledgeId: string) => {
+    setSelectedTopicId(knowledgeId);
+    setActiveTab("help");
+    setShowChat(false);
   }, []);
   
   // Get quick replies from knowledge base
@@ -607,6 +642,7 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                       announcement={announcement}
                       language={language}
                       onDismiss={handleDismissAnnouncement}
+                      onExplain={handleExplainAnnouncement}
                     />
                   ))}
                 </div>

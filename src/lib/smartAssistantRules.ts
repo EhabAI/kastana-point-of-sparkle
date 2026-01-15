@@ -73,6 +73,11 @@ export interface RuleContext {
   
   // Mode context
   trainingMode?: boolean;
+  
+  // KDS context
+  kdsStuckOrderCount?: number;
+  kdsRushOrderCount?: number;
+  kdsIsFirstVisit?: boolean;
 }
 
 // Rule definitions with bilingual messages
@@ -352,6 +357,10 @@ const VOID_RAPID_THRESHOLD = 3; // 3 voids in an hour triggers alert
 const FAILED_PAYMENT_THRESHOLD = 2; // 2+ failed payments triggers alert
 const VOID_VS_HOLD_RATIO_THRESHOLD = 3; // If voids > 3x holds, suggest Hold
 
+// KDS thresholds
+const KDS_STUCK_ORDER_THRESHOLD = 1; // Show alert if any orders stuck
+const KDS_RUSH_ORDER_THRESHOLD = 5; // Show rush alert if 5+ orders queued
+
 /**
  * Evaluate all rules against current context
  * Returns array of triggered alerts
@@ -485,6 +494,29 @@ export function evaluateRules(context: RuleContext): SmartRule[] {
     context.voidCountThisShift > (context.holdCountThisShift || 0) * VOID_VS_HOLD_RATIO_THRESHOLD
   ) {
     triggeredRules.push({ id: "void_instead_of_hold", ...RULES.void_instead_of_hold });
+  }
+
+  // === KDS RULES ===
+
+  // Rule 15: KDS stuck orders
+  if (
+    context.kdsStuckOrderCount !== undefined &&
+    context.kdsStuckOrderCount >= KDS_STUCK_ORDER_THRESHOLD
+  ) {
+    triggeredRules.push({ id: "kds_stuck_orders", ...RULES.kds_stuck_orders });
+  }
+
+  // Rule 16: KDS rush accumulation
+  if (
+    context.kdsRushOrderCount !== undefined &&
+    context.kdsRushOrderCount >= KDS_RUSH_ORDER_THRESHOLD
+  ) {
+    triggeredRules.push({ id: "kds_rush_accumulation", ...RULES.kds_rush_accumulation });
+  }
+
+  // Rule 17: KDS first time visit
+  if (context.kdsIsFirstVisit === true) {
+    triggeredRules.push({ id: "kds_first_time", ...RULES.kds_first_time });
   }
 
   // Sort by priority (highest first) and return only the top alert

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useCallback, ReactNode } fr
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
-type UserRole = "cashier" | "owner" | "system_admin" | null;
+type UserRole = "cashier" | "owner" | "kitchen" | "system_admin" | null;
 type ShiftStatus = "open" | "closed" | null;
 type OrderStatus = "open" | "held" | "paid" | "cancelled" | "voided" | null;
 type PaymentMethod = "cash" | "visa" | "mastercard" | "wallet" | "efawateer" | null;
@@ -35,6 +35,7 @@ const getScreenId = (pathname: string): string => {
   if (pathname === "/system-admin") return "system_admin_dashboard";
   if (pathname === "/admin") return "owner_dashboard";
   if (pathname === "/pos") return "pos_main";
+  if (pathname === "/kds") return "kds";
   if (pathname.startsWith("/menu/")) return "customer_menu";
   return "unknown";
 };

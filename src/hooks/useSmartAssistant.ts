@@ -75,6 +75,11 @@ interface UseSmartAssistantOptions {
   
   // Mode
   trainingMode?: boolean;
+  
+  // KDS context
+  kdsStuckOrderCount?: number;
+  kdsRushOrderCount?: number;
+  kdsIsFirstVisit?: boolean;
 }
 
 export function useSmartAssistant(options: UseSmartAssistantOptions = {}): SmartAssistantState {
@@ -144,6 +149,11 @@ export function useSmartAssistant(options: UseSmartAssistantOptions = {}): Smart
       
       // Mode
       trainingMode: options.trainingMode,
+      
+      // KDS
+      kdsStuckOrderCount: options.kdsStuckOrderCount,
+      kdsRushOrderCount: options.kdsRushOrderCount,
+      kdsIsFirstVisit: options.kdsIsFirstVisit,
     };
   }, [
     options.paymentMethod,
@@ -167,6 +177,9 @@ export function useSmartAssistant(options: UseSmartAssistantOptions = {}): Smart
     options.refundAmountThisShift,
     options.averageRefundAmount,
     options.trainingMode,
+    options.kdsStuckOrderCount,
+    options.kdsRushOrderCount,
+    options.kdsIsFirstVisit,
     order_status,
     shift_status,
     selected_table_id,
