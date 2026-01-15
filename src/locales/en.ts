@@ -1358,8 +1358,15 @@ export default {
   quick_insights: "Quick Insights",
   top_seller_today: "Top seller today",
   highest_variance: "Highest variance",
-  no_sales_data: "No sales data",
+  no_top_seller_today: "No sales today",
   variance_exceeds_normal: "Variance exceeds normal range",
+
+  // Assistant Quick Prompts
+  prompt_summarize_day: "Summarize my day",
+  prompt_what_changed: "What changed since yesterday?",
+  prompt_why_alert: "Why did the system give me an alert?",
+  prompt_explain_confidence: "Explain confidence score",
+  prompt_how_helps_today: "How can this system help me today?",
 
   // Smart Features
   end_of_day_summary: "End of Day Summary",
