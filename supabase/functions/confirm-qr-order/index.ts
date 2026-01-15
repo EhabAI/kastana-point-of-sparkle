@@ -291,10 +291,11 @@ serve(async (req) => {
     // ═══════════════════════════════════════════════════════════════════
     // 8. ATOMIC UPDATE: Confirm order with WHERE status = 'pending'
     // ═══════════════════════════════════════════════════════════════════
+    // Set status to "new" so order appears on KDS immediately
     const { data: updatedOrder, error: updateError } = await supabase
       .from("orders")
       .update({
-        status: "open",
+        status: "new",
         shift_id: openShift.id,
         updated_at: new Date().toISOString(),
       })
@@ -340,7 +341,7 @@ serve(async (req) => {
           shift_id: openShift.id,
           branch_id: userBranchId,
           previous_status: "pending",
-          new_status: "open",
+          new_status: "new", // Sends to KDS
           confirmed_at: new Date().toISOString(),
         },
       });
