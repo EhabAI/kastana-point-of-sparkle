@@ -150,6 +150,9 @@ const QUICK_ACTION_PILLS = {
 // Width mode types and configuration
 type WidthMode = "compact" | "default" | "expanded";
 
+// Content mode for browse readability
+type ContentMode = "chat" | "browse";
+
 const WIDTH_MODE_CONFIG: Record<WidthMode, { width: string; maxWidth: string }> = {
   compact: { width: "320px", maxWidth: "320px" },
   default: { width: "420px", maxWidth: "420px" },
@@ -454,34 +457,50 @@ function ShowGuidanceButton({
   );
 }
 
-// Knowledge topic card component
+// Knowledge topic card component with browse mode support
 function KnowledgeTopicCard({ 
   entry, 
   language,
-  onClose
+  onClose,
+  isBrowseMode = false
 }: { 
   entry: KnowledgeEntry; 
   language: "ar" | "en";
   onClose: () => void;
+  isBrowseMode?: boolean;
 }) {
   return (
-    <div className="rounded-lg border bg-card p-3 space-y-2">
+    <div className={cn(
+      "rounded-lg border bg-card space-y-2 transition-all duration-200",
+      isBrowseMode ? "p-5" : "p-3"
+    )}>
       {entry.title && (
         <div className="flex items-center justify-between">
-          <h4 className="font-medium text-sm text-foreground">
+          <h4 className={cn(
+            "font-medium text-foreground transition-all duration-200",
+            isBrowseMode ? "text-lg" : "text-sm"
+          )}>
             {entry.title[language]}
           </h4>
           <Button 
             variant="ghost" 
             size="sm" 
-            className="h-6 px-2 text-xs"
+            className={cn(
+              "transition-all duration-200",
+              isBrowseMode ? "h-8 px-3 text-sm" : "h-6 px-2 text-xs"
+            )}
             onClick={onClose}
           >
             {language === "ar" ? "رجوع" : "Back"}
           </Button>
         </div>
       )}
-      <div className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">
+      <div className={cn(
+        "text-muted-foreground whitespace-pre-wrap transition-all duration-200",
+        isBrowseMode 
+          ? "text-base leading-relaxed" 
+          : "text-xs leading-relaxed"
+      )}>
         {entry.content[language]}
       </div>
     </div>
@@ -667,6 +686,9 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   const [chatInput, setChatInput] = useState("");
   const [showChat, setShowChat] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+  
+  // Content mode state for browse readability
+  const [contentMode, setContentMode] = useState<ContentMode>("chat");
   
   // Get user role for role-based changelog filtering
   const { role } = useAuth();
@@ -1335,7 +1357,10 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                           variant="ghost"
                           size="sm"
                           className="mt-4 text-xs text-muted-foreground"
-                          onClick={() => setShowChat(false)}
+                          onClick={() => {
+                            setShowChat(false);
+                            setContentMode("browse");
+                          }}
                         >
                           <BookOpen className="h-3 w-3 mr-1.5" />
                           {language === "ar" ? "أو تصفح المواضيع" : "Or browse topics"}
@@ -1356,7 +1381,10 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                             variant="ghost"
                             size="sm"
                             className="text-[10px] text-muted-foreground h-6"
-                            onClick={() => setShowChat(false)}
+                            onClick={() => {
+                              setShowChat(false);
+                              setContentMode("browse");
+                            }}
                           >
                             <BookOpen className="h-3 w-3 mr-1" />
                             {language === "ar" ? "تصفح المواضيع" : "Browse topics"}
@@ -1406,64 +1434,106 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                   </div>
                 </TabsContent>
 
-                {/* Browse Topics - Separate from chat */}
+                {/* Browse Topics - Separate from chat with enhanced browse mode */}
                 {!showChat && (
-                  <div className="absolute inset-0 bg-background z-10 flex flex-col" style={{ top: '180px' }}>
-                    <div className="px-4 py-2 border-b flex items-center justify-between">
-                      <span className="text-sm font-medium">
+                  <div className="absolute inset-0 bg-background z-10 flex flex-col transition-all duration-300" style={{ top: '180px' }}>
+                    <div className={cn(
+                      "border-b flex items-center justify-between transition-all duration-200",
+                      contentMode === "browse" ? "px-6 py-4" : "px-4 py-2"
+                    )}>
+                      <span className={cn(
+                        "font-medium transition-all duration-200",
+                        contentMode === "browse" ? "text-lg" : "text-sm"
+                      )}>
                         {language === "ar" ? "تصفح المواضيع" : "Browse Topics"}
                       </span>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 text-xs"
-                        onClick={() => setShowChat(true)}
+                        className={cn(
+                          "transition-all duration-200",
+                          contentMode === "browse" ? "h-9 text-sm px-4" : "h-7 text-xs"
+                        )}
+                        onClick={() => {
+                          setShowChat(true);
+                          setContentMode("chat");
+                        }}
                       >
                         {language === "ar" ? "رجوع للمحادثة" : "Back to Chat"}
                       </Button>
                     </div>
                     <ScrollArea className="flex-1">
-                      <div className="p-4 space-y-3">
+                      <div className={cn(
+                        "transition-all duration-200",
+                        contentMode === "browse" ? "p-6 space-y-4" : "p-4 space-y-3"
+                      )}>
                         {/* Show selected topic if any */}
                         {selectedEntry ? (
                           <KnowledgeTopicCard 
                             entry={selectedEntry} 
                             language={language}
                             onClose={() => setSelectedTopicId(null)}
+                            isBrowseMode={contentMode === "browse"}
                           />
                         ) : (
                           <>
                             {/* Topic Categories */}
-                            <div className="space-y-2">
+                            <div className={cn(
+                              "transition-all duration-200",
+                              contentMode === "browse" ? "space-y-3" : "space-y-2"
+                            )}>
                               {TOPIC_CATEGORIES.map((category) => (
-                                <div key={category.id} className="rounded-lg border overflow-hidden">
+                                <div key={category.id} className="rounded-lg border overflow-hidden transition-all duration-200">
                                   <button
-                                    className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors text-left"
+                                    className={cn(
+                                      "w-full flex items-center justify-between hover:bg-muted/50 transition-all duration-200 text-left",
+                                      contentMode === "browse" ? "p-4" : "p-3"
+                                    )}
                                     onClick={() => setExpandedCategory(
                                       expandedCategory === category.id ? null : category.id
                                     )}
                                   >
-                                    <div className="flex items-center gap-2">
-                                      {category.icon}
-                                      <span className="text-sm font-medium">
+                                    <div className={cn(
+                                      "flex items-center transition-all duration-200",
+                                      contentMode === "browse" ? "gap-3" : "gap-2"
+                                    )}>
+                                      <span className={cn(
+                                        "transition-all duration-200",
+                                        contentMode === "browse" && "[&>svg]:h-5 [&>svg]:w-5"
+                                      )}>
+                                        {category.icon}
+                                      </span>
+                                      <span className={cn(
+                                        "font-medium transition-all duration-200",
+                                        contentMode === "browse" ? "text-base" : "text-sm"
+                                      )}>
                                         {category.title[language]}
                                       </span>
                                     </div>
                                     <ChevronRight className={cn(
-                                      "h-4 w-4 text-muted-foreground transition-transform",
+                                      "text-muted-foreground transition-transform duration-200",
+                                      contentMode === "browse" ? "h-5 w-5" : "h-4 w-4",
                                       expandedCategory === category.id && "rotate-90"
                                     )} />
                                   </button>
                                   
                                   {expandedCategory === category.id && (
-                                    <div className="border-t bg-muted/30 p-2 space-y-1">
+                                    <div className={cn(
+                                      "border-t bg-muted/30 transition-all duration-200",
+                                      contentMode === "browse" ? "p-3 space-y-2" : "p-2 space-y-1"
+                                    )}>
                                       {category.topicIds.map((topicId) => {
                                         const topic = allTopics.find(t => t.id === topicId);
                                         if (!topic) return null;
                                         return (
                                           <button
                                             key={topicId}
-                                            className="w-full text-left text-xs px-2 py-1.5 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                                            className={cn(
+                                              "w-full text-left rounded hover:bg-muted transition-all duration-200 text-muted-foreground hover:text-foreground",
+                                              contentMode === "browse" 
+                                                ? "text-sm px-3 py-2.5 leading-relaxed" 
+                                                : "text-xs px-2 py-1.5"
+                                            )}
                                             onClick={() => setSelectedTopicId(topicId)}
                                           >
                                             {topic.title}
@@ -1477,25 +1547,52 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                             </div>
 
                             {/* Alert Types Legend */}
-                            <div className="rounded-lg border p-3 mt-3">
-                              <h4 className="text-sm font-medium mb-2">
+                            <div className={cn(
+                              "rounded-lg border mt-3 transition-all duration-200",
+                              contentMode === "browse" ? "p-5" : "p-3"
+                            )}>
+                              <h4 className={cn(
+                                "font-medium transition-all duration-200",
+                                contentMode === "browse" ? "text-base mb-3" : "text-sm mb-2"
+                              )}>
                                 {language === "ar" ? "أنواع التنبيهات" : "Alert Types"}
                               </h4>
-                              <div className="space-y-2 text-xs">
-                                <div className="flex items-center gap-2">
-                                  <GraduationCap className="h-3.5 w-3.5 text-blue-500" />
+                              <div className={cn(
+                                "transition-all duration-200",
+                                contentMode === "browse" ? "space-y-3 text-sm" : "space-y-2 text-xs"
+                              )}>
+                                <div className={cn(
+                                  "flex items-center transition-all duration-200",
+                                  contentMode === "browse" ? "gap-3" : "gap-2"
+                                )}>
+                                  <GraduationCap className={cn(
+                                    "text-blue-500 transition-all duration-200",
+                                    contentMode === "browse" ? "h-5 w-5" : "h-3.5 w-3.5"
+                                  )} />
                                   <span className="text-muted-foreground">
                                     {language === "ar" ? "تدريب - تعلّم ميزة جديدة" : "Training - Learn a new feature"}
                                   </span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                                <div className={cn(
+                                  "flex items-center transition-all duration-200",
+                                  contentMode === "browse" ? "gap-3" : "gap-2"
+                                )}>
+                                  <AlertTriangle className={cn(
+                                    "text-amber-500 transition-all duration-200",
+                                    contentMode === "browse" ? "h-5 w-5" : "h-3.5 w-3.5"
+                                  )} />
                                   <span className="text-muted-foreground">
                                     {language === "ar" ? "تنبيه - ينبغي مراجعته" : "Alert - Should be reviewed"}
                                   </span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <Lightbulb className="h-3.5 w-3.5 text-slate-500" />
+                                <div className={cn(
+                                  "flex items-center transition-all duration-200",
+                                  contentMode === "browse" ? "gap-3" : "gap-2"
+                                )}>
+                                  <Lightbulb className={cn(
+                                    "text-slate-500 transition-all duration-200",
+                                    contentMode === "browse" ? "h-5 w-5" : "h-3.5 w-3.5"
+                                  )} />
                                   <span className="text-muted-foreground">
                                     {language === "ar" ? "معلومة - للعلم فقط" : "Info - For your awareness"}
                                   </span>
