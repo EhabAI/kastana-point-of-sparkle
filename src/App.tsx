@@ -9,6 +9,7 @@ import { BranchProvider } from "@/contexts/BranchContext";
 import { AssistantContextProvider } from "@/contexts/AssistantContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AIAssistantBubble } from "@/components/AIAssistantBubble";
+import { SmartAssistantLite } from "@/components/SmartAssistantLite";
 import Login from "./pages/Login";
 import SystemAdmin from "./pages/SystemAdmin";
 import OwnerAdmin from "./pages/OwnerAdmin";
@@ -70,6 +71,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <AIAssistantBubble />
+              <SmartAssistantLite />
             </AssistantContextProvider>
           </LanguageProvider>
         </AuthProvider>
