@@ -68,6 +68,10 @@ import { KitchenPerformance } from "@/components/owner/KitchenPerformance";
 import { MenuLanguageGuidance } from "@/components/owner/MenuLanguageGuidance";
 import { InventoryDashboard } from "@/components/owner/InventoryDashboard";
 import { InventoryDisabledCard } from "@/components/owner/InventoryDisabledCard";
+import { SmartEndOfDaySummary } from "@/components/owner/SmartEndOfDaySummary";
+import { SystemConfidenceScore } from "@/components/owner/SystemConfidenceScore";
+import { SuggestedNextAction } from "@/components/owner/SuggestedNextAction";
+import { MistakePatternDetector } from "@/components/owner/MistakePatternDetector";
 import { useRestaurantTables } from "@/hooks/useRestaurantTables";
 import { useCashiers } from "@/hooks/useCashiers";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
@@ -253,6 +257,17 @@ export default function OwnerAdmin() {
                 currency={currency}
               />
             )}
+            {/* Smart Features Row */}
+            {role === "owner" && (
+              <div className="grid gap-3 md:grid-cols-2">
+                <SmartEndOfDaySummary restaurantId={restaurant.id} currency={currency} />
+                <div className="space-y-3">
+                  <SystemConfidenceScore restaurantId={restaurant.id} />
+                  <SuggestedNextAction restaurantId={restaurant.id} />
+                </div>
+              </div>
+            )}
+            {role === "owner" && <MistakePatternDetector restaurantId={restaurant.id} />}
             {role === "owner" && <NotificationsAlerts />}
             {role === "owner" && <RefundVoidInsights />}
           </TabsContent>
