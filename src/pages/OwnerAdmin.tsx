@@ -218,9 +218,9 @@ export default function OwnerAdmin() {
             )}
             {/* Smart Features Row */}
             {role === "owner" && (
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="space-y-3">
                 <SmartEndOfDaySummary restaurantId={restaurant.id} currency={currency} />
-                <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                   <SystemConfidenceScore restaurantId={restaurant.id} />
                   <SuggestedNextAction restaurantId={restaurant.id} />
                   <KitchenDoneOrdersCard restaurantId={restaurant.id} />
