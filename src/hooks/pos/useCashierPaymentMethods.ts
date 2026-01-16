@@ -33,7 +33,7 @@ export function useCashierPaymentMethods(branchId: string | undefined) {
         { id: "cash", label: "Cash", enabled: data.cash_enabled },
         { id: "visa", label: "Visa / Card", enabled: data.visa_enabled },
         { id: "cliq", label: "CliQ", enabled: data.efawateer_enabled }, // Map efawateer column to cliq
-        { id: "zain_cash", label: "Zain Cash", enabled: data.wallet_enabled }, // Map wallet column
+        { id: "zain_cash", label: "محفظة", enabled: data.wallet_enabled }, // Map wallet column
         { id: "orange_money", label: "Orange Money", enabled: false },
         { id: "umniah_wallet", label: "Umniah Wallet", enabled: false },
       ];
@@ -47,7 +47,7 @@ function getDefaultMethods(): PaymentMethodConfig[] {
     { id: "cash", label: "Cash", enabled: true },
     { id: "visa", label: "Visa / Card", enabled: true },
     { id: "cliq", label: "CliQ", enabled: false },
-    { id: "zain_cash", label: "Zain Cash", enabled: false },
+    { id: "zain_cash", label: "محفظة", enabled: false },
     { id: "orange_money", label: "Orange Money", enabled: false },
     { id: "umniah_wallet", label: "Umniah Wallet", enabled: false },
   ];
