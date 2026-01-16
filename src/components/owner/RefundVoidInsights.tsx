@@ -150,19 +150,21 @@ export const RefundVoidInsights = forwardRef<HTMLDivElement, object>(function Re
   const showRefundWarning = (insightsData?.refundCount || 0) > REFUND_WARNING_THRESHOLD;
 
   return (
-    <div ref={ref} className="mt-4 bg-muted/20 dark:bg-muted/10 rounded-lg p-3 transition-all duration-200 hover:shadow-md">
-      {/* Section Header - Consistent with other sections */}
+    <div ref={ref} className={`mt-4 rounded-lg ${showRefundWarning ? 'bg-amber-50/70 dark:bg-amber-950/20 border-l-4 border-l-amber-500' : 'bg-muted/20'} p-3`}>
+      {/* Section Header - Consistent with Attention Required section */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 w-full"
       >
-        <span className="text-sm font-bold text-muted-foreground/70 uppercase tracking-[0.1em]">
+        <span className="text-sm font-bold text-foreground/80 uppercase tracking-[0.1em]">
           {t("refund_void_insights")}
         </span>
         {showRefundWarning && (
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+          <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-500 text-white animate-pulse">
+            {insightsData?.refundCount || 0}
+          </span>
         )}
-        <ChevronDown className={`h-3 w-3 text-muted-foreground/40 transition-transform duration-200 ltr:ml-auto rtl:mr-auto ${isOpen ? "" : "ltr:-rotate-90 rtl:rotate-90"}`} />
+        <ChevronDown className={`h-3 w-3 text-muted-foreground/50 transition-transform duration-200 ltr:ml-auto rtl:mr-auto ${isOpen ? "" : "-rotate-90"}`} />
       </button>
 
       {isOpen && (
