@@ -160,14 +160,14 @@ export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsP
                   />
                 </div>
 
-                {/* Visa */}
+                {/* Visa/Master */}
                 <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg transition-all duration-200 hover:bg-muted/70">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
                       <CreditCard className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <Label className="text-sm font-medium">Visa</Label>
+                      <Label className="text-sm font-medium">{t("visa")}</Label>
                       <p className="text-xs text-muted-foreground">{t("accept_visa_payments")}</p>
                     </div>
                   </div>
@@ -194,15 +194,15 @@ export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsP
                   />
                 </div>
 
-                {/* Zain Cash (uses wallet_enabled column) */}
+                {/* Wallet (uses wallet_enabled column) */}
                 <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg transition-all duration-200 hover:bg-muted/70">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center">
                       <Wallet className="h-5 w-5 text-teal-600 dark:text-teal-400" />
                     </div>
                     <div>
-                      <Label className="text-sm font-medium">Zain Cash</Label>
-                      <p className="text-xs text-muted-foreground">{t("accept_zain_cash_payments")}</p>
+                      <Label className="text-sm font-medium">{t("wallet")}</Label>
+                      <p className="text-xs text-muted-foreground">{t("accept_wallet_payments")}</p>
                     </div>
                   </div>
                   <Switch
