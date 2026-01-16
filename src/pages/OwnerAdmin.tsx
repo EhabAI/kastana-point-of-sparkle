@@ -151,42 +151,42 @@ export default function OwnerAdmin() {
                 value="overview" 
                 className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
               >
-                <LayoutDashboard className="h-4 w-4" />
+                <LayoutDashboard className="h-5 w-5 shrink-0" />
                 <span className="hidden sm:inline">{t("overview")}</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="analytics" 
                 className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
               >
-                <BarChart3 className="h-4 w-4" />
+                <BarChart3 className="h-5 w-5 shrink-0" />
                 <span className="hidden sm:inline">{t("analytics")}</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="reports" 
                 className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
               >
-                <FileText className="h-4 w-4" />
+                <FileText className="h-5 w-5 shrink-0" />
                 <span className="hidden sm:inline">{t("reports")}</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="menu" 
                 className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
               >
-                <UtensilsCrossed className="h-4 w-4" />
+                <UtensilsCrossed className="h-5 w-5 shrink-0" />
                 <span className="hidden sm:inline">{t("menu")}</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="management" 
                 className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
               >
-                <Users className="h-4 w-4" />
+                <Users className="h-5 w-5 shrink-0" />
                 <span className="hidden sm:inline">{t("manage")}</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="branches" 
                 className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
               >
-                <Building2 className="h-4 w-4" />
+                <Building2 className="h-5 w-5 shrink-0" />
                 <span className="hidden sm:inline">{t("branches")}</span>
               </TabsTrigger>
               {inventoryEnabled && (
@@ -194,7 +194,7 @@ export default function OwnerAdmin() {
                   value="inventory" 
                   className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
                 >
-                  <Package className="h-4 w-4" />
+                  <Package className="h-5 w-5 shrink-0" />
                   <span className="hidden sm:inline">{t("inventory")}</span>
                 </TabsTrigger>
               )}
@@ -202,7 +202,7 @@ export default function OwnerAdmin() {
                 value="settings" 
                 className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
               >
-                <Settings className="h-4 w-4" />
+                <Settings className="h-5 w-5 shrink-0" />
                 <span className="hidden sm:inline">{t("settings")}</span>
               </TabsTrigger>
             </TabsList>
