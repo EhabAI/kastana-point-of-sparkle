@@ -17,7 +17,7 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useOwnerRestaurant, useUpdateRestaurant } from "@/hooks/useRestaurants";
+import { useOwnerRestaurant } from "@/hooks/useRestaurants";
 import { useMenuCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from "@/hooks/useMenuCategories";
 import { useMenuItems, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, MenuItem } from "@/hooks/useMenuItems";
 import { 
@@ -87,18 +87,9 @@ export default function OwnerAdmin() {
   const { data: cashiers = [] } = useCashiers(restaurant?.id);
   const { data: settings } = useOwnerRestaurantSettings();
   const { isEnabled: inventoryEnabled } = useInventoryEnabled();
-  const updateRestaurant = useUpdateRestaurant();
   const { toast } = useToast();
   const currency = settings?.currency || "JOD";
 
-  const [editingRestaurantName, setEditingRestaurantName] = useState(false);
-  const [restaurantName, setRestaurantName] = useState("");
-
-  const handleUpdateRestaurantName = async () => {
-    if (!restaurant || !restaurantName.trim()) return;
-    await updateRestaurant.mutateAsync({ id: restaurant.id, name: restaurantName });
-    setEditingRestaurantName(false);
-  };
 
   if (loadingRestaurant) {
     return (
@@ -135,53 +126,19 @@ export default function OwnerAdmin() {
       <DashboardLayout title={t("owner_dashboard")}>
         <div className="space-y-5 animate-fade-in">
         {/* Restaurant Header - Minimal & Professional */}
-        <div className="flex items-center justify-between pb-3 border-b border-border/30">
-          <div className="flex items-center gap-3">
-            {restaurant.logo_url ? (
-              <img
-                src={restaurant.logo_url}
-                alt={`${restaurant.name} logo`}
-                className="w-8 h-8 object-contain rounded-lg ring-1 ring-border/30"
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center ring-1 ring-border/30">
-                <Store className="h-4 w-4 text-muted-foreground" />
-              </div>
-            )}
-            <h2 className="text-base font-semibold text-foreground tracking-tight">{restaurant.name}</h2>
-          </div>
-          <Dialog open={editingRestaurantName} onOpenChange={setEditingRestaurantName}>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-muted-foreground/60 hover:text-muted-foreground h-7 w-7 p-0" onClick={() => setRestaurantName(restaurant.name)}>
-                <Edit2 className="h-3 w-3" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{t("edit_restaurant_name")}</DialogTitle>
-                <DialogDescription>{t("update_restaurant_name")}</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-restaurant-name">{t("restaurant_name")}</Label>
-                  <Input
-                    id="edit-restaurant-name"
-                    value={restaurantName}
-                    onChange={(e) => setRestaurantName(e.target.value)}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setEditingRestaurantName(false)}>
-                  {t("cancel")}
-                </Button>
-                <Button onClick={handleUpdateRestaurantName} disabled={updateRestaurant.isPending}>
-                  {updateRestaurant.isPending ? <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" /> : null}
-                  {t("save")}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+        <div className="flex items-center gap-3 pb-3 border-b border-border/30">
+          {restaurant.logo_url ? (
+            <img
+              src={restaurant.logo_url}
+              alt={`${restaurant.name} logo`}
+              className="w-8 h-8 object-contain rounded-lg ring-1 ring-border/30"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center ring-1 ring-border/30">
+              <Store className="h-4 w-4 text-muted-foreground" />
+            </div>
+          )}
+          <h2 className="text-base font-semibold text-foreground tracking-tight">{restaurant.name}</h2>
         </div>
 
         {/* Tabbed Navigation - Premium underline style */}
