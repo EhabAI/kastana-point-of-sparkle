@@ -626,9 +626,7 @@ export default {
   cliq: "CliQ",
   accept_cliq_payments: "Accept CliQ instant payments",
   wallet: "Wallet",
-  accept_wallet_payments: "Accept digital wallet payments",
-  zain_cash: "Zain Cash",
-  accept_zain_cash_payments: "Accept Zain Cash mobile payments",
+  accept_wallet_payments: "Pay via e-wallets",
   card: "Card",
   mobile: "Mobile",
 
