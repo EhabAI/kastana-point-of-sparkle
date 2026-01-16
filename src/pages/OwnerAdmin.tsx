@@ -540,7 +540,7 @@ function MenuItemsSection({
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
-  const [newItem, setNewItem] = useState({ name: "", description: "", price: "", is_offer: false });
+  const [newItem, setNewItem] = useState({ name: "", description: "", price: "", is_offer: false, item_type: "food" as MenuItem["item_type"] });
 
   const handleCreateItem = async () => {
     if (!selectedCategoryId) {
@@ -559,8 +559,9 @@ function MenuItemsSection({
         description: newItem.description || undefined,
         price,
         is_offer: newItem.is_offer,
+        item_type: newItem.item_type,
       });
-      setNewItem({ name: "", description: "", price: "", is_offer: false });
+      setNewItem({ name: "", description: "", price: "", is_offer: false, item_type: "food" });
       setCreateDialogOpen(false);
     } catch {
       toast({ title: t("error_unexpected"), variant: "destructive" });
@@ -577,6 +578,7 @@ function MenuItemsSection({
         price: editingItem.price,
         is_available: editingItem.is_available,
         is_offer: editingItem.is_offer,
+        item_type: editingItem.item_type,
       });
       setEditingItem(null);
     } catch {
@@ -647,6 +649,25 @@ function MenuItemsSection({
                     onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
                     placeholder="0.000"
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="item-type">{t("item_type")}</Label>
+                  <Select
+                    value={newItem.item_type}
+                    onValueChange={(value: MenuItem["item_type"]) => setNewItem({ ...newItem, item_type: value })}
+                  >
+                    <SelectTrigger id="item-type">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="drink">{t("item_type_drink")}</SelectItem>
+                      <SelectItem value="food">{t("item_type_food")}</SelectItem>
+                      <SelectItem value="ready_product">{t("item_type_ready_product")}</SelectItem>
+                      <SelectItem value="addon">{t("item_type_addon")}</SelectItem>
+                      <SelectItem value="service">{t("item_type_service")}</SelectItem>
+                      <SelectItem value="combo">{t("item_type_combo")}</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch
@@ -722,9 +743,12 @@ function MenuItemsSection({
             {filteredItems.map((item) => (
               <div key={item.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg transition-all duration-200 hover:shadow-md hover:bg-muted/70 border border-transparent hover:border-primary/20">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {item.is_offer && <Flame className="h-4 w-4 text-warning" />}
                     <p className="font-medium text-foreground">{item.name}</p>
+                    <span className="text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded">
+                      {t(`item_type_${item.item_type}`)}
+                    </span>
                     {item.is_offer && (
                       <span className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded">{t("offer")}</span>
                     )}
@@ -792,6 +816,27 @@ function MenuItemsSection({
                               )
                             }
                           />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>{t("item_type")}</Label>
+                          <Select
+                            value={editingItem?.item_type || "food"}
+                            onValueChange={(value: MenuItem["item_type"]) =>
+                              setEditingItem((prev) => (prev ? { ...prev, item_type: value } : null))
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="drink">{t("item_type_drink")}</SelectItem>
+                              <SelectItem value="food">{t("item_type_food")}</SelectItem>
+                              <SelectItem value="ready_product">{t("item_type_ready_product")}</SelectItem>
+                              <SelectItem value="addon">{t("item_type_addon")}</SelectItem>
+                              <SelectItem value="service">{t("item_type_service")}</SelectItem>
+                              <SelectItem value="combo">{t("item_type_combo")}</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                         <div className="flex items-center gap-2">
                           <Switch
