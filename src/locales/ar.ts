@@ -647,7 +647,7 @@ export default {
   alert_excessive_refunds_msg: "عدد مرتفع من الاستردادات اليوم ({count} استرداد)",
 
   // Refund & Void Insights
-  refund_void_insights: "رؤى الاستردادات والإلغاءات",
+  refund_void_insights: "رؤية الاستردادات والإلغاءات",
   refund_void_insights_desc: "نظرة عامة على نشاط الاستردادات والإلغاءات لليوم",
   refunds_today: "استردادات اليوم",
   refunded_amount: "المبلغ المسترد",
