@@ -353,6 +353,14 @@ export default {
   opens_at: "Opens at",
   opens_on: "Opens",
   shift_already_open_at_branch: "An open shift already exists at this branch. Please close it before opening a new one.",
+  
+  // Operational Status Tooltips
+  status_tooltip: "Whether the restaurant is currently open based on business hours.",
+  sales_tooltip: "Total revenue from paid orders today.",
+  orders_tooltip: "Number of completed orders today.",
+  shifts_tooltip: "Currently open cashier shifts. Long shifts (10+ hours) are highlighted.",
+  tables_tooltip: "Total number of active tables in your restaurant.",
+  staff_tooltip: "Total number of active staff members (cashiers & kitchen).",
 
   // Analytics
   analytics_charts: "Analytics & Charts",

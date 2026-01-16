@@ -158,7 +158,19 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
         {/* PRIMARY: Restaurant Status */}
         <div className="flex items-center">
           <div className="flex flex-col px-4 first:pl-0 min-h-[52px]">
-            <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">{t("status")}</span>
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">{t("status")}</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-3 w-3 text-muted-foreground/40 cursor-help mb-1" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[200px]">
+                    <p className="text-xs">{t("status_tooltip")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <div className="flex items-center gap-2">
               <span className={`text-lg font-semibold ${isOpen ? 'text-emerald-600 dark:text-emerald-500' : 'text-red-600 dark:text-red-500'}`}>
                 {isOpen ? t("open") : t("closed")}
@@ -186,7 +198,19 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
         {/* Today's Sales */}
         <div className="flex items-center">
           <div className="flex flex-col px-4 min-h-[52px]">
-            <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">{t("sales")}</span>
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">{t("sales")}</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-3 w-3 text-muted-foreground/40 cursor-help mb-1" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[200px]">
+                    <p className="text-xs">{t("sales_tooltip")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <div className="flex items-baseline gap-1.5">
               <span className={`text-xl font-bold tabular-nums tracking-tight leading-none ${zeroSalesWarning ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
                 {formatJOD(todayStats?.todaySales || 0)}
@@ -203,7 +227,19 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
         {/* Today's Orders */}
         <div className="flex items-center">
           <div className="flex flex-col px-4 min-h-[52px]">
-            <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">{t("orders")}</span>
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">{t("orders")}</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-3 w-3 text-muted-foreground/40 cursor-help mb-1" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[200px]">
+                    <p className="text-xs">{t("orders_tooltip")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <span className="text-xl font-bold text-foreground tabular-nums tracking-tight leading-none">{todayStats?.todayOrders || 0}</span>
           </div>
           <div className="hidden md:block w-[2px] self-stretch bg-border/80 mx-3" />
@@ -212,7 +248,19 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
         {/* Open Shifts */}
         <div className="flex items-center">
           <div className="flex flex-col px-4 min-h-[52px]">
-            <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">{t("shifts")}</span>
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">{t("shifts")}</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-3 w-3 text-muted-foreground/40 cursor-help mb-1" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[200px]">
+                    <p className="text-xs">{t("shifts_tooltip")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <div className="flex items-baseline gap-2">
               <span className={`text-xl font-bold tabular-nums tracking-tight leading-none ${hasLongShift ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
                 {todayStats?.openShifts || 0}
@@ -241,7 +289,19 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
         {/* Tables */}
         <div className="flex items-center">
           <div className="flex flex-col px-4 min-h-[52px]">
-            <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">{t("tables")}</span>
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">{t("tables")}</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-3 w-3 text-muted-foreground/40 cursor-help mb-1" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[200px]">
+                    <p className="text-xs">{t("tables_tooltip")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <span className="text-xl font-bold text-foreground tabular-nums tracking-tight leading-none">{tableCount}</span>
           </div>
           <div className="hidden md:block w-[2px] self-stretch bg-border/80 mx-3" />
@@ -250,7 +310,19 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
         {/* Staff */}
         <div className="flex items-center">
           <div className="flex flex-col px-4 min-h-[52px]">
-            <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">{t("staff")}</span>
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">{t("staff")}</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-3 w-3 text-muted-foreground/40 cursor-help mb-1" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[200px]">
+                    <p className="text-xs">{t("staff_tooltip")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <span className="text-xl font-bold text-foreground tabular-nums tracking-tight leading-none">{staffCount}</span>
           </div>
           <div className="hidden md:block w-[2px] self-stretch bg-border/80 mx-3" />
