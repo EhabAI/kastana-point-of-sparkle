@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,8 @@ import {
   Building2,
   ScrollText,
   Star,
-  Package
+  Package,
+  Search
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -502,7 +503,14 @@ function MenuItemsSection({
   currency: string;
 }) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [itemSearch, setItemSearch] = useState("");
   const { data: items = [], isLoading } = useMenuItems(restaurantId, selectedCategoryId || undefined);
+  
+  const filteredItems = useMemo(() => {
+    if (!itemSearch.trim()) return items;
+    const query = itemSearch.toLowerCase().trim();
+    return items.filter((item) => item.name.toLowerCase().includes(query));
+  }, [items, itemSearch]);
   const createItem = useCreateMenuItem();
   const updateItem = useUpdateMenuItem();
   const deleteItem = useDeleteMenuItem();
@@ -645,21 +653,37 @@ function MenuItemsSection({
         </div>
       </CardHeader>
       <CardContent>
-        {/* Category Selector */}
-        <div className="mb-6">
-          <Label className="mb-2 block">{t("select_category")}</Label>
-          <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
-            <SelectTrigger className="w-full md:w-64">
-              <SelectValue placeholder={t("choose_category")} />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((cat) => (
-                <SelectItem key={cat.id} value={cat.id}>
-                  {cat.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {/* Category Selector & Search */}
+        <div className="mb-6 flex flex-col sm:flex-row gap-4">
+          <div className="flex-1 sm:max-w-64">
+            <Label className="mb-2 block">{t("select_category")}</Label>
+            <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={t("choose_category")} />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {selectedCategoryId && (
+            <div className="flex-1 sm:max-w-64">
+              <Label className="mb-2 block">{t("search")}</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder={t("search_menu_items") || "Search items..."}
+                  value={itemSearch}
+                  onChange={(e) => setItemSearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Items List */}
@@ -669,11 +693,13 @@ function MenuItemsSection({
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
-        ) : items.length === 0 ? (
-          <p className="text-muted-foreground text-center py-8">{t("no_items")}</p>
+        ) : filteredItems.length === 0 ? (
+          <p className="text-muted-foreground text-center py-8">
+            {itemSearch ? t("no_search_results") || "No items match your search" : t("no_items")}
+          </p>
         ) : (
           <div className="space-y-3">
-            {items.map((item) => (
+            {filteredItems.map((item) => (
               <div key={item.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg transition-all duration-200 hover:shadow-md hover:bg-muted/70 border border-transparent hover:border-primary/20">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
