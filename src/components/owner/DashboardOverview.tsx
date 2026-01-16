@@ -158,7 +158,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
           <div className="flex flex-col px-4 first:pl-0 min-h-[52px]">
             <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("status")}</span>
             <div className="flex items-center gap-2">
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-base font-bold ${isOpen ? 'bg-emerald-500 text-white' : 'bg-muted-foreground/20 text-muted-foreground'}`}>
+              <span className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-lg font-bold ${isOpen ? 'bg-emerald-500 text-white' : 'bg-muted-foreground/20 text-muted-foreground'}`}>
                 <span className={`inline-block w-2.5 h-2.5 rounded-full flex-shrink-0 ${isOpen ? 'bg-white' : 'bg-muted-foreground/60'}`} />
                 {isOpen ? t("open") : t("closed")}
               </span>
@@ -179,7 +179,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
               <span className="text-[10px] text-muted-foreground/60 mt-1">{nextOpenTime}</span>
             )}
           </div>
-          <div className="hidden md:block w-px self-stretch bg-border mx-2" />
+          <div className="hidden md:block w-[2px] self-stretch bg-border/80 mx-3" />
         </div>
 
         {/* Today's Sales */}
@@ -196,7 +196,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
               <span className="w-4 h-0.5 bg-amber-500/60 rounded-full mt-1" />
             )}
           </div>
-          <div className="hidden md:block w-px self-stretch bg-border mx-2" />
+          <div className="hidden md:block w-[2px] self-stretch bg-border/80 mx-3" />
         </div>
 
         {/* Today's Orders */}
@@ -205,7 +205,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
             <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("orders")}</span>
             <span className="text-xl font-bold text-foreground tabular-nums tracking-tight leading-none">{todayStats?.todayOrders || 0}</span>
           </div>
-          <div className="hidden md:block w-px self-stretch bg-border mx-2" />
+          <div className="hidden md:block w-[2px] self-stretch bg-border/80 mx-3" />
         </div>
 
         {/* Open Shifts */}
@@ -234,7 +234,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
               <span className="w-4 h-0.5 bg-amber-500/60 rounded-full mt-1" />
             )}
           </div>
-          <div className="hidden md:block w-px self-stretch bg-border mx-2" />
+          <div className="hidden md:block w-[2px] self-stretch bg-border/80 mx-3" />
         </div>
 
         {/* Tables */}
@@ -243,7 +243,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
             <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("tables")}</span>
             <span className="text-xl font-bold text-foreground tabular-nums tracking-tight leading-none">{tableCount}</span>
           </div>
-          <div className="hidden md:block w-px self-stretch bg-border mx-2" />
+          <div className="hidden md:block w-[2px] self-stretch bg-border/80 mx-3" />
         </div>
 
         {/* Staff */}
