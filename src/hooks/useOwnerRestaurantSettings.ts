@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOwnerRestaurant } from "@/hooks/useRestaurants";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getOwnerErrorMessage } from "@/lib/ownerErrorHandler";
 import { Json } from "@/integrations/supabase/types";
 
 export interface DayHours {
@@ -73,6 +75,7 @@ export function useUpdateOwnerRestaurantSettings() {
   const { data: restaurant } = useOwnerRestaurant();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async (updates: {
@@ -114,10 +117,11 @@ export function useUpdateOwnerRestaurantSettings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["owner-restaurant-settings"] });
-      toast({ title: "Settings saved successfully" });
+      toast({ title: t("settings_saved") || "Settings saved successfully" });
     },
     onError: (error) => {
-      toast({ title: "Failed to save settings", description: error.message, variant: "destructive" });
+      const msg = getOwnerErrorMessage(error, t);
+      toast({ title: msg.title, description: msg.description, variant: "destructive" });
     },
   });
 }

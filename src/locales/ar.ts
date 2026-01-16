@@ -1531,4 +1531,22 @@ export default {
   manage_combo: "إدارة الكومبو",
   select_item: "اختر صنف",
   qty: "الكمية",
+
+  // Owner Dashboard Error Messages
+  error_unexpected_owner_title: "حدث خطأ",
+  error_unexpected_owner_desc: "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+  error_owner_permission_title: "صلاحيات غير كافية",
+  error_owner_permission_desc: "لا تملك الصلاحيات اللازمة لتنفيذ هذا الإجراء.",
+  error_owner_duplicate_title: "موجود مسبقاً",
+  error_owner_duplicate_desc: "هذا العنصر موجود بالفعل. يرجى التحقق والمحاولة مرة أخرى.",
+  error_owner_not_found_title: "غير موجود",
+  error_owner_not_found_desc: "العنصر المطلوب غير موجود.",
+  error_owner_network_title: "خطأ في الاتصال",
+  error_owner_network_desc: "تعذر الاتصال. يرجى التحقق من اتصالك بالإنترنت.",
+  error_owner_restaurant_mismatch_title: "عدم تطابق المطعم",
+  error_owner_restaurant_mismatch_desc: "هذا العنصر تابع لمطعم مختلف.",
+  error_owner_branch_active_cashiers_title: "لا يمكن حذف الفرع",
+  error_owner_branch_active_cashiers_desc: "يوجد كاشيرين نشطين في هذا الفرع. يرجى إلغاء تفعيلهم أولاً.",
+  error_owner_branch_open_shifts_title: "لا يمكن حذف الفرع",
+  error_owner_branch_open_shifts_desc: "يوجد شِفتات مفتوحة في هذا الفرع. يرجى إغلاقها أولاً.",
 } as const;

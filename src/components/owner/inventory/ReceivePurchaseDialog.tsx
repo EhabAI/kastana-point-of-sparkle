@@ -25,6 +25,7 @@ import { useInventoryItems, useInventoryUnits } from "@/hooks/useInventoryItems"
 import { useSuppliers, useCreateSupplier } from "@/hooks/useInventoryOperations";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { getOwnerErrorMessage } from "@/lib/ownerErrorHandler";
 import { Loader2, Plus, Trash2, ShoppingCart } from "lucide-react";
 
 interface ReceivePurchaseDialogProps {
@@ -86,8 +87,9 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
       setNewSupplierName("");
       setShowAddSupplier(false);
       toast({ title: t("inv_supplier_created") });
-    } catch (error: any) {
-      toast({ title: error.message, variant: "destructive" });
+    } catch (error: unknown) {
+      const msg = getOwnerErrorMessage(error, t);
+      toast({ title: msg.title, description: msg.description, variant: "destructive" });
     }
   };
 
@@ -126,8 +128,9 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
 
       toast({ title: t("inv_purchase_received") });
       onOpenChange(false);
-    } catch (error: any) {
-      toast({ title: error.message || t("inv_operation_failed"), variant: "destructive" });
+    } catch (error: unknown) {
+      const msg = getOwnerErrorMessage(error, t);
+      toast({ title: msg.title, description: msg.description, variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
