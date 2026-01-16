@@ -188,7 +188,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
           <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default min-h-[52px]">
             <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("sales")}</span>
             <div className="flex items-baseline gap-1.5">
-              <span className={`text-2xl font-bold tabular-nums tracking-tight leading-none ${zeroSalesWarning ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
+              <span className={`text-xl font-bold tabular-nums tracking-tight leading-none ${zeroSalesWarning ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
                 {formatJOD(todayStats?.todaySales || 0)}
               </span>
               <span className="text-sm font-semibold text-foreground/70">{currencySymbol}</span>
@@ -214,7 +214,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
           <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default min-h-[52px]">
             <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("shifts")}</span>
             <div className="flex items-baseline gap-2">
-              <span className={`text-2xl font-bold tabular-nums tracking-tight leading-none ${hasLongShift ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
+              <span className={`text-xl font-bold tabular-nums tracking-tight leading-none ${hasLongShift ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
                 {todayStats?.openShifts || 0}
               </span>
               {(todayStats?.openShifts || 0) > 0 && (todayStats?.oldestShiftMinutes || 0) > 0 && (() => {
@@ -223,9 +223,9 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
                 const mLabel = language === "ar" ? "د" : "m";
                 return (
                   <span className={`flex items-baseline gap-0.5 ${hasLongShift ? 'text-amber-600 dark:text-amber-400' : 'text-foreground/80'}`}>
-                    <span className="text-lg font-bold tabular-nums">{duration.hours}</span>
-                    <span className="text-xs font-medium text-muted-foreground">{hLabel}</span>
-                    <span className="text-lg font-bold tabular-nums ml-0.5">{duration.mins}</span>
+                    <span className="text-base font-bold tabular-nums">{duration.hours}</span>
+                    <span className="text-[10px] font-medium text-muted-foreground">{hLabel}</span>
+                    <span className="text-base font-bold tabular-nums ml-0.5">{duration.mins}</span>
                     <span className="text-xs font-medium text-muted-foreground">{mLabel}</span>
                   </span>
                 );
