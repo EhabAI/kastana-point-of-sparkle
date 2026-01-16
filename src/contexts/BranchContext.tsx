@@ -89,3 +89,15 @@ export function useBranchContext() {
   }
   return context;
 }
+
+// Safe version that returns null when outside provider (for components that may be used in both contexts)
+export function useBranchContextSafe() {
+  const context = useContext(BranchContext);
+  return context ?? { 
+    branches: [], 
+    selectedBranch: null, 
+    setSelectedBranchId: () => {}, 
+    isLoading: false,
+    isBranchSelected: false,
+  };
+}
