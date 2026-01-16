@@ -30,6 +30,7 @@ import {
   Tag, 
   Loader2, 
   ChevronDown, 
+  ChevronRight,
   Edit2, 
   Flame, 
   Copy, 
@@ -37,7 +38,8 @@ import {
   XSquare,
   Percent,
   DollarSign,
-  AlertCircle
+  AlertCircle,
+  Search
 } from "lucide-react";
 import { formatJOD } from "@/lib/utils";
 
@@ -63,6 +65,8 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const [sourceBranchId, setSourceBranchId] = useState<string>("");
   const [copyPromos, setCopyPromos] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   const [editFormData, setEditFormData] = useState({
     price: "",
@@ -79,11 +83,38 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
     promo_end: "",
   });
 
-  // Filter items by category
+  // Filter items by search query first, then by category
   const filteredItems = useMemo(() => {
-    if (selectedCategory === "all") return items;
-    return items.filter(item => item.category_id === selectedCategory);
-  }, [items, selectedCategory]);
+    let result = items;
+    
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter(item => 
+        item.base_name.toLowerCase().includes(query)
+      );
+    }
+    
+    // Filter by category
+    if (selectedCategory !== "all") {
+      result = result.filter(item => item.category_id === selectedCategory);
+    }
+    
+    return result;
+  }, [items, selectedCategory, searchQuery]);
+
+  // Toggle category expansion
+  const toggleCategory = (catId: string) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(catId)) {
+        next.delete(catId);
+      } else {
+        next.add(catId);
+      }
+      return next;
+    });
+  };
 
   // Group items by category for display
   const itemsByCategory = useMemo(() => {
@@ -233,8 +264,20 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
         </CardHeader>
         <CollapsibleContent>
           <CardContent className="space-y-4">
-            {/* Filters and Bulk Actions */}
+            {/* Search and Filters */}
             <div className="flex flex-wrap items-center gap-4 pb-4 border-b">
+              {/* Search Input */}
+              <div className="relative w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder={t("search_items")}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder={t("all_categories")} />
@@ -281,69 +324,90 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
             ) : filteredItems.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">{t("no_items")}</p>
             ) : (
-              <div className="space-y-6">
-                {Object.entries(itemsByCategory).map(([catId, catItems]) => (
-                  <div key={catId}>
-                    <h4 className="font-semibold mb-3 text-muted-foreground">{getCategoryName(catId)}</h4>
-                    <div className="space-y-2">
-                      {catItems.map(item => (
-                        <div
-                          key={item.id}
-                          className={`flex items-center justify-between p-3 rounded-lg border ${
-                            !item.is_available ? "opacity-60 bg-muted/30" : "bg-muted/50"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Checkbox
-                              checked={selectedItems.includes(item.menu_item_id)}
-                              onCheckedChange={() => toggleSelectItem(item.menu_item_id)}
-                            />
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium">{item.base_name}</span>
-                                {item.is_promo_active && (
-                                  <Badge variant="destructive" className="text-xs">
-                                    <Flame className="h-3 w-3 me-1" />
-                                    {item.promo_label || t("offer")}
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                {item.is_promo_active ? (
-                                  <>
-                                    <span className="line-through">{formatJOD(item.price ?? (item.menu_item?.price || 0))}</span>
-                                    <span className="text-destructive font-semibold">{formatJOD(item.promo_price || 0)} {currency}</span>
-                                  </>
-                                ) : (
-                                  <span>{formatJOD(item.effective_price)} {currency}</span>
-                                )}
-                                {item.price !== null && item.price !== item.menu_item?.price && (
-                                  <Badge variant="outline" className="text-xs">{t("custom_price")}</Badge>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            {/* Available/Unavailable - Single Toggle */}
-                            <div className="flex items-center gap-2">
-                              <Switch
-                                checked={item.is_available}
-                                onCheckedChange={() => handleToggleAvailable(item)}
-                              />
-                              <span className={`text-sm font-medium ${item.is_available ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
-                                {item.is_available ? t("available") : t("unavailable")}
-                              </span>
-                            </div>
-                            
-                            <Button variant="ghost" size="icon" onClick={() => openEditDialog(item)}>
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+              <div className="space-y-4">
+                {Object.entries(itemsByCategory).map(([catId, catItems]) => {
+                  const isExpanded = expandedCategories.has(catId);
+                  return (
+                    <div key={catId} className="border rounded-lg overflow-hidden">
+                      {/* Category Header - Collapsible */}
+                      <button
+                        onClick={() => toggleCategory(catId)}
+                        className="w-full flex items-center justify-between p-3 bg-muted/50 hover:bg-muted/70 transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          {isExpanded ? (
+                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                          )}
+                          <span className="font-semibold">{getCategoryName(catId)}</span>
+                          <Badge variant="secondary" className="text-xs">{catItems.length}</Badge>
                         </div>
-                      ))}
+                      </button>
+                      
+                      {/* Category Items */}
+                      {isExpanded && (
+                        <div className="p-2 space-y-2">
+                          {catItems.map(item => (
+                            <div
+                              key={item.id}
+                              className={`flex items-center justify-between p-3 rounded-lg border ${
+                                !item.is_available ? "opacity-60 bg-muted/30" : "bg-background"
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <Checkbox
+                                  checked={selectedItems.includes(item.menu_item_id)}
+                                  onCheckedChange={() => toggleSelectItem(item.menu_item_id)}
+                                />
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium">{item.base_name}</span>
+                                    {item.is_promo_active && (
+                                      <Badge variant="destructive" className="text-xs">
+                                        <Flame className="h-3 w-3 me-1" />
+                                        {item.promo_label || t("offer")}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    {item.is_promo_active ? (
+                                      <>
+                                        <span className="line-through">{formatJOD(item.price ?? (item.menu_item?.price || 0))}</span>
+                                        <span className="text-destructive font-semibold">{formatJOD(item.promo_price || 0)} {currency}</span>
+                                      </>
+                                    ) : (
+                                      <span>{formatJOD(item.effective_price)} {currency}</span>
+                                    )}
+                                    {item.price !== null && item.price !== item.menu_item?.price && (
+                                      <Badge variant="outline" className="text-xs">{t("custom_price")}</Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                {/* Available/Unavailable - Single Toggle */}
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    checked={item.is_available}
+                                    onCheckedChange={() => handleToggleAvailable(item)}
+                                  />
+                                  <span className={`text-sm font-medium ${item.is_available ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                                    {item.is_available ? t("available") : t("unavailable")}
+                                  </span>
+                                </div>
+                                
+                                <Button variant="ghost" size="icon" onClick={() => openEditDialog(item)}>
+                                  <Edit2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
