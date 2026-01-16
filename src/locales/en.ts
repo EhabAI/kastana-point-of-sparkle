@@ -1569,4 +1569,21 @@ export default {
   inv_negative_stock_tooltip: "Items showing negative quantity. Check for missing deliveries or errors.",
   inv_items_without_recipe: "Items Without Recipe",
   inv_items_without_recipe_tooltip: "Food/drink items missing recipes. Inventory won't deduct automatically.",
+  
+  // Inventory Transaction Filter
+  inv_filter_type: "Transaction Type",
+  inv_filter_all: "All Types",
+  inv_txn_sale_deduction: "Sale Deduction",
+  inv_txn_refund_restoration: "Refund Restoration",
+  
+  // Z Report Inventory Section
+  z_inventory_summary: "Daily Inventory Movements Summary",
+  z_inventory_summary_desc: "Inventory movements during this shift",
+  z_inv_type: "Type",
+  z_inv_in: "IN",
+  z_inv_out: "OUT",
+  z_inv_net: "Net",
+  z_inv_count: "Count",
+  z_inv_total: "Total Movements",
+  z_inv_no_movements: "No inventory movements during this shift",
 } as const;

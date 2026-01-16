@@ -11,6 +11,7 @@ import {
   useWasteSummary,
 } from "@/hooks/useInventoryDashboard";
 import { InventoryItemsList, OperationsToolbar, InventoryInsights } from "./inventory";
+import { InventoryTransactionFilter, type FilterableTxnType } from "./inventory/InventoryTransactionFilter";
 import { RecipeBuilder } from "./recipes";
 import { AlertTriangle, PackageX, RefreshCw, Trash2, Package, LayoutDashboard, List, ChefHat, Lightbulb } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -74,12 +75,18 @@ export function InventoryDashboard({ restaurantId, isReadOnly = false, currency 
 
 function DashboardWidgets({ restaurantId }: { restaurantId: string }) {
   const { t, language } = useLanguage();
+  const [txnFilter, setTxnFilter] = useState<FilterableTxnType>("ALL");
   const { data: lowStockItems = [], isLoading: loadingLow } = useLowStockItems(restaurantId);
   const { data: nearReorderItems = [], isLoading: loadingReorder } = useNearReorderItems(restaurantId);
   const { data: recentTransactions = [], isLoading: loadingTx } = useRecentTransactions(restaurantId);
   const { data: wasteSummary = [], isLoading: loadingWaste } = useWasteSummary(restaurantId);
 
   const dateLocale = language === "ar" ? ar : enUS;
+
+  // Filter transactions based on selected type
+  const filteredTransactions = txnFilter === "ALL"
+    ? recentTransactions
+    : recentTransactions.filter(tx => tx.txnType === txnFilter);
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -186,14 +193,17 @@ function DashboardWidgets({ restaurantId }: { restaurantId: string }) {
       {/* Recent Transactions */}
       <Card className="shadow-card hover-lift cursor-pointer transition-all">
         <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <PackageX className="h-4 w-4 text-primary" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <PackageX className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-base">{t("inv_recent_transactions")}</CardTitle>
+                <CardDescription className="text-xs">{t("inv_recent_transactions_desc")}</CardDescription>
+              </div>
             </div>
-            <div>
-              <CardTitle className="text-base">{t("inv_recent_transactions")}</CardTitle>
-              <CardDescription className="text-xs">{t("inv_recent_transactions_desc")}</CardDescription>
-            </div>
+            <InventoryTransactionFilter value={txnFilter} onChange={setTxnFilter} />
           </div>
         </CardHeader>
         <CardContent>
@@ -203,14 +213,14 @@ function DashboardWidgets({ restaurantId }: { restaurantId: string }) {
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
             </div>
-          ) : recentTransactions.length === 0 ? (
+          ) : filteredTransactions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
               <Package className="h-8 w-8 mb-2 opacity-40" />
               <span className="text-sm">{t("inv_no_transactions")}</span>
             </div>
           ) : (
             <div className="space-y-2 max-h-64 overflow-y-auto">
-              {recentTransactions.map((tx) => (
+              {filteredTransactions.map((tx) => (
                 <div
                   key={tx.id}
                   className="flex items-center justify-between p-2 rounded-lg bg-muted/30 border border-border/50"
