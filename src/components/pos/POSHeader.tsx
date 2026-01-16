@@ -10,6 +10,7 @@ import {
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import posLogoNew from "@/assets/pos-logo-new.png";
 
 interface POSHeaderProps {
   restaurantName: string;
@@ -48,13 +49,11 @@ export function POSHeader({
         <div className="flex items-center justify-between h-12 sm:h-14">
           {/* LEFT – Brand Area */}
           <div className="flex items-center gap-2.5">
-            {restaurantLogo && (
-              <img 
-                src={restaurantLogo} 
-                alt={`${restaurantName} logo`}
-                className="h-8 sm:h-10 w-auto object-contain rounded-lg"
-              />
-            )}
+            <img 
+              src={restaurantLogo || posLogoNew} 
+              alt={`${restaurantName} logo`}
+              className="h-8 sm:h-10 w-auto object-contain rounded-lg"
+            />
             <div className="flex flex-col">
               <span className="text-sm font-semibold text-foreground leading-tight">
                 {restaurantName}

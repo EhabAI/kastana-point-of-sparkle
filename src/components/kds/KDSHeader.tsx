@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import kastanaLogo from "@/assets/kastana-logo.png";
+import posLogoNew from "@/assets/pos-logo-new.png";
 import { AutoClearDelay } from "@/hooks/kds/useKDSAutoClear";
 
 interface KDSHeaderProps {
@@ -95,7 +95,7 @@ export function KDSHeader({
           {/* LEFT – Brand Area */}
           <div className="flex items-center gap-2.5">
             <img 
-              src={restaurantLogo || kastanaLogo} 
+              src={restaurantLogo || posLogoNew} 
               alt={restaurantName || "Kastana POS"}
               className="h-8 sm:h-10 w-auto object-contain rounded-lg"
             />
