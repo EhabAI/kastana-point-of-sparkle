@@ -60,7 +60,7 @@ function getNextOpenTime(businessHours: BusinessHours | null, t: (key: string) =
 // Format duration for display with proper Arabic-friendly spacing
 // Normalizes input: if > 1440, treat as seconds; else treat as minutes
 // Examples: 18400 (sec) => "5 س 06 د", 306 (min) => "5 س 06 د", 41 (min) => "0 س 41 د"
-function formatShiftDuration(durationValue: number, language: string): string {
+function formatShiftDuration(durationValue: number, language: string): { hours: number; mins: string } {
   // Normalize: if value > 1440 (24 hours in minutes), it's likely in seconds
   const totalMinutes = durationValue > 1440 
     ? Math.floor(durationValue / 60) 
@@ -72,13 +72,7 @@ function formatShiftDuration(durationValue: number, language: string): string {
   // Pad minutes to always show 2 digits
   const paddedMins = mins.toString().padStart(2, "0");
   
-  if (language === "ar") {
-    // Arabic format: always show "{hours} س {mm} د"
-    return `${hours} س ${paddedMins} د`;
-  }
-  
-  // English format: "5h 06m" or "0h 38m"
-  return `${hours}h ${paddedMins}m`;
+  return { hours, mins: paddedMins };
 }
 
 export function DashboardOverview({ restaurantId, tableCount, staffCount, currency }: DashboardOverviewProps) {
@@ -161,15 +155,17 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
       <div className="flex flex-wrap items-start gap-x-8 gap-y-4 md:gap-x-12">
         {/* PRIMARY: Restaurant Status */}
         <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default min-h-[52px]">
-          <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-0.5">{t("status")}</span>
-          <div className="flex items-center gap-1.5">
-            <span className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${isOpen ? 'bg-emerald-500' : 'bg-muted-foreground/40'}`} />
-            <span className="text-xl font-bold text-foreground tracking-tight leading-none">{isOpen ? t("open") : t("closed")}</span>
+          <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("status")}</span>
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-base font-bold ${isOpen ? 'bg-emerald-500 text-white' : 'bg-muted-foreground/20 text-muted-foreground'}`}>
+              <span className={`inline-block w-2.5 h-2.5 rounded-full flex-shrink-0 ${isOpen ? 'bg-white' : 'bg-muted-foreground/60'}`} />
+              {isOpen ? t("open") : t("closed")}
+            </span>
             {!isOpen && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Info className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help flex-shrink-0" />
+                    <Info className="h-4 w-4 text-muted-foreground/50 cursor-help flex-shrink-0" />
                   </TooltipTrigger>
                   <TooltipContent side="top" className="max-w-[250px]">
                     <p className="text-sm">{t("closed_tooltip")}</p>
@@ -179,7 +175,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
             )}
           </div>
           {nextOpenTime && (
-            <span className="text-[9px] text-muted-foreground/40 mt-0.5">{nextOpenTime}</span>
+            <span className="text-[10px] text-muted-foreground/60 mt-1">{nextOpenTime}</span>
           )}
         </div>
 
@@ -190,12 +186,12 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
         <div className="flex gap-6 md:gap-8">
           {/* Today's Sales */}
           <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default min-h-[52px]">
-            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-0.5">{t("sales")}</span>
-            <div className="flex items-baseline gap-1">
-              <span className={`text-xl font-bold tabular-nums tracking-tight leading-none ${zeroSalesWarning ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
+            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("sales")}</span>
+            <div className="flex items-baseline gap-1.5">
+              <span className={`text-2xl font-bold tabular-nums tracking-tight leading-none ${zeroSalesWarning ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
                 {formatJOD(todayStats?.todaySales || 0)}
               </span>
-              <span className="text-[9px] text-muted-foreground/40 font-medium">{currencySymbol}</span>
+              <span className="text-sm font-semibold text-foreground/70">{currencySymbol}</span>
             </div>
             {zeroSalesWarning && (
               <span className="w-4 h-0.5 bg-amber-500/60 rounded-full mt-1" />
@@ -216,16 +212,24 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
         <div className="flex gap-6 md:gap-8">
           {/* Open Shifts */}
           <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default min-h-[52px]">
-            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-0.5">{t("shifts")}</span>
-            <div className="flex items-baseline gap-1.5">
-              <span className={`text-xl font-bold tabular-nums tracking-tight leading-none ${hasLongShift ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
+            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("shifts")}</span>
+            <div className="flex items-baseline gap-2">
+              <span className={`text-2xl font-bold tabular-nums tracking-tight leading-none ${hasLongShift ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
                 {todayStats?.openShifts || 0}
               </span>
-              {(todayStats?.openShifts || 0) > 0 && (todayStats?.oldestShiftMinutes || 0) > 0 && (
-                <span className={`text-[10px] font-medium ${hasLongShift ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground/40'}`}>
-                  {formatShiftDuration(todayStats?.oldestShiftMinutes || 0, language)}
-                </span>
-              )}
+              {(todayStats?.openShifts || 0) > 0 && (todayStats?.oldestShiftMinutes || 0) > 0 && (() => {
+                const duration = formatShiftDuration(todayStats?.oldestShiftMinutes || 0, language);
+                const hLabel = language === "ar" ? "س" : "h";
+                const mLabel = language === "ar" ? "د" : "m";
+                return (
+                  <span className={`flex items-baseline gap-0.5 ${hasLongShift ? 'text-amber-600 dark:text-amber-400' : 'text-foreground/80'}`}>
+                    <span className="text-lg font-bold tabular-nums">{duration.hours}</span>
+                    <span className="text-xs font-medium text-muted-foreground">{hLabel}</span>
+                    <span className="text-lg font-bold tabular-nums ml-0.5">{duration.mins}</span>
+                    <span className="text-xs font-medium text-muted-foreground">{mLabel}</span>
+                  </span>
+                );
+              })()}
             </div>
             {hasLongShift && (
               <span className="w-4 h-0.5 bg-amber-500/60 rounded-full mt-1" />
