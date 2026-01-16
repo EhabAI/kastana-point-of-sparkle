@@ -108,6 +108,8 @@ export default {
   inv_txn_transfer_out: "نقل صادر",
   inv_txn_transfer_in: "نقل وارد",
   inv_txn_stock_count_adjustment: "تعديل جرد",
+  inv_txn_initial_stock: "مخزون ابتدائي",
+  inv_txn_sale: "بيع",
 
   // Inventory Items List
   inv_dashboard: "لوحة التحكم",
