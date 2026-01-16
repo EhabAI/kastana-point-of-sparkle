@@ -1377,6 +1377,8 @@ export default {
   no_branch_profit_data: "لا توجد بيانات ربح للفروع",
   showing_top_20_of: "عرض أعلى 20 من",
   metric: "المؤشر",
+  cost: "التكلفة",
+  total_recipe_cost: "إجمالي تكلفة الوصفة",
 
   // Inventory Module Disabled
   inventory_module_disabled_title: "إدارة المخزون غير مفعّلة",

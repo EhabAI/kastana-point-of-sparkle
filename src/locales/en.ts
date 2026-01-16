@@ -1379,6 +1379,8 @@ export default {
   no_branch_profit_data: "No branch profit data available",
   showing_top_20_of: "Showing top 20 of",
   metric: "Metric",
+  cost: "Cost",
+  total_recipe_cost: "Total Recipe Cost",
 
   // Inventory Module Disabled
   inventory_module_disabled_title: "Inventory Management Not Enabled",
