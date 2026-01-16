@@ -17,6 +17,8 @@ export const KNOWN_TXN_TYPES = [
   "STOCK_COUNT_ADJUSTMENT",
   "INITIAL_STOCK",
   "SALE",
+  "SALE_DEDUCTION",
+  "REFUND_RESTORATION",
 ] as const;
 
 export type KnownTxnType = typeof KNOWN_TXN_TYPES[number];
@@ -34,6 +36,8 @@ export const TXN_TYPE_COLORS: Record<string, string> = {
   STOCK_COUNT_ADJUSTMENT: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
   INITIAL_STOCK: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
   SALE: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  SALE_DEDUCTION: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  REFUND_RESTORATION: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400",
 };
 
 /**

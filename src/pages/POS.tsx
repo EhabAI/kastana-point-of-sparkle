@@ -48,6 +48,7 @@ import type { SelectedModifier } from "@/hooks/pos/useModifiers";
 import { useCreateRefund } from "@/hooks/pos/useRefunds";
 import { useAuditLog } from "@/hooks/pos/useAuditLog";
 import { useRestaurantActiveStatus } from "@/hooks/useRestaurantActiveStatus";
+import { useShiftInventoryMovements } from "@/hooks/useShiftInventoryMovements";
 import { RestaurantInactiveScreen } from "@/components/RestaurantInactiveScreen";
 import {
   useAddOrderItem,
@@ -120,6 +121,11 @@ export default function POS() {
   const { data: recentOrders = [] } = useRecentOrders(currentShift?.id);
   const { data: currentOrder, refetch: refetchOrder } = useCurrentOrder(currentShift?.id);
   const { data: zReportData, isLoading: zReportLoading } = useZReport(currentShift?.id);
+  const { data: inventoryMovements, isLoading: inventoryMovementsLoading } = useShiftInventoryMovements(
+    currentShift?.id,
+    restaurant?.id,
+    branch?.id
+  );
   const { data: tables = [], isLoading: tablesLoading } = useBranchTables(branch?.id);
   const { data: pendingOrders = [] } = usePendingOrders(branch?.id);
   const { data: openOrders = [] } = useOpenOrders(branch?.id);
@@ -2131,6 +2137,8 @@ export default function POS() {
         report={zReportData || null}
         currency={currency}
         isLoading={zReportLoading}
+        inventoryData={inventoryMovements}
+        inventoryLoading={inventoryMovementsLoading}
       />
 
       <ItemNotesDialog

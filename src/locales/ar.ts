@@ -1574,4 +1574,21 @@ export default {
   inv_items_without_recipe: "أصناف بلا وصفة",
   inv_items_without_recipe_tooltip: "أصناف الطعام والمشروبات بدون وصفات. لن يتم خصم المخزون تلقائياً.",
   today_income_tooltip: "إجمالي الإيرادات من الطلبات المكتملة اليوم.",
+  
+  // Inventory Transaction Filter
+  inv_filter_type: "نوع العملية",
+  inv_filter_all: "جميع الأنواع",
+  inv_txn_sale_deduction: "خصم بيع",
+  inv_txn_refund_restoration: "استعادة مرتجع",
+  
+  // Z Report Inventory Section
+  z_inventory_summary: "ملخص حركات المخزون اليومية",
+  z_inventory_summary_desc: "حركات المخزون خلال هذا الشفت",
+  z_inv_type: "النوع",
+  z_inv_in: "وارد",
+  z_inv_out: "صادر",
+  z_inv_net: "الصافي",
+  z_inv_count: "العدد",
+  z_inv_total: "إجمالي الحركات",
+  z_inv_no_movements: "لا توجد حركات مخزون خلال هذا الشفت",
 } as const;
