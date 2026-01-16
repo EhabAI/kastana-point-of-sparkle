@@ -13,6 +13,7 @@ export interface InventoryItem {
   reorderPoint: number;
   isActive: boolean;
   onHandBase: number;
+  avgCost: number | null;
   createdAt: string;
 }
 
@@ -45,6 +46,7 @@ export function useInventoryItems(restaurantId: string | undefined) {
           min_level,
           reorder_point,
           is_active,
+          avg_cost,
           created_at,
           restaurant_branches!inventory_items_branch_id_fkey (id, name),
           inventory_units!inventory_items_base_unit_id_fkey (id, name)
@@ -84,6 +86,7 @@ export function useInventoryItems(restaurantId: string | undefined) {
         reorderPoint: item.reorder_point,
         isActive: item.is_active,
         onHandBase: stockMap.get(item.id) || 0,
+        avgCost: item.avg_cost,
         createdAt: item.created_at,
       }));
     },
