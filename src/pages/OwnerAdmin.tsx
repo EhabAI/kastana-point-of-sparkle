@@ -48,6 +48,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { BranchProvider } from "@/contexts/BranchContext";
 import { CSVUpload } from "@/components/owner/CSVUpload";
 import { TableManagement } from "@/components/owner/TableManagement";
+import { ComboItemsDialog } from "@/components/owner/ComboItemsDialog";
 import { StaffManagement } from "@/components/owner/StaffManagement";
 import { RestaurantSettings } from "@/components/owner/RestaurantSettings";
 import { DiscountSettings } from "@/components/owner/DiscountSettings";
@@ -540,6 +541,7 @@ function MenuItemsSection({
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [managingComboItem, setManagingComboItem] = useState<MenuItem | null>(null);
   const [newItem, setNewItem] = useState({ name: "", description: "", price: "", is_offer: false, item_type: "food" as MenuItem["item_type"] });
 
   const handleCreateItem = async () => {
@@ -774,6 +776,16 @@ function MenuItemsSection({
                     checked={item.is_available}
                     onCheckedChange={(checked) => updateItem.mutate({ id: item.id, is_available: checked })}
                   />
+                  {item.item_type === "combo" && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setManagingComboItem(item)}
+                      title={t("manage_combo")}
+                    >
+                      <Package className="h-4 w-4 text-primary" />
+                    </Button>
+                  )}
                   <Dialog open={editingItem?.id === item.id} onOpenChange={(open) => !open && setEditingItem(null)}>
                     <DialogTrigger asChild>
                       <Button variant="ghost" size="icon" onClick={() => setEditingItem(item)}>
@@ -868,6 +880,17 @@ function MenuItemsSection({
           </div>
         )}
       </CardContent>
+
+      {/* Combo Items Dialog */}
+      {managingComboItem && (
+        <ComboItemsDialog
+          comboItem={managingComboItem}
+          allMenuItems={allItems}
+          open={!!managingComboItem}
+          onOpenChange={(open) => !open && setManagingComboItem(null)}
+          currency={currencySymbol}
+        />
+      )}
     </Card>
   );
 }
