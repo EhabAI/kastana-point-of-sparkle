@@ -152,40 +152,39 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
       </div>
       
       {/* Status Bar */}
-      <div className="flex flex-wrap items-start gap-x-8 gap-y-4 md:gap-x-12">
+      <div className="flex flex-wrap items-stretch gap-y-4">
         {/* PRIMARY: Restaurant Status */}
-        <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default min-h-[52px]">
-          <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("status")}</span>
-          <div className="flex items-center gap-2">
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-base font-bold ${isOpen ? 'bg-emerald-500 text-white' : 'bg-muted-foreground/20 text-muted-foreground'}`}>
-              <span className={`inline-block w-2.5 h-2.5 rounded-full flex-shrink-0 ${isOpen ? 'bg-white' : 'bg-muted-foreground/60'}`} />
-              {isOpen ? t("open") : t("closed")}
-            </span>
-            {!isOpen && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-4 w-4 text-muted-foreground/50 cursor-help flex-shrink-0" />
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="max-w-[250px]">
-                    <p className="text-sm">{t("closed_tooltip")}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+        <div className="flex items-center">
+          <div className="flex flex-col px-4 first:pl-0 min-h-[52px]">
+            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("status")}</span>
+            <div className="flex items-center gap-2">
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-base font-bold ${isOpen ? 'bg-emerald-500 text-white' : 'bg-muted-foreground/20 text-muted-foreground'}`}>
+                <span className={`inline-block w-2.5 h-2.5 rounded-full flex-shrink-0 ${isOpen ? 'bg-white' : 'bg-muted-foreground/60'}`} />
+                {isOpen ? t("open") : t("closed")}
+              </span>
+              {!isOpen && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground/50 cursor-help flex-shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-[250px]">
+                      <p className="text-sm">{t("closed_tooltip")}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
+            {nextOpenTime && (
+              <span className="text-[10px] text-muted-foreground/60 mt-1">{nextOpenTime}</span>
             )}
           </div>
-          {nextOpenTime && (
-            <span className="text-[10px] text-muted-foreground/60 mt-1">{nextOpenTime}</span>
-          )}
+          <div className="hidden md:block w-px self-stretch bg-border mx-2" />
         </div>
 
-        {/* Divider */}
-        <div className="hidden md:block w-px h-10 bg-border/50" />
-
-        {/* PERFORMANCE GROUP */}
-        <div className="flex gap-6 md:gap-8">
-          {/* Today's Sales */}
-          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default min-h-[52px]">
+        {/* Today's Sales */}
+        <div className="flex items-center">
+          <div className="flex flex-col px-4 min-h-[52px]">
             <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("sales")}</span>
             <div className="flex items-baseline gap-1.5">
               <span className={`text-xl font-bold tabular-nums tracking-tight leading-none ${zeroSalesWarning ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
@@ -197,21 +196,21 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
               <span className="w-4 h-0.5 bg-amber-500/60 rounded-full mt-1" />
             )}
           </div>
-          
-          {/* Today's Orders */}
-          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default min-h-[52px]">
-            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-0.5">{t("orders")}</span>
-            <span className="text-xl font-bold text-foreground tabular-nums tracking-tight leading-none">{todayStats?.todayOrders || 0}</span>
-          </div>
+          <div className="hidden md:block w-px self-stretch bg-border mx-2" />
         </div>
 
-        {/* Divider */}
-        <div className="hidden md:block w-px h-10 bg-border/50" />
+        {/* Today's Orders */}
+        <div className="flex items-center">
+          <div className="flex flex-col px-4 min-h-[52px]">
+            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("orders")}</span>
+            <span className="text-xl font-bold text-foreground tabular-nums tracking-tight leading-none">{todayStats?.todayOrders || 0}</span>
+          </div>
+          <div className="hidden md:block w-px self-stretch bg-border mx-2" />
+        </div>
 
-        {/* OPERATIONS GROUP */}
-        <div className="flex gap-6 md:gap-8">
-          {/* Open Shifts */}
-          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default min-h-[52px]">
+        {/* Open Shifts */}
+        <div className="flex items-center">
+          <div className="flex flex-col px-4 min-h-[52px]">
             <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("shifts")}</span>
             <div className="flex items-baseline gap-2">
               <span className={`text-xl font-bold tabular-nums tracking-tight leading-none ${hasLongShift ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
@@ -235,16 +234,22 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
               <span className="w-4 h-0.5 bg-amber-500/60 rounded-full mt-1" />
             )}
           </div>
-          
-          {/* Tables */}
-          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default min-h-[52px]">
-            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-0.5">{t("tables")}</span>
+          <div className="hidden md:block w-px self-stretch bg-border mx-2" />
+        </div>
+
+        {/* Tables */}
+        <div className="flex items-center">
+          <div className="flex flex-col px-4 min-h-[52px]">
+            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("tables")}</span>
             <span className="text-xl font-bold text-foreground tabular-nums tracking-tight leading-none">{tableCount}</span>
           </div>
-          
-          {/* Staff */}
-          <div className="flex flex-col p-2 -m-2 rounded-lg transition-all duration-200 hover:bg-primary/10 hover:shadow-sm hover:scale-[1.02] cursor-default min-h-[52px]">
-            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-0.5">{t("staff")}</span>
+          <div className="hidden md:block w-px self-stretch bg-border mx-2" />
+        </div>
+
+        {/* Staff */}
+        <div className="flex items-center">
+          <div className="flex flex-col px-4 min-h-[52px]">
+            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("staff")}</span>
             <span className="text-xl font-bold text-foreground tabular-nums tracking-tight leading-none">{staffCount}</span>
           </div>
         </div>
