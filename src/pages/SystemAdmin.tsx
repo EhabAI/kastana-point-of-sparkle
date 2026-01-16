@@ -1,5 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { StatCard } from "@/components/StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,15 @@ const emailSchema = z.string().email("Please enter a valid email");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
 
 export default function SystemAdmin() {
+  const { language, setLanguage } = useLanguage();
+  
+  // Force English language for System Admin
+  useEffect(() => {
+    if (language !== "en") {
+      setLanguage("en");
+    }
+  }, [language, setLanguage]);
+
   const { data: restaurants = [], isLoading: loadingRestaurants } = useRestaurants();
   const { data: owners = [], isLoading: loadingOwners } = useOwners();
   const { data: inventoryStatusMap = new Map() } = useAllRestaurantsInventoryStatus();
