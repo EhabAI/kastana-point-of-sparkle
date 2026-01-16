@@ -71,15 +71,14 @@ export function useRecipeByMenuItem(restaurantId: string | undefined, menuItemId
       if (recipeError) throw recipeError;
       if (!recipe) return null;
 
-      // Then get the lines with inventory item and unit info
+      // Then get the lines
+      // NOTE: We intentionally don't join inventory_items/inventory_units here because
+      // this project may not have FK relationships defined for those joins.
       const { data: lines, error: linesError } = await supabase
         .from("menu_item_recipe_lines")
-        .select(`
-          *,
-          inventory_items(name),
-          inventory_units(name)
-        `)
-        .eq("recipe_id", recipe.id);
+        .select("*")
+        .eq("recipe_id", recipe.id)
+        .eq("restaurant_id", restaurantId);
 
       if (linesError) throw linesError;
 
