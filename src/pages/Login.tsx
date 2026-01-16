@@ -129,7 +129,7 @@ export default function Login() {
             <div className="flex items-center gap-4 mb-3">
               <img alt="Kastana" className="h-20 w-auto object-contain" src="/lovable-uploads/894da989-3544-48dc-ba9d-c4e6b45565cf.png" />
               <div>
-                <h1 className="text-3xl font-bold text-foreground tracking-tight">Kastana</h1>
+                <h1 className="font-bold text-foreground tracking-tight text-5xl">Kastana</h1>
                 <p className="text-base text-muted-foreground">POS System</p>
               </div>
             </div>
