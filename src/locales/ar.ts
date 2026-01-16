@@ -269,7 +269,7 @@ export default {
   view: "عرض",
 
   // Inventory Insights
-  inv_insights: "رؤى المخزون",
+  inv_insights: "رؤية المخزون",
   inv_insights_desc: "تحليلات الفروقات والتنبيهات الذكية",
   inv_variance_trends: "اتجاهات الفروقات",
   inv_top_variance: "أعلى الفروقات",
