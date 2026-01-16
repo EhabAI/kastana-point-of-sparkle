@@ -1462,4 +1462,7 @@ export default {
 
   // Kitchen Done Orders Card
   kitchen_done_orders_today: "Kitchen Done Orders Today",
+
+  // Today Income Card
+  today_income: "Today's Income",
 } as const;

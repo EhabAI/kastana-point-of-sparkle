@@ -73,6 +73,7 @@ import { SystemConfidenceScore } from "@/components/owner/SystemConfidenceScore"
 import { SuggestedNextAction } from "@/components/owner/SuggestedNextAction";
 import { MistakePatternDetector } from "@/components/owner/MistakePatternDetector";
 import { KitchenDoneOrdersCard } from "@/components/owner/KitchenDoneOrdersCard";
+import { TodayIncomeCard } from "@/components/owner/TodayIncomeCard";
 import { useRestaurantTables } from "@/hooks/useRestaurantTables";
 import { useCashiers } from "@/hooks/useCashiers";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
@@ -219,10 +220,11 @@ export default function OwnerAdmin() {
             {role === "owner" && (
               <div className="grid gap-3 md:grid-cols-2">
                 <SmartEndOfDaySummary restaurantId={restaurant.id} currency={currency} />
-                <div className="grid gap-3 grid-cols-3">
+                <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
                   <SystemConfidenceScore restaurantId={restaurant.id} />
                   <SuggestedNextAction restaurantId={restaurant.id} />
                   <KitchenDoneOrdersCard restaurantId={restaurant.id} />
+                  <TodayIncomeCard restaurantId={restaurant.id} currency={currency} />
                 </div>
               </div>
             )}
