@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useOwnerRestaurant } from "@/hooks/useRestaurants";
 import { useMenuCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from "@/hooks/useMenuCategories";
-import { useMenuItems, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, MenuItem } from "@/hooks/useMenuItems";
+import { useMenuItems, useAllMenuItems, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, MenuItem } from "@/hooks/useMenuItems";
 import { 
   Store, 
   Loader2, 
@@ -504,13 +504,30 @@ function MenuItemsSection({
 }) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [itemSearch, setItemSearch] = useState("");
-  const { data: items = [], isLoading } = useMenuItems(restaurantId, selectedCategoryId || undefined);
+  const { data: allItems = [], isLoading: isLoadingAll } = useAllMenuItems(restaurantId);
+  const { data: categoryItems = [], isLoading: isLoadingCategory } = useMenuItems(restaurantId, selectedCategoryId || undefined);
+  
+  // Use all items when searching, category items when category is selected without search
+  const isSearching = itemSearch.trim().length > 0;
+  const baseItems = isSearching ? allItems : categoryItems;
+  const isLoading = isSearching ? isLoadingAll : isLoadingCategory;
   
   const filteredItems = useMemo(() => {
-    if (!itemSearch.trim()) return items;
-    const query = itemSearch.toLowerCase().trim();
-    return items.filter((item) => item.name.toLowerCase().includes(query));
-  }, [items, itemSearch]);
+    let result = baseItems;
+    
+    // Filter by search term
+    if (itemSearch.trim()) {
+      const query = itemSearch.toLowerCase().trim();
+      result = result.filter((item) => item.name.toLowerCase().includes(query));
+    }
+    
+    // If searching and a category is selected, also filter by category
+    if (isSearching && selectedCategoryId) {
+      result = result.filter((item) => item.category_id === selectedCategoryId);
+    }
+    
+    return result;
+  }, [baseItems, itemSearch, isSearching, selectedCategoryId]);
   const createItem = useCreateMenuItem();
   const updateItem = useUpdateMenuItem();
   const deleteItem = useDeleteMenuItem();
@@ -653,15 +670,30 @@ function MenuItemsSection({
         </div>
       </CardHeader>
       <CardContent>
-        {/* Category Selector & Search */}
+        {/* Search & Category Selector */}
         <div className="mb-6 flex flex-col sm:flex-row gap-4">
+          <div className="flex-1 sm:max-w-64">
+            <Label className="mb-2 block">{t("search")}</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={t("search_menu_items") || "Search items..."}
+                value={itemSearch}
+                onChange={(e) => setItemSearch(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
           <div className="flex-1 sm:max-w-64">
             <Label className="mb-2 block">{t("select_category")}</Label>
             <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={t("choose_category")} />
+                <SelectValue placeholder={isSearching ? t("all_categories") || "All categories" : t("choose_category")} />
               </SelectTrigger>
               <SelectContent>
+                {isSearching && (
+                  <SelectItem value="">{t("all_categories") || "All categories"}</SelectItem>
+                )}
                 {categories.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id}>
                     {cat.name}
@@ -670,25 +702,11 @@ function MenuItemsSection({
               </SelectContent>
             </Select>
           </div>
-          {selectedCategoryId && (
-            <div className="flex-1 sm:max-w-64">
-              <Label className="mb-2 block">{t("search")}</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={t("search_menu_items") || "Search items..."}
-                  value={itemSearch}
-                  onChange={(e) => setItemSearch(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Items List */}
-        {!selectedCategoryId ? (
-          <p className="text-muted-foreground text-center py-8">{t("select_category_view")}</p>
+        {!selectedCategoryId && !isSearching ? (
+          <p className="text-muted-foreground text-center py-8">{t("select_category_view") || "Select a category or search for items"}</p>
         ) : isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
