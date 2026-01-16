@@ -167,10 +167,11 @@ export const RefundVoidInsights = forwardRef<HTMLDivElement, object>(function Re
         <ChevronDown className={`h-3 w-3 text-muted-foreground/50 transition-transform duration-200 ltr:ml-auto rtl:mr-auto ${isOpen ? "" : "-rotate-90"}`} />
       </button>
 
+      {/* Content List */}
       {isOpen && (
-        <div className="space-y-4">
+        <div className="mt-3 space-y-1.5">
           {isLoading ? (
-            <div className="flex items-center justify-center py-4">
+            <div className="flex items-center justify-center py-3">
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             </div>
           ) : (
