@@ -1464,4 +1464,7 @@ export default {
   error_validation_failed: "⚠️ يرجى التأكد من إدخال جميع الحقول بشكل صحيح.",
   error_unexpected: "❌ حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
   error_no_data: "لا توجد بيانات بعد.",
+
+  // Kitchen Done Orders Card
+  kitchen_done_today: "طلبات منجزة من المطبخ اليوم",
 } as const;
