@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChefHat, CheckCircle2 } from "lucide-react";
+import { ChefHat } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useKitchenPerformance } from "@/hooks/useKitchenPerformance";
 import { useKDSEnabled } from "@/hooks/useKDSEnabled";
@@ -23,7 +23,7 @@ export function KitchenDoneOrdersCard({ restaurantId }: KitchenDoneOrdersCardPro
 
   if (isLoading) {
     return (
-      <Card className="shadow-card">
+      <Card className="bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800/50 border">
         <CardContent className="p-4">
           <Skeleton className="h-16 w-full" />
         </CardContent>
@@ -34,20 +34,21 @@ export function KitchenDoneOrdersCard({ restaurantId }: KitchenDoneOrdersCardPro
   const doneCount = data?.totalOrdersToday || 0;
 
   return (
-    <Card className="shadow-card hover-lift h-full">
-      <CardContent className="p-4 flex flex-col justify-center h-full">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-            <ChefHat className="h-5 w-5 text-green-600 dark:text-green-400" />
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-foreground">{doneCount}</span>
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+    <Card className="bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800/50 border">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-full bg-green-50 dark:bg-green-950/20">
+              <ChefHat className="h-5 w-5 text-green-600" />
             </div>
-            <p className="text-xs text-muted-foreground">
-              {t("kitchen_done_today") || "طلبات منجزة من المطبخ اليوم"}
-            </p>
+            <div>
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                {t("kitchen_done_orders_today")}
+              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-2xl font-bold text-green-600">{doneCount}</span>
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>
