@@ -1269,6 +1269,10 @@ export default {
   recipe_notes_placeholder: "ملاحظات اختيارية حول التحضير، الحصص، إلخ.",
   save_recipe: "حفظ الوصفة",
   saving: "جاري الحفظ...",
+  import_csv_recipes: "استيراد CSV للوصفات",
+  import_recipes_from_csv: "استيراد الوصفات من CSV",
+  csv_headers_required: "رؤوس الأعمدة المطلوبة في ملف CSV",
+  select_csv_file: "اختر ملف CSV",
 
   // Inventory Deduction
   inventory_negative_warning: "المخزون أصبح سالباً لبعض الأصناف",

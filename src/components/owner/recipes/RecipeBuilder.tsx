@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trash2, Plus, Save, ChefHat, Search, Package, AlertCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Trash2, Plus, Save, ChefHat, Search, Package, AlertCircle, Upload, FileText } from "lucide-react";
 import { useAllMenuItems } from "@/hooks/useMenuItems";
 import { useInventoryItems, useInventoryUnits } from "@/hooks/useInventoryItems";
 import { useRecipeByMenuItem, useUpsertRecipe } from "@/hooks/useRecipes";
@@ -37,6 +38,34 @@ export function RecipeBuilder({ restaurantId }: RecipeBuilderProps) {
   const [notes, setNotes] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [hasChanges, setHasChanges] = useState(false);
+  
+  // CSV Import Modal State
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setSelectedFile(file);
+  };
+
+  const handleOpenImportModal = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    setIsImportModalOpen(true);
+  };
+
+  const handleCloseImportModal = () => {
+    setIsImportModalOpen(false);
+    setSelectedFile(null);
+  };
+
+  const handleContinueImport = () => {
+    // Future: CSV parsing and import logic will go here
+    console.log("Continue import with file:", selectedFile?.name);
+  };
 
   const { data: menuItems = [], isLoading: loadingMenuItems } = useAllMenuItems(restaurantId);
   const { data: inventoryItems = [], isLoading: loadingInventory } = useInventoryItems(restaurantId);
@@ -155,14 +184,76 @@ export function RecipeBuilder({ restaurantId }: RecipeBuilderProps) {
 
   return (
     <div className="space-y-6" dir={isRTL ? "rtl" : "ltr"}>
+      {/* CSV Import Modal */}
+      <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              {t("import_recipes_from_csv")}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground mb-2">{t("csv_headers_required")}:</p>
+              <code className="text-xs bg-background px-2 py-1 rounded border block overflow-x-auto">
+                menu_item_name,inventory_item_name,quantity,unit
+              </code>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="csv-file">{t("select_csv_file")}</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  ref={fileInputRef}
+                  id="csv-file"
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileChange}
+                  className="flex-1"
+                />
+              </div>
+              {selectedFile && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <FileText className="h-4 w-4" />
+                  <span>{selectedFile.name}</span>
+                </div>
+              )}
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={handleCloseImportModal}>
+              {t("cancel")}
+            </Button>
+            <Button 
+              onClick={handleContinueImport} 
+              disabled={!selectedFile}
+              className="gap-2"
+            >
+              {t("continue")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Menu Item Selection */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ChefHat className="h-5 w-5" />
-            {t("recipe_builder")}
-          </CardTitle>
-          <CardDescription>{t("recipe_builder_desc")}</CardDescription>
+        <CardHeader className="flex flex-row items-start justify-between gap-4">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <ChefHat className="h-5 w-5" />
+              {t("recipe_builder")}
+            </CardTitle>
+            <CardDescription>{t("recipe_builder_desc")}</CardDescription>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleOpenImportModal}
+            className="gap-2 shrink-0"
+          >
+            <Upload className="h-4 w-4" />
+            {t("import_csv_recipes")}
+          </Button>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">

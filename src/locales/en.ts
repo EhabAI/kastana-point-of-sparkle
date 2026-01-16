@@ -1271,6 +1271,10 @@ export default {
   recipe_notes_placeholder: "Optional notes about preparation, portions, etc.",
   save_recipe: "Save Recipe",
   saving: "Saving...",
+  import_csv_recipes: "Import CSV Recipes",
+  import_recipes_from_csv: "Import Recipes from CSV",
+  csv_headers_required: "Required CSV headers",
+  select_csv_file: "Select CSV File",
 
   // Inventory Deduction
   inventory_negative_warning: "Inventory went negative for some items",
