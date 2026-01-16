@@ -144,11 +144,11 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
     <div className="bg-muted/30 dark:bg-muted/10 rounded-lg p-4 border border-border transition-all duration-200 hover:shadow-md">
       {/* Section Header - Commanding */}
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-[10px] font-bold text-muted-foreground/80 uppercase tracking-[0.15em]">
+        <span className="text-[10px] font-bold text-foreground/80 uppercase tracking-[0.15em]">
           {t("today") || "Today"}
         </span>
-        <span className="text-[10px] text-muted-foreground/40">—</span>
-        <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-wider">
+        <span className="text-[10px] text-muted-foreground/50">—</span>
+        <span className="text-[10px] font-medium text-foreground/60 uppercase tracking-wider">
           {t("operational_status") || "Operational Status"}
         </span>
       </div>
@@ -158,10 +158,9 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
         {/* PRIMARY: Restaurant Status */}
         <div className="flex items-center">
           <div className="flex flex-col px-4 first:pl-0 min-h-[52px]">
-            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("status")}</span>
+            <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">{t("status")}</span>
             <div className="flex items-center gap-2">
-              <span className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-lg font-bold ${isOpen ? 'bg-emerald-500 text-white' : 'bg-muted-foreground/20 text-muted-foreground'}`}>
-                <span className={`inline-block w-2.5 h-2.5 rounded-full flex-shrink-0 ${isOpen ? 'bg-white' : 'bg-muted-foreground/60'}`} />
+              <span className={`text-lg font-semibold ${isOpen ? 'text-emerald-600 dark:text-emerald-500' : 'text-red-600 dark:text-red-500'}`}>
                 {isOpen ? t("open") : t("closed")}
               </span>
               {!isOpen && (
@@ -187,12 +186,12 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
         {/* Today's Sales */}
         <div className="flex items-center">
           <div className="flex flex-col px-4 min-h-[52px]">
-            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("sales")}</span>
+            <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">{t("sales")}</span>
             <div className="flex items-baseline gap-1.5">
               <span className={`text-xl font-bold tabular-nums tracking-tight leading-none ${zeroSalesWarning ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
                 {formatJOD(todayStats?.todaySales || 0)}
               </span>
-              <span className="text-sm font-semibold text-foreground/70">{currencySymbol}</span>
+              <span className="text-sm font-semibold text-foreground/80">{currencySymbol}</span>
             </div>
             {zeroSalesWarning && (
               <span className="w-4 h-0.5 bg-amber-500/60 rounded-full mt-1" />
@@ -204,7 +203,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
         {/* Today's Orders */}
         <div className="flex items-center">
           <div className="flex flex-col px-4 min-h-[52px]">
-            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("orders")}</span>
+            <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">{t("orders")}</span>
             <span className="text-xl font-bold text-foreground tabular-nums tracking-tight leading-none">{todayStats?.todayOrders || 0}</span>
           </div>
           <div className="hidden md:block w-[2px] self-stretch bg-border/80 mx-3" />
@@ -213,7 +212,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
         {/* Open Shifts */}
         <div className="flex items-center">
           <div className="flex flex-col px-4 min-h-[52px]">
-            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("shifts")}</span>
+            <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">{t("shifts")}</span>
             <div className="flex items-baseline gap-2">
               <span className={`text-xl font-bold tabular-nums tracking-tight leading-none ${hasLongShift ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
                 {todayStats?.openShifts || 0}
@@ -225,9 +224,9 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
                 return (
                   <span className={`flex items-baseline gap-0.5 ${hasLongShift ? 'text-amber-600 dark:text-amber-400' : 'text-foreground/80'}`}>
                     <span className="text-base font-bold tabular-nums">{duration.hours}</span>
-                    <span className="text-sm font-semibold text-muted-foreground">{hLabel}</span>
+                    <span className="text-sm font-medium text-foreground/60">{hLabel}</span>
                     <span className="text-base font-bold tabular-nums ml-0.5">{duration.mins}</span>
-                    <span className="text-sm font-semibold text-muted-foreground">{mLabel}</span>
+                    <span className="text-sm font-medium text-foreground/60">{mLabel}</span>
                   </span>
                 );
               })()}
@@ -242,7 +241,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
         {/* Tables */}
         <div className="flex items-center">
           <div className="flex flex-col px-4 min-h-[52px]">
-            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("tables")}</span>
+            <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">{t("tables")}</span>
             <span className="text-xl font-bold text-foreground tabular-nums tracking-tight leading-none">{tableCount}</span>
           </div>
           <div className="hidden md:block w-[2px] self-stretch bg-border/80 mx-3" />
@@ -251,7 +250,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
         {/* Staff */}
         <div className="flex items-center">
           <div className="flex flex-col px-4 min-h-[52px]">
-            <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">{t("staff")}</span>
+            <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">{t("staff")}</span>
             <span className="text-xl font-bold text-foreground tabular-nums tracking-tight leading-none">{staffCount}</span>
           </div>
           <div className="hidden md:block w-[2px] self-stretch bg-border/80 mx-3" />
@@ -372,7 +371,7 @@ function OperationalScoreMetric({ restaurantId }: { restaurantId: string }) {
   return (
     <div className="flex items-center">
       <div className="flex flex-col px-4 min-h-[52px]">
-        <span className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1">
+        <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">
           {t("operational_score")}
         </span>
         <div className="flex items-center gap-2">
