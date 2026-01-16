@@ -6,7 +6,8 @@ import { subDays, startOfDay } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { RotateCcw, ChevronRight, CheckCircle } from "lucide-react";
+import { RotateCcw, ChevronRight, CheckCircle, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface RefundVoidReasonsCardProps {
   restaurantId: string;
@@ -114,6 +115,16 @@ export function RefundVoidReasonsCard({ restaurantId, onViewDetails }: RefundVoi
               </p>
             </div>
           </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 text-muted-foreground/50 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[250px]">
+                <p className="text-xs">{t("refund_void_reasons_tooltip")}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </CardHeader>
       <CardContent className="px-4 pb-4 pt-0">

@@ -5,7 +5,8 @@ import { useBranchContext } from "@/contexts/BranchContext";
 import { startOfDay, endOfDay } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Wallet, TrendingUp } from "lucide-react";
+import { Wallet, TrendingUp, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface TodayIncomeCardProps {
   restaurantId: string;
@@ -80,6 +81,16 @@ export function TodayIncomeCard({ restaurantId, currency }: TodayIncomeCardProps
               </div>
             </div>
           </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 text-muted-foreground/50 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[200px]">
+                <p className="text-xs">{t("today_income_tooltip")}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </CardContent>
     </Card>

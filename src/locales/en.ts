@@ -1516,6 +1516,7 @@ export default {
 
   // Today Income Card
   today_income: "Today's Income",
+  today_income_tooltip: "Total revenue from completed orders today.",
 
   // Combo Items
   combo_items: "Combo Items",
@@ -1547,9 +1548,14 @@ export default {
 
   // Insight Cards
   refund_void_reasons_title: "Refund & Void Reasons",
+  refund_void_reasons_tooltip: "Top reasons for refunds and voided items in the last 7 days. Helps identify common issues.",
   no_refunds_or_voids: "No refunds or voids",
   inventory_risk_title: "Inventory Risks",
+  inventory_risk_tooltip: "Stock issues that need attention. Click any row to see details.",
   inv_near_reorder_short: "Near Reorder",
+  inv_near_reorder_tooltip: "Items running low and approaching minimum stock levels.",
   inv_negative_stock: "Negative Stock",
+  inv_negative_stock_tooltip: "Items showing negative quantity. Check for missing deliveries or errors.",
   inv_items_without_recipe: "Items Without Recipe",
+  inv_items_without_recipe_tooltip: "Food/drink items missing recipes. Inventory won't deduct automatically.",
 } as const;
