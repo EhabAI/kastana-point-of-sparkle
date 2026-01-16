@@ -218,7 +218,7 @@ export default function OwnerAdmin() {
             {role === "owner" && (
               <div className="grid gap-3 md:grid-cols-2">
                 <SmartEndOfDaySummary restaurantId={restaurant.id} currency={currency} />
-                <div className="space-y-3">
+                <div className="grid gap-3 grid-cols-2">
                   <SystemConfidenceScore restaurantId={restaurant.id} />
                   <SuggestedNextAction restaurantId={restaurant.id} />
                 </div>
