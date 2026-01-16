@@ -1285,6 +1285,13 @@ export default {
   csv_error_quantity_required: "الكمية مطلوبة",
   csv_error_quantity_invalid: "الكمية يجب أن تكون رقماً أكبر من 0",
   csv_error_unit_required: "الوحدة مطلوبة",
+  csv_import_success: "تم استيراد الوصفات بنجاح",
+  csv_import_partial_success: "تم استيراد الوصفات مع بعض الأخطاء",
+  csv_import_failed: "فشل استيراد الوصفات",
+  csv_menu_items_updated: "أصناف القائمة المحدثة",
+  csv_recipe_lines_inserted: "سطور الوصفات المضافة",
+  csv_errors: "الأخطاء",
+  importing: "جاري الاستيراد...",
   menu_item: "صنف القائمة",
   import: "استيراد",
 
