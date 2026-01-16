@@ -76,8 +76,8 @@ export function useRecipeByMenuItem(restaurantId: string | undefined, menuItemId
         .from("menu_item_recipe_lines")
         .select(`
           *,
-          inventory_items!inner(name),
-          inventory_units!inner(name)
+          inventory_items(name),
+          inventory_units(name)
         `)
         .eq("recipe_id", recipe.id);
 
