@@ -1526,4 +1526,22 @@ export default {
   manage_combo: "Manage Combo",
   select_item: "Select item",
   qty: "Qty",
+
+  // Owner Dashboard Error Messages
+  error_unexpected_owner_title: "Something went wrong",
+  error_unexpected_owner_desc: "An unexpected error occurred. Please try again.",
+  error_owner_permission_title: "Insufficient permissions",
+  error_owner_permission_desc: "You don't have the required permissions for this action.",
+  error_owner_duplicate_title: "Already exists",
+  error_owner_duplicate_desc: "This item already exists. Please check and try again.",
+  error_owner_not_found_title: "Not found",
+  error_owner_not_found_desc: "The requested item was not found.",
+  error_owner_network_title: "Connection error",
+  error_owner_network_desc: "Unable to connect. Please check your internet connection.",
+  error_owner_restaurant_mismatch_title: "Restaurant mismatch",
+  error_owner_restaurant_mismatch_desc: "This item belongs to a different restaurant.",
+  error_owner_branch_active_cashiers_title: "Cannot delete branch",
+  error_owner_branch_active_cashiers_desc: "This branch has active cashiers. Please deactivate them first.",
+  error_owner_branch_open_shifts_title: "Cannot delete branch",
+  error_owner_branch_open_shifts_desc: "This branch has open shifts. Please close them first.",
 } as const;

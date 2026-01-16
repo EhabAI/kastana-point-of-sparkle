@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getOwnerErrorMessage } from "@/lib/ownerErrorHandler";
 
 export interface Branch {
   id: string;
@@ -58,6 +60,7 @@ export function useDefaultBranch(restaurantId: string | undefined) {
 export function useCreateBranch() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async (data: {
@@ -78,10 +81,11 @@ export function useCreateBranch() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["branches", data.restaurant_id] });
-      toast({ title: "Branch created successfully" });
+      toast({ title: t("branch_created") || "Branch created successfully" });
     },
     onError: (error) => {
-      toast({ title: "Failed to create branch", description: error.message, variant: "destructive" });
+      const msg = getOwnerErrorMessage(error, t);
+      toast({ title: msg.title, description: msg.description, variant: "destructive" });
     },
   });
 }
@@ -89,6 +93,7 @@ export function useCreateBranch() {
 export function useUpdateBranch() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ id, ...data }: Partial<Branch> & { id: string }) => {
@@ -104,10 +109,11 @@ export function useUpdateBranch() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["branches", data.restaurant_id] });
-      toast({ title: "Branch updated successfully" });
+      toast({ title: t("branch_updated") || "Branch updated successfully" });
     },
     onError: (error) => {
-      toast({ title: "Failed to update branch", description: error.message, variant: "destructive" });
+      const msg = getOwnerErrorMessage(error, t);
+      toast({ title: msg.title, description: msg.description, variant: "destructive" });
     },
   });
 }
@@ -115,6 +121,7 @@ export function useUpdateBranch() {
 export function useDeleteBranch() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ branchId, restaurantId }: { branchId: string; restaurantId: string }) => {
@@ -155,15 +162,16 @@ export function useDeleteBranch() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["branches", data.restaurantId] });
-      toast({ title: "Branch deleted successfully" });
+      toast({ title: t("branch_deleted") || "Branch deleted successfully" });
     },
     onError: (error: Error) => {
-      // Return specific error message for UI to handle
+      // Return specific error message for UI to handle (ACTIVE_CASHIERS / OPEN_SHIFTS)
       if (error.message === "ACTIVE_CASHIERS" || error.message === "OPEN_SHIFTS") {
-        // Don't show toast here - let UI handle it
+        // Don't show toast here - let UI handle it via the error handler
         return;
       }
-      toast({ title: "Failed to delete branch", description: error.message, variant: "destructive" });
+      const msg = getOwnerErrorMessage(error, t);
+      toast({ title: msg.title, description: msg.description, variant: "destructive" });
     },
   });
 }

@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getOwnerErrorMessage } from "@/lib/ownerErrorHandler";
 
 export interface MenuCategory {
   id: string;
@@ -34,6 +36,7 @@ export function useMenuCategories(restaurantId?: string) {
 export function useCreateCategory() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ restaurantId, name }: { restaurantId: string; name: string }) => {
@@ -58,10 +61,11 @@ export function useCreateCategory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['menu-categories'] });
-      toast({ title: 'Category created successfully' });
+      toast({ title: t("category_created") || 'Category created successfully' });
     },
     onError: (error: Error) => {
-      toast({ title: 'Error creating category', description: error.message, variant: 'destructive' });
+      const msg = getOwnerErrorMessage(error, t);
+      toast({ title: msg.title, description: msg.description, variant: 'destructive' });
     },
   });
 }
@@ -69,6 +73,7 @@ export function useCreateCategory() {
 export function useUpdateCategory() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ id, name, is_active }: { id: string; name?: string; is_active?: boolean }) => {
@@ -88,10 +93,11 @@ export function useUpdateCategory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['menu-categories'] });
-      toast({ title: 'Category updated successfully' });
+      toast({ title: t("category_updated") || 'Category updated successfully' });
     },
     onError: (error: Error) => {
-      toast({ title: 'Error updating category', description: error.message, variant: 'destructive' });
+      const msg = getOwnerErrorMessage(error, t);
+      toast({ title: msg.title, description: msg.description, variant: 'destructive' });
     },
   });
 }
@@ -99,6 +105,7 @@ export function useUpdateCategory() {
 export function useDeleteCategory() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -111,10 +118,11 @@ export function useDeleteCategory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['menu-categories'] });
-      toast({ title: 'Category deleted successfully' });
+      toast({ title: t("category_deleted") || 'Category deleted successfully' });
     },
     onError: (error: Error) => {
-      toast({ title: 'Error deleting category', description: error.message, variant: 'destructive' });
+      const msg = getOwnerErrorMessage(error, t);
+      toast({ title: msg.title, description: msg.description, variant: 'destructive' });
     },
   });
 }

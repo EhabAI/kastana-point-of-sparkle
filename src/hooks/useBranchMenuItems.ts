@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getOwnerErrorMessage } from "@/lib/ownerErrorHandler";
 
 export interface BranchMenuItem {
   id: string;
@@ -93,6 +95,7 @@ export function useBranchMenuItems(branchId: string | undefined, categoryId?: st
 export function useUpdateBranchMenuItem() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ id, ...data }: Partial<BranchMenuItem> & { id: string }) => {
@@ -108,10 +111,11 @@ export function useUpdateBranchMenuItem() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["branch-menu-items", data.branch_id] });
-      toast({ title: "Item updated successfully" });
+      toast({ title: t("item_updated") || "Item updated successfully" });
     },
     onError: (error) => {
-      toast({ title: "Failed to update item", description: error.message, variant: "destructive" });
+      const msg = getOwnerErrorMessage(error, t);
+      toast({ title: msg.title, description: msg.description, variant: "destructive" });
     },
   });
 }
@@ -119,6 +123,7 @@ export function useUpdateBranchMenuItem() {
 export function useBulkUpdateBranchMenuItems() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -142,10 +147,11 @@ export function useBulkUpdateBranchMenuItems() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["branch-menu-items", variables.branchId] });
-      toast({ title: "Items updated successfully" });
+      toast({ title: t("items_updated") || "Items updated successfully" });
     },
     onError: (error) => {
-      toast({ title: "Failed to update items", description: error.message, variant: "destructive" });
+      const msg = getOwnerErrorMessage(error, t);
+      toast({ title: msg.title, description: msg.description, variant: "destructive" });
     },
   });
 }
@@ -153,6 +159,7 @@ export function useBulkUpdateBranchMenuItems() {
 export function useCopyBranchPrices() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -196,10 +203,11 @@ export function useCopyBranchPrices() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["branch-menu-items", variables.targetBranchId] });
-      toast({ title: "Prices copied successfully" });
+      toast({ title: t("prices_copied") || "Prices copied successfully" });
     },
     onError: (error) => {
-      toast({ title: "Failed to copy prices", description: error.message, variant: "destructive" });
+      const msg = getOwnerErrorMessage(error, t);
+      toast({ title: msg.title, description: msg.description, variant: "destructive" });
     },
   });
 }

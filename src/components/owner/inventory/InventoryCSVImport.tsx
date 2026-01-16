@@ -16,6 +16,7 @@ import { useBranches } from "@/hooks/useBranches";
 import { useInventoryUnits, useCreateInventoryItem, useInventoryItems } from "@/hooks/useInventoryItems";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { getOwnerErrorMessage } from "@/lib/ownerErrorHandler";
 import { Upload, Loader2, FileText, AlertTriangle } from "lucide-react";
 
 interface InventoryCSVImportProps {
@@ -220,8 +221,9 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
           description: `${itemsCreated} ${t("items_created")}, ${transactionsCreated} ${t("inv_stock_added")}`,
         });
       }
-    } catch (error: any) {
-      toast({ title: error.message || t("inv_import_failed"), variant: "destructive" });
+    } catch (error: unknown) {
+      const msg = getOwnerErrorMessage(error, t);
+      toast({ title: msg.title, description: msg.description, variant: "destructive" });
     } finally {
       setIsProcessing(false);
     }
