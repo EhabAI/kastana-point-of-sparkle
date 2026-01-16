@@ -30,12 +30,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useRestaurants, useCreateRestaurant, useAssignOwner, useUpdateRestaurant } from "@/hooks/useRestaurants";
 import { useOwners, useCreateOwner } from "@/hooks/useOwners";
-import { useMenuCategories } from "@/hooks/useMenuCategories";
-import { useAllMenuItems } from "@/hooks/useMenuItems";
 import { useToggleRestaurantActive } from "@/hooks/useToggleRestaurantActive";
 import { useAllRestaurantsInventoryStatus, useToggleInventoryModule } from "@/hooks/useInventoryModuleToggle";
 import { useAllRestaurantsKDSStatus, useToggleKDSModule } from "@/hooks/useKDSModuleToggle";
-import { Store, Users, Plus, Link, Eye, Loader2, Upload, Image, Power, Package, ChefHat } from "lucide-react";
+import { Store, Users, Plus, Link, Loader2, Upload, Image, Package, ChefHat, Pencil, Key } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -79,12 +77,23 @@ export default function SystemAdmin() {
   const [selectedOwner, setSelectedOwner] = useState("");
   const [viewingRestaurant, setViewingRestaurant] = useState<string | null>(null);
   const [editLogoRestaurantId, setEditLogoRestaurantId] = useState<string | null>(null);
+  
+  // Edit restaurant name states
+  const [editNameDialogOpen, setEditNameDialogOpen] = useState(false);
+  const [editingRestaurant, setEditingRestaurant] = useState<{id: string; name: string} | null>(null);
+  const [newRestaurantName, setNewRestaurantName] = useState("");
+  
+  // Edit owner states
+  const [editOwnerDialogOpen, setEditOwnerDialogOpen] = useState(false);
+  const [editingOwner, setEditingOwner] = useState<{id: string; email: string} | null>(null);
+  const [newOwnerEmail, setNewOwnerEmail] = useState("");
+  const [newOwnerPassword, setNewOwnerPassword] = useState("");
+  const [updatingOwner, setUpdatingOwner] = useState(false);
 
   // Dialog states
   const [restaurantDialogOpen, setRestaurantDialogOpen] = useState(false);
   const [ownerDialogOpen, setOwnerDialogOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
-  const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editLogoDialogOpen, setEditLogoDialogOpen] = useState(false);
   
   // Deactivation confirmation dialog
@@ -537,6 +546,18 @@ export default function SystemAdmin() {
                               variant="ghost"
                               size="sm"
                               onClick={() => {
+                                setEditingRestaurant({ id: restaurant.id, name: restaurant.name });
+                                setNewRestaurantName(restaurant.name);
+                                setEditNameDialogOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4 mr-1.5" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
                                 setEditLogoRestaurantId(restaurant.id);
                                 setLogoPreview(restaurant.logo_url || null);
                                 setEditLogoDialogOpen(true);
@@ -545,17 +566,24 @@ export default function SystemAdmin() {
                               <Image className="h-4 w-4 mr-1.5" />
                               Logo
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setViewingRestaurant(restaurant.id);
-                                setViewDialogOpen(true);
-                              }}
-                            >
-                              <Eye className="h-4 w-4 mr-1.5" />
-                              Menu
-                            </Button>
+                            {restaurant.owner_id && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  const owner = owners.find(o => o.user_id === restaurant.owner_id);
+                                  if (owner) {
+                                    setEditingOwner({ id: owner.user_id, email: owner.email || '' });
+                                    setNewOwnerEmail(owner.email || '');
+                                    setNewOwnerPassword('');
+                                    setEditOwnerDialogOpen(true);
+                                  }
+                                }}
+                              >
+                                <Key className="h-4 w-4 mr-1.5" />
+                                Owner
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -701,13 +729,163 @@ export default function SystemAdmin() {
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* View Menu Dialog */}
-        <ViewMenuDialog
-          restaurantId={viewingRestaurant}
-          open={viewDialogOpen}
-          onOpenChange={setViewDialogOpen}
-          restaurants={restaurants}
-        />
+        {/* Edit Restaurant Name Dialog */}
+        <Dialog open={editNameDialogOpen} onOpenChange={(open) => {
+          setEditNameDialogOpen(open);
+          if (!open) {
+            setEditingRestaurant(null);
+            setNewRestaurantName("");
+          }
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Restaurant Name</DialogTitle>
+              <DialogDescription>Update the name for {editingRestaurant?.name}.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-restaurant-name">Restaurant Name</Label>
+                <Input
+                  id="edit-restaurant-name"
+                  value={newRestaurantName}
+                  onChange={(e) => setNewRestaurantName(e.target.value)}
+                  placeholder="Enter new name"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setEditNameDialogOpen(false);
+                setEditingRestaurant(null);
+                setNewRestaurantName("");
+              }}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={async () => {
+                  if (!editingRestaurant || !newRestaurantName.trim()) return;
+                  await updateRestaurant.mutateAsync({ id: editingRestaurant.id, name: newRestaurantName.trim() });
+                  setEditNameDialogOpen(false);
+                  setEditingRestaurant(null);
+                  setNewRestaurantName("");
+                }} 
+                disabled={updateRestaurant.isPending || !newRestaurantName.trim()}
+              >
+                {updateRestaurant.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Save
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Owner Dialog */}
+        <Dialog open={editOwnerDialogOpen} onOpenChange={(open) => {
+          setEditOwnerDialogOpen(open);
+          if (!open) {
+            setEditingOwner(null);
+            setNewOwnerEmail("");
+            setNewOwnerPassword("");
+          }
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Owner Account</DialogTitle>
+              <DialogDescription>Update email or password for {editingOwner?.email}.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-owner-email">Email</Label>
+                <Input
+                  id="edit-owner-email"
+                  type="email"
+                  value={newOwnerEmail}
+                  onChange={(e) => setNewOwnerEmail(e.target.value)}
+                  placeholder="owner@example.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-owner-password">New Password (leave empty to keep current)</Label>
+                <Input
+                  id="edit-owner-password"
+                  type="password"
+                  value={newOwnerPassword}
+                  onChange={(e) => setNewOwnerPassword(e.target.value)}
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setEditOwnerDialogOpen(false);
+                setEditingOwner(null);
+                setNewOwnerEmail("");
+                setNewOwnerPassword("");
+              }}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={async () => {
+                  if (!editingOwner) return;
+                  
+                  const emailResult = emailSchema.safeParse(newOwnerEmail);
+                  if (!emailResult.success) {
+                    toast({ title: emailResult.error.errors[0].message, variant: "destructive" });
+                    return;
+                  }
+                  
+                  if (newOwnerPassword && newOwnerPassword.length < 6) {
+                    toast({ title: "Password must be at least 6 characters", variant: "destructive" });
+                    return;
+                  }
+                  
+                  setUpdatingOwner(true);
+                  const { data: sessionData } = await supabase.auth.getSession();
+                  const accessToken = sessionData?.session?.access_token;
+                  
+                  if (!accessToken) {
+                    toast({ title: "Not authenticated", variant: "destructive" });
+                    setUpdatingOwner(false);
+                    return;
+                  }
+                  
+                  try {
+                    // Update email if changed
+                    if (newOwnerEmail !== editingOwner.email) {
+                      const { error: emailError } = await supabase.functions.invoke('system-admin-update-email', {
+                        body: { user_id: editingOwner.id, new_email: newOwnerEmail },
+                        headers: { Authorization: `Bearer ${accessToken}` },
+                      });
+                      if (emailError) throw emailError;
+                    }
+                    
+                    // Update password if provided
+                    if (newOwnerPassword) {
+                      const { error: passError } = await supabase.functions.invoke('system-admin-reset-password', {
+                        body: { user_id: editingOwner.id, new_password: newOwnerPassword },
+                        headers: { Authorization: `Bearer ${accessToken}` },
+                      });
+                      if (passError) throw passError;
+                    }
+                    
+                    toast({ title: "Owner updated successfully" });
+                    setEditOwnerDialogOpen(false);
+                    setEditingOwner(null);
+                    setNewOwnerEmail("");
+                    setNewOwnerPassword("");
+                  } catch (error: any) {
+                    toast({ title: "Error updating owner", description: error.message, variant: "destructive" });
+                  } finally {
+                    setUpdatingOwner(false);
+                  }
+                }} 
+                disabled={updatingOwner || !newOwnerEmail.trim()}
+              >
+                {updatingOwner ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Save
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Edit Logo Dialog */}
         <Dialog open={editLogoDialogOpen} onOpenChange={(open) => {
@@ -775,74 +953,3 @@ export default function SystemAdmin() {
   );
 }
 
-function ViewMenuDialog({
-  restaurantId,
-  open,
-  onOpenChange,
-  restaurants,
-}: {
-  restaurantId: string | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  restaurants: { id: string; name: string }[];
-}) {
-  const restaurant = restaurants.find((r) => r.id === restaurantId);
-  const { data: categories = [] } = useMenuCategories(restaurantId || undefined);
-  const { data: items = [] } = useAllMenuItems(restaurantId || undefined);
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{restaurant?.name || "Menu"}</DialogTitle>
-          <DialogDescription>View menu categories and items (read-only)</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-6 py-4">
-          {categories.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No menu categories yet.</p>
-          ) : (
-            categories.map((category) => (
-              <div key={category.id} className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-medium text-foreground">{category.name}</h4>
-                  {!category.is_active && (
-                    <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">Inactive</span>
-                  )}
-                </div>
-                <div className="space-y-2 pl-4">
-                  {items
-                    .filter((i) => i.category_id === category.id)
-                    .map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between py-2 border-b border-border last:border-0"
-                      >
-                        <div>
-                          <p className="font-medium text-foreground">{item.name}</p>
-                          {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {item.is_offer && (
-                            <span className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded">Offer</span>
-                          )}
-                          {!item.is_available && (
-                            <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">
-                              Unavailable
-                            </span>
-                          )}
-                          <span className="font-medium text-foreground">${formatJOD(Number(item.price))}</span>
-                        </div>
-                      </div>
-                    ))}
-                  {items.filter((i) => i.category_id === category.id).length === 0 && (
-                    <p className="text-sm text-muted-foreground">No items in this category</p>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
