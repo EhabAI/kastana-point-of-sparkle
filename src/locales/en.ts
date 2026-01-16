@@ -108,6 +108,8 @@ export default {
   inv_txn_transfer_out: "Transfer Out",
   inv_txn_transfer_in: "Transfer In",
   inv_txn_stock_count_adjustment: "Count Adj.",
+  inv_txn_initial_stock: "Initial Stock",
+  inv_txn_sale: "Sale",
 
   // Inventory Items List
   inv_dashboard: "Dashboard",
