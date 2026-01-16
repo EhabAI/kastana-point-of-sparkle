@@ -135,7 +135,7 @@ export default function Login() {
             </div>
             
             {/* Slogan */}
-            <p className="text-sm tracking-[0.25em] uppercase font-medium text-primary/80 mb-10">
+            <p className="tracking-[0.25em] uppercase text-primary/80 mb-10 font-bold text-base">
               Smart. Secure. Profitable.
             </p>
 
