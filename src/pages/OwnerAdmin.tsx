@@ -74,6 +74,7 @@ import { SuggestedNextAction } from "@/components/owner/SuggestedNextAction";
 import { MistakePatternDetector } from "@/components/owner/MistakePatternDetector";
 import { KitchenDoneOrdersCard } from "@/components/owner/KitchenDoneOrdersCard";
 import { TodayIncomeCard } from "@/components/owner/TodayIncomeCard";
+import { ItemsWithoutRecipesCard } from "@/components/owner/ItemsWithoutRecipesCard";
 import { useRestaurantTables } from "@/hooks/useRestaurantTables";
 import { useCashiers } from "@/hooks/useCashiers";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
@@ -229,6 +230,7 @@ export default function OwnerAdmin() {
                 </div>
               </div>
             )}
+            {role === "owner" && <ItemsWithoutRecipesCard restaurantId={restaurant.id} />}
             {role === "owner" && <MistakePatternDetector restaurantId={restaurant.id} />}
             {role === "owner" && <NotificationsAlerts />}
             {role === "owner" && <RefundVoidInsights />}
