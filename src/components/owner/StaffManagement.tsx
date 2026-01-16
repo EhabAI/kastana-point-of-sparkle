@@ -82,7 +82,7 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
 
   const handleCreateStaff = async () => {
     if (!newStaff.email.trim()) {
-      toast({ title: t("enter_email"), variant: "destructive" });
+      toast({ title: t("error_validation_failed"), variant: "destructive" });
       return;
     }
     if (!newStaff.password || newStaff.password.length < 6) {
@@ -90,28 +90,32 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
       return;
     }
     if (!newStaff.branchId) {
-      toast({ title: t("select_branch_required"), variant: "destructive" });
+      toast({ title: t("error_validation_failed"), variant: "destructive" });
       return;
     }
 
-    if (createType === "cashier") {
-      await addCashier.mutateAsync({
-        email: newStaff.email,
-        password: newStaff.password,
-        restaurantId,
-        branchId: newStaff.branchId,
-      });
-    } else {
-      await addKitchenStaff.mutateAsync({
-        email: newStaff.email,
-        password: newStaff.password,
-        restaurantId,
-        branchId: newStaff.branchId,
-      });
-    }
+    try {
+      if (createType === "cashier") {
+        await addCashier.mutateAsync({
+          email: newStaff.email,
+          password: newStaff.password,
+          restaurantId,
+          branchId: newStaff.branchId,
+        });
+      } else {
+        await addKitchenStaff.mutateAsync({
+          email: newStaff.email,
+          password: newStaff.password,
+          restaurantId,
+          branchId: newStaff.branchId,
+        });
+      }
 
-    setNewStaff({ email: "", password: "", branchId: "" });
-    setCreateDialogOpen(false);
+      setNewStaff({ email: "", password: "", branchId: "" });
+      setCreateDialogOpen(false);
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
+    }
   };
 
   const openResetDialog = (userId: string, email: string) => {
@@ -132,15 +136,19 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
   const confirmPasswordReset = async () => {
     if (!selectedStaff) return;
     
-    await resetPassword.mutateAsync({
-      userId: selectedStaff.id,
-      newPassword,
-      restaurantId,
-    });
-    
-    setConfirmResetOpen(false);
-    setSelectedStaff(null);
-    setNewPassword("");
+    try {
+      await resetPassword.mutateAsync({
+        userId: selectedStaff.id,
+        newPassword,
+        restaurantId,
+      });
+      
+      setConfirmResetOpen(false);
+      setSelectedStaff(null);
+      setNewPassword("");
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
+    }
   };
 
   const isPending = addCashier.isPending || addKitchenStaff.isPending;

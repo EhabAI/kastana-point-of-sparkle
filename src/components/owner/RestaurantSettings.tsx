@@ -12,6 +12,7 @@ import {
   BusinessHours,
 } from "@/hooks/useOwnerRestaurantSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useToast } from "@/hooks/use-toast";
 
 const DAYS_OF_WEEK = [
   { key: "sunday", labelKey: "sunday" },
@@ -37,6 +38,7 @@ export function RestaurantSettings() {
   const { data: settings, isLoading } = useOwnerRestaurantSettings();
   const updateSettings = useUpdateOwnerRestaurantSettings();
   const { t, language } = useLanguage();
+  const { toast } = useToast();
 
   const [taxRate, setTaxRate] = useState<string>("16");
   const [pricesIncludeTax, setPricesIncludeTax] = useState(false);
@@ -82,13 +84,17 @@ export function RestaurantSettings() {
   };
 
   const handleSave = async () => {
-    const taxRateDecimal = parseFloat(taxRate) / 100 || 0;
-    await updateSettings.mutateAsync({
-      tax_rate: taxRateDecimal,
-      prices_include_tax: pricesIncludeTax,
-      business_hours: businessHours,
-    });
-    setHasChanges(false);
+    try {
+      const taxRateDecimal = parseFloat(taxRate) / 100 || 0;
+      await updateSettings.mutateAsync({
+        tax_rate: taxRateDecimal,
+        prices_include_tax: pricesIncludeTax,
+        business_hours: businessHours,
+      });
+      setHasChanges(false);
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
+    }
   };
 
   if (isLoading) {

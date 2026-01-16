@@ -61,50 +61,72 @@ export function BranchManagement({ restaurantId }: BranchManagementProps) {
   };
 
   const handleCreate = async () => {
-    if (!formData.name.trim()) return;
+    if (!formData.name.trim()) {
+      toast({ title: t("error_validation_failed"), variant: "destructive" });
+      return;
+    }
     
-    await createBranch.mutateAsync({
-      restaurant_id: restaurantId,
-      name: formData.name,
-      code: formData.code || undefined,
-      address: formData.address || undefined,
-      phone: formData.phone || undefined,
-    });
-    
-    resetForm();
-    setCreateDialogOpen(false);
+    try {
+      await createBranch.mutateAsync({
+        restaurant_id: restaurantId,
+        name: formData.name,
+        code: formData.code || undefined,
+        address: formData.address || undefined,
+        phone: formData.phone || undefined,
+      });
+      
+      resetForm();
+      setCreateDialogOpen(false);
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
+    }
   };
 
   const handleUpdate = async () => {
-    if (!editingBranch || !formData.name.trim()) return;
+    if (!editingBranch || !formData.name.trim()) {
+      toast({ title: t("error_validation_failed"), variant: "destructive" });
+      return;
+    }
     
-    await updateBranch.mutateAsync({
-      id: editingBranch.id,
-      name: formData.name,
-      code: formData.code || null,
-      address: formData.address || null,
-      phone: formData.phone || null,
-    });
-    
-    setEditingBranch(null);
-    resetForm();
+    try {
+      await updateBranch.mutateAsync({
+        id: editingBranch.id,
+        name: formData.name,
+        code: formData.code || null,
+        address: formData.address || null,
+        phone: formData.phone || null,
+      });
+      
+      setEditingBranch(null);
+      resetForm();
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
+    }
   };
 
   const handleToggleActive = async (branch: Branch) => {
-    await updateBranch.mutateAsync({
-      id: branch.id,
-      is_active: !branch.is_active,
-    });
+    try {
+      await updateBranch.mutateAsync({
+        id: branch.id,
+        is_active: !branch.is_active,
+      });
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
+    }
   };
 
   const handleSetDefault = async (branch: Branch) => {
-    // First unset current default
-    const currentDefault = branches.find(b => b.is_default);
-    if (currentDefault) {
-      await updateBranch.mutateAsync({ id: currentDefault.id, is_default: false });
+    try {
+      // First unset current default
+      const currentDefault = branches.find(b => b.is_default);
+      if (currentDefault) {
+        await updateBranch.mutateAsync({ id: currentDefault.id, is_default: false });
+      }
+      // Set new default
+      await updateBranch.mutateAsync({ id: branch.id, is_default: true });
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
     }
-    // Set new default
-    await updateBranch.mutateAsync({ id: branch.id, is_default: true });
   };
 
   const handleDelete = async (branch: Branch) => {

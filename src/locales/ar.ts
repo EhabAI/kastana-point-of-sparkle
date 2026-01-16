@@ -1457,4 +1457,11 @@ export default {
   // Contextual Hints
   hint_variance_report: "هذا التقرير يساعدك على اكتشاف الهدر مبكرًا",
   hint_z_report: "هذا تقرير يومي ولا يُستخدم للتحليل طويل المدى",
+
+  // Standard Error Messages (Owner Dashboard)
+  error_no_permission: "❌ لا تملك الصلاحية لتنفيذ هذا الإجراء.",
+  error_action_unavailable: "⚠️ هذا الإجراء غير متاح حالياً.",
+  error_validation_failed: "⚠️ يرجى التأكد من إدخال جميع الحقول بشكل صحيح.",
+  error_unexpected: "❌ حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+  error_no_data: "لا توجد بيانات بعد.",
 } as const;

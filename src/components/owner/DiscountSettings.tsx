@@ -87,8 +87,8 @@ export function DiscountSettings() {
       queryClient.invalidateQueries({ queryKey: ["discount-settings"] });
       toast({ title: t("discount_settings_saved") });
     },
-    onError: (error: Error) => {
-      toast({ title: "Failed to save settings", description: error.message, variant: "destructive" });
+    onError: () => {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
     },
   });
 

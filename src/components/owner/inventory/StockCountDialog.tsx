@@ -669,6 +669,7 @@ interface StockCountLinesListProps {
 
 function StockCountLinesList({ stockCountId, status, onApprove, onSubmit, onCancel }: StockCountLinesListProps) {
   const { t, language } = useLanguage();
+  const { toast } = useToast();
   const { data: lines = [], isLoading } = useStockCountLines(stockCountId);
   const updateLine = useUpdateStockCountLine();
 
@@ -704,8 +705,8 @@ function StockCountLinesList({ stockCountId, status, onApprove, onSubmit, onCanc
     const actualBase = parseFloat(value) || 0;
     try {
       await updateLine.mutateAsync({ lineId, actualBase, stockCountId });
-    } catch (error: any) {
-      console.error("Failed to update line:", error);
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
     }
   };
 

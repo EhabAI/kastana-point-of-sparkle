@@ -90,8 +90,8 @@ export function AdjustmentDialog({ restaurantId, open, onOpenChange }: Adjustmen
 
       toast({ title: t("inv_adjustment_created") });
       onOpenChange(false);
-    } catch (error: any) {
-      toast({ title: error.message || t("inv_operation_failed"), variant: "destructive" });
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }

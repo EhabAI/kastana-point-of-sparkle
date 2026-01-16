@@ -57,8 +57,8 @@ export function EditItemDialog({ item, open, onOpenChange }: EditItemDialogProps
 
       toast({ title: t("inv_item_updated") });
       onOpenChange(false);
-    } catch (error: any) {
-      toast({ title: error.message || t("inv_update_failed"), variant: "destructive" });
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
     }
   };
 

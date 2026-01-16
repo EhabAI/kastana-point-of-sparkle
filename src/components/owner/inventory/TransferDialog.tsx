@@ -107,8 +107,8 @@ export function TransferDialog({ restaurantId, open, onOpenChange }: TransferDia
 
       toast({ title: t("inv_transfer_complete") });
       onOpenChange(false);
-    } catch (error: any) {
-      toast({ title: error.message || t("inv_operation_failed"), variant: "destructive" });
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
