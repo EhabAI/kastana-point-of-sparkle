@@ -141,7 +141,7 @@ export default function Login() {
 
             {/* Login Form */}
             <div className="max-w-sm">
-              <h2 className="text-2xl font-bold text-foreground mb-8">Login</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-4">Login</h2>
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Email Input */}
