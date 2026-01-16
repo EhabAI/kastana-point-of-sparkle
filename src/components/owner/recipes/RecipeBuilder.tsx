@@ -11,10 +11,13 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Trash2, Plus, Save, ChefHat, Search, Package, AlertCircle, Upload, FileText, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
+import { Trash2, Plus, Save, ChefHat, Search, Package, AlertCircle, Upload, FileText, CheckCircle2, XCircle, ArrowLeft, Loader2 } from "lucide-react";
 import { useAllMenuItems } from "@/hooks/useMenuItems";
 import { useInventoryItems, useInventoryUnits } from "@/hooks/useInventoryItems";
 import { useRecipeByMenuItem, useUpsertRecipe } from "@/hooks/useRecipes";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 interface RecipeBuilderProps {
@@ -57,7 +60,9 @@ export function RecipeBuilder({ restaurantId }: RecipeBuilderProps) {
   const [showPreview, setShowPreview] = useState(false);
   const [parsedRows, setParsedRows] = useState<ParsedRecipeRow[]>([]);
   const [headerError, setHeaderError] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -192,6 +197,71 @@ export function RecipeBuilder({ restaurantId }: RecipeBuilderProps) {
     setSelectedFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
+    }
+  };
+
+  const handleImport = async () => {
+    if (!canImport || isImporting) return;
+
+    setIsImporting(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("Not authenticated");
+      }
+
+      // Prepare rows for the edge function
+      const rowsToImport = parsedRows.filter(r => r.isValid).map(row => ({
+        menu_item_name: row.menu_item_name,
+        inventory_item_name: row.inventory_item_name,
+        quantity: parseFloat(row.quantity),
+        unit: row.unit,
+      }));
+
+      const response = await supabase.functions.invoke("recipe-csv-import", {
+        body: {
+          restaurant_id: restaurantId,
+          rows: rowsToImport,
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || t("csv_import_failed"));
+      }
+
+      const result = response.data;
+
+      if (result.errors && result.errors.length > 0) {
+        // Show warning with errors but still success message
+        toast({
+          title: t("csv_import_partial_success"),
+          description: `${t("csv_menu_items_updated")}: ${result.menu_items_updated}, ${t("csv_recipe_lines_inserted")}: ${result.recipe_lines_inserted}. ${t("csv_errors")}: ${result.errors.length}`,
+          variant: "destructive",
+        });
+        console.error("Import errors:", result.errors);
+      } else {
+        toast({
+          title: t("csv_import_success"),
+          description: `${t("csv_menu_items_updated")}: ${result.menu_items_updated}, ${t("csv_recipe_lines_inserted")}: ${result.recipe_lines_inserted}`,
+        });
+      }
+
+      // Invalidate recipes query to refresh data
+      queryClient.invalidateQueries({ queryKey: ["recipes", restaurantId] });
+      queryClient.invalidateQueries({ queryKey: ["recipe"] });
+
+      // Close modal
+      handleCloseImportModal();
+    } catch (error) {
+      console.error("Import error:", error);
+      toast({
+        title: t("error"),
+        description: error instanceof Error ? error.message : t("csv_import_failed"),
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -439,10 +509,18 @@ export function RecipeBuilder({ restaurantId }: RecipeBuilderProps) {
                   {t("back")}
                 </Button>
                 <Button 
-                  disabled={!canImport}
+                  disabled={!canImport || isImporting}
+                  onClick={handleImport}
                   className="gap-2"
                 >
-                  {t("import")}
+                  {isImporting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      {t("importing")}
+                    </>
+                  ) : (
+                    t("import")
+                  )}
                 </Button>
               </>
             ) : (

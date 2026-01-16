@@ -1287,6 +1287,13 @@ export default {
   csv_error_quantity_required: "Quantity is required",
   csv_error_quantity_invalid: "Quantity must be a number greater than 0",
   csv_error_unit_required: "Unit is required",
+  csv_import_success: "Recipes imported successfully",
+  csv_import_partial_success: "Recipes imported with some errors",
+  csv_import_failed: "Failed to import recipes",
+  csv_menu_items_updated: "Menu items updated",
+  csv_recipe_lines_inserted: "Recipe lines inserted",
+  csv_errors: "Errors",
+  importing: "Importing...",
   menu_item: "Menu Item",
   import: "Import",
 

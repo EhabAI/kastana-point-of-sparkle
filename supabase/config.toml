@@ -47,3 +47,6 @@ verify_jwt = true
 
 [functions.toggle-inventory-module]
 verify_jwt = false
+
+[functions.recipe-csv-import]
+verify_jwt = false
