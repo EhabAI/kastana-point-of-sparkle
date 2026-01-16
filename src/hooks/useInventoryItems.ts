@@ -46,7 +46,7 @@ export function useInventoryItems(restaurantId: string | undefined) {
           reorder_point,
           is_active,
           created_at,
-          restaurant_branches!inner (id, name),
+          restaurant_branches!inventory_items_branch_id_fkey (id, name),
           inventory_units!inventory_items_base_unit_id_fkey (id, name)
         `)
         .eq("restaurant_id", restaurantId)
