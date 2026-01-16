@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, Moon, Sun, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
-import kastanaLogo from "@/assets/kastana-logo.png";
+import posLogoNew from "@/assets/pos-logo-new.png";
 import cashierIllustration from "@/assets/cashier-illustration.png";
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -127,7 +127,7 @@ export default function Login() {
           <div className="w-full lg:w-1/2 p-8 sm:p-10 lg:p-12">
             {/* Logo */}
             <div className="flex items-center gap-4 mb-3">
-              <img alt="Kastana" className="h-20 w-auto object-contain" src="/lovable-uploads/894da989-3544-48dc-ba9d-c4e6b45565cf.png" />
+              <img alt="Kastana" className="h-20 w-auto object-contain" src={posLogoNew} />
               <div>
                 <h1 className="font-bold text-foreground tracking-tight text-5xl">Kastana</h1>
                 <p className="text-lg text-muted-foreground">POS System</p>

@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import kastanaLogo from '@/assets/kastana-logo.png';
+import posLogoNew from '@/assets/pos-logo-new.png';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -33,7 +33,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
           <div className="flex items-center justify-between h-12 sm:h-14">
             {/* LEFT – Brand Area */}
             <div className="flex items-center gap-2.5">
-              <img src={kastanaLogo} alt="Kastana POS" className="h-8 sm:h-10 w-auto" />
+              <img src={posLogoNew} alt="Kastana POS" className="h-8 sm:h-10 w-auto" />
               <div className="flex flex-col">
                 <span className="text-sm font-semibold text-foreground leading-tight">
                   Kastana POS
