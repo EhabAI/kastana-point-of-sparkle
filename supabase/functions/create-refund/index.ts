@@ -242,6 +242,115 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Step 9: INVENTORY RESTORATION (for full refunds only)
+    // Only restore inventory if this is a full refund and inventory module is enabled
+    let inventoryRestored = false;
+    let inventoryRestoredCount = 0;
+
+    if (refundType === "full" || isFullyRefunded) {
+      try {
+        // Check if inventory is enabled for this restaurant
+        const { data: settings } = await supabaseAdmin
+          .from("restaurant_settings")
+          .select("inventory_enabled")
+          .eq("restaurant_id", order.restaurant_id)
+          .maybeSingle();
+
+        if (settings?.inventory_enabled) {
+          // Find original SALE_DEDUCTION transactions for this order
+          const { data: originalDeductions, error: deductionsError } = await supabaseAdmin
+            .from("inventory_transactions")
+            .select("item_id, qty_in_base, unit_id, branch_id")
+            .eq("reference_type", "ORDER")
+            .eq("reference_id", orderId)
+            .eq("txn_type", "SALE_DEDUCTION");
+
+          if (deductionsError) {
+            console.error("[create-refund] Failed to fetch original deductions:", deductionsError);
+          } else if (originalDeductions && originalDeductions.length > 0) {
+            console.log("[create-refund] Restoring inventory for", originalDeductions.length, "items");
+
+            // Create reverse (IN) transactions
+            const restorationTxns = originalDeductions.map(d => ({
+              restaurant_id: order.restaurant_id,
+              branch_id: d.branch_id,
+              item_id: d.item_id,
+              qty: Math.abs(d.qty_in_base), // Positive for restoration
+              unit_id: d.unit_id,
+              qty_in_base: Math.abs(d.qty_in_base),
+              txn_type: "REFUND_RESTORATION",
+              reference_type: "REFUND",
+              reference_id: refund.id,
+              notes: `Inventory restored on refund for order ${orderId}`,
+              created_by: userId,
+            }));
+
+            const { error: restoreError } = await supabaseAdmin
+              .from("inventory_transactions")
+              .insert(restorationTxns);
+
+            if (restoreError) {
+              console.error("[create-refund] Failed to insert restoration transactions:", restoreError);
+            } else {
+              inventoryRestoredCount = restorationTxns.length;
+              
+              // Update stock levels
+              for (const d of originalDeductions) {
+                const restoredQty = Math.abs(d.qty_in_base);
+                
+                // Get current stock level
+                const { data: currentStock } = await supabaseAdmin
+                  .from("inventory_stock_levels")
+                  .select("on_hand_base")
+                  .eq("branch_id", d.branch_id)
+                  .eq("item_id", d.item_id)
+                  .maybeSingle();
+
+                const currentOnHand = Number(currentStock?.on_hand_base || 0);
+                const newOnHand = currentOnHand + restoredQty;
+
+                const { error: stockError } = await supabaseAdmin
+                  .from("inventory_stock_levels")
+                  .upsert({
+                    restaurant_id: order.restaurant_id,
+                    branch_id: d.branch_id,
+                    item_id: d.item_id,
+                    on_hand_base: newOnHand,
+                    updated_at: new Date().toISOString(),
+                  }, {
+                    onConflict: "branch_id,item_id",
+                  });
+
+                if (stockError) {
+                  console.error("[create-refund] Failed to update stock level:", stockError);
+                }
+              }
+
+              inventoryRestored = true;
+              console.log("[create-refund] Inventory restored:", inventoryRestoredCount, "items");
+
+              // Write audit log for inventory restoration
+              await supabaseAdmin.from("audit_logs").insert({
+                restaurant_id: order.restaurant_id,
+                user_id: userId,
+                action: "INVENTORY_REFUND_RESTORATION",
+                entity_type: "refund",
+                entity_id: refund.id,
+                details: {
+                  refund_id: refund.id,
+                  order_id: orderId,
+                  items_restored: inventoryRestoredCount,
+                },
+              });
+            }
+          }
+        }
+      } catch (invError) {
+        console.error("[create-refund] Inventory restoration error:", invError);
+        // Don't fail the refund - inventory restoration is non-blocking
+      }
+    }
+
     // Success response
     return new Response(
       JSON.stringify({
@@ -250,6 +359,8 @@ Deno.serve(async (req) => {
         totalRefunded: newTotalRefunded,
         remainingRefundable: roundJOD(orderTotal - newTotalRefunded),
         isFullyRefunded,
+        inventoryRestored,
+        inventoryRestoredCount,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

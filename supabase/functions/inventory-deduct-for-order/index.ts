@@ -177,6 +177,36 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ============ DOUBLE-DEDUCTION PREVENTION ============
+    // Check if a SALE_DEDUCTION transaction already exists for this order
+    const { data: existingDeduction, error: dedupError } = await supabaseAdmin
+      .from("inventory_transactions")
+      .select("id")
+      .eq("reference_type", "ORDER")
+      .eq("reference_id", order_id)
+      .eq("txn_type", "SALE_DEDUCTION")
+      .limit(1)
+      .maybeSingle();
+
+    if (dedupError) {
+      console.error("[inventory-deduct] Deduplication check failed:", dedupError);
+      // Continue anyway - better to potentially double-deduct than block
+    } else if (existingDeduction) {
+      console.log("[inventory-deduct] Deduction already processed for order, skipping:", order_id);
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          warnings: [], 
+          error: null, 
+          deducted_count: 0, 
+          cogs_computed: false,
+          message: "Already processed" 
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    // ============ END DOUBLE-DEDUCTION PREVENTION ============
+
     // Get order items (non-voided) with id for COGS update
     const { data: orderItems, error: itemsError } = await supabaseAdmin
       .from("order_items")
