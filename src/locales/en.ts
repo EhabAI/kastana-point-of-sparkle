@@ -1544,4 +1544,12 @@ export default {
   error_owner_branch_active_cashiers_desc: "This branch has active cashiers. Please deactivate them first.",
   error_owner_branch_open_shifts_title: "Cannot delete branch",
   error_owner_branch_open_shifts_desc: "This branch has open shifts. Please close them first.",
+
+  // Insight Cards
+  refund_void_reasons_title: "Refund & Void Reasons",
+  no_refunds_or_voids: "No refunds or voids",
+  inventory_risk_title: "Inventory Risks",
+  inv_near_reorder_short: "Near Reorder",
+  inv_negative_stock: "Negative Stock",
+  inv_items_without_recipe: "Items Without Recipe",
 } as const;
