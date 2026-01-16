@@ -126,15 +126,6 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
     setSelectedItems([]);
   };
 
-  const handleBulkActive = async (active: boolean) => {
-    if (!selectedBranch || selectedItems.length === 0) return;
-    await bulkUpdate.mutateAsync({
-      branchId: selectedBranch.id,
-      itemIds: selectedItems,
-      updates: { is_active: active },
-    });
-    setSelectedItems([]);
-  };
 
   const handleApplyPromo = async () => {
     if (!selectedBranch || selectedItems.length === 0) return;
@@ -196,12 +187,6 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
     });
   };
 
-  const handleToggleActive = async (item: BranchMenuItemWithBase) => {
-    await updateItem.mutateAsync({
-      id: item.id,
-      is_active: !item.is_active,
-    });
-  };
 
   if (!isBranchSelected) {
     return (
@@ -273,12 +258,6 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                     <XSquare className="h-4 w-4 me-1" />
                     {t("unavailable")}
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleBulkActive(true)}>
-                    {t("active_status")}
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleBulkActive(false)}>
-                    {t("disabled_status")}
-                  </Button>
                   <Button variant="outline" size="sm" onClick={() => setPromoDialogOpen(true)}>
                     <Percent className="h-4 w-4 me-1" />
                     {t("promo")}
@@ -311,7 +290,7 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                         <div
                           key={item.id}
                           className={`flex items-center justify-between p-3 rounded-lg border ${
-                            !item.is_active ? "opacity-50 bg-muted/30" : "bg-muted/50"
+                            !item.is_available ? "opacity-60 bg-muted/30" : "bg-muted/50"
                           }`}
                         >
                           <div className="flex items-center gap-3">
@@ -327,12 +306,6 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                                     <Flame className="h-3 w-3 me-1" />
                                     {item.promo_label || t("offer")}
                                   </Badge>
-                                )}
-                                {!item.is_available && (
-                                  <Badge variant="secondary" className="text-xs">{t("unavailable")}</Badge>
-                                )}
-                                {!item.is_active && (
-                                  <Badge variant="outline" className="text-xs">{t("disabled")}</Badge>
                                 )}
                               </div>
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -351,29 +324,15 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            {/* Available/Unavailable - Button/Chip style */}
-                            <div className="flex flex-col items-center gap-0.5">
-                              <Button
-                                variant={item.is_available ? "default" : "destructive"}
-                                size="sm"
-                                className={`h-7 text-xs ${item.is_available ? 'bg-green-600 hover:bg-green-700' : ''}`}
-                                onClick={() => handleToggleAvailable(item)}
-                                disabled={!item.is_active}
-                                title={!item.is_active ? t("item_must_be_active") : (item.is_available ? t("mark_unavailable") : t("mark_available"))}
-                              >
-                                {item.is_available ? t("available") : t("unavailable")}
-                              </Button>
-                              <span className="text-[10px] text-muted-foreground">{t("for_sale")}</span>
-                            </div>
-                            
-                            {/* Active/Disabled - Toggle style */}
-                            <div className="flex flex-col items-center gap-0.5 ps-2 border-s">
+                            {/* Available/Unavailable - Single Toggle */}
+                            <div className="flex items-center gap-2">
                               <Switch
-                                checked={item.is_active}
-                                onCheckedChange={() => handleToggleActive(item)}
-                                title={item.is_active ? t("disable_item") : t("enable_item")}
+                                checked={item.is_available}
+                                onCheckedChange={() => handleToggleAvailable(item)}
                               />
-                              <span className="text-[10px] text-muted-foreground">{t("active")}</span>
+                              <span className={`text-sm font-medium ${item.is_available ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                                {item.is_available ? t("available") : t("unavailable")}
+                              </span>
                             </div>
                             
                             <Button variant="ghost" size="icon" onClick={() => openEditDialog(item)}>
