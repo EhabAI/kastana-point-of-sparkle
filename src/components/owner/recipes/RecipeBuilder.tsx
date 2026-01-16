@@ -11,11 +11,11 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Trash2, Plus, Save, ChefHat, Search, Package, AlertCircle, Upload, FileText, CheckCircle2, XCircle, ArrowLeft, Loader2 } from "lucide-react";
+import { Trash2, Plus, Save, ChefHat, Search, Package, AlertCircle, Upload, FileText, CheckCircle2, XCircle, ArrowLeft, Loader2, Filter, PartyPopper } from "lucide-react";
 import { useAllMenuItems } from "@/hooks/useMenuItems";
 import { useInventoryItems, useInventoryUnits } from "@/hooks/useInventoryItems";
 import { useRecipeByMenuItem, useUpsertRecipe } from "@/hooks/useRecipes";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -49,6 +49,7 @@ export function RecipeBuilder({ restaurantId }: RecipeBuilderProps) {
 
   const [selectedMenuItemId, setSelectedMenuItemId] = useState<string>("");
   const [menuSearch, setMenuSearch] = useState("");
+  const [recipeFilter, setRecipeFilter] = useState<"all" | "with_recipe" | "without_recipe">("all");
   const [lines, setLines] = useState<RecipeLineInput[]>([]);
   const [notes, setNotes] = useState("");
   const [isActive, setIsActive] = useState(true);
@@ -275,10 +276,39 @@ export function RecipeBuilder({ restaurantId }: RecipeBuilderProps) {
   const { data: existingRecipe, isLoading: loadingRecipe } = useRecipeByMenuItem(restaurantId, selectedMenuItemId);
   const upsertRecipe = useUpsertRecipe();
 
-  // Filter menu items by search
-  const filteredMenuItems = menuItems.filter((item) =>
-    item.name.toLowerCase().includes(menuSearch.toLowerCase())
-  );
+  // Fetch all recipes to know which menu items have recipes
+  const { data: allRecipes = [] } = useQuery({
+    queryKey: ["all-recipes-menu-items", restaurantId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("menu_item_recipes")
+        .select("menu_item_id")
+        .eq("restaurant_id", restaurantId)
+        .eq("is_active", true);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!restaurantId,
+  });
+
+  const menuItemsWithRecipes = new Set(allRecipes.map(r => r.menu_item_id));
+
+  // Filter menu items by search and recipe filter
+  const filteredMenuItems = menuItems.filter((item) => {
+    // Text search filter
+    const matchesSearch = item.name.toLowerCase().includes(menuSearch.toLowerCase());
+    
+    // Recipe filter
+    const hasRecipe = menuItemsWithRecipes.has(item.id);
+    let matchesRecipeFilter = true;
+    if (recipeFilter === "with_recipe") {
+      matchesRecipeFilter = hasRecipe;
+    } else if (recipeFilter === "without_recipe") {
+      matchesRecipeFilter = !hasRecipe;
+    }
+    
+    return matchesSearch && matchesRecipeFilter;
+  });
 
   // Load existing recipe when menu item changes
   useEffect(() => {
@@ -562,47 +592,97 @@ export function RecipeBuilder({ restaurantId }: RecipeBuilderProps) {
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label>{t("select_menu_item")}</Label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder={t("search_menu_items")}
-                value={menuSearch}
-                onChange={(e) => setMenuSearch(e.target.value)}
-                className="pl-10"
-              />
+            
+            {/* Search and Filter Row */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder={t("search_menu_items")}
+                  value={menuSearch}
+                  onChange={(e) => setMenuSearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select 
+                value={recipeFilter} 
+                onValueChange={(value: "all" | "with_recipe" | "without_recipe") => setRecipeFilter(value)}
+              >
+                <SelectTrigger className="w-full sm:w-[200px]">
+                  <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    {language === "ar" ? "الكل" : "All"}
+                  </SelectItem>
+                  <SelectItem value="with_recipe">
+                    {language === "ar" ? "أصناف لها وصفة" : "With Recipe"}
+                  </SelectItem>
+                  <SelectItem value="without_recipe">
+                    {language === "ar" ? "أصناف بلا وصفة" : "Without Recipe"}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            {menuSearch && (
-              <ScrollArea className="h-48 border rounded-md">
-                {loadingMenuItems ? (
-                  <div className="p-4 text-center text-muted-foreground">{t("loading")}</div>
-                ) : filteredMenuItems.length === 0 ? (
-                  <div className="p-4 text-center text-muted-foreground">{t("no_results")}</div>
-                ) : (
-                  <div className="p-2 space-y-1">
-                    {filteredMenuItems.map((item) => (
+
+            {/* Menu Items List - Always visible */}
+            <ScrollArea className="h-64 border rounded-md">
+              {loadingMenuItems ? (
+                <div className="p-4 text-center text-muted-foreground">{t("loading")}</div>
+              ) : filteredMenuItems.length === 0 ? (
+                <div className="p-8 text-center">
+                  {recipeFilter === "without_recipe" ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <PartyPopper className="h-8 w-8 text-emerald-500" />
+                      <p className="text-sm font-medium text-emerald-600">
+                        {language === "ar" ? "لا توجد أصناف بدون وصفة 🎉" : "No items without recipes 🎉"}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">{t("no_results")}</p>
+                  )}
+                </div>
+              ) : (
+                <div className="p-2 space-y-1">
+                  {filteredMenuItems.map((item) => {
+                    const hasRecipe = menuItemsWithRecipes.has(item.id);
+                    return (
                       <button
                         key={item.id}
                         onClick={() => {
                           setSelectedMenuItemId(item.id);
-                          setMenuSearch("");
                         }}
                         className={cn(
-                          "w-full text-start p-3 rounded-md hover:bg-accent transition-colors",
-                          selectedMenuItemId === item.id && "bg-primary/10"
+                          "w-full text-start p-3 rounded-md hover:bg-accent transition-colors flex items-center justify-between",
+                          selectedMenuItemId === item.id && "bg-primary/10 ring-1 ring-primary/30"
                         )}
                       >
-                        <div className="font-medium">{item.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {item.price} {t("currency")}
+                        <div>
+                          <div className="font-medium">{item.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {item.price} {t("currency")}
+                          </div>
                         </div>
+                        {hasRecipe ? (
+                          <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            {language === "ar" ? "وصفة" : "Recipe"}
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                            <AlertCircle className="h-3 w-3 mr-1" />
+                            {language === "ar" ? "بلا وصفة" : "No Recipe"}
+                          </Badge>
+                        )}
                       </button>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
-            )}
+                    );
+                  })}
+                </div>
+              )}
+            </ScrollArea>
           </div>
 
           {selectedMenuItem && (
