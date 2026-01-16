@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 
 interface RecipeBuilderProps {
   restaurantId: string;
+  currency?: string;
 }
 
 interface RecipeLineInput {
@@ -43,7 +44,7 @@ interface ParsedRecipeRow {
 
 const REQUIRED_HEADERS = ["menu_item_name", "inventory_item_name", "quantity", "unit"];
 
-export function RecipeBuilder({ restaurantId }: RecipeBuilderProps) {
+export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderProps) {
   const { t, language } = useLanguage();
   const isRTL = language === "ar";
 
@@ -663,7 +664,7 @@ export function RecipeBuilder({ restaurantId }: RecipeBuilderProps) {
                         <div>
                           <div className="font-medium">{item.name}</div>
                           <div className="text-sm text-muted-foreground">
-                            {item.price} {t("currency")}
+                            {item.price} {currency}
                           </div>
                         </div>
                         {hasRecipe ? (
@@ -691,7 +692,7 @@ export function RecipeBuilder({ restaurantId }: RecipeBuilderProps) {
               <div>
                 <div className="font-medium">{selectedMenuItem.name}</div>
                 <div className="text-sm text-muted-foreground">
-                  {selectedMenuItem.price} {t("currency")}
+                  {selectedMenuItem.price} {currency}
                 </div>
               </div>
               {existingRecipe && (

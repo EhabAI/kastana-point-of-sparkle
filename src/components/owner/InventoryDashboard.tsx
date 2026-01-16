@@ -19,6 +19,7 @@ import { ar, enUS } from "date-fns/locale";
 interface InventoryDashboardProps {
   restaurantId: string;
   isReadOnly?: boolean;
+  currency?: string;
 }
 
 const txnTypeColors: Record<string, string> = {
@@ -31,7 +32,7 @@ const txnTypeColors: Record<string, string> = {
   STOCK_COUNT_ADJUSTMENT: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
 };
 
-export function InventoryDashboard({ restaurantId, isReadOnly = false }: InventoryDashboardProps) {
+export function InventoryDashboard({ restaurantId, isReadOnly = false, currency = "JOD" }: InventoryDashboardProps) {
   const { t, language } = useLanguage();
   const [activeTab, setActiveTab] = useState("dashboard");
 
@@ -73,7 +74,7 @@ export function InventoryDashboard({ restaurantId, isReadOnly = false }: Invento
         </TabsContent>
 
         <TabsContent value="recipes" className="mt-4">
-          <RecipeBuilder restaurantId={restaurantId} />
+          <RecipeBuilder restaurantId={restaurantId} currency={currency} />
         </TabsContent>
       </Tabs>
     </div>

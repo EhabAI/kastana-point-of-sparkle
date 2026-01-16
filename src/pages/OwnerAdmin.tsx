@@ -274,7 +274,7 @@ export default function OwnerAdmin() {
 
           {/* Inventory Tab */}
           <TabsContent value="inventory" className="space-y-6 mt-6">
-            {role === "owner" && inventoryEnabled && <InventoryDashboard restaurantId={restaurant.id} />}
+            {role === "owner" && inventoryEnabled && <InventoryDashboard restaurantId={restaurant.id} currency={currency} />}
             {role === "owner" && !inventoryEnabled && <InventoryDisabledCard />}
           </TabsContent>
 
