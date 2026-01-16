@@ -1466,5 +1466,5 @@ export default {
   error_no_data: "لا توجد بيانات بعد.",
 
   // Kitchen Done Orders Card
-  kitchen_done_today: "طلبات منجزة من المطبخ اليوم",
+  kitchen_done_orders_today: "طلبات المطبخ المنجزة اليوم",
 } as const;

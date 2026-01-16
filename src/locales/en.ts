@@ -1459,4 +1459,7 @@ export default {
   // Contextual Hints
   hint_variance_report: "This report helps you detect waste early",
   hint_z_report: "This is a daily report and not for long-term analysis",
+
+  // Kitchen Done Orders Card
+  kitchen_done_orders_today: "Kitchen Done Orders Today",
 } as const;
