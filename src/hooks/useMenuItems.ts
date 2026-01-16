@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+export type MenuItemType = 'drink' | 'food' | 'ready_product' | 'addon' | 'service' | 'combo';
+
 export interface MenuItem {
   id: string;
   category_id: string;
@@ -11,6 +13,7 @@ export interface MenuItem {
   is_available: boolean;
   is_offer: boolean;
   is_favorite: boolean;
+  item_type: MenuItemType;
   sort_order: number;
   created_at: string;
   updated_at: string;
@@ -88,6 +91,7 @@ export function useCreateMenuItem() {
       price: number;
       is_available?: boolean;
       is_offer?: boolean;
+      item_type?: MenuItemType;
     }) => {
       // Get max sort order
       const { data: existing } = await supabase

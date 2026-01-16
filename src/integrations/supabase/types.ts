@@ -720,6 +720,7 @@ export type Database = {
           is_available: boolean
           is_favorite: boolean
           is_offer: boolean
+          item_type: Database["public"]["Enums"]["menu_item_type"]
           name: string
           price: number
           sort_order: number
@@ -733,6 +734,7 @@ export type Database = {
           is_available?: boolean
           is_favorite?: boolean
           is_offer?: boolean
+          item_type?: Database["public"]["Enums"]["menu_item_type"]
           name: string
           price?: number
           sort_order?: number
@@ -746,6 +748,7 @@ export type Database = {
           is_available?: boolean
           is_favorite?: boolean
           is_offer?: boolean
+          item_type?: Database["public"]["Enums"]["menu_item_type"]
           name?: string
           price?: number
           sort_order?: number
@@ -1849,6 +1852,13 @@ export type Database = {
     }
     Enums: {
       app_role: "system_admin" | "owner" | "cashier" | "kitchen"
+      menu_item_type:
+        | "drink"
+        | "food"
+        | "ready_product"
+        | "addon"
+        | "service"
+        | "combo"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1977,6 +1987,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["system_admin", "owner", "cashier", "kitchen"],
+      menu_item_type: [
+        "drink",
+        "food",
+        "ready_product",
+        "addon",
+        "service",
+        "combo",
+      ],
     },
   },
 } as const

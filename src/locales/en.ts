@@ -520,6 +520,19 @@ export default {
   mark_as_offer: "Mark as Offer",
   description_optional: "Description (optional)",
 
+  // Item Type Classification
+  item_type: "Item Type",
+  item_type_drink: "Drink",
+  item_type_food: "Food",
+  item_type_ready_product: "Ready Product",
+  item_type_addon: "Add-on",
+  item_type_service: "Service",
+  item_type_combo: "Combo",
+  items_require_recipe: "Items Requiring Recipe",
+  items_without_recipe: "Items Without Recipe",
+  items_no_recipe_needed: "Items Not Needing Recipe",
+  filter_by_item_type: "Filter by Type",
+
   // Staff management
   staff_management: "Staff Management",
   manage_cashiers: "Manage your restaurant's cashiers",

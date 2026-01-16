@@ -66,10 +66,10 @@ export function ItemsWithoutRecipesCard({ restaurantId }: ItemsWithoutRecipesCar
         return [];
       }
 
-      // Step 2: Get menu item names
+      // Step 2: Get menu item names and types (only drink and food require recipes)
       const { data: menuItems, error: menuError } = await supabase
         .from("menu_items")
-        .select("id, name")
+        .select("id, name, item_type")
         .in("id", soldMenuItemIds);
 
       if (menuError) {
@@ -77,15 +77,25 @@ export function ItemsWithoutRecipesCard({ restaurantId }: ItemsWithoutRecipesCar
         return [];
       }
 
-      const menuItemNameMap = new Map((menuItems || []).map(m => [m.id, m.name]));
+      // Filter to only inventory-relevant items (drink and food)
+      const inventoryRelevantItems = (menuItems || []).filter(
+        (m) => m.item_type === 'drink' || m.item_type === 'food'
+      );
+      
+      if (inventoryRelevantItems.length === 0) {
+        return [];
+      }
 
-      // Step 3: Get active recipes for these menu items
+      const inventoryRelevantIds = inventoryRelevantItems.map(m => m.id);
+      const menuItemNameMap = new Map(inventoryRelevantItems.map(m => [m.id, m.name]));
+
+      // Step 3: Get active recipes for inventory-relevant menu items
       const { data: recipes, error: recipesError } = await supabase
         .from("menu_item_recipes")
         .select("menu_item_id")
         .eq("restaurant_id", restaurantId)
         .eq("is_active", true)
-        .in("menu_item_id", soldMenuItemIds);
+        .in("menu_item_id", inventoryRelevantIds);
 
       if (recipesError) {
         console.error("[ItemsWithoutRecipesCard] Failed to fetch recipes:", recipesError);
@@ -94,9 +104,9 @@ export function ItemsWithoutRecipesCard({ restaurantId }: ItemsWithoutRecipesCar
 
       const menuItemsWithRecipes = new Set((recipes || []).map(r => r.menu_item_id));
 
-      // Step 4: Find menu items without recipes
+      // Step 4: Find inventory-relevant menu items without recipes
       const result: ItemWithoutRecipe[] = [];
-      for (const menuItemId of soldMenuItemIds) {
+      for (const menuItemId of inventoryRelevantIds) {
         if (!menuItemsWithRecipes.has(menuItemId)) {
           result.push({
             menu_item_id: menuItemId,

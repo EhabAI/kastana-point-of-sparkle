@@ -520,6 +520,19 @@ export default {
   mark_as_offer: "تحديد كعرض",
   description_optional: "الوصف (اختياري)",
 
+  // Item Type Classification
+  item_type: "نوع الصنف",
+  item_type_drink: "مشروب",
+  item_type_food: "وجبة",
+  item_type_ready_product: "منتج جاهز",
+  item_type_addon: "إضافة",
+  item_type_service: "خدمة",
+  item_type_combo: "كومبو",
+  items_require_recipe: "أصناف تتطلب وصفة",
+  items_without_recipe: "أصناف بلا وصفة",
+  items_no_recipe_needed: "أصناف لا تحتاج وصفة",
+  filter_by_item_type: "تصفية حسب النوع",
+
   // Staff management
   staff_management: "إدارة الموظفين",
   manage_cashiers: "إدارة كاشيرات مطعمك",
