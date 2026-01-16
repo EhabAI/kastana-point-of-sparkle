@@ -238,7 +238,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    const menuItemIds = Object.keys(menuItemQty);
+    let menuItemIds = Object.keys(menuItemQty);
     if (menuItemIds.length === 0) {
       console.log("[inventory-deduct] No menu items to process");
       return new Response(
@@ -247,7 +247,57 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log("[inventory-deduct] Menu item quantities:", menuItemQty);
+    // Step 2b: Check for combo items and expand them to child items
+    const { data: menuItemsWithType, error: itemsTypeError } = await supabaseAdmin
+      .from("menu_items")
+      .select("id, item_type")
+      .in("id", menuItemIds);
+
+    if (itemsTypeError) {
+      console.error("[inventory-deduct] Failed to load menu item types:", itemsTypeError);
+    }
+
+    const comboIds = (menuItemsWithType || [])
+      .filter((mi) => mi.item_type === "combo")
+      .map((mi) => mi.id);
+
+    console.log("[inventory-deduct] Found combo items:", comboIds.length);
+
+    // Expand combos to their child items
+    if (comboIds.length > 0) {
+      const { data: comboItems, error: comboError } = await supabaseAdmin
+        .from("combo_items")
+        .select("combo_id, menu_item_id, quantity")
+        .in("combo_id", comboIds);
+
+      if (comboError) {
+        console.error("[inventory-deduct] Failed to load combo items:", comboError);
+      }
+
+      if (comboItems && comboItems.length > 0) {
+        console.log("[inventory-deduct] Expanding combos:", comboItems.length, "child items");
+        
+        for (const ci of comboItems) {
+          const comboOrderQty = menuItemQty[ci.combo_id] || 0;
+          if (comboOrderQty > 0) {
+            // Add child item quantity (combo qty × child qty per combo)
+            const childQty = comboOrderQty * ci.quantity;
+            menuItemQty[ci.menu_item_id] = (menuItemQty[ci.menu_item_id] || 0) + childQty;
+            console.log(`[inventory-deduct] Expanded combo child: ${ci.menu_item_id} += ${childQty}`);
+          }
+        }
+        
+        // Remove combo items from menuItemQty (combos don't have recipes)
+        for (const comboId of comboIds) {
+          delete menuItemQty[comboId];
+        }
+        
+        // Update menuItemIds with the expanded list
+        menuItemIds = Object.keys(menuItemQty);
+      }
+    }
+
+    console.log("[inventory-deduct] Menu item quantities (after combo expansion):", menuItemQty);
 
     // Step 3: Load active recipes for these menu items
     const { data: recipes, error: recipesError } = await supabaseAdmin

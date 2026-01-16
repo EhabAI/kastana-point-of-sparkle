@@ -1516,4 +1516,14 @@ export default {
 
   // Today Income Card
   today_income: "Today's Income",
+
+  // Combo Items
+  combo_items: "Combo Items",
+  combo_items_desc: "Add menu items that make up this combo",
+  combo_item_added: "Item added to combo",
+  combo_item_removed: "Item removed from combo",
+  combo_no_items: "No items in this combo yet",
+  manage_combo: "Manage Combo",
+  select_item: "Select item",
+  qty: "Qty",
 } as const;

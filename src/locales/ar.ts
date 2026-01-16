@@ -1521,4 +1521,14 @@ export default {
 
   // Today Income Card
   today_income: "إيرادات اليوم",
+
+  // Combo Items
+  combo_items: "مكونات الكومبو",
+  combo_items_desc: "أضف أصناف القائمة التي تشكل هذا الكومبو",
+  combo_item_added: "تم إضافة الصنف للكومبو",
+  combo_item_removed: "تم إزالة الصنف من الكومبو",
+  combo_no_items: "لا توجد أصناف في الكومبو بعد",
+  manage_combo: "إدارة الكومبو",
+  select_item: "اختر صنف",
+  qty: "الكمية",
 } as const;
