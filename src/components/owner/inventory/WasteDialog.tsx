@@ -87,8 +87,8 @@ export function WasteDialog({ restaurantId, open, onOpenChange }: WasteDialogPro
 
       toast({ title: t("inv_waste_recorded") });
       onOpenChange(false);
-    } catch (error: any) {
-      toast({ title: error.message || t("inv_operation_failed"), variant: "destructive" });
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }

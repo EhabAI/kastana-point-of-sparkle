@@ -145,7 +145,11 @@ function TableRow({
   };
   
   const handleToggleActive = async () => {
-    await updateTable.mutateAsync({ id: table.id, isActive: !table.is_active });
+    try {
+      await updateTable.mutateAsync({ id: table.id, isActive: !table.is_active });
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
+    }
   };
   
   return (
@@ -243,22 +247,26 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
   
   const handleCreate = async () => {
     if (!newTableName.trim()) {
-      toast({ title: t("enter_table_name"), variant: "destructive" });
+      toast({ title: t("error_validation_failed"), variant: "destructive" });
       return;
     }
     if (!newTableBranchId) {
-      toast({ title: t("select_branch_required"), variant: "destructive" });
+      toast({ title: t("error_validation_failed"), variant: "destructive" });
       return;
     }
-    await createTable.mutateAsync({ 
-      restaurantId, 
-      tableName: newTableName.trim(), 
-      capacity: newTableCapacity,
-      branchId: newTableBranchId
-    });
-    setNewTableName("");
-    setNewTableCapacity(4);
-    setCreateDialogOpen(false);
+    try {
+      await createTable.mutateAsync({ 
+        restaurantId, 
+        tableName: newTableName.trim(), 
+        capacity: newTableCapacity,
+        branchId: newTableBranchId
+      });
+      setNewTableName("");
+      setNewTableCapacity(4);
+      setCreateDialogOpen(false);
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
+    }
   };
   
   const handleEdit = (table: RestaurantTable) => {
@@ -268,9 +276,16 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
   };
   
   const handleSaveEdit = async () => {
-    if (!editingTable || !editTableName.trim()) return;
-    await updateTable.mutateAsync({ id: editingTable.id, tableName: editTableName.trim(), capacity: editTableCapacity });
-    setEditingTable(null);
+    if (!editingTable || !editTableName.trim()) {
+      toast({ title: t("error_validation_failed"), variant: "destructive" });
+      return;
+    }
+    try {
+      await updateTable.mutateAsync({ id: editingTable.id, tableName: editTableName.trim(), capacity: editTableCapacity });
+      setEditingTable(null);
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
+    }
   };
   
   return (

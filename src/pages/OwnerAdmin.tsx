@@ -306,27 +306,46 @@ function CategoriesSection({
 
   const handleCreateCategory = async () => {
     if (!newCategoryName.trim()) {
-      toast({ title: t("enter_category_name"), variant: "destructive" });
+      toast({ title: t("error_validation_failed"), variant: "destructive" });
       return;
     }
-    await createCategory.mutateAsync({ restaurantId, name: newCategoryName });
-    setNewCategoryName("");
-    setCreateDialogOpen(false);
+    try {
+      await createCategory.mutateAsync({ restaurantId, name: newCategoryName });
+      setNewCategoryName("");
+      setCreateDialogOpen(false);
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
+    }
   };
 
   const handleUpdateCategory = async () => {
-    if (!editingCategory || !editingCategory.name.trim()) return;
-    await updateCategory.mutateAsync({ id: editingCategory.id, name: editingCategory.name });
-    setEditingCategory(null);
+    if (!editingCategory || !editingCategory.name.trim()) {
+      toast({ title: t("error_validation_failed"), variant: "destructive" });
+      return;
+    }
+    try {
+      await updateCategory.mutateAsync({ id: editingCategory.id, name: editingCategory.name });
+      setEditingCategory(null);
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
+    }
   };
 
   const handleToggleActive = async (id: string, currentActive: boolean) => {
-    await updateCategory.mutateAsync({ id, is_active: !currentActive });
+    try {
+      await updateCategory.mutateAsync({ id, is_active: !currentActive });
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
+    }
   };
 
   const handleDeleteCategory = async (id: string) => {
     if (confirm(t("confirm_delete_category"))) {
-      await deleteCategory.mutateAsync(id);
+      try {
+        await deleteCategory.mutateAsync(id);
+      } catch {
+        toast({ title: t("error_unexpected"), variant: "destructive" });
+      }
     }
   };
 
@@ -498,37 +517,49 @@ function MenuItemsSection({
       return;
     }
     if (!newItem.name.trim()) {
-      toast({ title: t("enter_item_name"), variant: "destructive" });
+      toast({ title: t("error_validation_failed"), variant: "destructive" });
       return;
     }
-    const price = parseFloat(newItem.price) || 0;
-    await createItem.mutateAsync({
-      category_id: selectedCategoryId,
-      name: newItem.name,
-      description: newItem.description || undefined,
-      price,
-      is_offer: newItem.is_offer,
-    });
-    setNewItem({ name: "", description: "", price: "", is_offer: false });
-    setCreateDialogOpen(false);
+    try {
+      const price = parseFloat(newItem.price) || 0;
+      await createItem.mutateAsync({
+        category_id: selectedCategoryId,
+        name: newItem.name,
+        description: newItem.description || undefined,
+        price,
+        is_offer: newItem.is_offer,
+      });
+      setNewItem({ name: "", description: "", price: "", is_offer: false });
+      setCreateDialogOpen(false);
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
+    }
   };
 
   const handleUpdateItem = async () => {
     if (!editingItem) return;
-    await updateItem.mutateAsync({
-      id: editingItem.id,
-      name: editingItem.name,
-      description: editingItem.description,
-      price: editingItem.price,
-      is_available: editingItem.is_available,
-      is_offer: editingItem.is_offer,
-    });
-    setEditingItem(null);
+    try {
+      await updateItem.mutateAsync({
+        id: editingItem.id,
+        name: editingItem.name,
+        description: editingItem.description,
+        price: editingItem.price,
+        is_available: editingItem.is_available,
+        is_offer: editingItem.is_offer,
+      });
+      setEditingItem(null);
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
+    }
   };
 
   const handleDeleteItem = async (id: string) => {
     if (confirm(t("confirm_delete_item"))) {
-      await deleteItem.mutateAsync(id);
+      try {
+        await deleteItem.mutateAsync(id);
+      } catch {
+        toast({ title: t("error_unexpected"), variant: "destructive" });
+      }
     }
   };
 

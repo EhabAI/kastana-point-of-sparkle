@@ -9,6 +9,7 @@ import { CreditCard, Loader2, ChevronDown, Banknote, Building2, Wallet } from "l
 import { useBranches } from "@/hooks/useBranches";
 import { useBranchPaymentMethods, useUpdateBranchPaymentMethods } from "@/hooks/useBranchPaymentMethods";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface PaymentMethodsSettingsProps {
   restaurantId: string;
@@ -16,6 +17,7 @@ interface PaymentMethodsSettingsProps {
 
 export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsProps) {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const { data: branches = [], isLoading: branchesLoading } = useBranches(restaurantId);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
@@ -58,15 +60,19 @@ export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsP
 
   const handleSave = async () => {
     if (!selectedBranchId) return;
-    await updateMethods.mutateAsync({
-      branchId: selectedBranchId,
-      cashEnabled: localMethods.cash,
-      visaEnabled: localMethods.visa,
-      mastercardEnabled: false, // Mastercard not supported in Phase 1
-      efawateerEnabled: localMethods.efawateer,
-      walletEnabled: localMethods.wallet,
-    });
-    setHasChanges(false);
+    try {
+      await updateMethods.mutateAsync({
+        branchId: selectedBranchId,
+        cashEnabled: localMethods.cash,
+        visaEnabled: localMethods.visa,
+        mastercardEnabled: false,
+        efawateerEnabled: localMethods.efawateer,
+        walletEnabled: localMethods.wallet,
+      });
+      setHasChanges(false);
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
+    }
   };
 
   if (branchesLoading) {
