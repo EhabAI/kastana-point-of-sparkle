@@ -150,7 +150,7 @@ export const RefundVoidInsights = forwardRef<HTMLDivElement, object>(function Re
   const showRefundWarning = (insightsData?.refundCount || 0) > REFUND_WARNING_THRESHOLD;
 
   return (
-    <div ref={ref} className={`mt-4 rounded-lg ${showRefundWarning ? 'bg-amber-50/70 dark:bg-amber-950/20 border-l-4 border-l-amber-500' : 'bg-muted/20'} p-3`}>
+    <div ref={ref} className={`mt-4 rounded-lg ${showRefundWarning ? 'bg-amber-50/70 dark:bg-amber-950/20 border-l-4 border-l-amber-500' : 'bg-muted/20'} p-3 transition-all duration-200 hover:shadow-md hover:bg-amber-50/90 dark:hover:bg-amber-950/30`}>
       {/* Section Header - Consistent with Attention Required section */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
