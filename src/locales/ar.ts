@@ -1467,4 +1467,7 @@ export default {
 
   // Kitchen Done Orders Card
   kitchen_done_orders_today: "طلبات المطبخ المنجزة اليوم",
+
+  // Today Income Card
+  today_income: "إيرادات اليوم",
 } as const;
