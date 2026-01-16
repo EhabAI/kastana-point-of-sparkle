@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useBranchContext } from "@/contexts/BranchContext";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertTriangle, TrendingDown, Utensils, Package, HelpCircle } from "lucide-react";
@@ -23,7 +23,7 @@ export function InventoryRiskCard({
   onWithoutRecipeClick,
 }: InventoryRiskCardProps) {
   const { t } = useLanguage();
-  const { selectedBranch } = useBranchContext();
+  const { selectedBranch } = useBranchContextSafe();
 
   const { data, isLoading } = useQuery({
     queryKey: ["inventory-risk-snapshot", restaurantId, selectedBranch?.id],

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useBranchContext } from "@/contexts/BranchContext";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { subDays, startOfDay } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,7 +21,7 @@ interface ReasonCount {
 
 export function RefundVoidReasonsCard({ restaurantId, onViewDetails }: RefundVoidReasonsCardProps) {
   const { t, language } = useLanguage();
-  const { selectedBranch } = useBranchContext();
+  const { selectedBranch } = useBranchContextSafe();
 
   const sevenDaysAgo = startOfDay(subDays(new Date(), 7)).toISOString();
 
