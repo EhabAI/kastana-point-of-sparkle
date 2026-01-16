@@ -95,10 +95,15 @@ Deno.serve(async (req) => {
       throw menuError;
     }
 
-    // Create name to id map for menu items
-    const menuItemMap = new Map<string, string>();
+    // Create name to id map for menu items (case-insensitive, trimmed)
+    // Also track duplicates
+    const menuItemMap = new Map<string, { id: string; originalName: string }[]>();
     (menuItems || []).forEach((item: any) => {
-      menuItemMap.set(item.name.toLowerCase().trim(), item.id);
+      const normalizedName = item.name.toLowerCase().trim();
+      if (!menuItemMap.has(normalizedName)) {
+        menuItemMap.set(normalizedName, []);
+      }
+      menuItemMap.get(normalizedName)!.push({ id: item.id, originalName: item.name });
     });
 
     // Fetch all inventory items for the restaurant
@@ -112,10 +117,19 @@ Deno.serve(async (req) => {
       throw invError;
     }
 
-    // Create name to inventory item map
-    const inventoryMap = new Map<string, { id: string; base_unit_id: string }>();
+    // Create name to inventory item map (case-insensitive, trimmed)
+    // Also track duplicates
+    const inventoryMap = new Map<string, { id: string; base_unit_id: string; originalName: string }[]>();
     (inventoryItems || []).forEach((item: any) => {
-      inventoryMap.set(item.name.toLowerCase().trim(), { id: item.id, base_unit_id: item.base_unit_id });
+      const normalizedName = item.name.toLowerCase().trim();
+      if (!inventoryMap.has(normalizedName)) {
+        inventoryMap.set(normalizedName, []);
+      }
+      inventoryMap.get(normalizedName)!.push({ 
+        id: item.id, 
+        base_unit_id: item.base_unit_id,
+        originalName: item.name 
+      });
     });
 
     // Fetch all units for the restaurant
@@ -156,13 +170,23 @@ Deno.serve(async (req) => {
     const errors: string[] = [];
 
     // Process each menu item group
-    for (const [menuItemName, menuItemRows] of groupedByMenuItem) {
-      const menuItemId = menuItemMap.get(menuItemName);
+    for (const [menuItemNameKey, menuItemRows] of groupedByMenuItem) {
+      const menuItemMatches = menuItemMap.get(menuItemNameKey);
+      const originalMenuItemName = menuItemRows[0].menu_item_name;
       
-      if (!menuItemId) {
-        errors.push(`Menu item not found: "${menuItemRows[0].menu_item_name}"`);
+      // Check if menu item not found
+      if (!menuItemMatches || menuItemMatches.length === 0) {
+        errors.push(`صنف القائمة غير موجود: "${originalMenuItemName}"`);
         continue;
       }
+      
+      // Check for duplicate menu item names
+      if (menuItemMatches.length > 1) {
+        errors.push(`اسم صنف القائمة غير فريد: "${originalMenuItemName}"`);
+        continue;
+      }
+      
+      const menuItemId = menuItemMatches[0].id;
 
       try {
         // Check if recipe already exists for this menu item
@@ -207,7 +231,7 @@ Deno.serve(async (req) => {
             .single();
 
           if (createError || !newRecipe) {
-            console.error(`Error creating recipe for ${menuItemName}:`, createError);
+            console.error(`Error creating recipe for ${menuItemNameKey}:`, createError);
             throw createError || new Error("Failed to create recipe");
           }
 
@@ -219,16 +243,28 @@ Deno.serve(async (req) => {
         let lineErrors = false;
 
         for (const row of menuItemRows) {
-          const invItem = inventoryMap.get(row.inventory_item_name.toLowerCase().trim());
-          if (!invItem) {
-            errors.push(`Inventory item not found: "${row.inventory_item_name}" (for menu item "${row.menu_item_name}")`);
+          const invItemKey = row.inventory_item_name.toLowerCase().trim();
+          const invItemMatches = inventoryMap.get(invItemKey);
+          
+          // Check if inventory item not found
+          if (!invItemMatches || invItemMatches.length === 0) {
+            errors.push(`صنف المخزون غير موجود: "${row.inventory_item_name}" (لصنف القائمة "${row.menu_item_name}")`);
             lineErrors = true;
             continue;
           }
+          
+          // Check for duplicate inventory item names
+          if (invItemMatches.length > 1) {
+            errors.push(`اسم صنف المخزون غير فريد: "${row.inventory_item_name}" (لصنف القائمة "${row.menu_item_name}")`);
+            lineErrors = true;
+            continue;
+          }
+          
+          const invItem = invItemMatches[0];
 
           const unitId = unitMap.get(row.unit.toLowerCase().trim());
           if (!unitId) {
-            errors.push(`Unit not found: "${row.unit}" (for menu item "${row.menu_item_name}")`);
+            errors.push(`الوحدة غير موجودة: "${row.unit}" (لصنف القائمة "${row.menu_item_name}")`);
             lineErrors = true;
             continue;
           }
@@ -252,8 +288,8 @@ Deno.serve(async (req) => {
             .insert(linesToInsert);
 
           if (linesError) {
-            console.error(`Error inserting lines for ${menuItemName}:`, linesError);
-            errors.push(`Failed to insert recipe lines for "${menuItemRows[0].menu_item_name}": ${linesError.message}`);
+            console.error(`Error inserting lines for ${menuItemNameKey}:`, linesError);
+            errors.push(`فشل إدراج سطور الوصفة لـ "${originalMenuItemName}": ${linesError.message}`);
             continue;
           }
 
@@ -264,8 +300,8 @@ Deno.serve(async (req) => {
           menuItemsUpdated++;
         }
       } catch (error) {
-        console.error(`Error processing menu item ${menuItemName}:`, error);
-        errors.push(`Error processing "${menuItemRows[0].menu_item_name}": ${error instanceof Error ? error.message : "Unknown error"}`);
+        console.error(`Error processing menu item ${menuItemNameKey}:`, error);
+        errors.push(`خطأ في معالجة "${originalMenuItemName}": ${error instanceof Error ? error.message : "خطأ غير معروف"}`);
       }
     }
 
