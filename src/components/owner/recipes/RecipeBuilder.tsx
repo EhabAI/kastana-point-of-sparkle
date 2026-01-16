@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Trash2, Plus, Save, ChefHat, Search, Package, AlertCircle, Upload, FileText } from "lucide-react";
+import { Trash2, Plus, Save, ChefHat, Search, Package, AlertCircle, Upload, FileText, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
 import { useAllMenuItems } from "@/hooks/useMenuItems";
 import { useInventoryItems, useInventoryUnits } from "@/hooks/useInventoryItems";
 import { useRecipeByMenuItem, useUpsertRecipe } from "@/hooks/useRecipes";
@@ -28,6 +28,18 @@ interface RecipeLineInput {
   unit_id: string;
 }
 
+interface ParsedRecipeRow {
+  rowIndex: number;
+  menu_item_name: string;
+  inventory_item_name: string;
+  quantity: string;
+  unit: string;
+  isValid: boolean;
+  error?: string;
+}
+
+const REQUIRED_HEADERS = ["menu_item_name", "inventory_item_name", "quantity", "unit"];
+
 export function RecipeBuilder({ restaurantId }: RecipeBuilderProps) {
   const { t, language } = useLanguage();
   const isRTL = language === "ar";
@@ -42,15 +54,24 @@ export function RecipeBuilder({ restaurantId }: RecipeBuilderProps) {
   // CSV Import Modal State
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [parsedRows, setParsedRows] = useState<ParsedRecipeRow[]>([]);
+  const [headerError, setHeaderError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     setSelectedFile(file);
+    setHeaderError(null);
+    setParsedRows([]);
+    setShowPreview(false);
   };
 
   const handleOpenImportModal = () => {
     setSelectedFile(null);
+    setHeaderError(null);
+    setParsedRows([]);
+    setShowPreview(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -60,12 +81,123 @@ export function RecipeBuilder({ restaurantId }: RecipeBuilderProps) {
   const handleCloseImportModal = () => {
     setIsImportModalOpen(false);
     setSelectedFile(null);
+    setHeaderError(null);
+    setParsedRows([]);
+    setShowPreview(false);
   };
 
-  const handleContinueImport = () => {
-    // Future: CSV parsing and import logic will go here
-    console.log("Continue import with file:", selectedFile?.name);
+  const parseCSV = (text: string): { headers: string[]; rows: string[][] } => {
+    const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
+    if (lines.length === 0) return { headers: [], rows: [] };
+    
+    const parseRow = (row: string): string[] => {
+      const result: string[] = [];
+      let current = "";
+      let inQuotes = false;
+      
+      for (let i = 0; i < row.length; i++) {
+        const char = row[i];
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === "," && !inQuotes) {
+          result.push(current.trim());
+          current = "";
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      return result;
+    };
+    
+    const headers = parseRow(lines[0]).map(h => h.toLowerCase().trim());
+    const rows = lines.slice(1).map(parseRow);
+    
+    return { headers, rows };
   };
+
+  const validateRow = (row: string[], headers: string[], rowIndex: number): ParsedRecipeRow => {
+    const getColumnValue = (columnName: string): string => {
+      const index = headers.indexOf(columnName);
+      return index >= 0 && row[index] ? row[index].trim() : "";
+    };
+
+    const menu_item_name = getColumnValue("menu_item_name");
+    const inventory_item_name = getColumnValue("inventory_item_name");
+    const quantity = getColumnValue("quantity");
+    const unit = getColumnValue("unit");
+
+    // Validation
+    const errors: string[] = [];
+    
+    if (!menu_item_name) {
+      errors.push(t("csv_error_menu_item_required"));
+    }
+    if (!inventory_item_name) {
+      errors.push(t("csv_error_inventory_item_required"));
+    }
+    if (!quantity) {
+      errors.push(t("csv_error_quantity_required"));
+    } else {
+      const qtyNum = parseFloat(quantity);
+      if (isNaN(qtyNum) || qtyNum <= 0) {
+        errors.push(t("csv_error_quantity_invalid"));
+      }
+    }
+    if (!unit) {
+      errors.push(t("csv_error_unit_required"));
+    }
+
+    return {
+      rowIndex,
+      menu_item_name,
+      inventory_item_name,
+      quantity,
+      unit,
+      isValid: errors.length === 0,
+      error: errors.length > 0 ? errors.join(", ") : undefined,
+    };
+  };
+
+  const handleContinueImport = async () => {
+    if (!selectedFile) return;
+
+    try {
+      const text = await selectedFile.text();
+      const { headers, rows } = parseCSV(text);
+
+      // Validate headers
+      const normalizedHeaders = headers.map(h => h.toLowerCase().replace(/\s+/g, "_"));
+      const missingHeaders = REQUIRED_HEADERS.filter(h => !normalizedHeaders.includes(h));
+      
+      if (missingHeaders.length > 0) {
+        setHeaderError(t("csv_headers_missing") + ": " + missingHeaders.join(", "));
+        return;
+      }
+
+      // Parse and validate each row
+      const parsed = rows.map((row, index) => validateRow(row, normalizedHeaders, index + 2));
+      setParsedRows(parsed);
+      setShowPreview(true);
+      setHeaderError(null);
+    } catch (error) {
+      console.error("Error parsing CSV:", error);
+      setHeaderError(t("csv_parse_error"));
+    }
+  };
+
+  const handleBackToUpload = () => {
+    setShowPreview(false);
+    setParsedRows([]);
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const validRowsCount = parsedRows.filter(r => r.isValid).length;
+  const invalidRowsCount = parsedRows.filter(r => !r.isValid).length;
+  const canImport = parsedRows.length > 0 && invalidRowsCount === 0;
 
   const { data: menuItems = [], isLoading: loadingMenuItems } = useAllMenuItems(restaurantId);
   const { data: inventoryItems = [], isLoading: loadingInventory } = useInventoryItems(restaurantId);
@@ -186,51 +318,147 @@ export function RecipeBuilder({ restaurantId }: RecipeBuilderProps) {
     <div className="space-y-6" dir={isRTL ? "rtl" : "ltr"}>
       {/* CSV Import Modal */}
       <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className={cn("sm:max-w-md", showPreview && "sm:max-w-4xl")}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Upload className="h-5 w-5" />
               {t("import_recipes_from_csv")}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground mb-2">{t("csv_headers_required")}:</p>
-              <code className="text-xs bg-background px-2 py-1 rounded border block overflow-x-auto">
-                menu_item_name,inventory_item_name,quantity,unit
-              </code>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="csv-file">{t("select_csv_file")}</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  ref={fileInputRef}
-                  id="csv-file"
-                  type="file"
-                  accept=".csv"
-                  onChange={handleFileChange}
-                  className="flex-1"
-                />
+
+          {!showPreview ? (
+            // File Upload View
+            <div className="space-y-4 py-4">
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground mb-2">{t("csv_headers_required")}:</p>
+                <code className="text-xs bg-background px-2 py-1 rounded border block overflow-x-auto">
+                  menu_item_name,inventory_item_name,quantity,unit
+                </code>
               </div>
-              {selectedFile && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <FileText className="h-4 w-4" />
-                  <span>{selectedFile.name}</span>
+              
+              {headerError && (
+                <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg flex items-center gap-2 text-destructive">
+                  <AlertCircle className="h-5 w-5 shrink-0" />
+                  <span className="text-sm">{headerError}</span>
                 </div>
               )}
+              
+              <div className="space-y-2">
+                <Label htmlFor="csv-file">{t("select_csv_file")}</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    ref={fileInputRef}
+                    id="csv-file"
+                    type="file"
+                    accept=".csv"
+                    onChange={handleFileChange}
+                    className="flex-1"
+                  />
+                </div>
+                {selectedFile && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <FileText className="h-4 w-4" />
+                    <span>{selectedFile.name}</span>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          ) : (
+            // Preview View
+            <div className="space-y-4 py-4">
+              {/* Summary */}
+              <div className="flex flex-wrap gap-4 p-3 bg-muted rounded-lg">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">{t("csv_total_rows")}:</span>
+                  <Badge variant="secondary">{parsedRows.length}</Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">{t("csv_valid_rows")}:</span>
+                  <Badge variant="default" className="bg-green-600">{validRowsCount}</Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">{t("csv_invalid_rows")}:</span>
+                  <Badge variant={invalidRowsCount > 0 ? "destructive" : "secondary"}>{invalidRowsCount}</Badge>
+                </div>
+              </div>
+
+              {invalidRowsCount > 0 && (
+                <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg flex items-center gap-2 text-destructive">
+                  <AlertCircle className="h-5 w-5 shrink-0" />
+                  <span className="text-sm">{t("csv_fix_errors_before_import")}</span>
+                </div>
+              )}
+
+              {/* Preview Table */}
+              <ScrollArea className="h-[300px] border rounded-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">#</TableHead>
+                      <TableHead>{t("menu_item")}</TableHead>
+                      <TableHead>{t("ingredient")}</TableHead>
+                      <TableHead>{t("quantity")}</TableHead>
+                      <TableHead>{t("unit")}</TableHead>
+                      <TableHead className="w-[200px]">{t("status")}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {parsedRows.map((row) => (
+                      <TableRow key={row.rowIndex} className={cn(!row.isValid && "bg-destructive/5")}>
+                        <TableCell className="text-muted-foreground">{row.rowIndex}</TableCell>
+                        <TableCell>{row.menu_item_name || "-"}</TableCell>
+                        <TableCell>{row.inventory_item_name || "-"}</TableCell>
+                        <TableCell>{row.quantity || "-"}</TableCell>
+                        <TableCell>{row.unit || "-"}</TableCell>
+                        <TableCell>
+                          {row.isValid ? (
+                            <div className="flex items-center gap-1 text-green-600">
+                              <CheckCircle2 className="h-4 w-4" />
+                              <span className="text-sm">{t("csv_row_valid")}</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1 text-destructive">
+                              <XCircle className="h-4 w-4 shrink-0" />
+                              <span className="text-sm truncate" title={row.error}>{row.error}</span>
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+            </div>
+          )}
+
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={handleCloseImportModal}>
-              {t("cancel")}
-            </Button>
-            <Button 
-              onClick={handleContinueImport} 
-              disabled={!selectedFile}
-              className="gap-2"
-            >
-              {t("continue")}
-            </Button>
+            {showPreview ? (
+              <>
+                <Button variant="outline" onClick={handleBackToUpload} className="gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  {t("back")}
+                </Button>
+                <Button 
+                  disabled={!canImport}
+                  className="gap-2"
+                >
+                  {t("import")}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" onClick={handleCloseImportModal}>
+                  {t("cancel")}
+                </Button>
+                <Button 
+                  onClick={handleContinueImport} 
+                  disabled={!selectedFile}
+                  className="gap-2"
+                >
+                  {t("continue")}
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
