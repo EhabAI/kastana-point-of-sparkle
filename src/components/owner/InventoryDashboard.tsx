@@ -15,22 +15,13 @@ import { RecipeBuilder } from "./recipes";
 import { AlertTriangle, PackageX, RefreshCw, Trash2, Package, LayoutDashboard, List, ChefHat, Lightbulb } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
+import { getInventoryTxnLabel, getTxnTypeColor } from "@/lib/inventoryTransactionLabels";
 
 interface InventoryDashboardProps {
   restaurantId: string;
   isReadOnly?: boolean;
   currency?: string;
 }
-
-const txnTypeColors: Record<string, string> = {
-  PURCHASE_RECEIPT: "bg-green-500/10 text-green-600 dark:text-green-400",
-  ADJUSTMENT_IN: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  ADJUSTMENT_OUT: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
-  WASTE: "bg-red-500/10 text-red-600 dark:text-red-400",
-  TRANSFER_OUT: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
-  TRANSFER_IN: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
-  STOCK_COUNT_ADJUSTMENT: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
-};
 
 export function InventoryDashboard({ restaurantId, isReadOnly = false, currency = "JOD" }: InventoryDashboardProps) {
   const { t, language } = useLanguage();
@@ -228,9 +219,9 @@ function DashboardWidgets({ restaurantId }: { restaurantId: string }) {
                     <div className="flex items-center gap-2">
                       <Badge
                         variant="outline"
-                        className={`text-[10px] px-1.5 py-0 ${txnTypeColors[tx.txnType] || ""}`}
+                        className={`text-[10px] px-1.5 py-0 ${getTxnTypeColor(tx.txnType)}`}
                       >
-                        {t(`inv_txn_${tx.txnType.toLowerCase()}`)}
+                        {getInventoryTxnLabel(tx.txnType, t)}
                       </Badge>
                       <span className="text-sm font-medium">{tx.itemName}</span>
                     </div>

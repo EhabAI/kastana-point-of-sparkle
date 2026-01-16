@@ -104,12 +104,15 @@ export default {
   inv_txn_purchase_receipt: "Purchase",
   inv_txn_adjustment_in: "Adj. In",
   inv_txn_adjustment_out: "Adj. Out",
+  inv_txn_adjustment: "Stock Adjustment",
   inv_txn_waste: "Waste",
   inv_txn_transfer_out: "Transfer Out",
   inv_txn_transfer_in: "Transfer In",
+  inv_txn_transfer: "Stock Transfer",
   inv_txn_stock_count_adjustment: "Count Adj.",
   inv_txn_initial_stock: "Initial Stock",
   inv_txn_sale: "Sale",
+  inv_txn_unknown: "Inventory Transaction",
 
   // Inventory Items List
   inv_dashboard: "Dashboard",

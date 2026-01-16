@@ -13,22 +13,13 @@ import { useItemTransactions, InventoryItem } from "@/hooks/useInventoryItems";
 import { format } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 import { Package } from "lucide-react";
+import { getInventoryTxnLabel, getTxnTypeColor } from "@/lib/inventoryTransactionLabels";
 
 interface ItemTransactionsDialogProps {
   item: InventoryItem;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-const txnTypeColors: Record<string, string> = {
-  PURCHASE_RECEIPT: "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/30",
-  ADJUSTMENT_IN: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30",
-  ADJUSTMENT_OUT: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/30",
-  WASTE: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30",
-  TRANSFER_OUT: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30",
-  TRANSFER_IN: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30",
-  STOCK_COUNT_ADJUSTMENT: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/30",
-};
 
 export function ItemTransactionsDialog({ item, open, onOpenChange }: ItemTransactionsDialogProps) {
   const { t, language } = useLanguage();
@@ -67,9 +58,9 @@ export function ItemTransactionsDialog({ item, open, onOpenChange }: ItemTransac
                   <div className="flex items-center justify-between">
                     <Badge
                       variant="outline"
-                      className={`text-xs ${txnTypeColors[tx.txnType] || ""}`}
+                      className={`text-xs ${getTxnTypeColor(tx.txnType)}`}
                     >
-                      {t(`inv_txn_${tx.txnType.toLowerCase()}`)}
+                      {getInventoryTxnLabel(tx.txnType, t)}
                     </Badge>
                     <span className="text-sm font-medium tabular-nums">
                       {tx.qty > 0 ? "+" : ""}
