@@ -1552,9 +1552,15 @@ export default {
 
   // Insight Cards
   refund_void_reasons_title: "أسباب الإرجاع والإلغاء",
+  refund_void_reasons_tooltip: "أكثر أسباب الإرجاع والإلغاء خلال آخر 7 أيام. يساعد على اكتشاف المشاكل الشائعة.",
   no_refunds_or_voids: "لا توجد عمليات إرجاع أو إلغاء",
   inventory_risk_title: "مخاطر المخزون",
+  inventory_risk_tooltip: "مشاكل المخزون التي تحتاج انتباه. اضغط على أي صف للتفاصيل.",
   inv_near_reorder_short: "قريب من النفاد",
+  inv_near_reorder_tooltip: "أصناف تقترب من الحد الأدنى للمخزون.",
   inv_negative_stock: "مخزون سالب",
+  inv_negative_stock_tooltip: "أصناف بكمية سالبة. تحقق من استلامات أو أخطاء مفقودة.",
   inv_items_without_recipe: "أصناف بلا وصفة",
+  inv_items_without_recipe_tooltip: "أصناف الطعام والمشروبات بدون وصفات. لن يتم خصم المخزون تلقائياً.",
+  today_income_tooltip: "إجمالي الإيرادات من الطلبات المكتملة اليوم.",
 } as const;
