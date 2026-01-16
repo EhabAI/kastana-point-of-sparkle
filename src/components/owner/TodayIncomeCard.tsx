@@ -50,7 +50,7 @@ export function TodayIncomeCard({ restaurantId, currency }: TodayIncomeCardProps
 
   if (isLoading) {
     return (
-      <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800/50 border">
+      <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/50 border">
         <CardContent className="p-4">
           <Skeleton className="h-16 w-full" />
         </CardContent>
@@ -61,22 +61,22 @@ export function TodayIncomeCard({ restaurantId, currency }: TodayIncomeCardProps
   const totalIncome = data?.totalIncome || 0;
 
   return (
-    <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800/50 border">
+    <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/50 border">
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-full bg-blue-50 dark:bg-blue-950/20">
-              <DollarSign className="h-5 w-5 text-blue-600" />
+            <div className="p-2 rounded-full bg-amber-50 dark:bg-amber-950/20">
+              <DollarSign className="h-5 w-5 text-amber-600" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
                 {t("today_income")}
               </p>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-2xl font-bold text-blue-600">
+                <span className="text-2xl font-bold text-amber-600">
                   {totalIncome.toFixed(2)} {currency}
                 </span>
-                <TrendingUp className="h-4 w-4 text-blue-500" />
+                <TrendingUp className="h-4 w-4 text-amber-500" />
               </div>
             </div>
           </div>
