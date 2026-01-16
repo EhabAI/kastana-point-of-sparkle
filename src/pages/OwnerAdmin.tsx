@@ -39,7 +39,8 @@ import {
   Building2,
   ScrollText,
   Star,
-  Package
+  Package,
+  Search
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -501,22 +502,56 @@ function MenuItemsSection({
   categories: { id: string; name: string }[];
   currency: string;
 }) {
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
-  const { data: items = [], isLoading } = useMenuItems(restaurantId, selectedCategoryId || undefined);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [selectedCategoryForCreate, setSelectedCategoryForCreate] = useState<string>("");
+  
+  // Fetch all items for all categories
+  const { data: allItems = [], isLoading } = useMenuItems(restaurantId);
   const createItem = useCreateMenuItem();
   const updateItem = useUpdateMenuItem();
   const deleteItem = useDeleteMenuItem();
   const { toast } = useToast();
   const { t } = useLanguage();
-  // Use currency prop from restaurant_settings instead of hardcoded value
   const currencySymbol = currency;
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [newItem, setNewItem] = useState({ name: "", description: "", price: "", is_offer: false });
 
+  // Filter items by search query
+  const filteredItems = searchQuery.trim()
+    ? allItems.filter(item => 
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+    : allItems;
+
+  // Group items by category
+  const itemsByCategory = categories.reduce((acc, cat) => {
+    acc[cat.id] = filteredItems.filter(item => item.category_id === cat.id);
+    return acc;
+  }, {} as Record<string, MenuItem[]>);
+
+  // Auto-expand categories with search results
+  const categoriesToShow = searchQuery.trim()
+    ? categories.filter(cat => itemsByCategory[cat.id]?.length > 0)
+    : categories;
+
+  const toggleCategory = (categoryId: string) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+      } else {
+        next.add(categoryId);
+      }
+      return next;
+    });
+  };
+
   const handleCreateItem = async () => {
-    if (!selectedCategoryId) {
+    if (!selectedCategoryForCreate) {
       toast({ title: t("select_category_first"), variant: "destructive" });
       return;
     }
@@ -527,7 +562,7 @@ function MenuItemsSection({
     try {
       const price = parseFloat(newItem.price) || 0;
       await createItem.mutateAsync({
-        category_id: selectedCategoryId,
+        category_id: selectedCategoryForCreate,
         name: newItem.name,
         description: newItem.description || undefined,
         price,
@@ -535,6 +570,8 @@ function MenuItemsSection({
       });
       setNewItem({ name: "", description: "", price: "", is_offer: false });
       setCreateDialogOpen(false);
+      // Expand the category where item was added
+      setExpandedCategories(prev => new Set(prev).add(selectedCategoryForCreate));
     } catch {
       toast({ title: t("error_unexpected"), variant: "destructive" });
     }
@@ -575,12 +612,13 @@ function MenuItemsSection({
             <CardTitle className="flex items-center gap-2">
               <Tag className="h-5 w-5" />
               {t("menu_items")}
+              <span className="text-muted-foreground font-normal">({allItems.length})</span>
             </CardTitle>
             <CardDescription>{t("manage_menu_items")}</CardDescription>
           </div>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" disabled={!selectedCategoryId}>
+              <Button size="sm">
                 <Plus className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
                 {t("add_item")}
               </Button>
@@ -591,6 +629,21 @@ function MenuItemsSection({
                 <DialogDescription>{t("add_new_item")}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>{t("select_category")}</Label>
+                  <Select value={selectedCategoryForCreate} onValueChange={setSelectedCategoryForCreate}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("choose_category")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="item-name" className="flex items-center">
                     {t("name")}
@@ -635,7 +688,7 @@ function MenuItemsSection({
                 <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
                   {t("cancel")}
                 </Button>
-                <Button onClick={handleCreateItem} disabled={createItem.isPending}>
+                <Button onClick={handleCreateItem} disabled={createItem.isPending || !selectedCategoryForCreate}>
                   {createItem.isPending ? <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" /> : null}
                   {t("create")}
                 </Button>
@@ -645,135 +698,175 @@ function MenuItemsSection({
         </div>
       </CardHeader>
       <CardContent>
-        {/* Category Selector */}
+        {/* Search Input */}
         <div className="mb-6">
-          <Label className="mb-2 block">{t("select_category")}</Label>
-          <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
-            <SelectTrigger className="w-full md:w-64">
-              <SelectValue placeholder={t("choose_category")} />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((cat) => (
-                <SelectItem key={cat.id} value={cat.id}>
-                  {cat.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="relative">
+            <Search className="absolute ltr:left-3 rtl:right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t("search_items") || "Search items..."}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="ltr:pl-10 rtl:pr-10"
+            />
+          </div>
+          {searchQuery && (
+            <p className="text-xs text-muted-foreground mt-2">
+              {filteredItems.length} {t("items_found") || "items found"}
+            </p>
+          )}
         </div>
 
-        {/* Items List */}
-        {!selectedCategoryId ? (
-          <p className="text-muted-foreground text-center py-8">{t("select_category_view")}</p>
-        ) : isLoading ? (
+        {/* Categories with Items */}
+        {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
-        ) : items.length === 0 ? (
-          <p className="text-muted-foreground text-center py-8">{t("no_items")}</p>
+        ) : categoriesToShow.length === 0 ? (
+          <p className="text-muted-foreground text-center py-8">
+            {searchQuery ? t("no_items_found") || "No items found" : t("no_categories")}
+          </p>
         ) : (
           <div className="space-y-3">
-            {items.map((item) => (
-              <div key={item.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg transition-all duration-200 hover:shadow-md hover:bg-muted/70 border border-transparent hover:border-primary/20">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    {item.is_offer && <Flame className="h-4 w-4 text-warning" />}
-                    <p className="font-medium text-foreground">{item.name}</p>
-                    {item.is_offer && (
-                      <span className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded">{t("offer")}</span>
-                    )}
-                    {!item.is_available && (
-                      <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">{t("unavailable")}</span>
-                    )}
-                  </div>
-                  {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
-                  <p className="text-sm font-medium text-primary mt-1">{currencySymbol} {formatJOD(Number(item.price))}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => updateItem.mutate({ id: item.id, is_favorite: !item.is_favorite })}
-                    title={t("mark_as_favorite")}
-                  >
-                    <Star
-                      className={`h-4 w-4 ${item.is_favorite ? "fill-warning text-warning" : "text-muted-foreground"}`}
-                    />
-                  </Button>
-                  <Switch
-                    checked={item.is_available}
-                    onCheckedChange={(checked) => updateItem.mutate({ id: item.id, is_available: checked })}
-                  />
-                  <Dialog open={editingItem?.id === item.id} onOpenChange={(open) => !open && setEditingItem(null)}>
-                    <DialogTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={() => setEditingItem(item)}>
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>{t("edit_menu_item")}</DialogTitle>
-                        <DialogDescription>{t("update_item")}</DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label>{t("name")}</Label>
-                          <Input
-                            value={editingItem?.name || ""}
-                            onChange={(e) =>
-                              setEditingItem((prev) => (prev ? { ...prev, name: e.target.value } : null))
-                            }
-                          />
+            {categoriesToShow.map((category) => {
+              const categoryItems = itemsByCategory[category.id] || [];
+              const isExpanded = expandedCategories.has(category.id) || (searchQuery.trim() !== "" && categoryItems.length > 0);
+              
+              return (
+                <Collapsible
+                  key={category.id}
+                  open={isExpanded}
+                  onOpenChange={() => toggleCategory(category.id)}
+                >
+                  <div className="border rounded-lg overflow-hidden">
+                    <CollapsibleTrigger asChild>
+                      <button className="flex items-center justify-between w-full p-4 bg-muted/50 hover:bg-muted/70 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                            <FolderOpen className="h-4 w-4 text-primary" />
+                          </div>
+                          <div className="text-start">
+                            <p className="font-medium text-foreground">{category.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {categoryItems.length} {categoryItems.length === 1 ? t("item") || "item" : t("items") || "items"}
+                            </p>
+                          </div>
                         </div>
-                        <div className="space-y-2">
-                          <Label>{t("description")}</Label>
-                          <Input
-                            value={editingItem?.description || ""}
-                            onChange={(e) =>
-                              setEditingItem((prev) => (prev ? { ...prev, description: e.target.value } : null))
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>{t("price")}</Label>
-                          <Input
-                            type="number"
-                            step="0.001"
-                            value={editingItem?.price || 0}
-                            onChange={(e) =>
-                              setEditingItem((prev) =>
-                                prev ? { ...prev, price: parseFloat(e.target.value) || 0 } : null,
-                              )
-                            }
-                          />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            checked={editingItem?.is_offer || false}
-                            onCheckedChange={(checked) =>
-                              setEditingItem((prev) => (prev ? { ...prev, is_offer: checked } : null))
-                            }
-                          />
-                          <Label>{t("mark_as_offer")}</Label>
-                        </div>
+                        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${isExpanded ? "" : "ltr:-rotate-90 rtl:rotate-90"}`} />
+                      </button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="p-3 space-y-2 bg-background">
+                        {categoryItems.length === 0 ? (
+                          <p className="text-muted-foreground text-center py-4 text-sm">{t("no_items")}</p>
+                        ) : (
+                          categoryItems.map((item) => (
+                            <div key={item.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg transition-all duration-200 hover:shadow-sm hover:bg-muted/50 border border-transparent hover:border-primary/10">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  {item.is_offer && <Flame className="h-4 w-4 text-warning" />}
+                                  <p className="font-medium text-foreground">{item.name}</p>
+                                  {item.is_offer && (
+                                    <span className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded">{t("offer")}</span>
+                                  )}
+                                  {!item.is_available && (
+                                    <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">{t("unavailable")}</span>
+                                  )}
+                                </div>
+                                {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
+                                <p className="text-sm font-medium text-primary mt-1">{currencySymbol} {formatJOD(Number(item.price))}</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => updateItem.mutate({ id: item.id, is_favorite: !item.is_favorite })}
+                                  title={t("mark_as_favorite")}
+                                >
+                                  <Star
+                                    className={`h-4 w-4 ${item.is_favorite ? "fill-warning text-warning" : "text-muted-foreground"}`}
+                                  />
+                                </Button>
+                                <Switch
+                                  checked={item.is_available}
+                                  onCheckedChange={(checked) => updateItem.mutate({ id: item.id, is_available: checked })}
+                                />
+                                <Dialog open={editingItem?.id === item.id} onOpenChange={(open) => !open && setEditingItem(null)}>
+                                  <DialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" onClick={() => setEditingItem(item)}>
+                                      <Edit2 className="h-4 w-4" />
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle>{t("edit_menu_item")}</DialogTitle>
+                                      <DialogDescription>{t("update_item")}</DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-4 py-4">
+                                      <div className="space-y-2">
+                                        <Label>{t("name")}</Label>
+                                        <Input
+                                          value={editingItem?.name || ""}
+                                          onChange={(e) =>
+                                            setEditingItem((prev) => (prev ? { ...prev, name: e.target.value } : null))
+                                          }
+                                        />
+                                      </div>
+                                      <div className="space-y-2">
+                                        <Label>{t("description")}</Label>
+                                        <Input
+                                          value={editingItem?.description || ""}
+                                          onChange={(e) =>
+                                            setEditingItem((prev) => (prev ? { ...prev, description: e.target.value } : null))
+                                          }
+                                        />
+                                      </div>
+                                      <div className="space-y-2">
+                                        <Label>{t("price")}</Label>
+                                        <Input
+                                          type="number"
+                                          step="0.001"
+                                          value={editingItem?.price || 0}
+                                          onChange={(e) =>
+                                            setEditingItem((prev) =>
+                                              prev ? { ...prev, price: parseFloat(e.target.value) || 0 } : null,
+                                            )
+                                          }
+                                        />
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Switch
+                                          checked={editingItem?.is_offer || false}
+                                          onCheckedChange={(checked) =>
+                                            setEditingItem((prev) => (prev ? { ...prev, is_offer: checked } : null))
+                                          }
+                                        />
+                                        <Label>{t("mark_as_offer")}</Label>
+                                      </div>
+                                    </div>
+                                    <DialogFooter>
+                                      <Button variant="outline" onClick={() => setEditingItem(null)}>
+                                        {t("cancel")}
+                                      </Button>
+                                      <Button onClick={handleUpdateItem} disabled={updateItem.isPending}>
+                                        {updateItem.isPending ? <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" /> : null}
+                                        {t("save")}
+                                      </Button>
+                                    </DialogFooter>
+                                  </DialogContent>
+                                </Dialog>
+                                <Button variant="ghost" size="icon" onClick={() => handleDeleteItem(item.id)}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))
+                        )}
                       </div>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setEditingItem(null)}>
-                          {t("cancel")}
-                        </Button>
-                        <Button onClick={handleUpdateItem} disabled={updateItem.isPending}>
-                          {updateItem.isPending ? <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" /> : null}
-                          {t("save")}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                  <Button variant="ghost" size="icon" onClick={() => handleDeleteItem(item.id)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              </div>
-            ))}
+                    </CollapsibleContent>
+                  </div>
+                </Collapsible>
+              );
+            })}
           </div>
         )}
       </CardContent>
