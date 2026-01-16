@@ -224,9 +224,9 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
                 return (
                   <span className={`flex items-baseline gap-0.5 ${hasLongShift ? 'text-amber-600 dark:text-amber-400' : 'text-foreground/80'}`}>
                     <span className="text-base font-bold tabular-nums">{duration.hours}</span>
-                    <span className="text-[10px] font-medium text-muted-foreground">{hLabel}</span>
+                    <span className="text-sm font-semibold text-muted-foreground">{hLabel}</span>
                     <span className="text-base font-bold tabular-nums ml-0.5">{duration.mins}</span>
-                    <span className="text-xs font-medium text-muted-foreground">{mLabel}</span>
+                    <span className="text-sm font-semibold text-muted-foreground">{mLabel}</span>
                   </span>
                 );
               })()}
