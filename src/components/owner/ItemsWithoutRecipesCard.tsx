@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { AlertTriangle, ChefHat, ArrowRight, Info } from "lucide-react";
+import { AlertTriangle, ArrowRight, Info } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -129,11 +129,11 @@ export function ItemsWithoutRecipesCard({ restaurantId }: ItemsWithoutRecipesCar
   };
 
   return (
-    <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/50 border">
-      <CardContent className="p-4">
+    <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/50 border h-full">
+      <CardContent className="p-4 h-full flex flex-col justify-center">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-full bg-amber-50 dark:bg-amber-950/20">
+            <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/30">
               <AlertTriangle className="h-5 w-5 text-amber-600" />
             </div>
             <div>
@@ -141,7 +141,6 @@ export function ItemsWithoutRecipesCard({ restaurantId }: ItemsWithoutRecipesCar
                 {language === "ar" ? "تنبيه المخزون" : "Inventory Alert"}
               </p>
               <div className="flex items-center gap-2 mt-0.5">
-                <ChefHat className="h-4 w-4 text-amber-600" />
                 <span className="text-sm font-medium text-amber-600">
                   {language === "ar" 
                     ? `${itemsWithoutRecipes.length} أصناف بدون وصفة`

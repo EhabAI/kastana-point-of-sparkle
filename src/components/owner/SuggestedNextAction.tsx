@@ -118,11 +118,11 @@ export function SuggestedNextAction({ restaurantId, onNavigate }: SuggestedNextA
   const Icon = config.icon;
   
   return (
-    <Card className="bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800/50 border">
-      <CardContent className="p-4">
+    <Card className="bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800/50 border h-full">
+      <CardContent className="p-4 h-full flex flex-col justify-center">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-full bg-purple-50 dark:bg-purple-950/20">
+            <div className="p-2 rounded-full bg-purple-100 dark:bg-purple-900/30">
               <Lightbulb className="h-5 w-5 text-purple-600" />
             </div>
             <div>

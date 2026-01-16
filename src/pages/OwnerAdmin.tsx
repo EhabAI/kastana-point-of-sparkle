@@ -223,14 +223,14 @@ export default function OwnerAdmin() {
             {role === "owner" && (
               <div className="space-y-3">
                 <SmartEndOfDaySummary restaurantId={restaurant.id} currency={currency} />
-                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                   <SuggestedNextAction restaurantId={restaurant.id} />
                   <KitchenDoneOrdersCard restaurantId={restaurant.id} />
                   <TodayIncomeCard restaurantId={restaurant.id} currency={currency} />
+                  <ItemsWithoutRecipesCard restaurantId={restaurant.id} />
                 </div>
               </div>
             )}
-            {role === "owner" && <ItemsWithoutRecipesCard restaurantId={restaurant.id} />}
             {role === "owner" && <MistakePatternDetector restaurantId={restaurant.id} />}
             {role === "owner" && <NotificationsAlerts />}
             {role === "owner" && <RefundVoidInsights />}
