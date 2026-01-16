@@ -33,11 +33,11 @@ interface AdjustmentDialogProps {
 }
 
 const ADJUSTMENT_REASONS = [
-  "inv_reason_correction",
-  "inv_reason_found",
   "inv_reason_damaged",
-  "inv_reason_expired",
-  "inv_reason_other",
+  "inv_reason_prep_error",
+  "inv_reason_staff_use",
+  "inv_reason_correction",
+  "inv_reason_sample",
 ];
 
 export function AdjustmentDialog({ restaurantId, open, onOpenChange }: AdjustmentDialogProps) {
