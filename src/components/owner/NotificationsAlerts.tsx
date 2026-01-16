@@ -390,7 +390,7 @@ export const NotificationsAlerts = forwardRef<HTMLDivElement>(function Notificat
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 w-full"
       >
-        <span className="text-xs font-bold text-foreground/80 uppercase tracking-[0.15em]">
+        <span className="text-sm font-bold text-foreground/80 uppercase tracking-[0.1em]">
           {hasAlerts ? (t("attention_required") || "Attention Required") : (t("notifications_alerts"))}
         </span>
         {criticalCount > 0 && (
