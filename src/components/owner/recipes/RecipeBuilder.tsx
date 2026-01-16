@@ -397,28 +397,6 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
     return units.find((u) => u.id === id)?.name || "";
   };
 
-  const getInventoryItemCost = (id: string) => {
-    return inventoryItems.find((i) => i.id === id)?.avgCost || null;
-  };
-
-  // Calculate line cost (qty * avg_cost)
-  // Note: This assumes the unit used matches the base unit cost
-  const calculateLineCost = (line: RecipeLineInput): number | null => {
-    const item = inventoryItems.find((i) => i.id === line.inventory_item_id);
-    if (!item || item.avgCost === null || !line.qty) return null;
-    const qty = parseFloat(line.qty);
-    if (isNaN(qty)) return null;
-    return qty * item.avgCost;
-  };
-
-  // Calculate total recipe cost
-  const totalRecipeCost = lines.reduce((sum, line) => {
-    const lineCost = calculateLineCost(line);
-    return lineCost !== null ? sum + lineCost : sum;
-  }, 0);
-
-  const hasAnyCostData = lines.some((line) => calculateLineCost(line) !== null);
-
   // Check for duplicate ingredients
   const getDuplicateItems = () => {
     const itemCounts = lines.reduce((acc, l) => {
@@ -763,17 +741,15 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[35%]">{t("ingredient")}</TableHead>
+                      <TableHead className="w-[40%]">{t("ingredient")}</TableHead>
                       <TableHead>{t("quantity")}</TableHead>
                       <TableHead>{t("unit")}</TableHead>
-                      <TableHead>{t("cost")}</TableHead>
                       <TableHead className="w-16"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {lines.map((line) => {
                       const isDuplicate = duplicateItems.includes(line.inventory_item_id);
-                      const lineCost = calculateLineCost(line);
                       return (
                         <TableRow
                           key={line.id}
@@ -830,13 +806,6 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
                               </SelectContent>
                             </Select>
                           </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {lineCost !== null ? (
-                              <span>{lineCost.toFixed(3)} {currency}</span>
-                            ) : (
-                              <span className="text-xs">—</span>
-                            )}
-                          </TableCell>
                           <TableCell>
                             <Button
                               variant="ghost"
@@ -852,16 +821,6 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
                     })}
                   </TableBody>
                 </Table>
-
-                {/* Total Recipe Cost */}
-                {hasAnyCostData && (
-                  <div className="mt-4 p-4 bg-muted/50 rounded-lg flex items-center justify-between">
-                    <span className="font-medium">{t("total_recipe_cost")}</span>
-                    <span className="text-lg font-bold text-primary">
-                      {totalRecipeCost.toFixed(3)} {currency}
-                    </span>
-                  </div>
-                )}
               </>
             )}
 
