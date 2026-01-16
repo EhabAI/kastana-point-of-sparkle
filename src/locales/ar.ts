@@ -1549,4 +1549,12 @@ export default {
   error_owner_branch_active_cashiers_desc: "يوجد كاشيرين نشطين في هذا الفرع. يرجى إلغاء تفعيلهم أولاً.",
   error_owner_branch_open_shifts_title: "لا يمكن حذف الفرع",
   error_owner_branch_open_shifts_desc: "يوجد شِفتات مفتوحة في هذا الفرع. يرجى إغلاقها أولاً.",
+
+  // Insight Cards
+  refund_void_reasons_title: "أسباب الإرجاع والإلغاء",
+  no_refunds_or_voids: "لا توجد عمليات إرجاع أو إلغاء",
+  inventory_risk_title: "مخاطر المخزون",
+  inv_near_reorder_short: "قريب من النفاد",
+  inv_negative_stock: "مخزون سالب",
+  inv_items_without_recipe: "أصناف بلا وصفة",
 } as const;
