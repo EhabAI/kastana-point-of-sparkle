@@ -118,29 +118,28 @@ export function SuggestedNextAction({ restaurantId, onNavigate }: SuggestedNextA
   const Icon = config.icon;
   
   return (
-    <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
-      <CardContent className="p-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-full bg-primary/10">
-            <Lightbulb className="h-4 w-4 text-primary" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
-              {t("suggested_action")}
-            </p>
-            <div className="flex items-center gap-2 mt-0.5">
-              <Icon className="h-4 w-4 text-foreground" />
-              <span className="text-sm font-medium">{config.title[language]}</span>
+    <Card className="bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800/50 border">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-full bg-purple-50 dark:bg-purple-950/20">
+              <Lightbulb className="h-5 w-5 text-purple-600" />
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {config.action[language]}
-            </p>
+            <div>
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                {t("suggested_action")}
+              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <Icon className="h-4 w-4 text-purple-600" />
+                <span className="text-sm font-medium text-purple-600">{config.title[language]}</span>
+              </div>
+            </div>
           </div>
           {config.tab && onNavigate && (
             <Button
               variant="ghost"
               size="sm"
-              className="shrink-0"
+              className="shrink-0 text-purple-600 hover:text-purple-700 hover:bg-purple-100"
               onClick={() => onNavigate(config.tab!)}
             >
               <ArrowRight className="h-4 w-4" />
