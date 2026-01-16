@@ -1,11 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useNavigate } from "react-router-dom";
-import { AlertTriangle, Info, ChefHat } from "lucide-react";
+import { AlertTriangle, ChefHat, ArrowRight, Info } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
@@ -25,8 +23,7 @@ interface ItemsWithoutRecipesCardProps {
 }
 
 export function ItemsWithoutRecipesCard({ restaurantId }: ItemsWithoutRecipesCardProps) {
-  const { t, language } = useLanguage();
-  const navigate = useNavigate();
+  const { language } = useLanguage();
   const { isEnabled: inventoryEnabled } = useInventoryEnabled();
 
   const { data: itemsWithoutRecipes } = useQuery({
@@ -125,9 +122,6 @@ export function ItemsWithoutRecipesCard({ restaurantId }: ItemsWithoutRecipesCar
   }
 
   const handleNavigateToRecipes = () => {
-    // Navigate to inventory tab (where recipes are managed)
-    // The tab is controlled by the parent, so we use hash or query params
-    // For now, scroll to top and trigger tab change via URL
     const tabsElement = document.querySelector('[data-value="inventory"]');
     if (tabsElement) {
       (tabsElement as HTMLElement).click();
@@ -135,83 +129,71 @@ export function ItemsWithoutRecipesCard({ restaurantId }: ItemsWithoutRecipesCar
   };
 
   return (
-    <Card className="border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20">
+    <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/50 border">
       <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          {/* Warning Icon */}
-          <div className="flex-shrink-0 p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-            <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h4 className="text-sm font-semibold text-amber-800 dark:text-amber-200">
-                {language === "ar" ? "أصناف تُباع بدون وصفة" : "Items Sold Without Recipes"}
-              </h4>
-              <Badge 
-                variant="secondary" 
-                className="bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 text-xs"
-              >
-                {itemsWithoutRecipes.length}
-              </Badge>
-
-              {/* Tooltip with details */}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-4 w-4 text-amber-600 dark:text-amber-400 cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent 
-                    side="bottom" 
-                    align="start"
-                    className="max-w-[300px] p-3"
-                  >
-                    <p className="text-xs font-semibold mb-2">
-                      {language === "ar" ? "تفاصيل الأصناف" : "Item Details"}
-                    </p>
-                    <ul className="text-xs space-y-1 max-h-[200px] overflow-y-auto">
-                      {itemsWithoutRecipes.slice(0, 10).map((item) => (
-                        <li key={item.menu_item_id} className="flex justify-between gap-2">
-                          <span className="truncate">{item.menu_item_name}</span>
-                          <span className="text-muted-foreground flex-shrink-0">
-                            ({item.sold_count} {language === "ar" ? "مباع" : "sold"})
-                          </span>
-                        </li>
-                      ))}
-                      {itemsWithoutRecipes.length > 10 && (
-                        <li className="text-muted-foreground">
-                          +{itemsWithoutRecipes.length - 10} {language === "ar" ? "أصناف أخرى" : "more items"}
-                        </li>
-                      )}
-                    </ul>
-                    <p className="text-xs text-muted-foreground mt-2 pt-2 border-t">
-                      {language === "ar" 
-                        ? "أضف وصفة لهذه الأصناف لتفعيل خصم المخزون تلقائيًا."
-                        : "Add recipes to these items to enable automatic inventory deduction."}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-full bg-amber-50 dark:bg-amber-950/20">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
             </div>
-
-            <p className="text-xs text-amber-700 dark:text-amber-300 mb-3">
-              {language === "ar"
-                ? "تم بيع أصناف لا تملك وصفة، لذلك لم يتم خصم أي مخزون لها."
-                : "Items were sold without recipes, so no inventory was deducted for them."}
-            </p>
-
-            {/* Action Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 text-xs border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/30"
-              onClick={handleNavigateToRecipes}
-            >
-              <ChefHat className="h-3.5 w-3.5 mr-1.5" />
-              {language === "ar" ? "إدارة الوصفات" : "Manage Recipes"}
-            </Button>
+            <div>
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                {language === "ar" ? "تنبيه المخزون" : "Inventory Alert"}
+              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <ChefHat className="h-4 w-4 text-amber-600" />
+                <span className="text-sm font-medium text-amber-600">
+                  {language === "ar" 
+                    ? `${itemsWithoutRecipes.length} أصناف بدون وصفة`
+                    : `${itemsWithoutRecipes.length} items without recipes`}
+                </span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3.5 w-3.5 text-amber-500 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent 
+                      side="bottom" 
+                      align="start"
+                      className="max-w-[300px] p-3"
+                    >
+                      <p className="text-xs font-semibold mb-2">
+                        {language === "ar" ? "تفاصيل الأصناف" : "Item Details"}
+                      </p>
+                      <ul className="text-xs space-y-1 max-h-[200px] overflow-y-auto">
+                        {itemsWithoutRecipes.slice(0, 10).map((item) => (
+                          <li key={item.menu_item_id} className="flex justify-between gap-2">
+                            <span className="truncate">{item.menu_item_name}</span>
+                            <span className="text-muted-foreground flex-shrink-0">
+                              ({item.sold_count} {language === "ar" ? "مباع" : "sold"})
+                            </span>
+                          </li>
+                        ))}
+                        {itemsWithoutRecipes.length > 10 && (
+                          <li className="text-muted-foreground">
+                            +{itemsWithoutRecipes.length - 10} {language === "ar" ? "أصناف أخرى" : "more items"}
+                          </li>
+                        )}
+                      </ul>
+                      <p className="text-xs text-muted-foreground mt-2 pt-2 border-t">
+                        {language === "ar" 
+                          ? "أضف وصفة لهذه الأصناف لتفعيل خصم المخزون تلقائيًا."
+                          : "Add recipes to enable automatic inventory deduction."}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="shrink-0 text-amber-600 hover:text-amber-700 hover:bg-amber-100"
+            onClick={handleNavigateToRecipes}
+          >
+            <ArrowRight className="h-4 w-4" />
+          </Button>
         </div>
       </CardContent>
     </Card>
