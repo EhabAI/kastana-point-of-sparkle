@@ -143,68 +143,70 @@ export default function OwnerAdmin() {
           <h2 className="text-base font-semibold text-foreground tracking-tight">{restaurant.name}</h2>
         </div>
 
-        {/* Tabbed Navigation - Premium underline style */}
+        {/* Tabbed Navigation - Professional POS-style full-width tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="flex items-center gap-0.5 bg-transparent p-0 h-auto flex-wrap">
-            <TabsTrigger 
-              value="overview" 
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
-            >
-              <LayoutDashboard className="h-3.5 w-3.5" />
-              <span>{t("overview")}</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="analytics" 
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
-            >
-              <BarChart3 className="h-3.5 w-3.5" />
-              <span>{t("analytics")}</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="reports" 
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
-            >
-              <FileText className="h-3.5 w-3.5" />
-              <span>{t("reports")}</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="menu" 
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
-            >
-              <UtensilsCrossed className="h-3.5 w-3.5" />
-              <span>{t("menu")}</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="management" 
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
-            >
-              <Users className="h-3.5 w-3.5" />
-              <span>{t("manage")}</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="branches" 
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
-            >
-              <Building2 className="h-3.5 w-3.5" />
-              <span>{t("branches")}</span>
-            </TabsTrigger>
-            {inventoryEnabled && (
+          <div className="sticky top-0 z-10 -mx-4 px-4 bg-background border-b border-border">
+            <TabsList className="flex w-full h-12 bg-transparent p-0 gap-0 overflow-x-auto scrollbar-hide">
               <TabsTrigger 
-                value="inventory" 
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
+                value="overview" 
+                className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/30 hover:bg-muted/50 hover:text-foreground border-b-3 border-transparent data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:font-bold data-[state=active]:border-primary rounded-none transition-colors"
               >
-                <Package className="h-3.5 w-3.5" />
-                <span>{t("inventory")}</span>
+                <LayoutDashboard className="h-4 w-4" />
+                <span className="hidden sm:inline">{t("overview")}</span>
               </TabsTrigger>
-            )}
-            <TabsTrigger 
-              value="settings" 
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground/70 hover:text-foreground border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold rounded-none transition-all duration-150"
-            >
-              <Settings className="h-3.5 w-3.5" />
-              <span>{t("settings")}</span>
-            </TabsTrigger>
-          </TabsList>
+              <TabsTrigger 
+                value="analytics" 
+                className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/30 hover:bg-muted/50 hover:text-foreground border-b-3 border-transparent data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:font-bold data-[state=active]:border-primary rounded-none transition-colors"
+              >
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline">{t("analytics")}</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="reports" 
+                className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/30 hover:bg-muted/50 hover:text-foreground border-b-3 border-transparent data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:font-bold data-[state=active]:border-primary rounded-none transition-colors"
+              >
+                <FileText className="h-4 w-4" />
+                <span className="hidden sm:inline">{t("reports")}</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="menu" 
+                className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/30 hover:bg-muted/50 hover:text-foreground border-b-3 border-transparent data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:font-bold data-[state=active]:border-primary rounded-none transition-colors"
+              >
+                <UtensilsCrossed className="h-4 w-4" />
+                <span className="hidden sm:inline">{t("menu")}</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="management" 
+                className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/30 hover:bg-muted/50 hover:text-foreground border-b-3 border-transparent data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:font-bold data-[state=active]:border-primary rounded-none transition-colors"
+              >
+                <Users className="h-4 w-4" />
+                <span className="hidden sm:inline">{t("manage")}</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="branches" 
+                className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/30 hover:bg-muted/50 hover:text-foreground border-b-3 border-transparent data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:font-bold data-[state=active]:border-primary rounded-none transition-colors"
+              >
+                <Building2 className="h-4 w-4" />
+                <span className="hidden sm:inline">{t("branches")}</span>
+              </TabsTrigger>
+              {inventoryEnabled && (
+                <TabsTrigger 
+                  value="inventory" 
+                  className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/30 hover:bg-muted/50 hover:text-foreground border-b-3 border-transparent data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:font-bold data-[state=active]:border-primary rounded-none transition-colors"
+                >
+                  <Package className="h-4 w-4" />
+                  <span className="hidden sm:inline">{t("inventory")}</span>
+                </TabsTrigger>
+              )}
+              <TabsTrigger 
+                value="settings" 
+                className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/30 hover:bg-muted/50 hover:text-foreground border-b-3 border-transparent data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:font-bold data-[state=active]:border-primary rounded-none transition-colors"
+              >
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline">{t("settings")}</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Overview Tab - Compact vertical rhythm */}
           <TabsContent value="overview" className="space-y-3 mt-3">
