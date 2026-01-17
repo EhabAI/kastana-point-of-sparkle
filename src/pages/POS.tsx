@@ -393,6 +393,11 @@ export default function POS() {
     0,
   ));
 
+  // Round to nearest 5 fils (0.005) for JOD cash handling
+  const roundTo5Fils = useCallback((n: number): number => {
+    return Math.round(n / 0.005) * 0.005;
+  }, []);
+
   const calculateTotals = useCallback(
     (sub: number, discType?: string | null, discVal?: number | null) => {
       let discountAmount = 0;
@@ -407,8 +412,8 @@ export default function POS() {
       // Round all monetary values to 3 decimals (JOD standard)
       const roundedRawTotal = roundJOD(rawTotal);
       
-      // Calculate payable total: round UP to nearest 0.01 (fils) for cash handling
-      const payableTotal = Math.ceil(roundedRawTotal * 100) / 100;
+      // Apply cash rounding: round to nearest 5 fils (0.005) for JOD cash handling
+      const payableTotal = roundTo5Fils(roundedRawTotal);
       const roundingAdjustment = roundJOD(payableTotal - roundedRawTotal);
       
       return { 
@@ -422,7 +427,7 @@ export default function POS() {
         total: payableTotal
       };
     },
-    [serviceChargeRate, taxRate, roundJOD],
+    [serviceChargeRate, taxRate, roundJOD, roundTo5Fils],
   );
 
   const { discountAmount, serviceCharge, taxAmount, total, rawTotal, payableTotal, roundingAdjustment } = calculateTotals(

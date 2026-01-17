@@ -15,6 +15,15 @@ export function roundJOD(value: number): number {
 }
 
 /**
+ * Round to nearest 5 fils (0.005) for JOD cash handling
+ * @param value - The numeric value to round
+ * @returns Number rounded to nearest 0.005
+ */
+export function roundTo5Fils(value: number): number {
+  return Math.round(value / 0.005) * 0.005;
+}
+
+/**
  * Format monetary value for JOD currency (3 decimal places, HALF-UP rounding)
  * @param value - The numeric value to format
  * @returns Formatted string with exactly 3 decimal places
