@@ -129,7 +129,7 @@ export default function POS() {
   const { data: heldOrders = [] } = useHeldOrders(currentShift?.id);
   const { data: recentOrders = [] } = useRecentOrders(currentShift?.id);
   const { data: currentOrder, refetch: refetchOrder } = useCurrentOrder(currentShift?.id);
-  const { data: zReportData, isLoading: zReportLoading } = useZReport(currentShift?.id);
+  const { data: zReportData, isLoading: zReportLoading, refetch: zReportRefetch } = useZReport(currentShift?.id);
   const { data: inventoryMovements, isLoading: inventoryMovementsLoading } = useShiftInventoryMovements(
     currentShift?.id,
     restaurant?.id,
@@ -453,13 +453,23 @@ export default function POS() {
     setShiftDialogOpen(true);
   };
 
-  const handleCloseShift = () => {
+  const handleCloseShift = async () => {
     // Block shift close if there are held orders
     if (heldOrders.length > 0) {
       toast.error(t("cannot_close_held_orders"));
       setHeldOrdersDialogOpen(true);
       return;
     }
+    
+    // Refetch Z report data before opening dialog to ensure fresh expected cash
+    try {
+      await zReportRefetch();
+    } catch (error) {
+      console.error("Failed to fetch Z report data:", error);
+      toast.error(t("failed_to_load_expected_cash"));
+      return;
+    }
+    
     setShiftDialogMode("close");
     setShiftDialogOpen(true);
   };
@@ -2213,6 +2223,7 @@ export default function POS() {
         onConfirm={handleShiftConfirm}
         isLoading={openShiftMutation.isPending || closeShiftMutation.isPending}
         expectedCash={zReportData?.expectedCash}
+        isExpectedCashLoading={zReportLoading}
         currency={currency}
       />
 

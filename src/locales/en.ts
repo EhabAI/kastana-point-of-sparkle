@@ -5,6 +5,8 @@ export default {
   shift_cash_over: "Cash Over",
   shift_cash_short: "Cash Short",
   shift_cash_match: "Balanced",
+  calculating_expected_cash: "Calculating expected cash...",
+  failed_to_load_expected_cash: "Failed to load expected cash. Please try again.",
   // Menu page - phone & table
   menu_phone_label: "Phone Number (Optional)",
   menu_phone_placeholder: "+962 7XX XXX XXX",

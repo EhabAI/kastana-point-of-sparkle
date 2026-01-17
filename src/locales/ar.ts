@@ -5,6 +5,8 @@ export default {
   shift_cash_over: "زيادة نقدية",
   shift_cash_short: "نقص نقدي",
   shift_cash_match: "متطابق",
+  calculating_expected_cash: "جارِ حساب النقد المتوقع...",
+  failed_to_load_expected_cash: "فشل تحميل النقد المتوقع. يرجى المحاولة مرة أخرى.",
   // Menu page - phone & table
   menu_phone_label: "رقم الهاتف (اختياري)",
   menu_phone_placeholder: "+962 7XX XXX XXX",
