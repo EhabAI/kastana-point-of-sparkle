@@ -187,11 +187,11 @@ export function PaymentDialog({
         </DialogHeader>
 
         <DialogBody>
-          <div className="space-y-4 py-4">
-            {/* Remaining amount indicator */}
+          <div className="space-y-3 py-2">
+            {/* Compact status row */}
             <div
               className={cn(
-                "p-4 rounded-lg text-center",
+                "px-3 py-2 rounded-md flex items-center justify-between",
                 isExactMatch
                   ? "bg-green-500/10 border border-green-500/30"
                   : hasOverpayment && allPaymentsCash
@@ -201,7 +201,7 @@ export function PaymentDialog({
                       : "bg-muted",
               )}
             >
-              <p className="text-sm text-muted-foreground mb-1">
+              <span className="text-sm text-muted-foreground">
                 {isExactMatch
                   ? t("payment_complete")
                   : hasOverpayment && allPaymentsCash
@@ -209,10 +209,10 @@ export function PaymentDialog({
                     : hasOverpayment
                       ? t("card_must_be_exact")
                       : t("remaining_to_pay")}
-              </p>
-              <p
+              </span>
+              <span
                 className={cn(
-                  "text-2xl font-bold",
+                  "text-lg font-bold",
                   isExactMatch
                     ? "text-green-600"
                     : hasOverpayment && allPaymentsCash
@@ -223,21 +223,21 @@ export function PaymentDialog({
                 )}
               >
                 {formatJOD(Math.abs(remaining))} {currency}
-              </p>
+              </span>
             </div>
 
             {/* Payment rows */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               {splitPayments.map((payment, index) => {
                 const methodInfo = enabledMethods.find((m) => m.id === payment.method);
                 const isCash = payment.method === "cash";
 
                 return (
-                  <div key={index} className="space-y-2 p-3 border rounded-lg bg-background">
-                    <div className="flex items-center gap-2">
+                  <div key={index} className="space-y-1.5 p-2 border rounded-md bg-background">
+                    <div className="flex items-center gap-1.5">
                       {/* Payment method selector */}
                       <Select value={payment.method} onValueChange={(value) => updatePaymentMethod(index, value)}>
-                        <SelectTrigger className="w-[140px] h-12">
+                        <SelectTrigger className="w-[120px] h-9 text-sm">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -264,9 +264,9 @@ export function PaymentDialog({
                           placeholder="0.000"
                           value={payment.amount}
                           onChange={(e) => updatePaymentAmount(index, e.target.value)}
-                          className="h-12 text-lg pr-16"
+                          className="h-9 text-base pr-12"
                         />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                           {currency}
                         </span>
                       </div>
@@ -275,32 +275,20 @@ export function PaymentDialog({
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-12 w-12"
+                        className="h-9 w-9"
                         onClick={() => setKeypadState({ open: true, index })}
                         title="Enter amount"
                       >
-                        <Hash className="h-5 w-5" />
+                        <Hash className="h-4 w-4" />
                       </Button>
 
-                      {/* Fill remaining button - always show for first row when remaining > 0 */}
-                      {remaining > 0 && index === 0 && (
+                      {/* Fill remaining button */}
+                      {remaining > 0 && (
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => fillRemaining(index)}
-                          className="h-12 px-3 whitespace-nowrap"
-                          title={t("fill_remaining")}
-                        >
-                          {t("fill")}
-                        </Button>
-                      )}
-                      {/* Fill button for other rows when not exact and remaining > 0 */}
-                      {remaining > 0 && index > 0 && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => fillRemaining(index)}
-                          className="h-12 px-3 whitespace-nowrap"
+                          className="h-9 px-2 text-xs whitespace-nowrap"
                           title={t("fill_remaining")}
                         >
                           {t("fill")}
@@ -313,16 +301,16 @@ export function PaymentDialog({
                           variant="ghost"
                           size="sm"
                           onClick={() => removePaymentRow(index)}
-                          className="h-12 w-12 p-0 text-muted-foreground hover:text-destructive"
+                          className="h-9 w-9 p-0 text-muted-foreground hover:text-destructive"
                         >
-                          <X className="h-5 w-5" />
+                          <X className="h-4 w-4" />
                         </Button>
                       )}
                     </div>
 
                     {/* Quick cash denominations for cash payments */}
                     {isCash && (
-                      <div className="flex flex-wrap gap-2 pt-2">
+                      <div className="flex flex-wrap gap-1.5">
                         {cashDenominations.map((denom) => (
                           <Button
                             key={denom}
@@ -332,7 +320,7 @@ export function PaymentDialog({
                               const current = parseFloat(payment.amount) || 0;
                               updatePaymentAmount(index, formatJOD(current + denom));
                             }}
-                            className="h-10 min-w-[60px]"
+                            className="h-8 min-w-[48px] text-xs"
                           >
                             +{denom}
                           </Button>
@@ -341,7 +329,7 @@ export function PaymentDialog({
                           variant="outline"
                           size="sm"
                           onClick={() => updatePaymentAmount(index, formatJOD(total))}
-                          className="h-10"
+                          className="h-8 text-xs"
                         >
                           {t("exact")}
                         </Button>
@@ -349,7 +337,7 @@ export function PaymentDialog({
                           variant="secondary"
                           size="sm"
                           onClick={() => updatePaymentAmount(index, "0.000")}
-                          className="h-10"
+                          className="h-8 text-xs"
                         >
                           {t("reset")}
                         </Button>
@@ -363,11 +351,11 @@ export function PaymentDialog({
             {/* Add payment row button */}
             <Button
               variant="outline"
-              className="w-full h-12"
+              className="w-full h-9"
               onClick={addPaymentRow}
               disabled={isSubmitting}
             >
-              <Plus className="h-5 w-5 mr-2" />
+              <Plus className="h-4 w-4 mr-1.5" />
               {t("split_bill")}
             </Button>
           </div>
@@ -377,12 +365,12 @@ export function PaymentDialog({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="h-12"
+            className="h-10"
             disabled={isLoading || isSubmitting}
           >
             {t("cancel")}
           </Button>
-          <div className="flex flex-col items-end gap-1">
+          <div className="flex flex-col items-end gap-0.5">
             <Button
               onClick={handleConfirm}
               disabled={
@@ -392,13 +380,13 @@ export function PaymentDialog({
                 isOrderBlocked ||
                 !(isExactMatch || (hasOverpayment && allPaymentsCash))
               }
-              className="h-12 min-w-[180px]"
+              className="h-10 min-w-[160px]"
             >
               {isLoading || isSubmitting ? (
                 <span className="text-sm">{t("processing")}</span>
               ) : (
-                <span className="flex flex-col items-center leading-tight">
-                  <span className="text-[10px] font-normal opacity-80">✓ {t("pay")}</span>
+                <span className="flex items-center gap-2">
+                  <span className="text-sm">✓ {t("pay")}</span>
                   <span className="text-sm font-semibold">{formatJOD(splitTotal)} {currency}</span>
                 </span>
               )}
