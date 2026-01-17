@@ -1,5 +1,10 @@
 // English translations for Kastana POS
 export default {
+  // Cash difference labels (shift close)
+  shift_cash_difference: "Cash Difference",
+  shift_cash_over: "Cash Over",
+  shift_cash_short: "Cash Short",
+  shift_cash_match: "Balanced",
   // Menu page - phone & table
   menu_phone_label: "Phone Number (Optional)",
   menu_phone_placeholder: "+962 7XX XXX XXX",

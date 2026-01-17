@@ -1,5 +1,10 @@
 // Arabic translations for Kastana POS
 export default {
+  // Cash difference labels (shift close)
+  shift_cash_difference: "فرق النقد",
+  shift_cash_over: "زيادة نقدية",
+  shift_cash_short: "نقص نقدي",
+  shift_cash_match: "متطابق",
   // Menu page - phone & table
   menu_phone_label: "رقم الهاتف (اختياري)",
   menu_phone_placeholder: "+962 7XX XXX XXX",
