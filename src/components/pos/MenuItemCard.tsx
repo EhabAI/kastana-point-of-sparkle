@@ -1,5 +1,4 @@
 import { cn, formatJOD } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 
 interface MenuItem {
   id: string;
@@ -20,11 +19,10 @@ interface MenuItemCardProps {
 }
 
 export function MenuItemCard({ item, currency, onSelect, showCategoryName = false }: MenuItemCardProps) {
-  // B3: Detect offer/deal (via is_offer, promo_price, or name keywords)
+  // Detect offer/deal (via is_offer, promo_price, or name keywords)
   const hasPromo = item.promo_price != null && item.promo_price > 0;
   const nameHasOfferKeyword = /happy|deal|offer|عروض/i.test(item.name);
   const isOffer = item.is_offer || hasPromo || nameHasOfferKeyword;
-  const promoLabel = item.promo_label || (hasPromo ? "Promo" : "Offer");
 
   return (
     <button
@@ -35,13 +33,13 @@ export function MenuItemCard({ item, currency, onSelect, showCategoryName = fals
         item.is_available
           ? "hover:border-primary hover:shadow-md bg-card"
           : "opacity-50 cursor-not-allowed bg-muted",
-        isOffer && item.is_available && "ring-2 ring-destructive/30"
+        // Offer items: subtle background tint and border highlight
+        isOffer && item.is_available && "bg-destructive/5 border-destructive/40"
       )}
     >
-      {isOffer && (
-        <Badge className="absolute top-2 right-2 bg-destructive text-destructive-foreground text-xs">
-          {promoLabel}
-        </Badge>
+      {/* Red dot indicator for offers - top-left corner */}
+      {isOffer && item.is_available && (
+        <span className="absolute top-2 left-2 w-2.5 h-2.5 rounded-full bg-destructive" />
       )}
       <span className="font-medium text-sm mb-1 line-clamp-2">{item.name}</span>
       {showCategoryName && item.category_name && (
