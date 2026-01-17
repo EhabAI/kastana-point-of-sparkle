@@ -84,6 +84,11 @@ export function RecentOrdersDialog({
     onOpenChange(isOpen);
   };
 
+  // Helper to check if order has any refunds (partial or full)
+  const hasRefunds = (order: RecentOrder) => {
+    return order.refunds && order.refunds.length > 0;
+  };
+
   // Filter orders based on search and status
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
@@ -91,8 +96,17 @@ export function RecentOrdersDialog({
       const matchesSearch = searchQuery === "" || 
         order.order_number.toString().includes(searchQuery);
       
-      // Status filter
-      const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+      // Status filter - "refunded" includes orders with status 'refunded' OR any refund transactions
+      let matchesStatus = false;
+      if (statusFilter === "all") {
+        matchesStatus = true;
+      } else if (statusFilter === "refunded") {
+        // Show orders that are fully refunded OR have any refund transactions (partial refunds)
+        matchesStatus = order.status === "refunded" || hasRefunds(order);
+      } else if (statusFilter === "paid") {
+        // Show paid orders without any refunds
+        matchesStatus = order.status === "paid" && !hasRefunds(order);
+      }
       
       return matchesSearch && matchesStatus;
     });
