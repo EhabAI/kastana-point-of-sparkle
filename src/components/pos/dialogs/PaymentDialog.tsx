@@ -168,14 +168,16 @@ export function PaymentDialog({
     }
   };
 
-  const splitTotal = roundJOD(splitPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0));
+  // Filter out zero-value payments for all calculations
+  const validPayments = splitPayments.filter((p) => (parseFloat(p.amount) || 0) > 0);
+  const splitTotal = roundJOD(validPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0));
   const remaining = roundJOD(total - splitTotal);
   const isExactMatch = Math.abs(remaining) < 0.001; // 3-decimal precision check
   const hasOverpayment = remaining < -0.001;
-  const hasValidPayments = splitPayments.some((p) => parseFloat(p.amount) > 0);
+  const hasValidPayments = validPayments.length > 0;
   
-  // Check if all payments are cash-only (allows overpayment with change)
-  const allPaymentsCash = splitPayments.every((p) => p.method === "cash");
+  // Check if all valid payments are cash-only (allows overpayment with change)
+  const allPaymentsCash = validPayments.length === 0 || validPayments.every((p) => p.method === "cash");
   const changeAmount = hasOverpayment ? roundJOD(Math.abs(remaining)) : 0;
 
   // Block payment for non-open orders (e.g., pending QR orders)
