@@ -70,11 +70,24 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: items = [] } = useInventoryItems(restaurantId);
-  const branchItems = items.filter((item) => item.branchId === selectedBranch && item.isActive);
+  
+  // Filter items by selected branch - memoized for performance
+  const branchItems = useMemo(() => {
+    if (!selectedBranch) return [];
+    return items.filter((item) => item.branchId === selectedBranch && item.isActive);
+  }, [items, selectedBranch]);
 
-  // Helper to get item's unit info
+  // Create a lookup map for faster item access
+  const itemsMap = useMemo(() => {
+    const map = new Map<string, typeof items[0]>();
+    items.forEach((item) => map.set(item.id, item));
+    return map;
+  }, [items]);
+
+  // Helper to get item's unit info - uses itemsMap for reliable lookup
   const getItemUnit = (itemId: string) => {
-    const item = branchItems.find((i) => i.id === itemId);
+    if (!itemId) return { unitId: "", unitName: "" };
+    const item = itemsMap.get(itemId);
     return { unitId: item?.baseUnitId || "", unitName: item?.baseUnitName || "" };
   };
 
