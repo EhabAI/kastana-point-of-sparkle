@@ -106,7 +106,7 @@ export function RecentOrdersDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 min-h-0">
+        <ScrollArea className="flex-1 min-h-0 pr-4" scrollHideDelay={0}>
           {orders.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {t("no_completed_orders")}
