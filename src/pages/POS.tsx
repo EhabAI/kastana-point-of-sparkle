@@ -938,13 +938,14 @@ export default function POS() {
       setSelectedOrderForReceipt(orderForReceipt as RecentOrder);
       setReceiptDialogOpen(true);
 
-      // ═══════════════════════════════════════════════════════════════════
-      // PHASE 1: Inventory deduction DISABLED
-      // This is intentional for Phase 1 - payments must never fail due to inventory.
-      // Re-enable in Phase 2 when inventory system is fully tested.
-      // ═══════════════════════════════════════════════════════════════════
-      // Inventory deduction skipped - logged for audit trail only
-      console.info("[handlePaymentConfirm] PHASE 1: Inventory deduction skipped for order:", currentOrder.id);
+      // Inventory deduction - only if module is enabled
+      // If inventory_enabled = false: skip silently, no errors, no warnings, no logs
+      if (settings?.inventory_enabled) {
+        // TODO: Re-enable in Phase 2 when inventory system is fully tested
+        // inventoryDeductionMutation.mutateAsync(currentOrder.id);
+        console.info("[handlePaymentConfirm] Inventory enabled but Phase 1 - deduction skipped for order:", currentOrder.id);
+      }
+      // When inventory disabled: proceed silently - this is intended behavior
       
     } catch (error) {
       // ═══════════════════════════════════════════════════════════════════
