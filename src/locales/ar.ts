@@ -602,6 +602,9 @@ export default {
   select_branch_required: "الرجاء اختيار فرع",
   assign_to_branch: "تعيين للفرع",
   table: "الطاولة",
+  table_active: "نشطة",
+  table_held: "معلقة",
+  merged: "مدمجة",
 
   // Restaurant settings
   restaurant_settings: "إعدادات المطعم",

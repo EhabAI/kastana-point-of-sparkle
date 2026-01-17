@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { Users, AlertCircle } from "lucide-react";
+import { Users, AlertCircle, Combine } from "lucide-react";
 import { cn, formatJOD } from "@/lib/utils";
 import { calculateOrderTotals, roundJOD } from "@/lib/orderCalculations";
 import { useAuth } from "@/contexts/AuthContext";
@@ -99,6 +99,12 @@ import {
   TableOrdersDialog,
   InventoryWarningsDialog,
 } from "@/components/pos/dialogs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { RecentOrder } from "@/components/pos/dialogs/RecentOrdersDialog";
 import type { OrderType } from "@/components/pos/OrderTypeSelector";
 
@@ -2009,17 +2015,28 @@ export default function POS() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                   {tables.map((table) => {
                     const order = tableOrderMap.get(table.id);
-                    const isOccupied = !!order;
                     const isSelected = mergeSelection.includes(table.id);
                     const orderCount = tableOrderCountMap.get(table.id);
                     const oldestOrderCreatedAt = tableOldestOrderMap.get(table.id);
+                    
+                    // Determine table status: free, active (open), or held
+                    const getTableStatus = (): "free" | "active" | "held" => {
+                      if (!order) return "free";
+                      if (order.status === "open") return "active";
+                      if (order.status === "held") return "held";
+                      // For confirmed or other statuses, treat as active
+                      return "active";
+                    };
+                    
+                    const tableStatus = getTableStatus();
+                    const isOccupied = tableStatus !== "free";
 
                     return (
                       <div key={table.id} className="relative">
                         <TableCard
                           tableName={table.table_name}
                           capacity={table.capacity || 4}
-                          isOccupied={isOccupied}
+                          tableStatus={tableStatus}
                           orderNumber={order?.order_number}
                           orderCount={orderCount}
                           orderCreatedAt={oldestOrderCreatedAt}
@@ -2029,16 +2046,24 @@ export default function POS() {
                         />
                         {/* Merge button for occupied tables when not in merge mode */}
                         {isOccupied && mergeSelection.length === 0 && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleStartMerge(table.id);
-                            }}
-                            className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center hover:bg-primary/90 shadow-md"
-                            title={t("merge_with_another")}
-                          >
-                            M
-                          </button>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleStartMerge(table.id);
+                                  }}
+                                  className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-violet-500 text-white text-xs font-bold flex items-center justify-center hover:bg-violet-600 shadow-md"
+                                >
+                                  <Combine className="h-3.5 w-3.5" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="text-xs">
+                                {t("merge_with_another")}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                       </div>
                     );
