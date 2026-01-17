@@ -194,19 +194,26 @@ export function PaymentDialog({
               <span>{t("order_total")}:</span>
               <span className="font-semibold text-foreground">{formatJOD(total)} {currency}</span>
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* Show change for cash overpayment at the top */}
-              {hasOverpayment && allPaymentsCash && (
-                <>
-                  <span>{t("change_to_give")}:</span>
-                  <span className="font-semibold text-green-600 dark:text-green-400">{formatJOD(changeAmount)} {currency}</span>
-                </>
-              )}
-              {/* Show validation error for card/wallet overpayment */}
-              {hasOverpayment && !allPaymentsCash && (
-                <span className="font-semibold text-destructive">{t("card_must_be_exact")}</span>
-              )}
-            </div>
+            {/* Global remaining/change display based on sum of all payments */}
+            {hasValidPayments && (
+              <div className="flex items-center gap-2 flex-wrap">
+                {remaining > 0.001 && (
+                  <>
+                    <span>{t("remaining_from_customer")}:</span>
+                    <span className="font-semibold text-orange-600 dark:text-orange-400">{formatJOD(remaining)} {currency}</span>
+                  </>
+                )}
+                {hasOverpayment && allPaymentsCash && (
+                  <>
+                    <span>{t("change_to_give")}:</span>
+                    <span className="font-semibold text-green-600 dark:text-green-400">{formatJOD(changeAmount)} {currency}</span>
+                  </>
+                )}
+                {hasOverpayment && !allPaymentsCash && (
+                  <span className="font-semibold text-destructive">{t("card_must_be_exact")}</span>
+                )}
+              </div>
+            )}
           </DialogDescription>
         </DialogHeader>
 
@@ -330,28 +337,6 @@ export function PaymentDialog({
                       </div>
                     )}
 
-                    {/* Change/remaining display for cash */}
-                    {isCash && parseFloat(payment.amount) > 0 && (
-                      <div className="text-sm mt-1 px-1">
-                        {(() => {
-                          const paidAmount = parseFloat(payment.amount) || 0;
-                          const diff = roundJOD(paidAmount - total);
-                          if (diff >= 0) {
-                            return (
-                              <span className="text-green-600 dark:text-green-400 font-medium">
-                                {t("change_to_give")}: {formatJOD(diff)} {currency}
-                              </span>
-                            );
-                          } else {
-                            return (
-                              <span className="text-orange-600 dark:text-orange-400 font-medium">
-                                {t("remaining_from_customer")}: {formatJOD(Math.abs(diff))} {currency}
-                              </span>
-                            );
-                          }
-                        })()}
-                      </div>
-                    )}
                   </div>
                 );
               })}
