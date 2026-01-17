@@ -242,6 +242,8 @@ export default function POS() {
   const [confirmNewOrderDialogOpen, setConfirmNewOrderDialogOpen] = useState(false);
   const [closedShiftData, setClosedShiftData] = useState<{
     openingCash: number;
+    closingCash: number;
+    expectedCash: number;
     openedAt: string;
     closedAt: string;
     orderCount: number;
@@ -476,6 +478,8 @@ export default function POS() {
 
           setClosedShiftData({
             openingCash: currentShift.opening_cash,
+            closingCash: amount,
+            expectedCash: zReportData?.expectedCash ?? 0,
             openedAt: currentShift.opened_at,
             closedAt,
             orderCount,

@@ -75,10 +75,49 @@ export function ShiftDialog({
           )}
 
           {mode === "close" && expectedCash !== undefined && (
-            <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground">{t("expected_cash")}</p>
-              <p className="text-lg font-bold">{formatJOD(expectedCash)} {currency}</p>
-            </div>
+            <>
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground">{t("expected_cash")}</p>
+                <p className="text-lg font-bold">{formatJOD(expectedCash)} {currency}</p>
+              </div>
+
+              {/* Cash Difference - Live calculated */}
+              {amount && (() => {
+                const actualCash = parseFloat(amount) || 0;
+                const difference = actualCash - expectedCash;
+                const isOver = difference > 0;
+                const isShort = difference < 0;
+                const isMatch = difference === 0;
+                
+                return (
+                  <div className={`p-3 rounded-lg border-2 ${
+                    isOver ? 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800' : 
+                    isShort ? 'bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-800' : 
+                    'bg-muted border-muted'
+                  }`}>
+                    <p className="text-sm text-muted-foreground">{t("shift_cash_difference") || "فرق النقد"}</p>
+                    <div className="flex items-center justify-between">
+                      <p className={`text-lg font-bold ${
+                        isOver ? 'text-green-600 dark:text-green-400' : 
+                        isShort ? 'text-red-600 dark:text-red-400' : 
+                        'text-foreground'
+                      }`}>
+                        {isOver ? '+' : ''}{formatJOD(difference)} {currency}
+                      </p>
+                      <span className={`text-sm font-medium px-2 py-1 rounded ${
+                        isOver ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' : 
+                        isShort ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' : 
+                        'bg-muted text-muted-foreground'
+                      }`}>
+                        {isOver ? (t("shift_cash_over") || "زيادة نقدية") : 
+                         isShort ? (t("shift_cash_short") || "نقص نقدي") : 
+                         (t("shift_cash_match") || "متطابق")}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
+            </>
           )}
 
           <div className="space-y-2">
