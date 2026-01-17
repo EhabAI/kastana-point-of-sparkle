@@ -71,7 +71,7 @@ import { KitchenPerformance } from "@/components/owner/KitchenPerformance";
 import { MenuLanguageGuidance } from "@/components/owner/MenuLanguageGuidance";
 import { InventoryDashboard } from "@/components/owner/InventoryDashboard";
 import { InventoryDisabledCard } from "@/components/owner/InventoryDisabledCard";
-import { SmartEndOfDaySummary } from "@/components/owner/SmartEndOfDaySummary";
+import { DailySummaryCard } from "@/components/owner/DailySummaryCard";
 import { SuggestedNextAction } from "@/components/owner/SuggestedNextAction";
 import { MistakePatternDetector } from "@/components/owner/MistakePatternDetector";
 
@@ -226,7 +226,7 @@ export default function OwnerAdmin() {
             {/* Smart Features Row */}
             {role === "owner" && (
               <div className="space-y-3">
-                <SmartEndOfDaySummary restaurantId={restaurant.id} currency={currency} />
+                <DailySummaryCard restaurantId={restaurant.id} currency={currency} />
                 <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   <SuggestedNextAction restaurantId={restaurant.id} />
                   <TodayIncomeCard restaurantId={restaurant.id} currency={currency} />
