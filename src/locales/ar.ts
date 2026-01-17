@@ -800,8 +800,9 @@ export default {
   max: "الحد الأقصى",
   amount_exceeds_refundable: "المبلغ يتجاوز الرصيد القابل للاسترداد",
 
-  // POS - Z Report
+  // POS - Z Report (Financial)
   z_report: "تقرير Z",
+  z_financial_report: "تقرير Z المالي",
   shift_opened_at: "تم فتح الوردية",
   shift_closed_at: "تم إغلاق الوردية",
   sales_summary: "ملخص المبيعات",
@@ -831,6 +832,19 @@ export default {
   net: "صافي",
   total_collected: "إجمالي المحصل",
   net_cash_sales: "صافي المبيعات النقدية",
+
+  // POS - Inventory Summary Report
+  inventory_summary: "ملخص المخزون",
+  inventory_daily_summary: "ملخص حركات المخزون اليومية",
+  incoming_movements: "الحركات الواردة",
+  outgoing_movements: "الحركات الصادرة",
+  total_incoming: "إجمالي الوارد",
+  total_outgoing: "إجمالي الصادر",
+  net_movement: "صافي الحركة",
+  net_summary: "الملخص الصافي",
+  all_movements: "جميع الحركات",
+  no_incoming_movements: "لا توجد حركات واردة",
+  no_outgoing_movements: "لا توجد حركات صادرة",
 
   // POS - Cash Movement
   cash_movement: "حركة النقد",

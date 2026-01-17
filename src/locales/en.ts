@@ -800,8 +800,9 @@ export default {
   max: "Max",
   amount_exceeds_refundable: "Amount exceeds refundable balance",
 
-  // POS - Z Report
+  // POS - Z Report (Financial)
   z_report: "Z Report",
+  z_financial_report: "Z Financial Report",
   shift_opened_at: "Shift opened",
   shift_closed_at: "Shift closed",
   sales_summary: "Sales Summary",
@@ -831,6 +832,19 @@ export default {
   net: "Net",
   total_collected: "Total Collected",
   net_cash_sales: "Net Cash Sales",
+
+  // POS - Inventory Summary Report
+  inventory_summary: "Inventory Summary",
+  inventory_daily_summary: "Daily Inventory Summary",
+  incoming_movements: "Incoming Movements",
+  outgoing_movements: "Outgoing Movements",
+  total_incoming: "Total Incoming",
+  total_outgoing: "Total Outgoing",
+  net_movement: "Net Movement",
+  net_summary: "Net Summary",
+  all_movements: "All Movements",
+  no_incoming_movements: "No incoming movements",
+  no_outgoing_movements: "No outgoing movements",
 
   // POS - Cash Movement
   cash_movement: "Cash Movement",
