@@ -53,6 +53,7 @@ export default {
   discount: "Discount",
   tax: "Tax",
   service_charge: "Service Charge",
+  rounding_adjustment: "Rounding",
   items: "items",
   reason: "Reason",
   amount: "Amount",
