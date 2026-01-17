@@ -100,7 +100,7 @@ export function AdjustmentDialog({ restaurantId, open, onOpenChange }: Adjustmen
           branchId: selectedBranch,
           itemId: selectedItem,
           txnType: adjustmentType === "in" ? "ADJUSTMENT_IN" : "ADJUSTMENT_OUT",
-          qty: adjustmentType === "in" ? qtyNum : -qtyNum,
+          qty: qtyNum,
           unitId: selectedUnit,
           notes: `${t(reason)}${notes ? `: ${notes.trim()}` : ""}`,
         },

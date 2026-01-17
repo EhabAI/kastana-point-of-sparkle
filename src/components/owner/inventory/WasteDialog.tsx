@@ -98,7 +98,7 @@ export function WasteDialog({ restaurantId, open, onOpenChange }: WasteDialogPro
           branchId: selectedBranch,
           itemId: selectedItem,
           txnType: "WASTE",
-          qty: -qtyNum,
+          qty: qtyNum,
           unitId: selectedUnit,
           notes: `${t(reason)}${notes ? `: ${notes.trim()}` : ""}`,
         },
