@@ -898,6 +898,14 @@ export default {
   failed_reopen_order: "فشل إعادة فتح الطلب",
   failed_confirm_order: "فشل تأكيد الطلب",
   failed_reject_order: "فشل رفض الطلب",
+  no_order_to_move: "لا يوجد طلب للنقل",
+  can_only_move_open_orders: "يمكن فقط نقل الطلبات المفتوحة أو المعلقة",
+  cannot_move_to_same_table: "لا يمكن النقل لنفس الطاولة",
+  table_not_found: "الطاولة غير موجودة",
+  target_table_has_order: "الطاولة تحتوي على طلب نشط",
+  select_target_table: "اختر الطاولة التي تريد نقل الطلب إليها",
+  order_moved_successfully: "تم نقل الطلب بنجاح",
+  select_target_table_for_order: "اختر الطاولة التي تريد نقل الطلب #{{orderNumber}} إليها",
 
   // POS - Order Items
   item_voided: "تم إلغاء العنصر",
