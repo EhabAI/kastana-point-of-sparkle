@@ -59,7 +59,7 @@ interface OrderPanelProps {
   onNewOrder: () => void;
   shiftOpen: boolean;
   hasRefund?: boolean;
-  roundingAdjustment?: number;
+  hasTable?: boolean;
 }
 
 // Parse customer info from order_notes
@@ -108,12 +108,12 @@ export function OrderPanel({
   onNewOrder,
   shiftOpen,
   hasRefund = false,
-  roundingAdjustment = 0,
+  hasTable = false,
 }: OrderPanelProps) {
   const { t, language } = useLanguage();
   const activeItems = items.filter((item) => !item.voided);
   const customerInfo = parseCustomerInfo(orderNotes);
-  const orderType = parseOrderType(orderNotes);
+  const orderType = hasTable ? "DINE-IN" : "TAKEAWAY";
   const isOpen = orderStatus === "open";
   const localizedCurrency = getCurrencySymbol(currency, language);
   const hasDiscount = (discountValue && discountValue > 0) || false;
@@ -126,7 +126,7 @@ export function OrderPanel({
         <CardTitle className="text-base flex items-center justify-between">
           <div className="flex items-center gap-2 flex-wrap">
             <span>{t("current_order")}</span>
-            {/* Status Badge */}
+            {/* Status Badge with Order Type */}
             {orderStatus && STATUS_CONFIG[orderStatus] && (
               <Badge 
                 variant="outline"
@@ -135,15 +135,9 @@ export function OrderPanel({
                   STATUS_CONFIG[orderStatus].className
                 )}
               >
-                {STATUS_CONFIG[orderStatus].label}
+                {STATUS_CONFIG[orderStatus].label} · {orderType === "DINE-IN" ? t("dine_in") : t("takeaway")}
               </Badge>
             )}
-            <Badge 
-              variant={orderType === "DINE-IN" ? "default" : "secondary"}
-              className="text-xs"
-            >
-              {orderType === "DINE-IN" ? t("dine_in") : t("takeaway")}
-            </Badge>
             {/* Inline Order Indicators */}
             <OrderBadges
               source={orderSource}
@@ -159,12 +153,13 @@ export function OrderPanel({
             )}
             {shiftOpen && (
               <Button
-                variant="default"
-                size="sm"
+                variant="outline"
+                size="icon"
                 onClick={onNewOrder}
+                className="h-7 w-7"
+                title={t("new_order")}
               >
-                <Plus className="h-4 w-4 mr-1" />
-                {t("new_order")}
+                <Plus className="h-4 w-4" />
               </Button>
             )}
           </div>
@@ -224,7 +219,6 @@ export function OrderPanel({
           serviceCharge={serviceCharge}
           total={total}
           currency={currency}
-          roundingAdjustment={roundingAdjustment}
         />
 
         <div className="w-full grid grid-cols-2 gap-2">
