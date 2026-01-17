@@ -123,6 +123,18 @@ export function TableCard({
     return "bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300";
   };
 
+  const getSeatsIconColor = () => {
+    switch (tableStatus) {
+      case "active":
+        return "text-blue-600 dark:text-blue-400";
+      case "held":
+        return "text-amber-600 dark:text-amber-400";
+      case "free":
+      default:
+        return "text-emerald-600 dark:text-emerald-400";
+    }
+  };
+
   const statusBadge = getStatusBadge();
 
   return (
@@ -172,9 +184,9 @@ export function TableCard({
                   e.stopPropagation();
                   onMergeClick();
                 }}
-                className="absolute top-2 right-2 w-6 h-6 rounded-md bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors"
+                className="absolute top-2 right-2 w-7 h-7 rounded-md bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white flex items-center justify-center transition-colors shadow-sm"
               >
-                <Combine className="h-3 w-3" />
+                <Combine className="h-4 w-4" />
               </button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
@@ -196,9 +208,9 @@ export function TableCard({
 
       {/* Bottom Info */}
       <div className="w-full flex items-center justify-between gap-2 mt-1">
-        {/* Seats Count */}
-        <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-          <Users className="h-3 w-3" />
+        {/* Seats Count with colored icon */}
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-medium">
+          <Users className={cn("h-3.5 w-3.5", getSeatsIconColor())} />
           <span>{effectiveCapacity} {t("seats")}</span>
         </div>
 
@@ -217,22 +229,9 @@ export function TableCard({
   );
 }
 
-// Chair dot component - subtle circular indicator
-function ChairDot({ className, position }: { className?: string; position: 'top' | 'bottom' | 'left' | 'right' }) {
-  return (
-    <div
-      className={cn(
-        "w-3 h-3 rounded-full bg-muted-foreground/30 dark:bg-muted-foreground/40 border border-muted-foreground/20",
-        className
-      )}
-    />
-  );
-}
-
-// Unified table with chairs visualization
+// Simplified table visualization without chair dots
 function TableWithChairs({ 
   tableName, 
-  capacity, 
   tableStatus,
   orderNumber 
 }: { 
@@ -241,12 +240,6 @@ function TableWithChairs({
   tableStatus: TableStatus;
   orderNumber?: number;
 }) {
-  // Calculate chair distribution
-  const chairsTop = Math.ceil(capacity / 4);
-  const chairsBottom = Math.ceil(capacity / 4);
-  const chairsLeft = Math.floor((capacity - chairsTop - chairsBottom) / 2);
-  const chairsRight = capacity - chairsTop - chairsBottom - chairsLeft;
-
   const getTableSurfaceStyles = () => {
     switch (tableStatus) {
       case "active":
@@ -260,39 +253,7 @@ function TableWithChairs({
   };
 
   return (
-    <div className="relative flex items-center justify-center">
-      {/* Top Chairs */}
-      <div className="absolute -top-4 left-1/2 -translate-x-1/2 flex gap-2">
-        {Array.from({ length: Math.max(1, chairsTop) }).map((_, i) => (
-          <ChairDot key={`top-${i}`} position="top" />
-        ))}
-      </div>
-
-      {/* Bottom Chairs */}
-      <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-        {Array.from({ length: Math.max(1, chairsBottom) }).map((_, i) => (
-          <ChairDot key={`bottom-${i}`} position="bottom" />
-        ))}
-      </div>
-
-      {/* Left Chairs */}
-      {chairsLeft > 0 && (
-        <div className="absolute top-1/2 -left-4 -translate-y-1/2 flex flex-col gap-2">
-          {Array.from({ length: chairsLeft }).map((_, i) => (
-            <ChairDot key={`left-${i}`} position="left" />
-          ))}
-        </div>
-      )}
-
-      {/* Right Chairs */}
-      {chairsRight > 0 && (
-        <div className="absolute top-1/2 -right-4 -translate-y-1/2 flex flex-col gap-2">
-          {Array.from({ length: chairsRight }).map((_, i) => (
-            <ChairDot key={`right-${i}`} position="right" />
-          ))}
-        </div>
-      )}
-
+    <div className="flex items-center justify-center">
       {/* Square Table Surface */}
       <div
         className={cn(
