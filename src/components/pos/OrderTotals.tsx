@@ -11,6 +11,7 @@ interface OrderTotalsProps {
   serviceCharge: number;
   total: number;
   currency: string;
+  paidAmount?: number;
 }
 
 export function OrderTotals({
@@ -22,6 +23,7 @@ export function OrderTotals({
   serviceCharge,
   total,
   currency,
+  paidAmount = 0,
 }: OrderTotalsProps) {
   const { t, language } = useLanguage();
   const hasDiscount = discountValue && discountValue > 0;
@@ -41,8 +43,12 @@ export function OrderTotals({
       : formatJOD(discountAmount) + " " + localizedCurrency
     : null;
 
+  // Calculate remaining amount
+  const remaining = Math.max(0, total - paidAmount);
+  const hasRemainingAmount = paidAmount > 0 && remaining > 0;
+
   return (
-    <div className="space-y-2 text-sm">
+    <div className="space-y-2 text-sm w-full">
       <div className="flex justify-between">
         <span className="text-muted-foreground">{t("subtotal")}</span>
         <span>{formatJOD(subtotal)} {localizedCurrency}</span>
@@ -73,6 +79,13 @@ export function OrderTotals({
         <span>{t("total")}</span>
         <span className="text-primary ltr:ml-2 rtl:mr-2">{formatJOD(total)} {localizedCurrency}</span>
       </div>
+
+      {hasRemainingAmount && (
+        <div className="flex justify-between items-center text-base font-semibold text-amber-600 dark:text-amber-400">
+          <span>{t("remaining")}</span>
+          <span>{formatJOD(remaining)} {localizedCurrency}</span>
+        </div>
+      )}
     </div>
   );
 }
