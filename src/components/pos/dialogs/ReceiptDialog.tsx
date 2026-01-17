@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Printer, Undo2 } from "lucide-react";
 import { format } from "date-fns";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { formatJOD } from "@/lib/utils";
+import { formatJOD, roundTo5Fils } from "@/lib/utils";
 
 interface OrderItem {
   id: string;
@@ -192,10 +192,12 @@ export function ReceiptDialog({
               <span>{t("tax")}</span>
               <span className="font-mono">{formatJOD(Number(order.tax_amount))}</span>
             </div>
-            {/* Total - emphasized */}
+            {/* Total - emphasized (rounded to 5 fils for JOD) */}
             <div className="flex justify-between font-bold text-sm border-t border-dashed pt-1 mt-1">
               <span>{t("total")}</span>
-              <span className="font-mono">{formatJOD(Number(order.total))} {currency}</span>
+              <span className="font-mono">
+                {formatJOD(currency === "JOD" ? roundTo5Fils(Number(order.total)) : Number(order.total))} {currency}
+              </span>
             </div>
           </div>
 
