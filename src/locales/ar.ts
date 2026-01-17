@@ -1602,4 +1602,9 @@ export default {
   missing_arabic_name: "الاسم العربي مفقود",
   missing_arabic_name_warning: "لن يظهر الصنف في بحث الكاشير بالعربي",
   missing_arabic_name_tooltip: "لجعل هذا الصنف قابلاً للبحث بالعربي، أضف اسماً عربياً في حقل الوصف.",
+  
+  // Recent Orders Search/Filter
+  search_by_order_number: "بحث برقم الطلب...",
+  all: "الكل",
+  no_orders_match_filter: "لا توجد طلبات تطابق الفلتر",
 } as const;
