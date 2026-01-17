@@ -77,10 +77,11 @@ export function PaymentDialog({
   const roundJOD = (n: number): number => Math.round(n * 1000) / 1000;
 
   // Initialize with first payment row when dialog opens
-  // Total is already rounded at the source via roundJordanFinal
+  // Use DB total as source of truth for payment
   useEffect(() => {
-    if (open && splitPayments.length === 0 && enabledMethods.length > 0) {
+    if (open && enabledMethods.length > 0) {
       const firstMethod = enabledMethods[0].id;
+      // Always reset to the current total when dialog opens
       setSplitPayments([{ method: firstMethod, amount: formatJOD(total) }]);
     }
     // Reset submitting state when dialog opens
@@ -88,7 +89,11 @@ export function PaymentDialog({
       setIsSubmitting(false);
       submitRef.current = false;
     }
-  }, [open, enabledMethods.length]);
+    // Reset payments when dialog closes
+    if (!open) {
+      setSplitPayments([]);
+    }
+  }, [open, total, enabledMethods.length]);
 
   const handleKeypadConfirm = (value: number) => {
     updatePaymentAmount(keypadState.index, formatJOD(value));

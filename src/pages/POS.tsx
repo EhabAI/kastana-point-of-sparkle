@@ -2021,7 +2021,7 @@ export default function POS() {
       <PaymentDialog
         open={paymentDialogOpen}
         onOpenChange={setPaymentDialogOpen}
-        total={total}
+        total={currentOrder?.total ? Number(currentOrder.total) : total}
         currency={currency}
         onConfirm={handlePaymentConfirm}
         isLoading={completePaymentMutation.isPending}
