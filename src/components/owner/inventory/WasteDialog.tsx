@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useBranches } from "@/hooks/useBranches";
-import { useInventoryItems, useInventoryUnits } from "@/hooks/useInventoryItems";
+import { useInventoryItems } from "@/hooks/useInventoryItems";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Trash2 } from "lucide-react";
@@ -45,21 +45,30 @@ export function WasteDialog({ restaurantId, open, onOpenChange }: WasteDialogPro
   const { toast } = useToast();
   const { data: branches = [] } = useBranches(restaurantId);
   const { data: items = [] } = useInventoryItems(restaurantId);
-  const { data: units = [] } = useInventoryUnits(restaurantId);
 
   const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedItem, setSelectedItem] = useState("");
   const [qty, setQty] = useState("");
-  const [selectedUnit, setSelectedUnit] = useState("");
   const [reason, setReason] = useState("");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const branchItems = items.filter((item) => item.branchId === selectedBranch && item.isActive);
+  const selectedItemData = branchItems.find((item) => item.id === selectedItem);
+  
+  // Auto-fill unit from selected item
+  const selectedUnit = selectedItemData?.baseUnitId || "";
+  const selectedUnitName = selectedItemData?.baseUnitName || "";
 
   const handleSubmit = async () => {
-    if (!selectedBranch || !selectedItem || !qty || !selectedUnit || !reason) {
+    if (!selectedBranch || !selectedItem || !qty || !reason) {
       toast({ title: t("inv_fill_required"), variant: "destructive" });
+      return;
+    }
+
+    // Validate item has a unit configured
+    if (!selectedUnit) {
+      toast({ title: t("inv_item_no_unit"), variant: "destructive" });
       return;
     }
 
@@ -153,22 +162,18 @@ export function WasteDialog({ restaurantId, open, onOpenChange }: WasteDialogPro
                 step="0.01"
                 value={qty}
                 onChange={(e) => setQty(e.target.value)}
+                disabled={!selectedItem}
               />
             </div>
             <div className="space-y-2">
-              <Label>{t("inv_unit")} *</Label>
-              <Select value={selectedUnit} onValueChange={setSelectedUnit}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t("inv_unit")} />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border shadow-lg z-50">
-                  {units.map((unit) => (
-                    <SelectItem key={unit.id} value={unit.id}>
-                      {unit.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>{t("inv_unit")}</Label>
+              <Input
+                value={selectedUnitName}
+                disabled
+                readOnly
+                className="bg-muted cursor-not-allowed"
+                placeholder={selectedItem ? t("inv_item_no_unit") : t("inv_select_item_first")}
+              />
             </div>
           </div>
 

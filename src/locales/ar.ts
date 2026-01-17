@@ -198,6 +198,8 @@ export default {
   inv_select_reason: "اختر السبب",
   inv_fill_required: "الرجاء ملء جميع الحقول المطلوبة",
   inv_qty_positive: "الكمية يجب أن تكون موجبة",
+  inv_item_no_unit: "هذا الصنف لم يتم تعريف وحدة مخزون له. يرجى تهيئة الصنف أولاً.",
+  inv_select_item_first: "اختر صنفاً أولاً",
   inv_submit_adjustment: "تأكيد التعديل",
   inv_adjustment_created: "تم تسجيل التعديل",
   inv_reason_correction: "تصحيح جرد",
