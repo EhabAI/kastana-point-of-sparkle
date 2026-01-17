@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Users, AlertCircle } from "lucide-react";
-import { cn, formatJOD } from "@/lib/utils";
+import { cn, formatJOD, roundJordanFinal } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -393,16 +393,6 @@ export default function POS() {
     0,
   ));
 
-  // Round to nearest 5 fils using INTEGER math to avoid floating-point bugs
-  const roundTo5Fils = useCallback((total: number): number => {
-    // Step 1: Convert to fils (integer)
-    const totalFils = Math.round(total * 1000);
-    // Step 2: Round to nearest 5 fils
-    const roundedFils = Math.round(totalFils / 5) * 5;
-    // Step 3: Convert back to JOD
-    return roundedFils / 1000;
-  }, []);
-
   const calculateTotals = useCallback(
     (sub: number, discType?: string | null, discVal?: number | null) => {
       let discountAmount = 0;
@@ -416,25 +406,24 @@ export default function POS() {
       const serviceChargeRounded = roundJOD(afterDiscount * serviceChargeRate);
       const taxAmountRounded = roundJOD((afterDiscount + serviceChargeRounded) * taxRate);
 
-      // Raw total BEFORE cash rounding (still 3 decimals)
+      // Raw total before Jordan rounding
       const rawTotal = roundJOD(afterDiscount + serviceChargeRounded + taxAmountRounded);
 
-      // Apply cash rounding to final total only (JOD): nearest 0.005
-      const payableTotal = currency === "JOD" ? roundJOD(roundTo5Fils(rawTotal)) : rawTotal;
-      const roundingAdjustment = roundJOD(payableTotal - rawTotal);
+      // Apply Jordan-style final rounding for JOD (silent normalization)
+      // This is the ONLY total used everywhere: display, payment, receipt, stored
+      const finalTotal = currency === "JOD" ? roundJordanFinal(rawTotal) : rawTotal;
 
       return {
         discountAmount: discountAmountRounded,
         serviceCharge: serviceChargeRounded,
         taxAmount: taxAmountRounded,
         rawTotal,
-        payableTotal,
-        roundingAdjustment,
-        // Keep 'total' as payableTotal for backward compatibility with DB saves
-        total: payableTotal,
+        payableTotal: finalTotal,
+        roundingAdjustment: 0, // No longer tracked separately
+        total: finalTotal,
       };
     },
-    [serviceChargeRate, taxRate, roundJOD, roundTo5Fils, currency],
+    [serviceChargeRate, taxRate, roundJOD, currency],
   );
 
   const { discountAmount, serviceCharge, taxAmount, total, rawTotal, payableTotal, roundingAdjustment } = calculateTotals(

@@ -15,34 +15,35 @@ export function roundJOD(value: number): number {
 }
 
 /**
- * Round to nearest 5 fils (0.005) for JOD cash handling using INTEGER math
- * to avoid floating-point precision bugs.
+ * Jordan-style final total rounding.
+ * Rule: Look at the SECOND digit after decimal point (X.XY):
+ * - Y = 1-4: round DOWN to X.X0
+ * - Y = 5: keep X.X5
+ * - Y = 6-9: round UP to X.(X+1)0
+ * 
+ * Examples: 6.61→6.60, 6.65→6.65, 6.67→6.70
+ * 
  * @param value - The numeric value to round
- * @returns Number rounded to nearest 0.005
+ * @returns Number rounded per Jordan decimal rule
  */
-export function roundTo5Fils(value: number): number {
-  // Step 1: Convert to fils (integer)
-  const totalFils = Math.round(value * 1000);
-  // Step 2: Round to nearest 5 fils
-  const roundedFils = Math.round(totalFils / 5) * 5;
-  // Step 3: Convert back to JOD
-  return roundedFils / 1000;
-}
-
-/**
- * Round UP to nearest 50 fils (0.05 JOD) for CASH payments only.
- * Jordan market requirement: cash payable amounts round UP.
- * Example: 6.670 -> 6.700
- * @param value - The numeric value to round
- * @returns Number rounded UP to nearest 0.05
- */
-export function roundUpTo50Fils(value: number): number {
-  // Step 1: Convert to fils (integer)
-  const totalFils = Math.round(value * 1000);
-  // Step 2: Round UP to nearest 50 fils
-  const payableFils = Math.ceil(totalFils / 50) * 50;
-  // Step 3: Convert back to JOD
-  return payableFils / 1000;
+export function roundJordanFinal(value: number): number {
+  // Multiply by 100 to work with the first two decimal places
+  const hundredths = Math.round(value * 100);
+  const lastDigit = hundredths % 10;
+  
+  let rounded: number;
+  if (lastDigit >= 1 && lastDigit <= 4) {
+    // Round down to X.X0
+    rounded = Math.floor(hundredths / 10) * 10;
+  } else if (lastDigit >= 6 && lastDigit <= 9) {
+    // Round up to X.(X+1)0
+    rounded = Math.ceil(hundredths / 10) * 10;
+  } else {
+    // lastDigit === 0 or 5, keep as is
+    rounded = hundredths;
+  }
+  
+  return rounded / 100;
 }
 
 /**
