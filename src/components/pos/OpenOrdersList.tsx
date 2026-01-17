@@ -28,6 +28,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { TableSelector } from "./TableSelector";
 
 interface OpenOrdersListProps {
@@ -213,17 +219,26 @@ export function OpenOrdersList({
                 </CardContent>
 
                 <CardFooter className="py-3 px-4 bg-muted/30 gap-2 flex-wrap">
-                  {tableInfo && (
+                {tableInfo && (
                     <>
-                      <Button
-                        variant="outline"
-                        className="flex-1 h-12 min-w-[120px]"
-                        onClick={() => handleMoveClick(order)}
-                        disabled={isLoading}
-                      >
-                        <ArrowRightLeft className="h-5 w-5 mr-2" />
-                        {t("move")}
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="flex-1 h-12 min-w-[120px]"
+                              onClick={() => handleMoveClick(order)}
+                              disabled={isLoading}
+                            >
+                              <ArrowRightLeft className="h-5 w-5 mr-2" />
+                              {t("move")}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="text-xs">
+                            نقل الطلب إلى طاولة أخرى
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                       {activeItems.length > 1 && (
                         <Button
                           variant="outline"
