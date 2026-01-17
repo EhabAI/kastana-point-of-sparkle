@@ -184,12 +184,20 @@ export function PaymentDialog({
           <DialogTitle>{t("payment")}</DialogTitle>
           <DialogDescription className="flex items-center gap-2 flex-wrap">
             <span>{t("order_total")}:</span>
-            <span className="font-semibold text-primary">{formatJOD(total)} {currency}</span>
-            {remaining > 0.001 && (
+            <span className="font-semibold text-foreground">{formatJOD(total)} {currency}</span>
+            {/* Show change for cash overpayment at the top */}
+            {hasOverpayment && allPaymentsCash && (
               <>
                 <span className="text-muted-foreground">•</span>
-                <span>{t("remaining")}:</span>
-                <span className="font-semibold text-amber-600 dark:text-amber-400">{formatJOD(remaining)} {currency}</span>
+                <span>{t("change_to_give")}:</span>
+                <span className="font-semibold text-green-600 dark:text-green-400">{formatJOD(changeAmount)} {currency}</span>
+              </>
+            )}
+            {/* Show validation error for card/wallet overpayment */}
+            {hasOverpayment && !allPaymentsCash && (
+              <>
+                <span className="text-muted-foreground">•</span>
+                <span className="font-semibold text-destructive">{t("card_must_be_exact")}</span>
               </>
             )}
           </DialogDescription>
@@ -330,13 +338,6 @@ export function PaymentDialog({
               {t("split_bill")}
             </Button>
 
-            {/* Change display for cash overpayment */}
-            {hasOverpayment && allPaymentsCash && (
-              <div className="px-3 py-2 rounded-md bg-blue-500/10 border border-blue-500/30 flex items-center justify-between">
-                <span className="text-sm text-blue-600 dark:text-blue-400">{t("change_to_give")}</span>
-                <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{formatJOD(changeAmount)} {currency}</span>
-              </div>
-            )}
           </div>
         </DialogBody>
 
@@ -366,7 +367,7 @@ export function PaymentDialog({
               ) : (
                 <span className="flex items-center gap-2">
                   <span className="text-sm">✓ {t("pay")}</span>
-                  <span className="text-sm font-semibold">{formatJOD(splitTotal)} {currency}</span>
+                  <span className="text-sm font-semibold">{formatJOD(total)} {currency}</span>
                 </span>
               )}
             </Button>
