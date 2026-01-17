@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,7 @@ import { Clock, ChefHat, CheckCircle2, Utensils, ShoppingBag, QrCode } from "luc
 import { KDSOrder, KDSOrderStatus } from "@/hooks/kds/useKDSOrders";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface KDSOrderCardProps {
   order: KDSOrder;
@@ -73,9 +74,18 @@ function getSourceLabel(source: string, t: (key: string) => string): string {
   }
 }
 
+// Max height for items list before scrolling kicks in
+const ITEMS_MAX_HEIGHT = 180;
+// Expanded height for items list
+const ITEMS_EXPANDED_HEIGHT = 320;
+// Auto-collapse timeout in ms
+const EXPAND_TIMEOUT = 4000;
+
 export function KDSOrderCard({ order, onUpdateStatus, isUpdating }: KDSOrderCardProps) {
   const { t } = useLanguage();
   const [elapsedMinutes, setElapsedMinutes] = useState(() => getElapsedTime(order.created_at));
+  const [isExpanded, setIsExpanded] = useState(false);
+  const expandTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -85,19 +95,63 @@ export function KDSOrderCard({ order, onUpdateStatus, isUpdating }: KDSOrderCard
     return () => clearInterval(interval);
   }, [order.created_at]);
 
+  // Auto-collapse after timeout
+  useEffect(() => {
+    if (isExpanded) {
+      expandTimeoutRef.current = setTimeout(() => {
+        setIsExpanded(false);
+      }, EXPAND_TIMEOUT);
+    }
+    
+    return () => {
+      if (expandTimeoutRef.current) {
+        clearTimeout(expandTimeoutRef.current);
+      }
+    };
+  }, [isExpanded]);
+
+  const handleCardClick = useCallback((e: React.MouseEvent) => {
+    // Don't toggle if clicking on a button
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    
+    // Clear existing timeout
+    if (expandTimeoutRef.current) {
+      clearTimeout(expandTimeoutRef.current);
+    }
+    
+    setIsExpanded(prev => !prev);
+  }, []);
+
   const timerColorClass = getTimerColor(elapsedMinutes);
   const delayClass = getDelayClass(elapsedMinutes, order.status);
   const isReady = order.status === "ready";
+  const isNew = order.status === "new";
+
+  // Calculate if we need scrolling (more than ~4 items typically)
+  const needsScroll = order.items.length > 4;
+  const currentMaxHeight = isExpanded ? ITEMS_EXPANDED_HEIGHT : ITEMS_MAX_HEIGHT;
 
   return (
-    <Card className={cn(
-      "transition-all duration-200 hover:shadow-md",
-      isReady && "opacity-75",
-      delayClass
-    )}>
+    <Card 
+      className={cn(
+        "transition-all duration-300 ease-in-out cursor-pointer select-none",
+        "hover:shadow-md",
+        isReady && "opacity-75",
+        delayClass,
+        // Expanded state styling
+        isExpanded && "scale-[1.02] shadow-lg z-10 ring-2 ring-primary/30"
+      )}
+      onClick={handleCardClick}
+    >
+      {/* Fixed Header - Always visible */}
       <CardHeader className="pb-2 space-y-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-bold">
+          <CardTitle className={cn(
+            "font-bold",
+            isNew ? "text-xl" : "text-lg"
+          )}>
             #{order.order_number}
           </CardTitle>
           <Badge variant="outline" className={cn("font-mono text-xs px-2 py-1", timerColorClass)}>
@@ -120,24 +174,63 @@ export function KDSOrderCard({ order, onUpdateStatus, isUpdating }: KDSOrderCard
       </CardHeader>
 
       <CardContent className="space-y-3">
-        {/* Items List */}
-        <div className="space-y-1.5">
-          {order.items.map((item) => (
-            <div key={item.id} className="flex items-start gap-2">
-              <span className="font-semibold text-sm min-w-[24px] text-center bg-muted rounded px-1">
-                {item.quantity}×
-              </span>
-              <div className="flex-1">
-                <span className="text-sm">{item.name}</span>
-                {item.notes && (
-                  <p className="text-xs text-muted-foreground italic mt-0.5">
-                    {item.notes}
-                  </p>
-                )}
-              </div>
+        {/* Scrollable Items List with max-height */}
+        <div 
+          className={cn(
+            "transition-all duration-300 ease-in-out",
+            needsScroll && "overflow-hidden"
+          )}
+          style={{ maxHeight: needsScroll ? currentMaxHeight : 'none' }}
+        >
+          <ScrollArea className={cn(needsScroll && "h-full")}>
+            <div className="space-y-2 pr-2">
+              {order.items.map((item) => (
+                <div key={item.id} className="flex items-start gap-2">
+                  {/* Quantity Badge - Enhanced for NEW orders */}
+                  <Badge 
+                    variant={isNew ? "default" : "secondary"}
+                    className={cn(
+                      "min-w-[28px] justify-center font-bold shrink-0",
+                      isNew ? "text-sm h-6" : "text-xs h-5"
+                    )}
+                  >
+                    x{item.quantity}
+                  </Badge>
+                  <div className="flex-1 min-w-0">
+                    {/* Item Name - Enhanced for NEW orders */}
+                    <span className={cn(
+                      "block leading-tight",
+                      isNew 
+                        ? "text-base font-semibold text-foreground" 
+                        : "text-sm font-medium",
+                      isExpanded && "text-base"
+                    )}>
+                      {item.name}
+                    </span>
+                    {/* Notes - Visually distinct */}
+                    {item.notes && (
+                      <p className={cn(
+                        "mt-0.5 italic",
+                        isNew 
+                          ? "text-sm text-amber-600 dark:text-amber-400" 
+                          : "text-xs text-muted-foreground"
+                      )}>
+                        ⤷ {item.notes}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          </ScrollArea>
         </div>
+
+        {/* Scroll indicator for long orders */}
+        {needsScroll && !isExpanded && (
+          <div className="text-center text-xs text-muted-foreground py-1 border-t border-dashed">
+            {t("tap_to_expand") || "Tap to expand"}
+          </div>
+        )}
 
         {/* Order Notes */}
         {order.order_notes && (
