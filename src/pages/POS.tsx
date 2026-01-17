@@ -406,20 +406,30 @@ export default function POS() {
       const afterDiscount = sub - discountAmount;
       const serviceCharge = afterDiscount * serviceChargeRate;
       const taxAmount = (afterDiscount + serviceCharge) * taxRate;
-      const total = afterDiscount + serviceCharge + taxAmount;
+      const rawTotal = afterDiscount + serviceCharge + taxAmount;
       
       // Round all monetary values to 3 decimals (JOD standard)
+      const roundedRawTotal = roundJOD(rawTotal);
+      
+      // Calculate payable total: round UP to nearest 0.01 (fils) for cash handling
+      const payableTotal = Math.ceil(roundedRawTotal * 100) / 100;
+      const roundingAdjustment = roundJOD(payableTotal - roundedRawTotal);
+      
       return { 
         discountAmount: roundJOD(discountAmount), 
         serviceCharge: roundJOD(serviceCharge), 
         taxAmount: roundJOD(taxAmount), 
-        total: roundJOD(total) 
+        rawTotal: roundedRawTotal,
+        payableTotal,
+        roundingAdjustment,
+        // Keep 'total' as payableTotal for backward compatibility with DB saves
+        total: payableTotal
       };
     },
     [serviceChargeRate, taxRate, roundJOD],
   );
 
-  const { discountAmount, serviceCharge, taxAmount, total } = calculateTotals(
+  const { discountAmount, serviceCharge, taxAmount, total, rawTotal, payableTotal, roundingAdjustment } = calculateTotals(
     subtotal,
     currentOrder?.discount_type,
     currentOrder?.discount_value,
@@ -1857,6 +1867,7 @@ export default function POS() {
                   showTransfer={currentOrder?.status === "open" && orderItems.length > 1 && openOrders.length > 1}
                   onNewOrder={handleNewOrderButton}
                   shiftOpen={shiftOpen}
+                  roundingAdjustment={roundingAdjustment}
                 />
               </div>
             </div>
@@ -1902,6 +1913,7 @@ export default function POS() {
                   showTransfer={currentOrder?.status === "open" && orderItems.length > 1 && openOrders.length > 1}
                   onNewOrder={handleNewOrderButton}
                   shiftOpen={shiftOpen}
+                  roundingAdjustment={roundingAdjustment}
                 />
               </div>
             </div>

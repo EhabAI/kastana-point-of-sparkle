@@ -11,6 +11,7 @@ interface OrderTotalsProps {
   serviceCharge: number;
   total: number;
   currency: string;
+  roundingAdjustment?: number;
 }
 
 export function OrderTotals({
@@ -22,6 +23,7 @@ export function OrderTotals({
   serviceCharge,
   total,
   currency,
+  roundingAdjustment = 0,
 }: OrderTotalsProps) {
   const { t, language } = useLanguage();
   const hasDiscount = discountValue && discountValue > 0;
@@ -41,8 +43,7 @@ export function OrderTotals({
       : formatJOD(discountAmount) + " " + localizedCurrency
     : null;
 
-  // Round UP the final total to nearest 0.01 for practical cash handling
-  const roundedTotal = Math.ceil(total * 100) / 100;
+  const hasRounding = roundingAdjustment > 0.0001;
 
   return (
     <div className="space-y-2 text-sm">
@@ -70,11 +71,18 @@ export function OrderTotals({
         <span>{formatJOD(taxAmount)} {localizedCurrency}</span>
       </div>
 
+      {hasRounding && (
+        <div className="flex justify-between text-muted-foreground text-xs">
+          <span>{t("rounding_adjustment")}</span>
+          <span>+{formatJOD(roundingAdjustment)} {localizedCurrency}</span>
+        </div>
+      )}
+
       <Separator />
 
       <div className="flex justify-between items-center text-lg font-bold">
         <span>{t("total")}</span>
-        <span className="text-primary ltr:ml-2 rtl:mr-2">{formatJOD(roundedTotal)} {localizedCurrency}</span>
+        <span className="text-primary ltr:ml-2 rtl:mr-2">{formatJOD(total)} {localizedCurrency}</span>
       </div>
     </div>
   );

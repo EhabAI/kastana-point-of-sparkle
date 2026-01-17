@@ -53,6 +53,7 @@ export default {
   discount: "الخصم",
   tax: "الضريبة",
   service_charge: "رسوم الخدمة",
+  rounding_adjustment: "التقريب",
   items: "عناصر",
   reason: "السبب",
   amount: "المبلغ",
