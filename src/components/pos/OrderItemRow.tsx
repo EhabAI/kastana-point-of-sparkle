@@ -146,7 +146,12 @@ export function OrderItemRow({
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-destructive hover:text-destructive"
-              onClick={() => onRemove(item.id)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onRemove(item.id);
+              }}
+              title="Remove item"
             >
               <X className="h-3 w-3" />
             </Button>
