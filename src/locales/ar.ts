@@ -605,6 +605,7 @@ export default {
   table_active: "نشطة",
   table_held: "معلقة",
   merged: "مدمجة",
+  merge_tables: "دمج الطاولات",
 
   // Restaurant settings
   restaurant_settings: "إعدادات المطعم",

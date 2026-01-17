@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Clock, Users } from "lucide-react";
+import { Clock, Users, Combine } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Tooltip,
@@ -21,6 +21,8 @@ interface TableCardProps {
   onClick: () => void;
   disabled?: boolean;
   selected?: boolean;
+  onMergeClick?: () => void;
+  showMergeButton?: boolean;
 }
 
 function formatDuration(startTime: string, language: string): string {
@@ -60,6 +62,8 @@ export function TableCard({
   onClick,
   disabled,
   selected,
+  onMergeClick,
+  showMergeButton,
 }: TableCardProps) {
   const { t, language } = useLanguage();
   const effectiveCapacity = capacity || 4;
@@ -144,8 +148,8 @@ export function TableCard({
         </span>
       </div>
 
-      {/* Merged Orders Badge - Top Right */}
-      {hasMergedOrders && (
+      {/* Top Right Section: Merged Badge OR Merge Button */}
+      {hasMergedOrders ? (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -159,7 +163,26 @@ export function TableCard({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-      )}
+      ) : showMergeButton && onMergeClick ? (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMergeClick();
+                }}
+                className="absolute top-2 right-2 w-6 h-6 rounded-md bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors"
+              >
+                <Combine className="h-3 w-3" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              {t("merge_tables")}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : null}
 
       {/* Table with Chairs Visualization */}
       <div className="flex-1 flex items-center justify-center py-2">
