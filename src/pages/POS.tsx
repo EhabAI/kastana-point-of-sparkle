@@ -1552,6 +1552,34 @@ export default function POS() {
       // Available: Set up draft order (create-on-first-item pattern)
       if (!currentShift || !branch || !restaurant) return;
       const tableName = table?.table_name || t("unknown");
+      
+      // MARKET-STANDARD: Auto-hold current order when switching to a new table
+      // A cashier can only have ONE active (OPEN) order at a time
+      if (currentOrder && currentOrder.status === "open") {
+        const activeItems = currentOrder.order_items?.filter((i: { voided: boolean }) => !i.voided) || [];
+        
+        if (activeItems.length > 0) {
+          // Hold the current order before creating new draft
+          try {
+            await holdOrderMutation.mutateAsync(currentOrder.id);
+            toast.info(t("order_held_automatically"));
+          } catch (error) {
+            toast.error(t("failed_hold_order"));
+            return; // Don't proceed if hold fails
+          }
+        } else {
+          // Empty open order - cancel it silently
+          try {
+            await cancelOrderMutation.mutateAsync({ 
+              orderId: currentOrder.id, 
+              reason: "Empty order discarded on table switch" 
+            });
+          } catch {
+            // Ignore cancel failure - proceed anyway
+          }
+        }
+      }
+      
       setDraftOrder({
         orderType: "dine-in",
         tableId,

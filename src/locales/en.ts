@@ -871,6 +871,7 @@ export default {
   pay: "Pay",
   order_created: "Order created",
   order_held: "Order held",
+  order_held_automatically: "Previous order held automatically",
   order_cancelled: "Order cancelled",
   order_voided: "Order voided",
   order_loaded: "Order loaded",

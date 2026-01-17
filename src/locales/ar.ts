@@ -871,6 +871,7 @@ export default {
   pay: "دفع",
   order_created: "تم إنشاء الطلب",
   order_held: "تم تعليق الطلب",
+  order_held_automatically: "تم تعليق الطلب السابق تلقائياً",
   order_cancelled: "تم إلغاء الطلب",
   order_voided: "تم إبطال الطلب",
   order_loaded: "تم تحميل الطلب",
