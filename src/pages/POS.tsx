@@ -802,7 +802,7 @@ export default function POS() {
     }
   };
 
-  const handleApplyDiscount = async (type: "percentage" | "fixed", value: number) => {
+  const handleApplyDiscount = async (type: "percent" | "fixed", value: number) => {
     if (!currentOrder) return;
     
     // Validate order status - only allow discount on open orders

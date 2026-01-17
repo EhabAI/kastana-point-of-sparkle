@@ -174,9 +174,9 @@ export function ReceiptDialog({
             </div>
             {order.discount_value && Number(order.discount_value) > 0 && (
               <div className="flex justify-between text-green-600">
-                <span>{t("discount")}{order.discount_type === "percentage" && ` ${order.discount_value}%`}</span>
+                <span>{t("discount")}{(order.discount_type === "percent" || order.discount_type === "percentage") && ` ${order.discount_value}%`}</span>
                 <span className="font-mono">
-                  -{order.discount_type === "percentage"
+                  -{(order.discount_type === "percent" || order.discount_type === "percentage")
                     ? formatJOD((Number(order.subtotal) * Number(order.discount_value)) / 100)
                     : formatJOD(Number(order.discount_value))}
                 </span>
