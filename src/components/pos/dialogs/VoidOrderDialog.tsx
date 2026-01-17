@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -56,38 +57,40 @@ export function VoidOrderDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Warning Banner */}
-        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 flex items-start gap-3">
-          <Ban className="h-6 w-6 text-destructive flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-medium text-destructive">{t("cancel_order_warning")}</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              {t("void_order_warning_desc")}
-            </p>
+        <DialogBody>
+          {/* Warning Banner */}
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 flex items-start gap-3">
+            <Ban className="h-6 w-6 text-destructive flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-destructive">{t("cancel_order_warning")}</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {t("void_order_warning_desc")}
+              </p>
+            </div>
           </div>
-        </div>
 
-        {/* Action Impact Warning */}
-        <div className="flex items-center gap-2 px-3 py-2 rounded-md text-xs bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50">
-          <Ban className="h-3.5 w-3.5 flex-shrink-0" />
-          <span>{t("action_affects_reports_inventory")}</span>
-        </div>
-
-        <div className="space-y-4 py-2">
-          <div className="space-y-2">
-            <Label htmlFor="voidReason">
-              {t("reason_for_voiding")} <span className="text-destructive">*</span>
-            </Label>
-            <Textarea
-              id="voidReason"
-              placeholder={t("void_order_input_placeholder")}
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              rows={3}
-              className="min-h-[100px]"
-            />
+          {/* Action Impact Warning */}
+          <div className="flex items-center gap-2 px-3 py-2 rounded-md text-xs bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50">
+            <Ban className="h-3.5 w-3.5 flex-shrink-0" />
+            <span>{t("action_affects_reports_inventory")}</span>
           </div>
-        </div>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="voidReason">
+                {t("reason_for_voiding")} <span className="text-destructive">*</span>
+              </Label>
+              <Textarea
+                id="voidReason"
+                placeholder={t("void_order_input_placeholder")}
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                rows={3}
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+        </DialogBody>
 
         <DialogFooter className="gap-2 sm:gap-0">
           <Button 
