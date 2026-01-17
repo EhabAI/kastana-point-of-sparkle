@@ -602,6 +602,9 @@ export default {
   select_branch_required: "Please select a branch",
   assign_to_branch: "Assign to Branch",
   table: "Table",
+  table_active: "Active",
+  table_held: "Held",
+  merged: "Merged",
 
   // Restaurant settings
   restaurant_settings: "Restaurant Settings",
