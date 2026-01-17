@@ -95,7 +95,7 @@ export function RecentOrdersDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl max-h-[75vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
@@ -106,7 +106,7 @@ export function RecentOrdersDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[500px]">
+        <ScrollArea className="flex-1 min-h-0">
           {orders.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {t("no_completed_orders")}
