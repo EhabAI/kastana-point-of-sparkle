@@ -3,6 +3,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogBody,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -18,10 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useBranches } from "@/hooks/useBranches";
-import { useInventoryItems, useInventoryUnits } from "@/hooks/useInventoryItems";
+import { useInventoryItems } from "@/hooks/useInventoryItems";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Plus, Trash2, ArrowLeftRight } from "lucide-react";
@@ -36,7 +36,6 @@ interface LineItem {
   id: string;
   itemId: string;
   qty: string;
-  unitId: string;
 }
 
 export function TransferDialog({ restaurantId, open, onOpenChange }: TransferDialogProps) {
@@ -44,19 +43,24 @@ export function TransferDialog({ restaurantId, open, onOpenChange }: TransferDia
   const { toast } = useToast();
   const { data: branches = [] } = useBranches(restaurantId);
   const { data: items = [] } = useInventoryItems(restaurantId);
-  const { data: units = [] } = useInventoryUnits(restaurantId);
 
   const [fromBranch, setFromBranch] = useState("");
   const [toBranch, setToBranch] = useState("");
   const [notes, setNotes] = useState("");
-  const [lines, setLines] = useState<LineItem[]>([{ id: "1", itemId: "", qty: "", unitId: "" }]);
+  const [lines, setLines] = useState<LineItem[]>([{ id: "1", itemId: "", qty: "" }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fromBranchItems = items.filter((item) => item.branchId === fromBranch && item.isActive);
   const activeBranches = branches.filter((b) => b.is_active);
+  
+  // Helper to get item's unit info
+  const getItemUnit = (itemId: string) => {
+    const item = fromBranchItems.find((i) => i.id === itemId);
+    return { unitId: item?.baseUnitId || "", unitName: item?.baseUnitName || "" };
+  };
 
   const addLine = () => {
-    setLines([...lines, { id: Date.now().toString(), itemId: "", qty: "", unitId: "" }]);
+    setLines([...lines, { id: Date.now().toString(), itemId: "", qty: "" }]);
   };
 
   const removeLine = (id: string) => {
@@ -80,7 +84,17 @@ export function TransferDialog({ restaurantId, open, onOpenChange }: TransferDia
       return;
     }
 
-    const validLines = lines.filter((line) => line.itemId && parseFloat(line.qty) > 0 && line.unitId);
+    // Validate lines and check each item has a unit
+    const validLines = lines.filter((line) => {
+      if (!line.itemId || !(parseFloat(line.qty) > 0)) return false;
+      const { unitId } = getItemUnit(line.itemId);
+      if (!unitId) {
+        toast({ title: t("inv_item_no_unit"), variant: "destructive" });
+        return false;
+      }
+      return true;
+    });
+    
     if (validLines.length === 0) {
       toast({ title: t("inv_add_items"), variant: "destructive" });
       return;
@@ -97,7 +111,7 @@ export function TransferDialog({ restaurantId, open, onOpenChange }: TransferDia
           lines: validLines.map((line) => ({
             itemId: line.itemId,
             qty: parseFloat(line.qty),
-            unitId: line.unitId,
+            unitId: getItemUnit(line.itemId).unitId,
           })),
         },
       });
@@ -115,11 +129,15 @@ export function TransferDialog({ restaurantId, open, onOpenChange }: TransferDia
   };
 
   const isValid = fromBranch && toBranch && fromBranch !== toBranch && 
-    lines.some((line) => line.itemId && parseFloat(line.qty) > 0 && line.unitId);
+    lines.some((line) => {
+      if (!line.itemId || !(parseFloat(line.qty) > 0)) return false;
+      const { unitId } = getItemUnit(line.itemId);
+      return !!unitId;
+    });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-2xl min-h-[60vh] max-h-[85vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ArrowLeftRight className="h-5 w-5 text-purple-600" />
@@ -128,13 +146,12 @@ export function TransferDialog({ restaurantId, open, onOpenChange }: TransferDia
           <DialogDescription>{t("inv_transfer_desc")}</DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-4">
-          <div className="space-y-4 py-4">
+        <DialogBody className="space-y-4 py-4">
             {/* Branches */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("inv_from_branch")} *</Label>
-                <Select value={fromBranch} onValueChange={(v) => { setFromBranch(v); setLines([{ id: "1", itemId: "", qty: "", unitId: "" }]); }}>
+                <Select value={fromBranch} onValueChange={(v) => { setFromBranch(v); setLines([{ id: "1", itemId: "", qty: "" }]); }}>
                   <SelectTrigger>
                     <SelectValue placeholder={t("select_branch_required")} />
                   </SelectTrigger>
@@ -174,60 +191,56 @@ export function TransferDialog({ restaurantId, open, onOpenChange }: TransferDia
                 </Button>
               </div>
               <div className="space-y-2">
-                {lines.map((line, index) => (
-                  <div key={line.id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border">
-                    <span className="text-xs text-muted-foreground w-6">{index + 1}</span>
-                    <Select
-                      value={line.itemId}
-                      onValueChange={(v) => updateLine(line.id, "itemId", v)}
-                      disabled={!fromBranch}
-                    >
-                      <SelectTrigger className="flex-1">
-                        <SelectValue placeholder={t("inv_select_item")} />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover border shadow-lg z-50">
-                        {fromBranchItems.map((item) => (
-                          <SelectItem key={item.id} value={item.id}>
-                            {item.name} ({item.onHandBase} {item.baseUnitName})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder={t("inv_qty")}
-                      value={line.qty}
-                      onChange={(e) => updateLine(line.id, "qty", e.target.value)}
-                      className="w-24"
-                    />
-                    <Select
-                      value={line.unitId}
-                      onValueChange={(v) => updateLine(line.id, "unitId", v)}
-                    >
-                      <SelectTrigger className="w-28">
-                        <SelectValue placeholder={t("inv_unit")} />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover border shadow-lg z-50">
-                        {units.map((unit) => (
-                          <SelectItem key={unit.id} value={unit.id}>
-                            {unit.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                      onClick={() => removeLine(line.id)}
-                      disabled={lines.length === 1}
-                    >
+                {lines.map((line, index) => {
+                  const { unitName } = getItemUnit(line.itemId);
+                  return (
+                    <div key={line.id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border">
+                      <span className="text-xs text-muted-foreground w-6">{index + 1}</span>
+                      <Select
+                        value={line.itemId}
+                        onValueChange={(v) => updateLine(line.id, "itemId", v)}
+                        disabled={!fromBranch}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder={t("inv_select_item")} />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover border shadow-lg z-50">
+                          {fromBranchItems.map((item) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.name} ({item.onHandBase} {item.baseUnitName})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder={t("inv_qty")}
+                        value={line.qty}
+                        onChange={(e) => updateLine(line.id, "qty", e.target.value)}
+                        className="w-24"
+                        disabled={!line.itemId}
+                      />
+                      <Input
+                        value={unitName}
+                        disabled
+                        readOnly
+                        className="w-28 bg-muted cursor-not-allowed"
+                        placeholder={line.itemId ? t("inv_item_no_unit") : t("inv_unit")}
+                      />
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => removeLine(line.id)}
+                        disabled={lines.length === 1}
+                      >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -241,8 +254,7 @@ export function TransferDialog({ restaurantId, open, onOpenChange }: TransferDia
                 rows={2}
               />
             </div>
-          </div>
-        </ScrollArea>
+          </DialogBody>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

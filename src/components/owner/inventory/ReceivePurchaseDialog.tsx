@@ -3,6 +3,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogBody,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -18,10 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useBranches } from "@/hooks/useBranches";
-import { useInventoryItems, useInventoryUnits } from "@/hooks/useInventoryItems";
+import { useInventoryItems } from "@/hooks/useInventoryItems";
 import { useSuppliers, useCreateSupplier } from "@/hooks/useInventoryOperations";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,7 +38,6 @@ interface LineItem {
   id: string;
   itemId: string;
   qty: string;
-  unitId: string;
   unitCost: string;
 }
 
@@ -47,7 +46,6 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
   const { toast } = useToast();
   const { data: branches = [] } = useBranches(restaurantId);
   const { data: suppliers = [] } = useSuppliers(restaurantId);
-  const { data: units = [] } = useInventoryUnits(restaurantId);
   const createSupplier = useCreateSupplier();
 
   const [selectedBranch, setSelectedBranch] = useState("");
@@ -56,14 +54,20 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
   const [showAddSupplier, setShowAddSupplier] = useState(false);
   const [receiptNo, setReceiptNo] = useState("");
   const [notes, setNotes] = useState("");
-  const [lines, setLines] = useState<LineItem[]>([{ id: "1", itemId: "", qty: "", unitId: "", unitCost: "" }]);
+  const [lines, setLines] = useState<LineItem[]>([{ id: "1", itemId: "", qty: "", unitCost: "" }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: items = [] } = useInventoryItems(restaurantId);
   const branchItems = items.filter((item) => item.branchId === selectedBranch && item.isActive);
 
+  // Helper to get item's unit info
+  const getItemUnit = (itemId: string) => {
+    const item = branchItems.find((i) => i.id === itemId);
+    return { unitId: item?.baseUnitId || "", unitName: item?.baseUnitName || "" };
+  };
+
   const addLine = () => {
-    setLines([...lines, { id: Date.now().toString(), itemId: "", qty: "", unitId: "", unitCost: "" }]);
+    setLines([...lines, { id: Date.now().toString(), itemId: "", qty: "", unitCost: "" }]);
   };
 
   const removeLine = (id: string) => {
@@ -99,7 +103,17 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
       return;
     }
 
-    const validLines = lines.filter((line) => line.itemId && parseFloat(line.qty) > 0 && line.unitId);
+    // Validate lines and check each item has a unit
+    const validLines = lines.filter((line) => {
+      if (!line.itemId || !(parseFloat(line.qty) > 0)) return false;
+      const { unitId } = getItemUnit(line.itemId);
+      if (!unitId) {
+        toast({ title: t("inv_item_no_unit"), variant: "destructive" });
+        return false;
+      }
+      return true;
+    });
+    
     if (validLines.length === 0) {
       toast({ title: t("inv_add_items"), variant: "destructive" });
       return;
@@ -117,7 +131,7 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
           lines: validLines.map((line) => ({
             itemId: line.itemId,
             qty: parseFloat(line.qty),
-            unitId: line.unitId,
+            unitId: getItemUnit(line.itemId).unitId,
             unitCost: line.unitCost ? parseFloat(line.unitCost) : null,
           })),
         },
@@ -136,11 +150,15 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
     }
   };
 
-  const isValid = selectedBranch && lines.some((line) => line.itemId && parseFloat(line.qty) > 0 && line.unitId);
+  const isValid = selectedBranch && lines.some((line) => {
+    if (!line.itemId || !(parseFloat(line.qty) > 0)) return false;
+    const { unitId } = getItemUnit(line.itemId);
+    return !!unitId;
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-2xl min-h-[60vh] max-h-[85vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5 text-green-600" />
@@ -149,89 +167,91 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
           <DialogDescription>{t("inv_receive_purchase_desc")}</DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-4">
-          <div className="space-y-4 py-4">
-            {/* Branch & Supplier */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t("branch")} *</Label>
-                <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("select_branch_required")} />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover border shadow-lg z-50">
-                    {branches.filter((b) => b.is_active).map((branch) => (
-                      <SelectItem key={branch.id} value={branch.id}>
-                        {branch.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>{t("inv_supplier")}</Label>
-                {showAddSupplier ? (
-                  <div className="flex gap-2">
-                    <Input
-                      value={newSupplierName}
-                      onChange={(e) => setNewSupplierName(e.target.value)}
-                      placeholder={t("inv_supplier_name")}
-                    />
-                    <Button size="sm" onClick={handleAddSupplier} disabled={!newSupplierName.trim()}>
-                      {t("add")}
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setShowAddSupplier(false)}>
-                      {t("cancel")}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
-                      <SelectTrigger className="flex-1">
-                        <SelectValue placeholder={t("inv_select_supplier")} />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover border shadow-lg z-50">
-                        {suppliers.map((supplier) => (
-                          <SelectItem key={supplier.id} value={supplier.id}>
-                            {supplier.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button size="icon" variant="outline" onClick={() => setShowAddSupplier(true)}>
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Receipt Number */}
+        <DialogBody className="space-y-4 py-4">
+          {/* Branch & Supplier */}
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>{t("inv_receipt_no")}</Label>
-              <Input
-                value={receiptNo}
-                onChange={(e) => setReceiptNo(e.target.value)}
-                placeholder={t("inv_receipt_no_placeholder")}
-              />
+              <Label>{t("branch")} *</Label>
+              <Select value={selectedBranch} onValueChange={(v) => { setSelectedBranch(v); setLines([{ id: "1", itemId: "", qty: "", unitCost: "" }]); }}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("select_branch_required")} />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border shadow-lg z-50">
+                  {branches.filter((b) => b.is_active).map((branch) => (
+                    <SelectItem key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-
-            {/* Line Items */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>{t("items")} *</Label>
-                <Button size="sm" variant="outline" onClick={addLine}>
-                  <Plus className="h-4 w-4 ltr:mr-1 rtl:ml-1" />
-                  {t("inv_add_line")}
-                </Button>
-              </div>
-              <div className="space-y-2">
-                {lines.map((line, index) => (
+              <Label>{t("inv_supplier")}</Label>
+              {showAddSupplier ? (
+                <div className="flex gap-2">
+                  <Input
+                    value={newSupplierName}
+                    onChange={(e) => setNewSupplierName(e.target.value)}
+                    placeholder={t("inv_supplier_name")}
+                  />
+                  <Button size="sm" onClick={handleAddSupplier} disabled={!newSupplierName.trim()}>
+                    {t("add")}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setShowAddSupplier(false)}>
+                    {t("cancel")}
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder={t("inv_select_supplier")} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border shadow-lg z-50">
+                      {suppliers.map((supplier) => (
+                        <SelectItem key={supplier.id} value={supplier.id}>
+                          {supplier.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button size="icon" variant="outline" onClick={() => setShowAddSupplier(true)}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Receipt Number */}
+          <div className="space-y-2">
+            <Label>{t("inv_receipt_no")}</Label>
+            <Input
+              value={receiptNo}
+              onChange={(e) => setReceiptNo(e.target.value)}
+              placeholder={t("inv_receipt_no_placeholder")}
+            />
+          </div>
+
+          {/* Line Items */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>{t("items")} *</Label>
+              <Button size="sm" variant="outline" onClick={addLine} disabled={!selectedBranch}>
+                <Plus className="h-4 w-4 ltr:mr-1 rtl:ml-1" />
+                {t("inv_add_line")}
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {lines.map((line, index) => {
+                const { unitName } = getItemUnit(line.itemId);
+                return (
                   <div key={line.id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border">
                     <span className="text-xs text-muted-foreground w-6">{index + 1}</span>
                     <Select
                       value={line.itemId}
                       onValueChange={(v) => updateLine(line.id, "itemId", v)}
+                      disabled={!selectedBranch}
                     >
                       <SelectTrigger className="flex-1">
                         <SelectValue placeholder={t("inv_select_item")} />
@@ -252,22 +272,15 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
                       value={line.qty}
                       onChange={(e) => updateLine(line.id, "qty", e.target.value)}
                       className="w-20"
+                      disabled={!line.itemId}
                     />
-                    <Select
-                      value={line.unitId}
-                      onValueChange={(v) => updateLine(line.id, "unitId", v)}
-                    >
-                      <SelectTrigger className="w-24">
-                        <SelectValue placeholder={t("inv_unit")} />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover border shadow-lg z-50">
-                        {units.map((unit) => (
-                          <SelectItem key={unit.id} value={unit.id}>
-                            {unit.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      value={unitName}
+                      disabled
+                      readOnly
+                      className="w-24 bg-muted cursor-not-allowed"
+                      placeholder={line.itemId ? t("inv_item_no_unit") : t("inv_unit")}
+                    />
                     <Input
                       type="number"
                       min="0"
@@ -288,22 +301,22 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Notes */}
-            <div className="space-y-2">
-              <Label>{t("inv_notes")}</Label>
-              <Textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder={t("inv_notes_placeholder")}
-                rows={2}
-              />
+                );
+              })}
             </div>
           </div>
-        </ScrollArea>
+
+          {/* Notes */}
+          <div className="space-y-2">
+            <Label>{t("inv_notes")}</Label>
+            <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder={t("inv_notes_placeholder")}
+              rows={2}
+            />
+          </div>
+        </DialogBody>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

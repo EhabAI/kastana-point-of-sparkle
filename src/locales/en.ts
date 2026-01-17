@@ -198,6 +198,8 @@ export default {
   inv_select_reason: "Select reason",
   inv_fill_required: "Please fill all required fields",
   inv_qty_positive: "Quantity must be positive",
+  inv_item_no_unit: "This item does not have an inventory unit defined. Please configure the item first.",
+  inv_select_item_first: "Select an item first",
   inv_submit_adjustment: "Submit Adjustment",
   inv_adjustment_created: "Adjustment recorded",
   inv_reason_correction: "Inventory correction",
