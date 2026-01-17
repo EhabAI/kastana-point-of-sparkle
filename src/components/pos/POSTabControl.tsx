@@ -10,6 +10,7 @@ interface POSTabControlProps {
   pendingCount?: number;
   openCount?: number;
   occupiedTablesCount?: number;
+  favoritesCount?: number;
 }
 
 export function POSTabControl({
@@ -18,6 +19,7 @@ export function POSTabControl({
   pendingCount = 0,
   openCount = 0,
   occupiedTablesCount = 0,
+  favoritesCount = 0,
 }: POSTabControlProps) {
   const { t } = useLanguage();
 
@@ -32,7 +34,7 @@ export function POSTabControl({
       id: "favorites" as POSTab,
       label: t("pos_favorites"),
       icon: Star,
-      count: 0,
+      count: favoritesCount,
     },
     {
       id: "qr-pending" as POSTab,

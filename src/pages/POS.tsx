@@ -1759,6 +1759,7 @@ export default function POS() {
               pendingCount={pendingOrders.length}
               openCount={openOrdersNoTable.length}
               occupiedTablesCount={occupiedTablesCount}
+              favoritesCount={favoriteItems.length}
             />
           </div>
 
