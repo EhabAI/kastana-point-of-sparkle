@@ -539,10 +539,31 @@ export default function POS() {
       }
     }
 
+    // AUTO-CREATE ORDER: If no current order and no draft, auto-create a takeaway order
     if (!currentOrder?.id && !draftOrder) {
-      // Open new order dialog if no current order and no draft
-      setNewOrderDialogOpen(true);
-      return;
+      try {
+        // Auto-create a takeaway order (most common fast POS workflow)
+        const createdOrder = await createOrderMutation.mutateAsync({
+          shiftId: currentShift.id,
+          taxRate,
+          branchId: branch.id,
+          restaurantId: restaurant.id,
+          orderType: "takeaway",
+          tableId: null,
+        });
+
+        // Resume the order to make it the current active order
+        await resumeOrderMutation.mutateAsync(createdOrder.id);
+
+        // Store the item and order info for adding after order creation
+        setPendingItemAfterDraft({ menuItem, orderId: createdOrder.id });
+        setSelectedItemForModifiers(menuItem);
+        setModifierDialogOpen(true);
+        return;
+      } catch (error) {
+        toast.error(t("failed_create_order"));
+        return;
+      }
     }
 
     // Open modifier dialog - it will check if modifiers exist
