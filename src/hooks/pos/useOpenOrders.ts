@@ -63,7 +63,7 @@ export function useMoveOrderToTable() {
       previousTableId?: string;
       previousTableName?: string;
     }) => {
-      // Business guard: only allow moving OPEN orders
+      // Business guard: only allow moving OPEN or HELD orders
       const { data: orderCheck, error: checkError } = await supabase
         .from("orders")
         .select("status")
@@ -71,8 +71,8 @@ export function useMoveOrderToTable() {
         .single();
       
       if (checkError) throw checkError;
-      if (orderCheck.status !== "open") {
-        throw new Error("Can only move open orders");
+      if (orderCheck.status !== "open" && orderCheck.status !== "held") {
+        throw new Error("Can only move open or held orders");
       }
 
       // Update order table_id to reflect new table
