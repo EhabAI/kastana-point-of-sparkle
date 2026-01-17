@@ -1594,4 +1594,9 @@ export default {
   z_inv_count: "العدد",
   z_inv_total: "إجمالي الحركات",
   z_inv_no_movements: "لا توجد حركات مخزون خلال هذا الشفت",
+  
+  // Menu Item Arabic Name Warning
+  missing_arabic_name: "الاسم العربي مفقود",
+  missing_arabic_name_warning: "لن يظهر الصنف في بحث الكاشير بالعربي",
+  missing_arabic_name_tooltip: "لجعل هذا الصنف قابلاً للبحث بالعربي، أضف اسماً عربياً في حقل الوصف.",
 } as const;

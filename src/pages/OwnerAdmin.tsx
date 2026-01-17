@@ -40,7 +40,8 @@ import {
   ScrollText,
   Star,
   Package,
-  Search
+  Search,
+  AlertTriangle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -767,8 +768,24 @@ function MenuItemsSection({
                     {!item.is_available && (
                       <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">{t("unavailable")}</span>
                     )}
+                    {/* Arabic name warning - show when description is empty */}
+                    {(!item.description || item.description.trim() === "") && (
+                      <span 
+                        className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded flex items-center gap-1 cursor-help"
+                        title={t("missing_arabic_name_tooltip")}
+                      >
+                        <AlertTriangle className="h-3 w-3" />
+                        {t("missing_arabic_name")}
+                      </span>
+                    )}
                   </div>
                   {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
+                  {/* Show helper text for missing Arabic name */}
+                  {(!item.description || item.description.trim() === "") && (
+                    <p className="text-xs text-amber-600 dark:text-amber-500 mt-0.5 italic">
+                      {t("missing_arabic_name_warning")}
+                    </p>
+                  )}
                   <p className="text-sm font-medium text-primary mt-1">{currencySymbol} {formatJOD(Number(item.price))}</p>
                 </div>
                 <div className="flex items-center gap-3">

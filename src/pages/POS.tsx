@@ -147,8 +147,10 @@ export default function POS() {
   const filteredMenuItems = useMemo(() => {
     if (!isSearchActive) return menuItems;
     const query = menuSearch.toLowerCase().trim();
-    return allMenuItems.filter((item: { name: string }) => 
-      item.name.toLowerCase().includes(query)
+    // Bilingual search: search across both name (English) and description (Arabic name)
+    return allMenuItems.filter((item: { name: string; description?: string | null }) => 
+      item.name.toLowerCase().includes(query) ||
+      (item.description && item.description.toLowerCase().includes(query))
     );
   }, [menuItems, allMenuItems, menuSearch, isSearchActive]);
 
