@@ -39,7 +39,7 @@ export function DiscountDialog({
   const [discountType, setDiscountType] = useState<"percent" | "fixed">(
     (currentDiscountType as "percent" | "fixed") || "percent"
   );
-  const [value, setValue] = useState(currentDiscountValue?.toString() || "");
+  const [value, setValue] = useState("");
 
   const handleApply = () => {
     const numValue = parseFloat(value);
