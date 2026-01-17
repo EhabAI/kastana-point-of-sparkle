@@ -812,13 +812,19 @@ export default function POS() {
     }
     
     try {
-      // Only update discount_type and discount_value
-      // All totals are recalculated automatically from subtotal
+      // Recalculate totals with the new discount
+      const totals = calculateTotals(subtotal, type, value);
+      
+      // Save discount AND recalculated totals to database
+      // This ensures DB order.total matches UI total for payment validation
       await updateOrderMutation.mutateAsync({
         orderId: currentOrder.id,
         updates: {
           discount_type: type,
           discount_value: value,
+          tax_amount: totals.taxAmount,
+          service_charge: totals.serviceCharge,
+          total: totals.total,
         },
       });
       toast.success(t("discount_applied"));
@@ -830,13 +836,18 @@ export default function POS() {
   const handleClearDiscount = async () => {
     if (!currentOrder) return;
     try {
-      // Only clear discount_type and discount_value
-      // All totals are recalculated automatically from subtotal
+      // Recalculate totals without discount
+      const totals = calculateTotals(subtotal, null, null);
+      
+      // Clear discount AND save recalculated totals to database
       await updateOrderMutation.mutateAsync({
         orderId: currentOrder.id,
         updates: {
           discount_type: null,
           discount_value: null,
+          tax_amount: totals.taxAmount,
+          service_charge: totals.serviceCharge,
+          total: totals.total,
         },
       });
       toast.success(t("discount_removed"));
