@@ -815,6 +815,13 @@ export default function POS() {
       // Recalculate totals with the new discount
       const totals = calculateTotals(subtotal, type, value);
       
+      console.log('[handleApplyDiscount] Saving to DB:', {
+        subtotal,
+        discountType: type,
+        discountValue: value,
+        calculatedTotals: totals,
+      });
+      
       // Save discount AND recalculated totals to database
       // This ensures DB order.total matches UI total for payment validation
       await updateOrderMutation.mutateAsync({
