@@ -938,40 +938,13 @@ export default function POS() {
       setSelectedOrderForReceipt(orderForReceipt as RecentOrder);
       setReceiptDialogOpen(true);
 
-      // Trigger inventory deduction (non-blocking - payment already succeeded)
-      try {
-        const deductionResult = await inventoryDeductionMutation.mutateAsync(currentOrder.id);
-        
-        if (deductionResult.warnings && deductionResult.warnings.length > 0) {
-          // Store warnings for display
-          setInventoryWarnings(deductionResult.warnings);
-          // Show warning toast with summary
-          const itemCount = deductionResult.warnings.length;
-          toast.warning(
-            `${t("inventory_negative_warning")} (${itemCount} ${t("items")})`,
-            {
-              duration: 8000,
-              action: {
-                label: t("view_details"),
-                onClick: () => setInventoryWarnings(deductionResult.warnings),
-              },
-            }
-          );
-        }
-        
-        if (!deductionResult.success && deductionResult.error) {
-          // Deduction failed but payment succeeded - show non-blocking warning
-          // This is informational only, not an error to the cashier
-          console.warn("[handlePaymentConfirm] Inventory deduction issue:", deductionResult.error);
-          toast.warning(t("inventory_deduction_failed"), { duration: 5000 });
-        }
-      } catch (deductError) {
-        // Inventory deduction failed - payment still succeeded
-        // Log but don't show system error to cashier
-        console.warn("[handlePaymentConfirm] Inventory deduction exception:", deductError);
-        // Show a gentle warning, not an error
-        toast.warning(t("inventory_deduction_failed"), { duration: 5000 });
-      }
+      // ═══════════════════════════════════════════════════════════════════
+      // PHASE 1: Inventory deduction DISABLED
+      // This is intentional for Phase 1 - payments must never fail due to inventory.
+      // Re-enable in Phase 2 when inventory system is fully tested.
+      // ═══════════════════════════════════════════════════════════════════
+      // Inventory deduction skipped - logged for audit trail only
+      console.info("[handlePaymentConfirm] PHASE 1: Inventory deduction skipped for order:", currentOrder.id);
       
     } catch (error) {
       // ═══════════════════════════════════════════════════════════════════
