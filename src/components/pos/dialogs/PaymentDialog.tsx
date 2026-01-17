@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -18,13 +17,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Banknote, CreditCard, Wallet, Receipt, Smartphone, Plus, Minus, X, Hash } from "lucide-react";
-import { cn, formatJOD } from "@/lib/utils";
+import { Banknote, CreditCard, Smartphone, Plus, X, Hash } from "lucide-react";
+import { formatJOD } from "@/lib/utils";
 import type { PaymentMethodConfig } from "@/hooks/pos/useCashierPaymentMethods";
 import { NumericKeypad } from "../NumericKeypad";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 type PaymentMethodId = string;
+
+type PaymentRow = {
+  method: PaymentMethodId;
+  amount: string;
+};
 
 interface PaymentDialogProps {
   open: boolean;
@@ -59,16 +63,25 @@ export function PaymentDialog({
   orderStatus,
 }: PaymentDialogProps) {
   const { t } = useLanguage();
-  
+
   // Get enabled methods - only DB-allowed values
   const enabledMethods = paymentMethods?.filter((m) => m.enabled) || [
     { id: "cash" as const, label: t("cash"), enabled: true },
     { id: "visa" as const, label: t("card"), enabled: true },
   ];
 
-  const [splitPayments, setSplitPayments] = useState<{ method: PaymentMethodId; amount: string }[]>([]);
-  const [keypadState, setKeypadState] = useState<{ open: boolean; index: number }>({ open: false, index: 0 });
-  
+  // Market-standard split payment UX:
+  // - committedPayments: always amount > 0
+  // - draftPayment: single input row, can be empty/0, NOT included in calculations/submission
+  const [committedPayments, setCommittedPayments] = useState<PaymentRow[]>([]);
+  const [draftPayment, setDraftPayment] = useState<PaymentRow>({ method: "cash", amount: "" });
+
+  const [keypadState, setKeypadState] = useState<{
+    open: boolean;
+    target: "committed" | "draft";
+    index: number;
+  }>({ open: false, target: "draft", index: 0 });
+
   // Double-submit protection
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submitRef = useRef(false);
@@ -76,27 +89,92 @@ export function PaymentDialog({
   // Helper: round to 3 decimals using HALF-UP (JOD standard)
   const roundJOD = (n: number): number => Math.round(n * 1000) / 1000;
 
-  // Initialize with first payment row when dialog opens
+  const getFirstMethod = (): PaymentMethodId => enabledMethods[0]?.id || "cash";
+
+  const commitDraftRow = (rowOverride?: PaymentRow) => {
+    const row = rowOverride ?? draftPayment;
+    const amt = parseFloat(row.amount) || 0;
+    if (amt <= 0) return;
+
+    setCommittedPayments((prev) => [
+      ...prev,
+      { method: row.method, amount: formatJOD(amt) },
+    ]);
+
+    // Keep exactly one draft row at all times
+    setDraftPayment({ method: row.method, amount: "" });
+  };
+
+  const updateCommittedPaymentMethod = (index: number, method: PaymentMethodId) => {
+    setCommittedPayments((prev) => {
+      const next = [...prev];
+      if (!next[index]) return prev;
+      next[index] = { ...next[index], method };
+      return next;
+    });
+  };
+
+  const updateCommittedPaymentAmount = (index: number, amount: string) => {
+    setCommittedPayments((prev) => {
+      const next = [...prev];
+      if (!next[index]) return prev;
+      next[index] = { ...next[index], amount };
+      return next;
+    });
+  };
+
+  const finalizeCommittedRow = (index: number, amountOverride?: string) => {
+    setCommittedPayments((prev) => {
+      const next = [...prev];
+      if (!next[index]) return prev;
+      const raw = amountOverride ?? next[index].amount;
+      const amt = parseFloat(raw) || 0;
+
+      // Committed rows must always be > 0
+      if (amt <= 0) {
+        next.splice(index, 1);
+        return next;
+      }
+
+      next[index] = { ...next[index], amount: formatJOD(amt) };
+      return next;
+    });
+  };
+
+  const removeCommittedRow = (index: number) => {
+    setCommittedPayments((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Initialize dialog state
   // Use DB total as source of truth for payment
   useEffect(() => {
     if (open && enabledMethods.length > 0) {
-      const firstMethod = enabledMethods[0].id;
-      // Always reset to the current total when dialog opens
-      setSplitPayments([{ method: firstMethod, amount: formatJOD(total) }]);
+      const firstMethod = getFirstMethod();
+      // Keep previous behavior: prefill one committed row with the full total
+      setCommittedPayments([{ method: firstMethod, amount: formatJOD(total) }]);
+      setDraftPayment({ method: firstMethod, amount: "" });
     }
-    // Reset submitting state when dialog opens
+
     if (open) {
       setIsSubmitting(false);
       submitRef.current = false;
     }
-    // Reset payments when dialog closes
+
     if (!open) {
-      setSplitPayments([]);
+      setCommittedPayments([]);
+      setDraftPayment({ method: getFirstMethod(), amount: "" });
     }
   }, [open, total, enabledMethods.length]);
 
   const handleKeypadConfirm = (value: number) => {
-    updatePaymentAmount(keypadState.index, formatJOD(value));
+    const amtStr = formatJOD(value);
+
+    if (keypadState.target === "draft") {
+      commitDraftRow({ ...draftPayment, amount: amtStr });
+      return;
+    }
+
+    finalizeCommittedRow(keypadState.index, amtStr);
   };
 
   const handleConfirm = async () => {
@@ -105,80 +183,63 @@ export function PaymentDialog({
     submitRef.current = true;
     setIsSubmitting(true);
 
-    // Get valid payments and cap them to not exceed remaining
-    const payments = splitPayments
-      .filter((p) => parseFloat(p.amount) > 0)
+    // Only committed payments are submitted
+    const payments = committedPayments
+      .filter((p) => (parseFloat(p.amount) || 0) > 0)
       .map((p) => ({ method: p.method, amount: Math.min(parseFloat(p.amount), total) }));
-    
+
     if (payments.length === 0) {
       setIsSubmitting(false);
       submitRef.current = false;
       return;
     }
-    
+
     try {
       await onConfirm(payments);
-      // Only reset state AFTER successful payment
       resetState();
     } catch (error) {
-      // Reset on error to allow retry
       setIsSubmitting(false);
       submitRef.current = false;
     }
   };
 
   const resetState = () => {
-    setSplitPayments([]);
+    setCommittedPayments([]);
+    setDraftPayment({ method: getFirstMethod(), amount: "" });
     setIsSubmitting(false);
     submitRef.current = false;
   };
 
-  // Split bill resets everything and starts fresh
+  // Split bill starts fresh (committed list cleared, draft remains as the single input row)
   const handleSplitBill = () => {
-    setSplitPayments([
-      { method: enabledMethods[0]?.id || "cash", amount: "" },
-      { method: enabledMethods[0]?.id || "cash", amount: "" },
-    ]);
+    setCommittedPayments([]);
+    setDraftPayment({ method: getFirstMethod(), amount: "" });
   };
 
-  const removePaymentRow = (index: number) => {
-    if (splitPayments.length <= 1) return;
-    setSplitPayments(splitPayments.filter((_, i) => i !== index));
-  };
-
-  const updatePaymentMethod = (index: number, method: PaymentMethodId) => {
-    const updated = [...splitPayments];
-    updated[index].method = method;
-    setSplitPayments(updated);
-  };
-
-  const updatePaymentAmount = (index: number, amount: string) => {
-    const updated = [...splitPayments];
-    updated[index].amount = amount;
-    setSplitPayments(updated);
-  };
-
-  const fillRemaining = (index: number) => {
-    const otherTotal = splitPayments.reduce((sum, p, i) => 
-      i === index ? sum : sum + (parseFloat(p.amount) || 0), 0
+  const fillRemainingIntoDraft = () => {
+    const committedTotal = committedPayments.reduce(
+      (sum, p) => sum + (parseFloat(p.amount) || 0),
+      0
     );
-    const remaining = roundJOD(total - otherTotal);
-    if (remaining > 0) {
-      updatePaymentAmount(index, formatJOD(remaining));
+    const rem = roundJOD(total - committedTotal);
+    if (rem > 0) {
+      commitDraftRow({ ...draftPayment, amount: formatJOD(rem) });
     }
   };
 
-  // Filter out zero-value payments for all calculations
-  const validPayments = splitPayments.filter((p) => (parseFloat(p.amount) || 0) > 0);
-  const splitTotal = roundJOD(validPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0));
-  const remaining = roundJOD(total - splitTotal);
-  const isExactMatch = Math.abs(remaining) < 0.001; // 3-decimal precision check
-  const hasOverpayment = remaining < -0.001;
+  // Calculations must ignore the draft row
+  const validPayments = committedPayments.filter((p) => (parseFloat(p.amount) || 0) > 0);
+  const totalPaid = roundJOD(validPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0));
+  const diff = roundJOD(totalPaid - total);
+
+  const remaining = diff < -0.001 ? roundJOD(Math.abs(diff)) : 0;
+  const hasOverpayment = diff > 0.001;
+  const changeAmount = hasOverpayment ? diff : 0;
+  const isExactMatch = Math.abs(diff) < 0.001;
   const hasValidPayments = validPayments.length > 0;
-  
+
   // Check if all valid payments are cash-only (allows overpayment with change)
   const allPaymentsCash = validPayments.length === 0 || validPayments.every((p) => p.method === "cash");
-  const changeAmount = hasOverpayment ? roundJOD(Math.abs(remaining)) : 0;
 
   // Block payment for non-open orders (e.g., pending QR orders)
   const isOrderBlocked = orderStatus && orderStatus !== "open";
@@ -186,8 +247,21 @@ export function PaymentDialog({
   // Cash quick amounts
   const cashDenominations = [1, 5, 10, 20, 50];
 
+  const keypadInitialValue =
+    keypadState.target === "draft"
+      ? draftPayment.amount
+      : committedPayments[keypadState.index]?.amount || "";
+
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!isSubmitting) { onOpenChange(o); if (!o) resetState(); } }}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        if (!isSubmitting) {
+          onOpenChange(o);
+          if (!o) resetState();
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-lg max-h-[90vh] h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{t("payment")}</DialogTitle>
@@ -196,21 +270,28 @@ export function PaymentDialog({
               <span>{t("order_total")}:</span>
               <span className="font-semibold text-foreground">{formatJOD(total)} {currency}</span>
             </div>
-            {/* Global remaining/change display based on sum of all payments */}
+
+            {/* Global remaining/change display based on SUM of committed payments */}
             {hasValidPayments && (
               <div className="flex items-center gap-2 flex-wrap">
-                {remaining > 0.001 && (
+                {remaining > 0 && (
                   <>
                     <span>{t("remaining_from_customer")}:</span>
-                    <span className="font-semibold text-orange-600 dark:text-orange-400">{formatJOD(remaining)} {currency}</span>
+                    <span className="font-semibold text-orange-600 dark:text-orange-400">
+                      {formatJOD(remaining)} {currency}
+                    </span>
                   </>
                 )}
+
                 {hasOverpayment && allPaymentsCash && (
                   <>
                     <span>{t("change_to_give")}:</span>
-                    <span className="font-semibold text-green-600 dark:text-green-400">{formatJOD(changeAmount)} {currency}</span>
+                    <span className="font-semibold text-green-600 dark:text-green-400">
+                      {formatJOD(changeAmount)} {currency}
+                    </span>
                   </>
                 )}
+
                 {hasOverpayment && !allPaymentsCash && (
                   <span className="font-semibold text-destructive">{t("card_must_be_exact")}</span>
                 )}
@@ -221,17 +302,18 @@ export function PaymentDialog({
 
         <DialogBody>
           <div className="space-y-3 py-2">
-            {/* Payment rows */}
+            {/* Payment rows (committed + one draft row) */}
             <div className="space-y-2">
-              {splitPayments.map((payment, index) => {
-                const methodInfo = enabledMethods.find((m) => m.id === payment.method);
+              {committedPayments.map((payment, index) => {
                 const isCash = payment.method === "cash";
 
                 return (
-                  <div key={index} className="space-y-1.5 p-2 border rounded-md bg-background">
+                  <div key={`committed-${index}`} className="space-y-1.5 p-2 border rounded-md bg-background">
                     <div className="flex items-center gap-1.5">
-                      {/* Payment method selector */}
-                      <Select value={payment.method} onValueChange={(value) => updatePaymentMethod(index, value)}>
+                      <Select
+                        value={payment.method}
+                        onValueChange={(value) => updateCommittedPaymentMethod(index, value)}
+                      >
                         <SelectTrigger className="w-[120px] h-9 text-sm">
                           <SelectValue />
                         </SelectTrigger>
@@ -250,7 +332,6 @@ export function PaymentDialog({
                         </SelectContent>
                       </Select>
 
-                      {/* Amount input */}
                       <div className="relative flex-1">
                         <Input
                           type="number"
@@ -258,7 +339,11 @@ export function PaymentDialog({
                           min="0"
                           placeholder="0.000"
                           value={payment.amount}
-                          onChange={(e) => updatePaymentAmount(index, e.target.value)}
+                          onChange={(e) => updateCommittedPaymentAmount(index, e.target.value)}
+                          onBlur={() => finalizeCommittedRow(index)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") finalizeCommittedRow(index);
+                          }}
                           className="h-9 text-base pr-12"
                         />
                         <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
@@ -266,44 +351,27 @@ export function PaymentDialog({
                         </span>
                       </div>
 
-                      {/* Numeric keypad button */}
                       <Button
                         variant="outline"
                         size="icon"
                         className="h-9 w-9"
-                        onClick={() => setKeypadState({ open: true, index })}
+                        onClick={() => setKeypadState({ open: true, target: "committed", index })}
                         title="Enter amount"
                       >
                         <Hash className="h-4 w-4" />
                       </Button>
 
-                      {/* Fill remaining button */}
-                      {remaining > 0 && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => fillRemaining(index)}
-                          className="h-9 px-2 text-xs whitespace-nowrap"
-                          title={t("fill_remaining")}
-                        >
-                          {t("fill")}
-                        </Button>
-                      )}
-
-                      {/* Remove row button */}
-                      {splitPayments.length > 1 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removePaymentRow(index)}
-                          className="h-9 w-9 p-0 text-muted-foreground hover:text-destructive"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeCommittedRow(index)}
+                        className="h-9 w-9 p-0 text-muted-foreground hover:text-destructive"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     </div>
 
-                    {/* Quick cash denominations for cash payments */}
+                    {/* Quick cash denominations (editing only) */}
                     {isCash && (
                       <div className="flex flex-wrap gap-1.5">
                         {cashDenominations.map((denom) => (
@@ -311,10 +379,7 @@ export function PaymentDialog({
                             key={denom}
                             variant="outline"
                             size="sm"
-                            onClick={() => {
-                              // SET the paid amount to this denomination (not add)
-                              updatePaymentAmount(index, formatJOD(denom));
-                            }}
+                            onClick={() => finalizeCommittedRow(index, formatJOD(denom))}
                             className="h-8 min-w-[48px] text-xs"
                           >
                             {denom}
@@ -323,7 +388,7 @@ export function PaymentDialog({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updatePaymentAmount(index, formatJOD(total))}
+                          onClick={() => finalizeCommittedRow(index, formatJOD(total))}
                           className="h-8 text-xs"
                         >
                           {t("exact")}
@@ -331,20 +396,121 @@ export function PaymentDialog({
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={() => updatePaymentAmount(index, "0.000")}
+                          onClick={() => removeCommittedRow(index)}
                           className="h-8 text-xs"
                         >
                           {t("reset")}
                         </Button>
                       </div>
                     )}
-
                   </div>
                 );
               })}
+
+              {/* Draft row (input only, never removable, not counted until committed) */}
+              <div className="space-y-1.5 p-2 border rounded-md bg-background">
+                <div className="flex items-center gap-1.5">
+                  <Select
+                    value={draftPayment.method}
+                    onValueChange={(value) => setDraftPayment((p) => ({ ...p, method: value }))}
+                  >
+                    <SelectTrigger className="w-[120px] h-9 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {enabledMethods.map((method) => {
+                        const Icon = methodIcons[method.id] || CreditCard;
+                        return (
+                          <SelectItem key={method.id} value={method.id}>
+                            <div className="flex items-center gap-2">
+                              <Icon className="h-4 w-4" />
+                              {method.label}
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+
+                  <div className="relative flex-1">
+                    <Input
+                      type="number"
+                      step="0.001"
+                      min="0"
+                      placeholder="0.000"
+                      value={draftPayment.amount}
+                      onChange={(e) => setDraftPayment((p) => ({ ...p, amount: e.target.value }))}
+                      onBlur={() => commitDraftRow()}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") commitDraftRow();
+                      }}
+                      className="h-9 text-base pr-12"
+                    />
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                      {currency}
+                    </span>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9"
+                    onClick={() => setKeypadState({ open: true, target: "draft", index: 0 })}
+                    title="Enter amount"
+                  >
+                    <Hash className="h-4 w-4" />
+                  </Button>
+
+                  {/* Fill remaining into the draft row */}
+                  {diff < -0.001 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={fillRemainingIntoDraft}
+                      className="h-9 px-2 text-xs whitespace-nowrap"
+                      title={t("fill_remaining")}
+                    >
+                      {t("fill")}
+                    </Button>
+                  )}
+                </div>
+
+                {/* Quick cash denominations for draft cash entry */}
+                {draftPayment.method === "cash" && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {cashDenominations.map((denom) => (
+                      <Button
+                        key={denom}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => commitDraftRow({ ...draftPayment, amount: formatJOD(denom) })}
+                        className="h-8 min-w-[48px] text-xs"
+                      >
+                        {denom}
+                      </Button>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => commitDraftRow({ ...draftPayment, amount: formatJOD(total) })}
+                      className="h-8 text-xs"
+                    >
+                      {t("exact")}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setDraftPayment((p) => ({ ...p, amount: "" }))}
+                      className="h-8 text-xs"
+                    >
+                      {t("reset")}
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Split bill button - resets everything */}
+            {/* Split bill button - starts fresh */}
             <Button
               variant="outline"
               className="w-full h-9"
@@ -354,7 +520,6 @@ export function PaymentDialog({
               <Plus className="h-4 w-4 mr-1.5" />
               {t("split_bill")}
             </Button>
-
           </div>
         </DialogBody>
 
@@ -367,6 +532,7 @@ export function PaymentDialog({
           >
             {t("cancel")}
           </Button>
+
           <div className="flex flex-col items-end gap-0.5">
             <Button
               onClick={handleConfirm}
@@ -388,13 +554,14 @@ export function PaymentDialog({
                 </span>
               )}
             </Button>
-            {/* Helper text explaining why button is disabled */}
+
             {isOrderBlocked && !isLoading && !isSubmitting && (
               <p className="text-xs text-destructive">{t("payment_blocked_pending")}</p>
             )}
+
             {!isOrderBlocked && !isExactMatch && !isLoading && !isSubmitting && hasValidPayments && (
               <p className="text-xs text-muted-foreground">
-                {remaining > 0
+                {diff < -0.001
                   ? t("remaining_must_be_zero")
                   : hasOverpayment && !allPaymentsCash
                     ? t("overpayment_cash_only")
@@ -406,9 +573,9 @@ export function PaymentDialog({
 
         <NumericKeypad
           open={keypadState.open}
-          onOpenChange={(open) => setKeypadState({ ...keypadState, open })}
+          onOpenChange={(o) => setKeypadState((s) => ({ ...s, open: o }))}
           title={t("amount")}
-          initialValue={splitPayments[keypadState.index]?.amount || ""}
+          initialValue={keypadInitialValue}
           allowDecimals={true}
           minValue={0.01}
           currency={currency}
