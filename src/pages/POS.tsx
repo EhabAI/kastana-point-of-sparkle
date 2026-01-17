@@ -812,19 +812,26 @@ export default function POS() {
     }
     
     try {
-      // Recalculate totals with the new discount
-      const totals = calculateTotals(subtotal, type, value);
+      // Use stored subtotal from DB or calculate fresh from items
+      const orderSubtotal = currentOrder.subtotal ?? subtotal;
       
-      console.log('[handleApplyDiscount] Saving to DB:', {
-        subtotal,
+      // Recalculate totals with the new discount using the correct subtotal
+      const totals = calculateTotals(orderSubtotal, type, value);
+      
+      console.log('[handleApplyDiscount] Debug:', {
+        orderSubtotal,
+        uiSubtotal: subtotal,
         discountType: type,
         discountValue: value,
+        taxRate,
+        serviceChargeRate,
+        currency,
         calculatedTotals: totals,
       });
       
       // Save discount AND recalculated totals to database
       // This ensures DB order.total matches UI total for payment validation
-      await updateOrderMutation.mutateAsync({
+      const result = await updateOrderMutation.mutateAsync({
         orderId: currentOrder.id,
         updates: {
           discount_type: type,
@@ -834,8 +841,11 @@ export default function POS() {
           total: totals.total,
         },
       });
+      
+      console.log('[handleApplyDiscount] Update result:', result);
       toast.success(t("discount_applied"));
     } catch (error) {
+      console.error('[handleApplyDiscount] Error:', error);
       toast.error(t("failed_apply_discount"));
     }
   };
