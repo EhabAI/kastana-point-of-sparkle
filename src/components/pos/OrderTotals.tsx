@@ -41,6 +41,9 @@ export function OrderTotals({
       : formatJOD(discountAmount) + " " + localizedCurrency
     : null;
 
+  // Round UP the final total to nearest 0.01 for practical cash handling
+  const roundedTotal = Math.ceil(total * 100) / 100;
+
   return (
     <div className="space-y-2 text-sm">
       <div className="flex justify-between">
@@ -71,7 +74,7 @@ export function OrderTotals({
 
       <div className="flex justify-between items-center text-lg font-bold">
         <span>{t("total")}</span>
-        <span className="text-primary ltr:ml-2 rtl:mr-2">{formatJOD(total)} {localizedCurrency}</span>
+        <span className="text-primary ltr:ml-2 rtl:mr-2">{formatJOD(roundedTotal)} {localizedCurrency}</span>
       </div>
     </div>
   );
