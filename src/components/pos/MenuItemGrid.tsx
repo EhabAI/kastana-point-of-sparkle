@@ -9,6 +9,7 @@ interface MenuItem {
   is_available: boolean;
   promo_price?: number | null;
   promo_label?: string | null;
+  category_name?: string;
 }
 
 interface MenuItemGridProps {
@@ -16,6 +17,7 @@ interface MenuItemGridProps {
   currency: string;
   onSelectItem: (item: MenuItem) => void;
   isLoading?: boolean;
+  showCategoryName?: boolean;
 }
 
 export function MenuItemGrid({
@@ -23,6 +25,7 @@ export function MenuItemGrid({
   currency,
   onSelectItem,
   isLoading,
+  showCategoryName = false,
 }: MenuItemGridProps) {
   if (isLoading) {
     return (
@@ -49,6 +52,7 @@ export function MenuItemGrid({
             item={item}
             currency={currency}
             onSelect={onSelectItem}
+            showCategoryName={showCategoryName}
           />
         ))}
       </div>
