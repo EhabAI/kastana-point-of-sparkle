@@ -14,7 +14,7 @@ export function OrderTypeSelector({ selectedType, onSelectType }: OrderTypeSelec
       id: "dine-in" as OrderType, 
       label: "Dine In", 
       icon: UtensilsCrossed,
-      selectedClasses: "border-blue-500 bg-blue-500/10 ring-1 ring-blue-500",
+      selectedClasses: "border-blue-500 bg-blue-100 dark:bg-blue-950 ring-1 ring-blue-500",
       selectedText: "text-blue-600 dark:text-blue-400",
       hoverClass: "hover:border-blue-400/50"
     },
@@ -22,7 +22,7 @@ export function OrderTypeSelector({ selectedType, onSelectType }: OrderTypeSelec
       id: "takeaway" as OrderType, 
       label: "Takeaway", 
       icon: ShoppingBag,
-      selectedClasses: "border-emerald-500 bg-emerald-500/10 ring-1 ring-emerald-500",
+      selectedClasses: "border-emerald-500 bg-emerald-100 dark:bg-emerald-950 ring-1 ring-emerald-500",
       selectedText: "text-emerald-600 dark:text-emerald-400",
       hoverClass: "hover:border-emerald-400/50"
     },
