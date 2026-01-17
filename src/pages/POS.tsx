@@ -393,11 +393,14 @@ export default function POS() {
     0,
   ));
 
-  // Round to nearest 5 fils (0.005) for JOD cash handling
-  // NOTE: use EPSILON to avoid floating point issues (e.g., 6.675000000000001)
-  const roundTo5Fils = useCallback((n: number): number => {
-    const step = 0.005;
-    return Math.round((n + Number.EPSILON) / step) * step;
+  // Round to nearest 5 fils using INTEGER math to avoid floating-point bugs
+  const roundTo5Fils = useCallback((total: number): number => {
+    // Step 1: Convert to fils (integer)
+    const totalFils = Math.round(total * 1000);
+    // Step 2: Round to nearest 5 fils
+    const roundedFils = Math.round(totalFils / 5) * 5;
+    // Step 3: Convert back to JOD
+    return roundedFils / 1000;
   }, []);
 
   const calculateTotals = useCallback(
@@ -1904,7 +1907,6 @@ export default function POS() {
                   onNewOrder={handleNewOrderButton}
                   shiftOpen={shiftOpen}
                   hasTable={!!currentOrder?.table_id}
-                  roundingAdjustment={roundingAdjustment}
                 />
               </div>
             </div>
