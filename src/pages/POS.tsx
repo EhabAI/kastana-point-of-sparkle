@@ -1900,6 +1900,7 @@ export default function POS() {
                   onNewOrder={handleNewOrderButton}
                   shiftOpen={shiftOpen}
                   hasTable={!!currentOrder?.table_id}
+                  roundingAdjustment={roundingAdjustment}
                 />
               </div>
             </div>
