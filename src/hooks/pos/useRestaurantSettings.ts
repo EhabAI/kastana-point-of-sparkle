@@ -10,6 +10,7 @@ export interface RestaurantSettings {
   currency: string;
   rounding_enabled: boolean;
   kds_enabled?: boolean;
+  inventory_enabled?: boolean;
 }
 
 const DEFAULT_SETTINGS: Omit<RestaurantSettings, "id" | "restaurant_id"> = {
@@ -18,6 +19,7 @@ const DEFAULT_SETTINGS: Omit<RestaurantSettings, "id" | "restaurant_id"> = {
   currency: "JOD",
   rounding_enabled: false,
   kds_enabled: false,
+  inventory_enabled: false,
 };
 
 export function useRestaurantSettings() {
