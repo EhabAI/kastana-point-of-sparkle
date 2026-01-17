@@ -37,6 +37,8 @@ interface ReceivePurchaseDialogProps {
 interface LineItem {
   id: string;
   itemId: string;
+  unitId: string;
+  unitName: string;
   qty: string;
   unitCost: string;
 }
@@ -66,7 +68,9 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
   const [showAddSupplier, setShowAddSupplier] = useState(false);
   const [receiptNo, setReceiptNo] = useState("");
   const [notes, setNotes] = useState("");
-  const [lines, setLines] = useState<LineItem[]>([{ id: "1", itemId: "", qty: "", unitCost: "" }]);
+  const [lines, setLines] = useState<LineItem[]>([
+    { id: "1", itemId: "", unitId: "", unitName: "", qty: "", unitCost: "" },
+  ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: items = [] } = useInventoryItems(restaurantId);
@@ -84,16 +88,29 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
     return map;
   }, [items]);
 
-  // Helper to get item's unit info - uses itemsMap for reliable lookup
-  const getItemUnit = (itemId: string) => {
-    if (!itemId) return { unitId: "", unitName: "" };
+  const handleSelectItem = (lineId: string, itemId: string) => {
     const item = itemsMap.get(itemId);
-    console.log("[ReceivePurchase] getItemUnit:", { itemId, item, mapSize: itemsMap.size, baseUnitName: item?.baseUnitName });
-    return { unitId: item?.baseUnitId || "", unitName: item?.baseUnitName || "" };
+    const unitId = item?.baseUnitId || "";
+    const unitName = item?.baseUnitName || "";
+
+    setLines((prev) =>
+      prev.map((l) =>
+        l.id === lineId
+          ? { ...l, itemId, unitId, unitName, qty: "" }
+          : l
+      )
+    );
+
+    if (itemId && !unitId) {
+      toast({ title: t("inv_item_no_unit"), variant: "destructive" });
+    }
   };
 
   const addLine = () => {
-    setLines([...lines, { id: Date.now().toString(), itemId: "", qty: "", unitCost: "" }]);
+    setLines([
+      ...lines,
+      { id: Date.now().toString(), itemId: "", unitId: "", unitName: "", qty: "", unitCost: "" },
+    ]);
   };
 
   const removeLine = (id: string) => {
@@ -134,11 +151,12 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
       if (!line.itemId) return false;
       const qtyNum = parseFloat(line.qty);
       if (isNaN(qtyNum) || qtyNum <= 0) return false;
-      const { unitId } = getItemUnit(line.itemId);
-      if (!unitId) {
+
+      if (!line.unitId) {
         toast({ title: t("inv_item_no_unit"), variant: "destructive" });
         return false;
       }
+
       return true;
     });
     
@@ -159,7 +177,7 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
           lines: validLines.map((line) => ({
             itemId: line.itemId,
             qty: parseFloat(line.qty),
-            unitId: getItemUnit(line.itemId).unitId,
+            unitId: line.unitId,
             unitCost: line.unitCost ? parseFloat(line.unitCost) : null,
           })),
         },
@@ -185,10 +203,9 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
       if (!line.itemId) return false;
       const qtyNum = parseFloat(line.qty);
       if (isNaN(qtyNum) || qtyNum <= 0) return false;
-      const { unitId } = getItemUnit(line.itemId);
-      return !!unitId;
+      return !!line.unitId;
     });
-  }, [selectedBranch, lines, branchItems]);
+  }, [selectedBranch, lines]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -206,7 +223,7 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>{t("branch")} *</Label>
-              <Select value={selectedBranch} onValueChange={(v) => { setSelectedBranch(v); setLines([{ id: "1", itemId: "", qty: "", unitCost: "" }]); }}>
+              <Select value={selectedBranch} onValueChange={(v) => { setSelectedBranch(v); setLines([{ id: "1", itemId: "", unitId: "", unitName: "", qty: "", unitCost: "" }]); }}>
                 <SelectTrigger>
                   <SelectValue placeholder={t("select_branch_required")} />
                 </SelectTrigger>
@@ -278,17 +295,16 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
             </div>
             <div className="space-y-2">
               {lines.map((line, index) => {
-                const { unitName } = getItemUnit(line.itemId);
                 const qtyValidation = validateQty(line.qty);
                 return (
                   <div key={line.id} className="space-y-1">
                     <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border">
                       <span className="text-xs text-muted-foreground w-6">{index + 1}</span>
-                      <Select
-                        value={line.itemId}
-                        onValueChange={(v) => { updateLine(line.id, "itemId", v); updateLine(line.id, "qty", ""); }}
-                        disabled={!selectedBranch}
-                      >
+                        <Select
+                          value={line.itemId}
+                          onValueChange={(v) => handleSelectItem(line.id, v)}
+                          disabled={!selectedBranch}
+                        >
                         <SelectTrigger className="flex-1">
                           <SelectValue placeholder={t("inv_select_item")} />
                         </SelectTrigger>
@@ -311,7 +327,7 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
                         disabled={!line.itemId}
                       />
                       <Input
-                        value={unitName}
+                        value={line.unitName}
                         disabled
                         readOnly
                         className="w-24 bg-muted cursor-not-allowed"
