@@ -41,9 +41,10 @@ export function OrderTotals({
   });
   const discountAmount = calculatedTotals.discountAmount;
 
-  // Display label for discount
+  // Display label for discount - support both "percent" and "percentage"
+  const isPercentDiscount = discountType === "percent" || discountType === "percentage";
   const discountLabel = hasDiscount
-    ? discountType === "percentage"
+    ? isPercentDiscount
       ? `${discountValue}%`
       : formatJOD(discountAmount) + " " + localizedCurrency
     : null;

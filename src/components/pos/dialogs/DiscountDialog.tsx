@@ -19,7 +19,7 @@ interface DiscountDialogProps {
   onOpenChange: (open: boolean) => void;
   currentSubtotal: number;
   currency: string;
-  onApply: (type: "percentage" | "fixed", value: number) => void;
+  onApply: (type: "percent" | "fixed", value: number) => void;
   onClear: () => void;
   currentDiscountType?: string | null;
   currentDiscountValue?: number | null;
@@ -36,16 +36,16 @@ export function DiscountDialog({
   currentDiscountValue,
 }: DiscountDialogProps) {
   const { t } = useLanguage();
-  const [discountType, setDiscountType] = useState<"percentage" | "fixed">(
-    (currentDiscountType as "percentage" | "fixed") || "percentage"
+  const [discountType, setDiscountType] = useState<"percent" | "fixed">(
+    (currentDiscountType as "percent" | "fixed") || "percent"
   );
   const [value, setValue] = useState(currentDiscountValue?.toString() || "");
 
   const handleApply = () => {
     const numValue = parseFloat(value);
     if (!isNaN(numValue) && numValue > 0) {
-      // Validate percentage is <= 100
-      if (discountType === "percentage" && numValue > 100) {
+      // Validate percent is <= 100
+      if (discountType === "percent" && numValue > 100) {
         return;
       }
       // Validate fixed is <= subtotal
@@ -64,7 +64,7 @@ export function DiscountDialog({
   };
 
   const previewDiscount =
-    discountType === "percentage"
+    discountType === "percent"
       ? (currentSubtotal * (parseFloat(value) || 0)) / 100
       : parseFloat(value) || 0;
 
@@ -81,11 +81,11 @@ export function DiscountDialog({
         <div className="space-y-4 py-4">
           <RadioGroup
             value={discountType}
-            onValueChange={(v) => setDiscountType(v as "percentage" | "fixed")}
+            onValueChange={(v) => setDiscountType(v as "percent" | "fixed")}
           >
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="percentage" id="percentage" />
-              <Label htmlFor="percentage">{t("percentage")}</Label>
+              <RadioGroupItem value="percent" id="percent" />
+              <Label htmlFor="percent">{t("percentage")}</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="fixed" id="fixed" />
@@ -95,15 +95,15 @@ export function DiscountDialog({
 
           <div className="space-y-2">
             <Label htmlFor="discountValue">
-              {discountType === "percentage" ? t("percentage") : t("amount")}
+              {discountType === "percent" ? t("percentage") : t("amount")}
             </Label>
             <Input
               id="discountValue"
               type="number"
               step="0.001"
               min="0"
-              max={discountType === "percentage" ? 100 : currentSubtotal}
-              placeholder={discountType === "percentage" ? "10" : "5.00"}
+              max={discountType === "percent" ? 100 : currentSubtotal}
+              placeholder={discountType === "percent" ? "10" : "5.00"}
               value={value}
               onChange={(e) => setValue(e.target.value)}
               autoFocus

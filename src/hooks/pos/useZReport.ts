@@ -149,7 +149,8 @@ export function useZReport(shiftId: string | undefined) {
         const discountValue = Number(o.discount_value || 0);
         if (discountValue <= 0) return sum;
         
-        if (o.discount_type === "percentage") {
+        // Support both "percent" and "percentage" for compatibility
+        if (o.discount_type === "percent" || o.discount_type === "percentage") {
           // Percentage discount: calculate actual amount from subtotal
           const subtotal = Number(o.subtotal);
           return sum + (subtotal * discountValue / 100);

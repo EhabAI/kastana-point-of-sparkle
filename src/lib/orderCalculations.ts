@@ -63,12 +63,14 @@ export function calculateOrderTotals(input: OrderTotalsInput): OrderTotalsResult
   } = input;
 
   // Step 1: Calculate discount amount (applied on subtotal only)
+  // Support both "percent"/"percentage" for compatibility
   let discountAmount = 0;
-  if (discountValue && discountValue > 0) {
-    if (discountType === "percentage") {
-      discountAmount = (subtotal * discountValue) / 100;
+  if (discountValue && Number(discountValue) > 0) {
+    const numValue = Number(discountValue);
+    if (discountType === "percent" || discountType === "percentage") {
+      discountAmount = subtotal * (numValue / 100);
     } else {
-      discountAmount = discountValue;
+      discountAmount = numValue;
     }
   }
   
