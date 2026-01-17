@@ -72,9 +72,11 @@ export function PaymentDialog({
 
   // Market-standard split payment UX:
   // - committedPayments: always amount > 0
-  // - draftPayment: single input row, can be empty/0, NOT included in calculations/submission
+  // - draftPayment: single input row, ONLY visible in split mode
+  // - splitMode: tracks whether user explicitly clicked "Split Bill"
   const [committedPayments, setCommittedPayments] = useState<PaymentRow[]>([]);
   const [draftPayment, setDraftPayment] = useState<PaymentRow>({ method: "cash", amount: "" });
+  const [splitMode, setSplitMode] = useState(false);
 
   const [keypadState, setKeypadState] = useState<{
     open: boolean;
@@ -150,9 +152,10 @@ export function PaymentDialog({
   useEffect(() => {
     if (open && enabledMethods.length > 0) {
       const firstMethod = getFirstMethod();
-      // Keep previous behavior: prefill one committed row with the full total
+      // Market standard: ONE payment row with full total, no split mode by default
       setCommittedPayments([{ method: firstMethod, amount: formatJOD(total) }]);
       setDraftPayment({ method: firstMethod, amount: "" });
+      setSplitMode(false);
     }
 
     if (open) {
@@ -163,6 +166,7 @@ export function PaymentDialog({
     if (!open) {
       setCommittedPayments([]);
       setDraftPayment({ method: getFirstMethod(), amount: "" });
+      setSplitMode(false);
     }
   }, [open, total, enabledMethods.length]);
 
@@ -206,12 +210,14 @@ export function PaymentDialog({
   const resetState = () => {
     setCommittedPayments([]);
     setDraftPayment({ method: getFirstMethod(), amount: "" });
+    setSplitMode(false);
     setIsSubmitting(false);
     submitRef.current = false;
   };
 
-  // Split bill starts fresh (committed list cleared, draft remains as the single input row)
+  // Split bill: enable split mode and clear to allow multiple payment entries
   const handleSplitBill = () => {
+    setSplitMode(true);
     setCommittedPayments([]);
     setDraftPayment({ method: getFirstMethod(), amount: "" });
   };
@@ -407,107 +413,109 @@ export function PaymentDialog({
                 );
               })}
 
-              {/* Draft row (input only, never removable, not counted until committed) */}
-              <div className="space-y-1.5 p-2 border rounded-md bg-background">
-                <div className="flex items-center gap-1.5">
-                  <Select
-                    value={draftPayment.method}
-                    onValueChange={(value) => setDraftPayment((p) => ({ ...p, method: value }))}
-                  >
-                    <SelectTrigger className="w-[120px] h-9 text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {enabledMethods.map((method) => {
-                        const Icon = methodIcons[method.id] || CreditCard;
-                        return (
-                          <SelectItem key={method.id} value={method.id}>
-                            <div className="flex items-center gap-2">
-                              <Icon className="h-4 w-4" />
-                              {method.label}
-                            </div>
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+              {/* Draft row - ONLY visible in split mode */}
+              {splitMode && (
+                <div className="space-y-1.5 p-2 border rounded-md bg-background border-dashed">
+                  <div className="flex items-center gap-1.5">
+                    <Select
+                      value={draftPayment.method}
+                      onValueChange={(value) => setDraftPayment((p) => ({ ...p, method: value }))}
+                    >
+                      <SelectTrigger className="w-[120px] h-9 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {enabledMethods.map((method) => {
+                          const Icon = methodIcons[method.id] || CreditCard;
+                          return (
+                            <SelectItem key={method.id} value={method.id}>
+                              <div className="flex items-center gap-2">
+                                <Icon className="h-4 w-4" />
+                                {method.label}
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
 
-                  <div className="relative flex-1">
-                    <Input
-                      type="number"
-                      step="0.001"
-                      min="0"
-                      placeholder="0.000"
-                      value={draftPayment.amount}
-                      onChange={(e) => setDraftPayment((p) => ({ ...p, amount: e.target.value }))}
-                      onBlur={() => commitDraftRow()}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") commitDraftRow();
-                      }}
-                      className="h-9 text-base pr-12"
-                    />
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                      {currency}
-                    </span>
-                  </div>
+                    <div className="relative flex-1">
+                      <Input
+                        type="number"
+                        step="0.001"
+                        min="0"
+                        placeholder="0.000"
+                        value={draftPayment.amount}
+                        onChange={(e) => setDraftPayment((p) => ({ ...p, amount: e.target.value }))}
+                        onBlur={() => commitDraftRow()}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") commitDraftRow();
+                        }}
+                        className="h-9 text-base pr-12"
+                      />
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                        {currency}
+                      </span>
+                    </div>
 
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-9 w-9"
-                    onClick={() => setKeypadState({ open: true, target: "draft", index: 0 })}
-                    title="Enter amount"
-                  >
-                    <Hash className="h-4 w-4" />
-                  </Button>
-
-                  {/* Fill remaining into the draft row */}
-                  {diff < -0.001 && (
                     <Button
                       variant="outline"
-                      size="sm"
-                      onClick={fillRemainingIntoDraft}
-                      className="h-9 px-2 text-xs whitespace-nowrap"
-                      title={t("fill_remaining")}
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={() => setKeypadState({ open: true, target: "draft", index: 0 })}
+                      title="Enter amount"
                     >
-                      {t("fill")}
+                      <Hash className="h-4 w-4" />
                     </Button>
-                  )}
-                </div>
 
-                {/* Quick cash denominations for draft cash entry */}
-                {draftPayment.method === "cash" && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {cashDenominations.map((denom) => (
+                    {/* Fill remaining into the draft row */}
+                    {diff < -0.001 && (
                       <Button
-                        key={denom}
                         variant="outline"
                         size="sm"
-                        onClick={() => commitDraftRow({ ...draftPayment, amount: formatJOD(denom) })}
-                        className="h-8 min-w-[48px] text-xs"
+                        onClick={fillRemainingIntoDraft}
+                        className="h-9 px-2 text-xs whitespace-nowrap"
+                        title={t("fill_remaining")}
                       >
-                        {denom}
+                        {t("fill")}
                       </Button>
-                    ))}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => commitDraftRow({ ...draftPayment, amount: formatJOD(total) })}
-                      className="h-8 text-xs"
-                    >
-                      {t("exact")}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setDraftPayment((p) => ({ ...p, amount: "" }))}
-                      className="h-8 text-xs"
-                    >
-                      {t("reset")}
-                    </Button>
+                    )}
                   </div>
-                )}
-              </div>
+
+                  {/* Quick cash denominations for draft cash entry */}
+                  {draftPayment.method === "cash" && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {cashDenominations.map((denom) => (
+                        <Button
+                          key={denom}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => commitDraftRow({ ...draftPayment, amount: formatJOD(denom) })}
+                          className="h-8 min-w-[48px] text-xs"
+                        >
+                          {denom}
+                        </Button>
+                      ))}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => commitDraftRow({ ...draftPayment, amount: formatJOD(total) })}
+                        className="h-8 text-xs"
+                      >
+                        {t("exact")}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setDraftPayment((p) => ({ ...p, amount: "" }))}
+                        className="h-8 text-xs"
+                      >
+                        {t("reset")}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Split bill button - starts fresh */}
