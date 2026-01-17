@@ -98,9 +98,10 @@ export function PaymentDialog({
     submitRef.current = true;
     setIsSubmitting(true);
 
+    // Get valid payments and cap them to not exceed remaining
     const payments = splitPayments
       .filter((p) => parseFloat(p.amount) > 0)
-      .map((p) => ({ method: p.method, amount: parseFloat(p.amount) }));
+      .map((p) => ({ method: p.method, amount: Math.min(parseFloat(p.amount), total) }));
     
     if (payments.length === 0) {
       setIsSubmitting(false);
@@ -125,11 +126,11 @@ export function PaymentDialog({
     submitRef.current = false;
   };
 
-  const addPaymentRow = () => {
-    const remaining = roundJOD(total - splitTotal);
+  // Split bill resets everything and starts fresh
+  const handleSplitBill = () => {
     setSplitPayments([
-      ...splitPayments,
-      { method: enabledMethods[0]?.id || "cash", amount: remaining > 0 ? formatJOD(remaining) : "" },
+      { method: enabledMethods[0]?.id || "cash", amount: "" },
+      { method: enabledMethods[0]?.id || "cash", amount: "" },
     ]);
   };
 
@@ -183,49 +184,19 @@ export function PaymentDialog({
           <DialogTitle>{t("payment")}</DialogTitle>
           <DialogDescription>
             {t("order_total")}: <span className="font-bold text-foreground text-lg">{formatJOD(total)} {currency}</span>
+            {remaining > 0.001 && (
+              <span className="mx-2">•</span>
+            )}
+            {remaining > 0.001 && (
+              <span className="text-amber-600 dark:text-amber-400 font-semibold">
+                {t("remaining")}: {formatJOD(remaining)} {currency}
+              </span>
+            )}
           </DialogDescription>
         </DialogHeader>
 
         <DialogBody>
           <div className="space-y-3 py-2">
-            {/* Compact status row */}
-            <div
-              className={cn(
-                "px-3 py-2 rounded-md flex items-center justify-between",
-                isExactMatch
-                  ? "bg-green-500/10 border border-green-500/30"
-                  : hasOverpayment && allPaymentsCash
-                    ? "bg-blue-500/10 border border-blue-500/30"
-                    : hasOverpayment
-                      ? "bg-destructive/10 border border-destructive/30"
-                      : "bg-muted",
-              )}
-            >
-              <span className="text-sm text-muted-foreground">
-                {isExactMatch
-                  ? t("payment_complete")
-                  : hasOverpayment && allPaymentsCash
-                    ? t("change_to_give")
-                    : hasOverpayment
-                      ? t("card_must_be_exact")
-                      : t("remaining_to_pay")}
-              </span>
-              <span
-                className={cn(
-                  "text-lg font-bold",
-                  isExactMatch
-                    ? "text-green-600"
-                    : hasOverpayment && allPaymentsCash
-                      ? "text-blue-600"
-                      : hasOverpayment
-                        ? "text-destructive"
-                        : "text-foreground",
-                )}
-              >
-                {formatJOD(Math.abs(remaining))} {currency}
-              </span>
-            </div>
-
             {/* Payment rows */}
             <div className="space-y-2">
               {splitPayments.map((payment, index) => {
@@ -348,16 +319,24 @@ export function PaymentDialog({
               })}
             </div>
 
-            {/* Add payment row button */}
+            {/* Split bill button - resets everything */}
             <Button
               variant="outline"
               className="w-full h-9"
-              onClick={addPaymentRow}
+              onClick={handleSplitBill}
               disabled={isSubmitting}
             >
               <Plus className="h-4 w-4 mr-1.5" />
               {t("split_bill")}
             </Button>
+
+            {/* Change display for cash overpayment */}
+            {hasOverpayment && allPaymentsCash && (
+              <div className="px-3 py-2 rounded-md bg-blue-500/10 border border-blue-500/30 flex items-center justify-between">
+                <span className="text-sm text-blue-600 dark:text-blue-400">{t("change_to_give")}</span>
+                <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{formatJOD(changeAmount)} {currency}</span>
+              </div>
+            )}
           </div>
         </DialogBody>
 
