@@ -1634,4 +1634,23 @@ export default {
   search_by_order_number: "Search by order number...",
   all: "All",
   no_orders_match_filter: "No orders match your filter",
+
+  // Daily Summary Card
+  daily_summary_title: "Today's Summary",
+  daily_summary_operational_activity: "Operational Activity",
+  daily_summary_orders_count: "Orders Count",
+  daily_summary_refunded_orders_count: "Refunded Orders Count",
+  daily_summary_top_seller: "Top Selling Item",
+  daily_summary_sales: "Sales",
+  daily_summary_sales_tooltip: "Total value of all orders before discounts or refunds.",
+  daily_summary_gross_sales: "Gross Sales",
+  daily_summary_refunds: "Refunds",
+  daily_summary_refund_count: "Refund Count",
+  daily_summary_refund_total: "Total Refunded",
+  daily_summary_top_refund_reason: "Most Common Refund Reason",
+  daily_summary_revenue: "Today's Revenue",
+  daily_summary_revenue_formula: "Revenue = Total Payments − Total Refunds",
+  daily_summary_net_revenue: "Net Revenue",
+  daily_summary_zero_revenue_explanation: "No net revenue recorded today because all payments were refunded.",
+  daily_summary_unspecified: "Unspecified",
 } as const;
