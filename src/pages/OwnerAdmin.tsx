@@ -75,7 +75,7 @@ import { DailySummaryCard } from "@/components/owner/DailySummaryCard";
 import { SuggestedNextAction } from "@/components/owner/SuggestedNextAction";
 import { MistakePatternDetector } from "@/components/owner/MistakePatternDetector";
 
-import { TodayIncomeCard } from "@/components/owner/TodayIncomeCard";
+
 import { ItemsWithoutRecipesCard } from "@/components/owner/ItemsWithoutRecipesCard";
 import { RefundVoidReasonsCard } from "@/components/owner/RefundVoidReasonsCard";
 import { InventoryRiskCard } from "@/components/owner/InventoryRiskCard";
@@ -227,9 +227,8 @@ export default function OwnerAdmin() {
             {role === "owner" && (
               <div className="space-y-3">
                 <DailySummaryCard restaurantId={restaurant.id} currency={currency} />
-                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
                   <SuggestedNextAction restaurantId={restaurant.id} />
-                  <TodayIncomeCard restaurantId={restaurant.id} currency={currency} />
                   <ItemsWithoutRecipesCard restaurantId={restaurant.id} />
                 </div>
                 {/* Insight Cards Row */}
