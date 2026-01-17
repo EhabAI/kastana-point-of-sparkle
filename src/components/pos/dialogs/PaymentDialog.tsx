@@ -184,7 +184,7 @@ export function PaymentDialog({
           <DialogTitle>{t("payment")}</DialogTitle>
           <DialogDescription className="flex items-center gap-2 flex-wrap">
             <span>{t("order_total")}:</span>
-            <span className="font-semibold text-foreground">{formatJOD(total)} {currency}</span>
+            <span className="font-semibold text-primary">{formatJOD(total)} {currency}</span>
             {remaining > 0.001 && (
               <>
                 <span className="text-muted-foreground">•</span>
