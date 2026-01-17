@@ -754,6 +754,7 @@ export default {
   change_to_give: "Change to Give",
   card_must_be_exact: "Card payments must be exact",
   add_payment_method: "Add Payment Method",
+  split_bill: "Split Bill",
   complete_payment: "Complete Payment",
   payment_failed: "Payment failed",
   payment_success: "Payment complete",

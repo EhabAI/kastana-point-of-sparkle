@@ -754,6 +754,7 @@ export default {
   change_to_give: "المبلغ المتبقي للعميل",
   card_must_be_exact: "يجب أن تكون مدفوعات البطاقة بالضبط",
   add_payment_method: "إضافة طريقة دفع",
+  split_bill: "تقسيم الفاتورة",
   complete_payment: "إتمام الدفع",
   payment_failed: "فشل الدفع",
   payment_success: "تم الدفع بنجاح",

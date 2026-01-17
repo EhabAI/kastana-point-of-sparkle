@@ -178,7 +178,7 @@ export function PaymentDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!isSubmitting) { onOpenChange(o); if (!o) resetState(); } }}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{t("payment")}</DialogTitle>
           <DialogDescription>
@@ -368,7 +368,7 @@ export function PaymentDialog({
               disabled={isSubmitting}
             >
               <Plus className="h-5 w-5 mr-2" />
-              {t("add_payment_method")}
+              {t("split_bill")}
             </Button>
           </div>
         </DialogBody>
