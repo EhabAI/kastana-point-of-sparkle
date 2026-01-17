@@ -134,7 +134,9 @@ export function useRemoveOrderItem() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["current-order"] });
+      // Use partial matching to invalidate all current-order queries regardless of shiftId
+      queryClient.invalidateQueries({ queryKey: ["current-order"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["open-orders"], exact: false });
     },
   });
 }
