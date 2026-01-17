@@ -7,6 +7,7 @@ interface MenuItem {
   price: number;
   is_offer: boolean;
   is_available: boolean;
+  is_favorite?: boolean;
   promo_price?: number | null;
   promo_label?: string | null;
   category_name?: string;
@@ -16,6 +17,7 @@ interface MenuItemGridProps {
   items: MenuItem[];
   currency: string;
   onSelectItem: (item: MenuItem) => void;
+  onToggleFavorite?: (itemId: string, isFavorite: boolean) => void;
   isLoading?: boolean;
   showCategoryName?: boolean;
 }
@@ -24,6 +26,7 @@ export function MenuItemGrid({
   items,
   currency,
   onSelectItem,
+  onToggleFavorite,
   isLoading,
   showCategoryName = false,
 }: MenuItemGridProps) {
@@ -52,6 +55,7 @@ export function MenuItemGrid({
             item={item}
             currency={currency}
             onSelect={onSelectItem}
+            onToggleFavorite={onToggleFavorite}
             showCategoryName={showCategoryName}
           />
         ))}
