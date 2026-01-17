@@ -1597,4 +1597,9 @@ export default {
   missing_arabic_name: "Missing Arabic name",
   missing_arabic_name_warning: "Item will not appear in Arabic POS search",
   missing_arabic_name_tooltip: "To make this item searchable in Arabic, add an Arabic name in the description field.",
+  
+  // Recent Orders Search/Filter
+  search_by_order_number: "Search by order number...",
+  all: "All",
+  no_orders_match_filter: "No orders match your filter",
 } as const;

@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -5,10 +6,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Receipt, Undo2, RotateCcw } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { FileText, Receipt, Undo2, RotateCcw, Search, X } from "lucide-react";
 import { format } from "date-fns";
 import { formatJOD } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -59,6 +60,8 @@ interface RecentOrdersDialogProps {
   onReopen?: (order: RecentOrder) => void;
 }
 
+type StatusFilter = "all" | "paid" | "refunded";
+
 export function RecentOrdersDialog({
   open,
   onOpenChange,
@@ -69,6 +72,31 @@ export function RecentOrdersDialog({
   onReopen,
 }: RecentOrdersDialogProps) {
   const { t } = useLanguage();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+
+  // Reset filters when dialog closes
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      setSearchQuery("");
+      setStatusFilter("all");
+    }
+    onOpenChange(isOpen);
+  };
+
+  // Filter orders based on search and status
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
+      // Search filter - match order number
+      const matchesSearch = searchQuery === "" || 
+        order.order_number.toString().includes(searchQuery);
+      
+      // Status filter
+      const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [orders, searchQuery, statusFilter]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -93,9 +121,15 @@ export function RecentOrdersDialog({
     return totalRefunded < Number(order.total);
   };
 
+  const statusFilters: { value: StatusFilter; label: string }[] = [
+    { value: "all", label: t("all") },
+    { value: "paid", label: t("paid") },
+    { value: "refunded", label: t("refunded") },
+  ];
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[75vh] flex flex-col overflow-hidden">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-2xl max-h-[80vh] flex flex-col overflow-hidden">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
@@ -106,14 +140,65 @@ export function RecentOrdersDialog({
           </DialogDescription>
         </DialogHeader>
 
+        {/* Search and Filter Bar */}
+        <div className="flex-shrink-0 flex flex-col sm:flex-row gap-3 pb-3 border-b">
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t("search_by_order_number")}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-9"
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                onClick={() => setSearchQuery("")}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+
+          {/* Status Filter Buttons */}
+          <div className="flex gap-1">
+            {statusFilters.map((filter) => (
+              <Button
+                key={filter.value}
+                variant={statusFilter === filter.value ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter(filter.value)}
+                className="h-9"
+              >
+                {filter.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Results Count */}
+        {orders.length > 0 && (
+          <div className="flex-shrink-0 text-sm text-muted-foreground py-2">
+            {t("showing")} {filteredOrders.length} {t("of")} {orders.length} {t("orders")}
+          </div>
+        )}
+
+        {/* Orders List */}
         <div className="flex-1 min-h-0 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
           {orders.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {t("no_completed_orders")}
             </div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              {t("no_orders_match_filter")}
+            </div>
           ) : (
             <div className="space-y-4">
-              {orders.map((order) => (
+              {filteredOrders.map((order) => (
                 <div key={order.id} className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
