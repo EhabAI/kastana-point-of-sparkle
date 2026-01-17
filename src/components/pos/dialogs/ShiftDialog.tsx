@@ -21,6 +21,7 @@ interface ShiftDialogProps {
   onConfirm: (amount: number) => void;
   isLoading?: boolean;
   expectedCash?: number;
+  isExpectedCashLoading?: boolean;
   currency?: string;
 }
 
@@ -31,6 +32,7 @@ export function ShiftDialog({
   onConfirm,
   isLoading,
   expectedCash,
+  isExpectedCashLoading,
   currency = "JOD",
 }: ShiftDialogProps) {
   const { t } = useLanguage();
@@ -74,11 +76,17 @@ export function ShiftDialog({
             </div>
           )}
 
-          {mode === "close" && expectedCash !== undefined && (
+          {mode === "close" && (
             <>
               <div className="p-3 bg-muted rounded-lg">
                 <p className="text-sm text-muted-foreground">{t("expected_cash")}</p>
-                <p className="text-lg font-bold">{formatJOD(expectedCash)} {currency}</p>
+                {isExpectedCashLoading ? (
+                  <p className="text-lg font-bold text-muted-foreground">{t("calculating_expected_cash")}</p>
+                ) : expectedCash !== undefined ? (
+                  <p className="text-lg font-bold">{formatJOD(expectedCash)} {currency}</p>
+                ) : (
+                  <p className="text-lg font-bold text-muted-foreground">—</p>
+                )}
               </div>
 
               {/* Cash Difference - Live calculated */}
@@ -140,7 +148,11 @@ export function ShiftDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)} className="h-12">
             {t("cancel")}
           </Button>
-          <Button onClick={handleConfirm} disabled={isLoading || !amount} className="h-12 min-w-[140px]">
+          <Button 
+            onClick={handleConfirm} 
+            disabled={isLoading || !amount || (mode === "close" && isExpectedCashLoading)} 
+            className="h-12 min-w-[140px]"
+          >
             {isLoading ? t("processing") : `${t("confirm")} ${title}`}
           </Button>
         </DialogFooter>
