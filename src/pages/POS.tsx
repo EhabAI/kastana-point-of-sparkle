@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Users, AlertCircle } from "lucide-react";
-import { cn, formatJOD, roundJordanFinal } from "@/lib/utils";
+import { cn, formatJOD } from "@/lib/utils";
+import { calculateOrderTotals, roundJOD } from "@/lib/orderCalculations";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -383,11 +384,6 @@ export default function POS() {
     };
   }, [shiftOpen, activeTab, orderItems.length, currentOrder]);
 
-  // Helper: round to 3 decimals using HALF-UP (JOD standard)
-  const roundJOD = useCallback((n: number): number => {
-    return Math.round(n * 1000) / 1000;
-  }, []);
-
   const subtotal = roundJOD(orderItems.reduce(
     (sum: number, item: { price: number; quantity: number }) => sum + Number(item.price) * item.quantity,
     0,
@@ -395,35 +391,26 @@ export default function POS() {
 
   const calculateTotals = useCallback(
     (sub: number, discType?: string | null, discVal?: number | null) => {
-      let discountAmount = 0;
-      if (discVal && discVal > 0) {
-        discountAmount = discType === "percentage" ? (sub * discVal) / 100 : discVal;
-      }
-
-      // Keep line values stable at JOD precision (3 decimals)
-      const discountAmountRounded = roundJOD(discountAmount);
-      const afterDiscount = sub - discountAmountRounded;
-      const serviceChargeRounded = roundJOD(afterDiscount * serviceChargeRate);
-      const taxAmountRounded = roundJOD((afterDiscount + serviceChargeRounded) * taxRate);
-
-      // Raw total before Jordan rounding
-      const rawTotal = roundJOD(afterDiscount + serviceChargeRounded + taxAmountRounded);
-
-      // Apply Jordan-style final rounding for JOD (silent normalization)
-      // This is the ONLY total used everywhere: display, payment, receipt, stored
-      const finalTotal = currency === "JOD" ? roundJordanFinal(rawTotal) : rawTotal;
+      const result = calculateOrderTotals({
+        subtotal: sub,
+        discountType: discType,
+        discountValue: discVal,
+        serviceChargeRate,
+        taxRate,
+        currency,
+      });
 
       return {
-        discountAmount: discountAmountRounded,
-        serviceCharge: serviceChargeRounded,
-        taxAmount: taxAmountRounded,
-        rawTotal,
-        payableTotal: finalTotal,
-        roundingAdjustment: 0, // No longer tracked separately
-        total: finalTotal,
+        discountAmount: result.discountAmount,
+        serviceCharge: result.serviceCharge,
+        taxAmount: result.taxAmount,
+        rawTotal: result.totalBeforeRounding,
+        payableTotal: result.total,
+        roundingAdjustment: 0,
+        total: result.total,
       };
     },
-    [serviceChargeRate, taxRate, roundJOD, currency],
+    [serviceChargeRate, taxRate, currency],
   );
 
   const { discountAmount, serviceCharge, taxAmount, total, rawTotal, payableTotal, roundingAdjustment } = calculateTotals(
@@ -817,16 +804,21 @@ export default function POS() {
 
   const handleApplyDiscount = async (type: "percentage" | "fixed", value: number) => {
     if (!currentOrder) return;
+    
+    // Validate order status - only allow discount on open orders
+    if (currentOrder.status !== "open") {
+      toast.error(t("failed_apply_discount"));
+      return;
+    }
+    
     try {
-      const totals = calculateTotals(subtotal, type, value);
+      // Only update discount_type and discount_value
+      // All totals are recalculated automatically from subtotal
       await updateOrderMutation.mutateAsync({
         orderId: currentOrder.id,
         updates: {
           discount_type: type,
           discount_value: value,
-          tax_amount: totals.taxAmount,
-          service_charge: totals.serviceCharge,
-          total: totals.total,
         },
       });
       toast.success(t("discount_applied"));
@@ -838,15 +830,13 @@ export default function POS() {
   const handleClearDiscount = async () => {
     if (!currentOrder) return;
     try {
-      const totals = calculateTotals(subtotal, null, null);
+      // Only clear discount_type and discount_value
+      // All totals are recalculated automatically from subtotal
       await updateOrderMutation.mutateAsync({
         orderId: currentOrder.id,
         updates: {
           discount_type: null,
           discount_value: null,
-          tax_amount: totals.taxAmount,
-          service_charge: totals.serviceCharge,
-          total: totals.total,
         },
       });
       toast.success(t("discount_removed"));
