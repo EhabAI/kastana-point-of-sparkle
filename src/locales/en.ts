@@ -605,6 +605,7 @@ export default {
   table_active: "Active",
   table_held: "Held",
   merged: "Merged",
+  merge_tables: "Merge tables",
 
   // Restaurant settings
   restaurant_settings: "Restaurant Settings",

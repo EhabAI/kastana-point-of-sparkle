@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { Users, AlertCircle, Combine } from "lucide-react";
+import { Users, AlertCircle } from "lucide-react";
 import { cn, formatJOD } from "@/lib/utils";
 import { calculateOrderTotals, roundJOD } from "@/lib/orderCalculations";
 import { useAuth } from "@/contexts/AuthContext";
@@ -2032,40 +2032,20 @@ export default function POS() {
                     const isOccupied = tableStatus !== "free";
 
                     return (
-                      <div key={table.id} className="relative">
-                        <TableCard
-                          tableName={table.table_name}
-                          capacity={table.capacity || 4}
-                          tableStatus={tableStatus}
-                          orderNumber={order?.order_number}
-                          orderCount={orderCount}
-                          orderCreatedAt={oldestOrderCreatedAt}
-                          onClick={() => handleTableClick(table.id)}
-                          disabled={createOrderMutation.isPending || resumeOrderMutation.isPending || mergeOrdersMutation.isPending}
-                          selected={isSelected}
-                        />
-                        {/* Merge button for occupied tables when not in merge mode */}
-                        {isOccupied && mergeSelection.length === 0 && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleStartMerge(table.id);
-                                  }}
-                                  className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-violet-500 text-white text-xs font-bold flex items-center justify-center hover:bg-violet-600 shadow-md"
-                                >
-                                  <Combine className="h-3.5 w-3.5" />
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="text-xs">
-                                {t("merge_with_another")}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
-                      </div>
+                      <TableCard
+                        key={table.id}
+                        tableName={table.table_name}
+                        capacity={table.capacity || 4}
+                        tableStatus={tableStatus}
+                        orderNumber={order?.order_number}
+                        orderCount={orderCount}
+                        orderCreatedAt={oldestOrderCreatedAt}
+                        onClick={() => handleTableClick(table.id)}
+                        disabled={createOrderMutation.isPending || resumeOrderMutation.isPending || mergeOrdersMutation.isPending}
+                        selected={isSelected}
+                        showMergeButton={isOccupied && mergeSelection.length === 0}
+                        onMergeClick={() => handleStartMerge(table.id)}
+                      />
                     );
                   })}
                 </div>
