@@ -91,7 +91,6 @@ import {
   ReceiptDialog,
   RefundDialog,
   VoidItemDialog,
-  ConfirmRemoveLastItemDialog,
   ReopenOrderDialog,
   TransferItemDialog,
   ConfirmNewOrderDialog,
@@ -222,11 +221,6 @@ export default function POS() {
   const [selectedOrderForReceipt, setSelectedOrderForReceipt] = useState<RecentOrder | null>(null);
   const [refundDialogOpen, setRefundDialogOpen] = useState(false);
   const [selectedOrderForRefund, setSelectedOrderForRefund] = useState<RecentOrder | null>(null);
-  const [removeLastItemDialogOpen, setRemoveLastItemDialogOpen] = useState(false);
-  const [selectedItemForRemoval, setSelectedItemForRemoval] = useState<{
-    id: string;
-    name: string;
-  } | null>(null);
   const [reopenDialogOpen, setReopenDialogOpen] = useState(false);
   const [selectedOrderForReopen, setSelectedOrderForReopen] = useState<RecentOrder | null>(null);
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
@@ -685,44 +679,48 @@ export default function POS() {
       console.error("handleRemoveItem: No current order");
       return;
     }
-    
+
     if (!itemId) {
       console.error("handleRemoveItem: No item ID provided");
       return;
     }
 
-    // Check if this is the last non-voided item
-    const activeItems = currentOrder.order_items?.filter((i: { voided: boolean }) => !i.voided) || [];
-    
-    if (activeItems.length === 1) {
-      // Find the item being removed (should be the same as activeItems[0] when only 1 item)
-      const item = activeItems.find((i: { id: string }) => i.id === itemId) || activeItems[0];
-      setSelectedItemForRemoval({ id: item.id, name: item.name });
-      setRemoveLastItemDialogOpen(true);
-      return;
-    }
-    
+    // Optimistic UI: remove immediately from cache so the list + totals re-render instantly
+    queryClient.setQueriesData(
+      { queryKey: ["current-order"], exact: false },
+      (old: any) => {
+        if (!old) return old;
+        const oldItems = Array.isArray(old.order_items) ? old.order_items : [];
+        return {
+          ...old,
+          order_items: oldItems.filter((i: any) => i.id !== itemId),
+        };
+      }
+    );
+
     try {
       await removeItemMutation.mutateAsync(itemId);
-      
-      // Recalculate totals from remaining items (including modifiers)
-      const remainingItems = activeItems.filter(
-        (item: { id: string }) => item.id !== itemId
+
+      // Recalculate totals (note: item.price already includes modifiers in this POS)
+      const remainingActiveItems =
+        currentOrder.order_items?.filter(
+          (i: { id: string; voided: boolean }) => !i.voided && i.id !== itemId
+        ) || [];
+
+      const newSubtotal = roundJOD(
+        remainingActiveItems.reduce(
+          (sum: number, item: { price: number; quantity: number }) =>
+            sum + Number(item.price) * item.quantity,
+          0
+        )
       );
-      
-      // Calculate new subtotal including modifiers
-      const newSubtotal = roundJOD(remainingItems.reduce(
-        (sum: number, item: { price: number; quantity: number; order_item_modifiers?: { price_adjustment: number }[] }) => {
-          const itemPrice = Number(item.price);
-          const modifiersTotal = (item.order_item_modifiers || []).reduce(
-            (modSum: number, mod: { price_adjustment: number }) => modSum + Number(mod.price_adjustment), 0
-          );
-          return sum + (itemPrice + modifiersTotal) * item.quantity;
-        }, 0
-      ));
-      
-      const totals = calculateTotals(newSubtotal, currentOrder.discount_type, currentOrder.discount_value);
-      
+
+      const totals = calculateTotals(
+        newSubtotal,
+        currentOrder.discount_type,
+        currentOrder.discount_value
+      );
+
       await updateOrderMutation.mutateAsync({
         orderId: currentOrder.id,
         updates: {
@@ -732,37 +730,20 @@ export default function POS() {
           total: totals.total,
         },
       });
-      
+
+      // Ensure server truth sync
+      queryClient.invalidateQueries({ queryKey: ["current-order"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["open-orders"], exact: false });
       await refetchOrder();
     } catch (error) {
       console.error("handleRemoveItem error:", error);
+      // Roll back by refetching from server
+      queryClient.invalidateQueries({ queryKey: ["current-order"], exact: false });
+      await refetchOrder();
       toast.error(t("failed_remove_item"));
     }
   };
 
-  const handleConfirmRemoveLastItem = async () => {
-    if (!selectedItemForRemoval || !currentOrder) return;
-    try {
-      await removeItemMutation.mutateAsync(selectedItemForRemoval.id);
-      
-      // All items removed, set totals to zero
-      await updateOrderMutation.mutateAsync({
-        orderId: currentOrder.id,
-        updates: {
-          subtotal: 0,
-          tax_amount: 0,
-          service_charge: 0,
-          total: 0,
-        },
-      });
-      
-      await refetchOrder();
-      setRemoveLastItemDialogOpen(false);
-      setSelectedItemForRemoval(null);
-    } catch (error) {
-      toast.error(t("failed_remove_item"));
-    }
-  };
 
   const handleVoidItem = (itemId: string) => {
     // Only allow void on open orders
@@ -2169,18 +2150,6 @@ export default function POS() {
         isLoading={voidOrderMutation.isPending}
       />
 
-      {selectedItemForRemoval && (
-        <ConfirmRemoveLastItemDialog
-          open={removeLastItemDialogOpen}
-          onOpenChange={(open) => {
-            setRemoveLastItemDialogOpen(open);
-            if (!open) setSelectedItemForRemoval(null);
-          }}
-          itemName={selectedItemForRemoval.name}
-          onConfirm={handleConfirmRemoveLastItem}
-          isLoading={removeItemMutation.isPending}
-        />
-      )}
 
       <CashMovementDialog
         open={cashMovementDialogOpen}
