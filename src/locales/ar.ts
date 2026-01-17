@@ -1639,4 +1639,23 @@ export default {
   search_by_order_number: "بحث برقم الطلب...",
   all: "الكل",
   no_orders_match_filter: "لا توجد طلبات تطابق الفلتر",
+
+  // Daily Summary Card
+  daily_summary_title: "ملخص اليوم",
+  daily_summary_operational_activity: "النشاط التشغيلي",
+  daily_summary_orders_count: "عدد الطلبات",
+  daily_summary_refunded_orders_count: "عدد الطلبات المستردة",
+  daily_summary_top_seller: "أكثر صنف مبيعًا",
+  daily_summary_sales: "المبيعات",
+  daily_summary_sales_tooltip: "إجمالي قيمة جميع الطلبات قبل الخصومات أو الاستردادات.",
+  daily_summary_gross_sales: "إجمالي المبيعات",
+  daily_summary_refunds: "الاستردادات",
+  daily_summary_refund_count: "عدد الاستردادات",
+  daily_summary_refund_total: "إجمالي المسترد",
+  daily_summary_top_refund_reason: "سبب الاسترداد الأكثر تكرارًا",
+  daily_summary_revenue: "إيرادات اليوم",
+  daily_summary_revenue_formula: "الإيرادات = إجمالي المدفوعات − إجمالي الاستردادات",
+  daily_summary_net_revenue: "صافي الإيرادات",
+  daily_summary_zero_revenue_explanation: "لم يتم تسجيل إيرادات صافية اليوم بسبب استرداد جميع المدفوعات.",
+  daily_summary_unspecified: "غير محدد",
 } as const;

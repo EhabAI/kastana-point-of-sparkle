@@ -20,6 +20,10 @@ import {
   Info,
   AlertCircle
 } from "lucide-react";
+import en from "@/locales/en";
+import ar from "@/locales/ar";
+
+const translations = { en, ar } as const;
 
 interface DailySummaryCardProps {
   restaurantId: string;
@@ -28,6 +32,7 @@ interface DailySummaryCardProps {
 
 export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummaryCardProps) {
   const { language } = useLanguage();
+  const t = translations[language as keyof typeof translations] || translations.en;
   
   const today = new Date();
   
@@ -83,7 +88,7 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
       
       // Top refund reason
       const refundReasons = todayRefunds?.reduce((acc, r) => {
-        const reason = r.reason || "غير محدد";
+        const reason = r.reason || t.daily_summary_unspecified;
         acc[reason] = (acc[reason] || 0) + 1;
         return acc;
       }, {} as Record<string, number>) || {};
@@ -128,7 +133,7 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Calendar className="h-4 w-4 text-primary" />
-            ملخص اليوم
+            {t.daily_summary_title}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -157,7 +162,7 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             <Calendar className="h-4 w-4 text-primary" />
-            ملخص اليوم
+            {t.daily_summary_title}
           </CardTitle>
           <span className="text-xs text-muted-foreground">
             {format(today, language === "ar" ? "d MMMM yyyy" : "MMMM d, yyyy")}
@@ -165,23 +170,23 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Section 1: النشاط التشغيلي */}
+        {/* Section 1: Operational Activity */}
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-sm font-medium text-primary">
             <ClipboardList className="h-4 w-4" />
-            النشاط التشغيلي
+            {t.daily_summary_operational_activity}
           </div>
           <div className="space-y-1.5 text-sm ltr:pl-6 rtl:pr-6">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">عدد الطلبات:</span>
+              <span className="text-muted-foreground">{t.daily_summary_orders_count}:</span>
               <span className="font-medium">{summary.ordersCount}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">عدد الطلبات المستردة:</span>
+              <span className="text-muted-foreground">{t.daily_summary_refunded_orders_count}:</span>
               <span className="font-medium">{summary.refundedOrdersCount}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">أكثر صنف مبيعًا:</span>
+              <span className="text-muted-foreground">{t.daily_summary_top_seller}:</span>
               <span className="font-medium">{summary.topSellerName || "—"}</span>
             </div>
           </div>
@@ -189,25 +194,25 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
         
         <Separator />
         
-        {/* Section 2: المبيعات */}
+        {/* Section 2: Sales */}
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-sm font-medium text-primary">
             <DollarSign className="h-4 w-4" />
-            المبيعات
+            {t.daily_summary_sales}
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-xs">
-                  <p className="text-xs">إجمالي قيمة جميع الطلبات قبل الخصومات أو الاستردادات.</p>
+                  <p className="text-xs">{t.daily_summary_sales_tooltip}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
           <div className="ltr:pl-6 rtl:pr-6">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">إجمالي المبيعات:</span>
+              <span className="text-muted-foreground">{t.daily_summary_gross_sales}:</span>
               <span className="font-medium">{formatJOD(summary.grossSales)} {currency}</span>
             </div>
           </div>
@@ -215,23 +220,23 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
         
         <Separator />
         
-        {/* Section 3: الاستردادات */}
+        {/* Section 3: Refunds */}
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-sm font-medium text-primary">
             <RotateCcw className="h-4 w-4" />
-            الاستردادات
+            {t.daily_summary_refunds}
           </div>
           <div className="space-y-1.5 text-sm ltr:pl-6 rtl:pr-6">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">عدد الاستردادات:</span>
+              <span className="text-muted-foreground">{t.daily_summary_refund_count}:</span>
               <span className="font-medium">{summary.refundCount}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">إجمالي المسترد:</span>
+              <span className="text-muted-foreground">{t.daily_summary_refund_total}:</span>
               <span className="font-medium">{formatJOD(summary.refundTotal)} {currency}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">سبب الاسترداد الأكثر تكرارًا:</span>
+              <span className="text-muted-foreground">{t.daily_summary_top_refund_reason}:</span>
               <span className="font-medium">{summary.topRefundReason || "—"}</span>
             </div>
           </div>
@@ -239,18 +244,18 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
         
         <Separator />
         
-        {/* Section 4: الإيرادات */}
+        {/* Section 4: Revenue */}
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-sm font-medium text-primary">
             <Wallet className="h-4 w-4" />
-            إيرادات اليوم
+            {t.daily_summary_revenue}
           </div>
           <div className="ltr:pl-6 rtl:pr-6 space-y-2">
             <p className="text-xs text-muted-foreground">
-              الإيرادات = إجمالي المدفوعات − إجمالي الاستردادات
+              {t.daily_summary_revenue_formula}
             </p>
             <div className="flex justify-between items-center">
-              <span className="text-muted-foreground text-sm">صافي الإيرادات:</span>
+              <span className="text-muted-foreground text-sm">{t.daily_summary_net_revenue}:</span>
               <span className={`text-lg font-bold ${getRevenueColor()}`}>
                 {summary.netRevenue < 0 ? "-" : ""}{formatJOD(Math.abs(summary.netRevenue))} {currency}
               </span>
@@ -263,7 +268,7 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
           <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg border border-muted">
             <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
             <p className="text-xs text-muted-foreground">
-              لم يتم تسجيل إيرادات صافية اليوم بسبب استرداد جميع المدفوعات.
+              {t.daily_summary_zero_revenue_explanation}
             </p>
           </div>
         )}
