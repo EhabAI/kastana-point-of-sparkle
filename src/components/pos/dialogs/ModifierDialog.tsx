@@ -44,6 +44,24 @@ export function ModifierDialog({
   const { t } = useLanguage();
   // Track selected options per group: { groupId: [optionId, ...] }
   const [selections, setSelections] = useState<Record<string, string[]>>({});
+  const [autoSkipped, setAutoSkipped] = useState(false);
+
+  // Auto-skip dialog if no modifiers are available - for faster POS workflow
+  useEffect(() => {
+    if (open && menuItem && modifierGroups.length === 0 && !isLoading && !autoSkipped) {
+      // Auto-add item without showing dialog
+      onConfirm(menuItem, []);
+      onOpenChange(false);
+      setAutoSkipped(true);
+    }
+  }, [open, menuItem, modifierGroups, isLoading, autoSkipped, onConfirm, onOpenChange]);
+
+  // Reset auto-skipped state when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setAutoSkipped(false);
+    }
+  }, [open]);
 
   // Reset selections when dialog opens with a new item
   useEffect(() => {
