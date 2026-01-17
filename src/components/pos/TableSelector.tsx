@@ -36,29 +36,29 @@ export function TableSelector({
   }
 
   return (
-    <ScrollArea className="h-[300px]">
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2">
+    <ScrollArea className="h-[240px]">
+      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-1.5 p-1.5">
         {tables.map((table) => (
           <button
             key={table.id}
             onClick={() => !table.hasOpenOrder && onSelectTable(table.id)}
             disabled={table.hasOpenOrder}
             className={cn(
-              "flex flex-col items-center justify-center p-4 rounded-lg border transition-all min-h-[80px]",
+              "flex flex-col items-center justify-center px-2 py-2.5 rounded-md border transition-all min-h-[56px]",
               selectedTableId === table.id
                 ? "border-primary bg-primary/10 ring-2 ring-primary"
                 : table.hasOpenOrder
-                ? "border-orange-500/50 bg-orange-500/10 cursor-not-allowed"
+                ? "border-orange-400/40 bg-orange-500/10 cursor-not-allowed opacity-60"
                 : "border-border hover:border-primary hover:bg-primary/5"
             )}
           >
-            <span className="font-bold text-lg">{table.table_name}</span>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-              <Users className="h-3 w-3" />
+            <span className="font-bold text-sm leading-tight">{table.table_name}</span>
+            <div className="flex items-center gap-0.5 text-[10px] text-muted-foreground/70 mt-0.5">
+              <Users className="h-2.5 w-2.5" />
               <span>{table.capacity || 4}</span>
             </div>
             {table.hasOpenOrder && (
-              <span className="text-xs text-orange-600 mt-1 font-medium">{t("busy")}</span>
+              <span className="text-[9px] text-orange-600 font-medium leading-tight">{t("busy")}</span>
             )}
           </button>
         ))}
