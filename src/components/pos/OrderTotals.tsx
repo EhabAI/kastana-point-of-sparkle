@@ -75,10 +75,14 @@ export function OrderTotals({
         <span>{formatJOD(taxAmount)} {localizedCurrency}</span>
       </div>
 
-      {roundingAdjustment !== 0 && (
+      {/* Cash rounding (5 fils) applies to final total only */}
+      {currency === "JOD" && (
         <div className="flex justify-between text-muted-foreground">
           <span>{t("rounding_adjustment")}</span>
-          <span>{roundingAdjustment > 0 ? "+" : ""}{formatJOD(roundingAdjustment)} {localizedCurrency}</span>
+          <span>
+            {roundingAdjustment > 0 ? "+" : ""}
+            {formatJOD(roundingAdjustment)} {localizedCurrency}
+          </span>
         </div>
       )}
 
