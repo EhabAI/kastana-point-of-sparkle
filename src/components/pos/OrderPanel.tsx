@@ -60,7 +60,6 @@ interface OrderPanelProps {
   shiftOpen: boolean;
   hasRefund?: boolean;
   hasTable?: boolean;
-  roundingAdjustment?: number;
 }
 
 // Parse customer info from order_notes
@@ -110,7 +109,6 @@ export function OrderPanel({
   shiftOpen,
   hasRefund = false,
   hasTable = false,
-  roundingAdjustment = 0,
 }: OrderPanelProps) {
   const { t, language } = useLanguage();
   const activeItems = items.filter((item) => !item.voided);
@@ -221,7 +219,6 @@ export function OrderPanel({
           serviceCharge={serviceCharge}
           total={total}
           currency={currency}
-          roundingAdjustment={roundingAdjustment}
         />
 
         <div className="w-full grid grid-cols-2 gap-2">

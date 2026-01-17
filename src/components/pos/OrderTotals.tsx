@@ -12,7 +12,6 @@ interface OrderTotalsProps {
   total: number;
   currency: string;
   paidAmount?: number;
-  roundingAdjustment?: number;
 }
 
 export function OrderTotals({
@@ -25,7 +24,6 @@ export function OrderTotals({
   total,
   currency,
   paidAmount = 0,
-  roundingAdjustment = 0,
 }: OrderTotalsProps) {
   const { t, language } = useLanguage();
   const hasDiscount = discountValue && discountValue > 0;
@@ -75,16 +73,6 @@ export function OrderTotals({
         <span>{formatJOD(taxAmount)} {localizedCurrency}</span>
       </div>
 
-      {/* Cash rounding (5 fils) applies to final total only */}
-      {currency === "JOD" && (
-        <div className="flex justify-between text-muted-foreground">
-          <span>{t("rounding_adjustment")}</span>
-          <span>
-            {roundingAdjustment > 0 ? "+" : ""}
-            {formatJOD(roundingAdjustment)} {localizedCurrency}
-          </span>
-        </div>
-      )}
 
       <Separator />
 
