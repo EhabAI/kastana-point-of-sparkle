@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Banknote, CreditCard, Wallet, Receipt, Smartphone, Plus, Minus, X, Hash } from "lucide-react";
-import { cn, formatJOD } from "@/lib/utils";
+import { cn, formatJOD, roundUpTo50Fils } from "@/lib/utils";
 import type { PaymentMethodConfig } from "@/hooks/pos/useCashierPaymentMethods";
 import { NumericKeypad } from "../NumericKeypad";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -76,10 +76,24 @@ export function PaymentDialog({
   // Helper: round to 3 decimals using HALF-UP (JOD standard)
   const roundJOD = (n: number): number => Math.round(n * 1000) / 1000;
 
+  // Cash rounding for JOD: round UP to nearest 50 fils (0.05)
+  const getCashPayableTotal = (baseTotal: number): number => {
+    if (currency !== "JOD") return baseTotal;
+    return roundUpTo50Fils(baseTotal);
+  };
+
+  const cashRoundedTotal = getCashPayableTotal(total);
+  const cashRoundingDiff = roundJOD(cashRoundedTotal - total);
+
   // Initialize with first payment row when dialog opens
   useEffect(() => {
     if (open && splitPayments.length === 0 && enabledMethods.length > 0) {
-      setSplitPayments([{ method: enabledMethods[0].id, amount: formatJOD(total) }]);
+      const firstMethod = enabledMethods[0].id;
+      // For cash, use rounded total; for card/wallet, use exact total
+      const initialAmount = firstMethod === "cash" && currency === "JOD" 
+        ? formatJOD(cashRoundedTotal) 
+        : formatJOD(total);
+      setSplitPayments([{ method: firstMethod, amount: initialAmount }]);
     }
     // Reset submitting state when dialog opens
     if (open) {
@@ -141,7 +155,22 @@ export function PaymentDialog({
 
   const updatePaymentMethod = (index: number, method: PaymentMethodId) => {
     const updated = [...splitPayments];
+    const oldMethod = updated[index].method;
     updated[index].method = method;
+    
+    // Auto-adjust amount when switching between cash and non-cash for JOD
+    if (currency === "JOD" && splitPayments.length === 1) {
+      const currentAmount = parseFloat(updated[index].amount) || 0;
+      // If switching TO cash and amount equals exact total, update to rounded
+      if (method === "cash" && oldMethod !== "cash" && Math.abs(currentAmount - total) < 0.001) {
+        updated[index].amount = formatJOD(cashRoundedTotal);
+      }
+      // If switching FROM cash and amount equals rounded total, update to exact
+      else if (method !== "cash" && oldMethod === "cash" && Math.abs(currentAmount - cashRoundedTotal) < 0.001) {
+        updated[index].amount = formatJOD(total);
+      }
+    }
+    
     setSplitPayments(updated);
   };
 
@@ -182,24 +211,33 @@ export function PaymentDialog({
       <DialogContent className="sm:max-w-lg max-h-[90vh] h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{t("payment")}</DialogTitle>
-          <DialogDescription className="flex items-center gap-2 flex-wrap">
-            <span>{t("order_total")}:</span>
-            <span className="font-semibold text-foreground">{formatJOD(total)} {currency}</span>
-            {/* Show change for cash overpayment at the top */}
-            {hasOverpayment && allPaymentsCash && (
-              <>
-                <span className="text-muted-foreground">•</span>
-                <span>{t("change_to_give")}:</span>
-                <span className="font-semibold text-green-600 dark:text-green-400">{formatJOD(changeAmount)} {currency}</span>
-              </>
-            )}
-            {/* Show validation error for card/wallet overpayment */}
-            {hasOverpayment && !allPaymentsCash && (
-              <>
-                <span className="text-muted-foreground">•</span>
+          <DialogDescription className="flex flex-col gap-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span>{t("order_total")}:</span>
+              <span className="font-semibold text-foreground">{formatJOD(total)} {currency}</span>
+              {/* Show cash rounding info when applicable */}
+              {currency === "JOD" && cashRoundingDiff > 0 && allPaymentsCash && (
+                <>
+                  <span className="text-muted-foreground">•</span>
+                  <span className="text-xs text-amber-600 dark:text-amber-400">
+                    تقريب نقدي: +{formatJOD(cashRoundingDiff)}
+                  </span>
+                </>
+              )}
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Show change for cash overpayment at the top */}
+              {hasOverpayment && allPaymentsCash && (
+                <>
+                  <span>{t("change_to_give")}:</span>
+                  <span className="font-semibold text-green-600 dark:text-green-400">{formatJOD(changeAmount)} {currency}</span>
+                </>
+              )}
+              {/* Show validation error for card/wallet overpayment */}
+              {hasOverpayment && !allPaymentsCash && (
                 <span className="font-semibold text-destructive">{t("card_must_be_exact")}</span>
-              </>
-            )}
+              )}
+            </div>
           </DialogDescription>
         </DialogHeader>
 
@@ -307,7 +345,7 @@ export function PaymentDialog({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updatePaymentAmount(index, formatJOD(total))}
+                          onClick={() => updatePaymentAmount(index, formatJOD(currency === "JOD" ? cashRoundedTotal : total))}
                           className="h-8 text-xs"
                         >
                           {t("exact")}
