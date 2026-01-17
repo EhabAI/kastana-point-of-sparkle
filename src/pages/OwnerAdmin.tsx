@@ -77,7 +77,6 @@ import { MistakePatternDetector } from "@/components/owner/MistakePatternDetecto
 
 
 import { ItemsWithoutRecipesCard } from "@/components/owner/ItemsWithoutRecipesCard";
-import { RefundVoidReasonsCard } from "@/components/owner/RefundVoidReasonsCard";
 import { InventoryRiskCard } from "@/components/owner/InventoryRiskCard";
 import { useRestaurantTables } from "@/hooks/useRestaurantTables";
 import { useCashiers } from "@/hooks/useCashiers";
@@ -232,8 +231,7 @@ export default function OwnerAdmin() {
                   <ItemsWithoutRecipesCard restaurantId={restaurant.id} />
                 </div>
                 {/* Insight Cards Row */}
-                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                  <RefundVoidReasonsCard restaurantId={restaurant.id} />
+                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
                   <InventoryRiskCard 
                     restaurantId={restaurant.id} 
                     inventoryEnabled={inventoryEnabled}
