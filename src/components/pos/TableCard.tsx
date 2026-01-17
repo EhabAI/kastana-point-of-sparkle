@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Clock, Users, Combine } from "lucide-react";
+import { Clock, Users, Combine, MoveRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Tooltip,
@@ -23,6 +23,8 @@ interface TableCardProps {
   selected?: boolean;
   onMergeClick?: () => void;
   showMergeButton?: boolean;
+  onMoveClick?: () => void;
+  showMoveButton?: boolean;
 }
 
 function formatDuration(startTime: string, language: string): string {
@@ -64,6 +66,8 @@ export function TableCard({
   selected,
   onMergeClick,
   showMergeButton,
+  onMoveClick,
+  showMoveButton,
 }: TableCardProps) {
   const { t, language } = useLanguage();
   const effectiveCapacity = capacity || 4;
@@ -160,7 +164,7 @@ export function TableCard({
         </span>
       </div>
 
-      {/* Top Right Section: Merged Badge OR Merge Button */}
+      {/* Top Right Section: Merged Badge OR Action Buttons (Move/Merge) */}
       {hasMergedOrders ? (
         <TooltipProvider>
           <Tooltip>
@@ -175,25 +179,51 @@ export function TableCard({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-      ) : showMergeButton && onMergeClick ? (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onMergeClick();
-                }}
-                className="absolute top-2 right-2 w-7 h-7 rounded-md bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white flex items-center justify-center transition-colors shadow-sm"
-              >
-                <Combine className="h-4 w-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs">
-              {t("merge_tables")}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+      ) : (showMergeButton || showMoveButton) ? (
+        <div className="absolute top-2 right-2 flex items-center gap-1">
+          {/* Move Order Button */}
+          {showMoveButton && onMoveClick && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMoveClick();
+                    }}
+                    className="w-7 h-7 rounded-md bg-blue-100 dark:bg-blue-900/50 hover:bg-blue-200 dark:hover:bg-blue-800 text-blue-600 dark:text-blue-300 hover:text-blue-700 dark:hover:text-blue-100 flex items-center justify-center transition-colors shadow-sm"
+                  >
+                    <MoveRight className="h-4 w-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  نقل الطلب إلى طاولة أخرى
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          {/* Merge Button */}
+          {showMergeButton && onMergeClick && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMergeClick();
+                    }}
+                    className="w-7 h-7 rounded-md bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white flex items-center justify-center transition-colors shadow-sm"
+                  >
+                    <Combine className="h-4 w-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  {t("merge_tables")}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
       ) : null}
 
       {/* Table with Chairs Visualization */}

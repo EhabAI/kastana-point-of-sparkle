@@ -898,6 +898,14 @@ export default {
   failed_reopen_order: "Failed to reopen order",
   failed_confirm_order: "Failed to confirm order",
   failed_reject_order: "Failed to reject order",
+  no_order_to_move: "No order to move",
+  can_only_move_open_orders: "Can only move open or held orders",
+  cannot_move_to_same_table: "Cannot move to the same table",
+  table_not_found: "Table not found",
+  target_table_has_order: "Target table has an active order",
+  select_target_table: "Select the table to move the order to",
+  order_moved_successfully: "Order moved successfully",
+  select_target_table_for_order: "Select the table to move order #{{orderNumber}} to",
 
   // POS - Order Items
   item_voided: "Item voided",

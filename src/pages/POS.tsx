@@ -248,6 +248,14 @@ export default function POS() {
   // Merge orders state
   const [mergeSelection, setMergeSelection] = useState<string[]>([]);
 
+  // Move order state
+  const [moveMode, setMoveMode] = useState<{
+    active: boolean;
+    sourceTableId: string;
+    orderId: string;
+    orderNumber: number;
+  } | null>(null);
+
   // Table orders dialog state
   const [tableOrdersDialogOpen, setTableOrdersDialogOpen] = useState(false);
   const [selectedTableForOrders, setSelectedTableForOrders] = useState<{
@@ -1649,6 +1657,10 @@ export default function POS() {
   };
 
   const handleStartMerge = (tableId: string) => {
+    // Cancel move mode if active
+    if (moveMode?.active) {
+      setMoveMode(null);
+    }
     const order = tableOrderMap.get(tableId);
     if (!order) {
       toast.error(t("select_occupied_table"));
@@ -1698,6 +1710,80 @@ export default function POS() {
       handleCancelMerge();
     } catch (error) {
       toast.error(t("failed_merge_orders"));
+    }
+  };
+
+  // Move Order Handlers
+  const handleStartMoveOrder = (tableId: string) => {
+    // Cancel merge mode if active
+    if (mergeSelection.length > 0) {
+      setMergeSelection([]);
+    }
+    
+    const order = tableOrderMap.get(tableId);
+    if (!order) {
+      toast.error(t("no_order_to_move"));
+      return;
+    }
+    
+    // Only allow moving OPEN or HELD orders (not paid, closed, etc.)
+    if (order.status !== "open" && order.status !== "held") {
+      toast.error(t("can_only_move_open_orders"));
+      return;
+    }
+    
+    setMoveMode({
+      active: true,
+      sourceTableId: tableId,
+      orderId: order.id,
+      orderNumber: order.order_number,
+    });
+    toast.info(t("select_target_table"));
+  };
+
+  const handleCancelMoveOrder = () => {
+    setMoveMode(null);
+  };
+
+  const handleMoveOrderToTable = async (targetTableId: string) => {
+    if (!moveMode || !restaurant) return;
+    
+    const sourceTable = tables.find(t => t.id === moveMode.sourceTableId);
+    const targetTable = tables.find(t => t.id === targetTableId);
+    
+    if (!targetTable) {
+      toast.error(t("table_not_found"));
+      handleCancelMoveOrder();
+      return;
+    }
+    
+    // Prevent moving to same table
+    if (targetTableId === moveMode.sourceTableId) {
+      toast.error(t("cannot_move_to_same_table"));
+      return;
+    }
+    
+    // Check if target table has an open order
+    const targetOrder = tableOrderMap.get(targetTableId);
+    if (targetOrder && (targetOrder.status === "open" || targetOrder.status === "held" || targetOrder.status === "confirmed")) {
+      toast.error(t("target_table_has_order"));
+      return;
+    }
+    
+    try {
+      await moveToTableMutation.mutateAsync({
+        orderId: moveMode.orderId,
+        tableId: targetTableId,
+        tableName: targetTable.table_name,
+        previousTableId: moveMode.sourceTableId,
+        previousTableName: sourceTable?.table_name,
+      });
+      
+      toast.success(t("order_moved_successfully"));
+      handleCancelMoveOrder();
+    } catch (error) {
+      toast.error(t("failed_move_order"));
+      handleCancelMoveOrder();
     }
   };
 
@@ -1985,8 +2071,23 @@ export default function POS() {
 
           {activeTab === "tables" && (
             <div className="flex-1 p-4 overflow-auto bg-gradient-to-br from-muted/30 to-muted/10">
+              {/* Move mode banner */}
+              {moveMode?.active && (
+                <div className="mb-4 p-3 bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700 rounded-lg flex items-center justify-between">
+                  <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                    {t("select_target_table")} (#{moveMode.orderNumber})
+                  </span>
+                  <button
+                    onClick={handleCancelMoveOrder}
+                    className="text-sm text-destructive hover:underline"
+                  >
+                    {t("cancel")}
+                  </button>
+                </div>
+              )}
+
               {/* Merge mode banner */}
-              {mergeSelection.length > 0 && (
+              {mergeSelection.length > 0 && !moveMode?.active && (
                 <div className="mb-4 p-3 bg-primary/10 border border-primary/30 rounded-lg flex items-center justify-between">
                   <span className="text-sm font-medium">
                     {mergeSelection.length === 1 
@@ -2030,6 +2131,39 @@ export default function POS() {
                     
                     const tableStatus = getTableStatus();
                     const isOccupied = tableStatus !== "free";
+                    
+                    // Move mode: highlight eligible target tables (FREE only)
+                    const isMoveSource = moveMode?.active && moveMode.sourceTableId === table.id;
+                    const isMoveTarget = moveMode?.active && !isMoveSource && tableStatus === "free";
+                    const isMoveDisabled = moveMode?.active && !isMoveSource && tableStatus !== "free";
+
+                    // Determine if move button should show:
+                    // - Table has order with status OPEN or HELD
+                    // - Not in merge mode or move mode
+                    // - Order is dine-in (has table_id, which it does if it's in tableOrderMap)
+                    const canShowMoveButton = isOccupied && 
+                      mergeSelection.length === 0 && 
+                      !moveMode?.active && 
+                      order && 
+                      (order.status === "open" || order.status === "held");
+
+                    // Handle click based on mode
+                    const handleClick = () => {
+                      if (moveMode?.active) {
+                        if (isMoveSource) {
+                          // Clicking source table cancels move mode
+                          handleCancelMoveOrder();
+                        } else if (tableStatus === "free") {
+                          // Move order to this table
+                          handleMoveOrderToTable(table.id);
+                        } else {
+                          // Table has order - show error
+                          toast.error("الطاولة تحتوي على طلب نشط");
+                        }
+                      } else {
+                        handleTableClick(table.id);
+                      }
+                    };
 
                     return (
                       <TableCard
@@ -2040,11 +2174,19 @@ export default function POS() {
                         orderNumber={order?.order_number}
                         orderCount={orderCount}
                         orderCreatedAt={oldestOrderCreatedAt}
-                        onClick={() => handleTableClick(table.id)}
-                        disabled={createOrderMutation.isPending || resumeOrderMutation.isPending || mergeOrdersMutation.isPending}
-                        selected={isSelected}
-                        showMergeButton={isOccupied && mergeSelection.length === 0}
+                        onClick={handleClick}
+                        disabled={
+                          createOrderMutation.isPending || 
+                          resumeOrderMutation.isPending || 
+                          mergeOrdersMutation.isPending || 
+                          moveToTableMutation.isPending ||
+                          isMoveDisabled
+                        }
+                        selected={isSelected || isMoveSource || isMoveTarget}
+                        showMergeButton={isOccupied && mergeSelection.length === 0 && !moveMode?.active}
                         onMergeClick={() => handleStartMerge(table.id)}
+                        showMoveButton={canShowMoveButton}
+                        onMoveClick={() => handleStartMoveOrder(table.id)}
                       />
                     );
                   })}
