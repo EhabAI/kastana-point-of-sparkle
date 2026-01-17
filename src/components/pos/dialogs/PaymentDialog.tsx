@@ -303,12 +303,12 @@ export function PaymentDialog({
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              const current = parseFloat(payment.amount) || 0;
-                              updatePaymentAmount(index, formatJOD(current + denom));
+                              // SET the paid amount to this denomination (not add)
+                              updatePaymentAmount(index, formatJOD(denom));
                             }}
                             className="h-8 min-w-[48px] text-xs"
                           >
-                            +{denom}
+                            {denom}
                           </Button>
                         ))}
                         <Button
@@ -327,6 +327,29 @@ export function PaymentDialog({
                         >
                           {t("reset")}
                         </Button>
+                      </div>
+                    )}
+
+                    {/* Change/remaining display for cash */}
+                    {isCash && parseFloat(payment.amount) > 0 && (
+                      <div className="text-sm mt-1 px-1">
+                        {(() => {
+                          const paidAmount = parseFloat(payment.amount) || 0;
+                          const diff = roundJOD(paidAmount - total);
+                          if (diff >= 0) {
+                            return (
+                              <span className="text-green-600 dark:text-green-400 font-medium">
+                                {t("change_to_give")}: {formatJOD(diff)} {currency}
+                              </span>
+                            );
+                          } else {
+                            return (
+                              <span className="text-orange-600 dark:text-orange-400 font-medium">
+                                {t("remaining_from_customer")}: {formatJOD(Math.abs(diff))} {currency}
+                              </span>
+                            );
+                          }
+                        })()}
                       </div>
                     )}
                   </div>

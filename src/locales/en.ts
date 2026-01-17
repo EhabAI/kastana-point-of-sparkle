@@ -752,6 +752,7 @@ export default {
   remaining_to_pay: "Remaining to Pay",
   payment_complete: "Payment Complete",
   change_to_give: "Change to Give",
+  remaining_from_customer: "Remaining from Customer",
   card_must_be_exact: "Card payments must be exact",
   add_payment_method: "Add Payment Method",
   split_bill: "Split Bill",
