@@ -13,7 +13,7 @@ import { format } from "date-fns";
 import type { ZReportData } from "@/hooks/pos/useZReport";
 import type { ShiftInventoryData } from "@/hooks/useShiftInventoryMovements";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { formatJOD, roundTo5Fils } from "@/lib/utils";
+import { formatJOD } from "@/lib/utils";
 import { ZReportInventorySection } from "./ZReportInventorySection";
 
 interface ZReportDialogProps {
@@ -117,7 +117,7 @@ export function ZReportDialog({
               <Separator className="my-2" />
               <div className="flex justify-between font-bold">
                 <span>{t("gross_total")}</span>
-                <span>{formatJOD(currency === "JOD" ? roundTo5Fils(report.grossSales) : report.grossSales)} {currency}</span>
+                <span>{formatJOD(report.grossSales)} {currency}</span>
               </div>
             </div>
           </div>
@@ -195,7 +195,7 @@ export function ZReportDialog({
               <Separator className="my-2" />
               <div className={`flex justify-between font-bold ${report.adjustedSales < 0 ? 'text-destructive' : 'text-green-600'}`}>
                 <span>{t("adjusted_total_sales")}</span>
-                <span>{formatJOD(currency === "JOD" ? roundTo5Fils(report.adjustedSales) : report.adjustedSales)} {currency}</span>
+                <span>{formatJOD(report.adjustedSales)} {currency}</span>
               </div>
             </div>
           </div>
@@ -223,11 +223,10 @@ export function ZReportDialog({
               <Separator className="my-2" />
               {(() => {
                 const netTotal = report.netCashPayments + report.netCardPayments + report.netMobilePayments;
-                const displayTotal = currency === "JOD" ? roundTo5Fils(netTotal) : netTotal;
                 return (
                   <div className={`flex justify-between font-bold ${netTotal < 0 ? 'text-destructive' : ''}`}>
                     <span>{t("total_collected")}</span>
-                    <span>{formatJOD(displayTotal)} {currency}</span>
+                    <span>{formatJOD(netTotal)} {currency}</span>
                   </div>
                 );
               })()}
@@ -261,7 +260,7 @@ export function ZReportDialog({
               <Separator className="my-2" />
               <div className="flex justify-between font-bold">
                 <span>{t("expected_cash")}</span>
-                <span>{formatJOD(currency === "JOD" ? roundTo5Fils(report.expectedCash) : report.expectedCash)} {currency}</span>
+                <span>{formatJOD(report.expectedCash)} {currency}</span>
               </div>
               {report.closingCash !== null && (
                 <>
