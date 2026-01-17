@@ -9,15 +9,17 @@ interface MenuItem {
   is_available: boolean;
   promo_price?: number | null;
   promo_label?: string | null;
+  category_name?: string;
 }
 
 interface MenuItemCardProps {
   item: MenuItem;
   currency: string;
   onSelect: (item: MenuItem) => void;
+  showCategoryName?: boolean;
 }
 
-export function MenuItemCard({ item, currency, onSelect }: MenuItemCardProps) {
+export function MenuItemCard({ item, currency, onSelect, showCategoryName = false }: MenuItemCardProps) {
   // B3: Detect offer/deal (via is_offer, promo_price, or name keywords)
   const hasPromo = item.promo_price != null && item.promo_price > 0;
   const nameHasOfferKeyword = /happy|deal|offer|عروض/i.test(item.name);
@@ -42,6 +44,11 @@ export function MenuItemCard({ item, currency, onSelect }: MenuItemCardProps) {
         </Badge>
       )}
       <span className="font-medium text-sm mb-1 line-clamp-2">{item.name}</span>
+      {showCategoryName && item.category_name && (
+        <span className="text-xs text-muted-foreground mb-1 line-clamp-1">
+          {item.category_name}
+        </span>
+      )}
       <span className="text-primary font-bold">
         {formatJOD(Number(item.price))} {currency}
       </span>

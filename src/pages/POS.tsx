@@ -28,6 +28,7 @@ import {
   useZReport,
   useCashierCategories,
   useCashierMenuItems,
+  useCashierAllMenuItems,
   useCashierFavoriteItems,
   useBranchTables,
   usePendingOrders,
@@ -133,19 +134,23 @@ export default function POS() {
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>();
   const { data: menuItems = [], isLoading: itemsLoading } = useCashierMenuItems(selectedCategoryId);
+  const { data: allMenuItems = [], isLoading: allItemsLoading } = useCashierAllMenuItems();
   const { data: favoriteItems = [], isLoading: favoritesLoading } = useCashierFavoriteItems();
 
-  // B1: Menu item search
+  // B1: Menu item search - GLOBAL search across all categories
   const [menuSearch, setMenuSearch] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // When search is active, search all items globally; otherwise show category items
+  const isSearchActive = menuSearch.trim().length > 0;
+  
   const filteredMenuItems = useMemo(() => {
-    if (!menuSearch.trim()) return menuItems;
+    if (!isSearchActive) return menuItems;
     const query = menuSearch.toLowerCase().trim();
-    return menuItems.filter((item: { name: string }) => 
+    return allMenuItems.filter((item: { name: string }) => 
       item.name.toLowerCase().includes(query)
     );
-  }, [menuItems, menuSearch]);
+  }, [menuItems, allMenuItems, menuSearch, isSearchActive]);
 
   // Tab state
   const [activeTab, setActiveTab] = useState<POSTab>("new-order");
@@ -323,10 +328,7 @@ export default function POS() {
     }
   }, [categories, selectedCategoryId]);
 
-  // Clear search when category changes
-  useEffect(() => {
-    setMenuSearch("");
-  }, [selectedCategoryId]);
+  // Don't clear search when category changes - global search should persist
 
   // Calculate order totals - MUST be before keyboard shortcuts useEffect
   const orderItems = currentOrder?.order_items?.filter((item: { voided: boolean }) => !item.voided) || [];
@@ -1798,7 +1800,8 @@ export default function POS() {
                     items={filteredMenuItems}
                     currency={currency}
                     onSelectItem={handleSelectItem}
-                    isLoading={itemsLoading}
+                    isLoading={isSearchActive ? allItemsLoading : itemsLoading}
+                    showCategoryName={isSearchActive}
                   />
                 </div>
               </div>
