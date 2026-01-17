@@ -1867,7 +1867,7 @@ export default function POS() {
                   showTransfer={currentOrder?.status === "open" && orderItems.length > 1 && openOrders.length > 1}
                   onNewOrder={handleNewOrderButton}
                   shiftOpen={shiftOpen}
-                  roundingAdjustment={roundingAdjustment}
+                  hasTable={!!currentOrder?.table_id}
                 />
               </div>
             </div>
@@ -1913,7 +1913,7 @@ export default function POS() {
                   showTransfer={currentOrder?.status === "open" && orderItems.length > 1 && openOrders.length > 1}
                   onNewOrder={handleNewOrderButton}
                   shiftOpen={shiftOpen}
-                  roundingAdjustment={roundingAdjustment}
+                  hasTable={!!currentOrder?.table_id}
                 />
               </div>
             </div>
