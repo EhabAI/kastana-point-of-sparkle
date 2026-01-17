@@ -263,6 +263,11 @@ export default function POS() {
     orderId: string;
   } | null>(null);
 
+  // Pending item for first-item order type flow
+  const [pendingItemForOrderType, setPendingItemForOrderType] = useState<{
+    menuItem: { id: string; name: string; price: number };
+  } | null>(null);
+
   // Query client for manual cache invalidation
   const queryClient = useQueryClient();
 
@@ -477,7 +482,8 @@ export default function POS() {
     if (!currentShift || !branch || !restaurant) return;
 
     try {
-      await createOrderMutation.mutateAsync({
+      // Create the order with selected type
+      const createdOrder = await createOrderMutation.mutateAsync({
         shiftId: currentShift.id,
         taxRate,
         branchId: branch.id,
@@ -486,9 +492,28 @@ export default function POS() {
         tableId: orderType === "takeaway" ? null : tableId,
         customerInfo,
       });
+
+      // Resume the order to make it the current active order
+      await resumeOrderMutation.mutateAsync(createdOrder.id);
+
+      // Invalidate queries for complete sync
+      queryClient.invalidateQueries({ queryKey: ["branch-tables"] });
+
       setNewOrderDialogOpen(false);
       setActiveTab("new-order");
-      toast.success(t("order_created"));
+
+      // If there was a pending item waiting for order type, add it now
+      if (pendingItemForOrderType) {
+        const menuItem = pendingItemForOrderType.menuItem;
+        setPendingItemForOrderType(null);
+        
+        // Store the item and order info, then open modifier dialog
+        setPendingItemAfterDraft({ menuItem, orderId: createdOrder.id });
+        setSelectedItemForModifiers(menuItem);
+        setModifierDialogOpen(true);
+      } else {
+        toast.success(t("order_created"));
+      }
     } catch (error) {
       toast.error(t("failed_create_order"));
     }
@@ -533,31 +558,13 @@ export default function POS() {
       }
     }
 
-    // AUTO-CREATE ORDER: If no current order and no draft, auto-create a takeaway order
-    if (!currentOrder?.id && !draftOrder) {
-      try {
-        // Auto-create a takeaway order (most common fast POS workflow)
-        const createdOrder = await createOrderMutation.mutateAsync({
-          shiftId: currentShift.id,
-          taxRate,
-          branchId: branch.id,
-          restaurantId: restaurant.id,
-          orderType: "takeaway",
-          tableId: null,
-        });
-
-        // Resume the order to make it the current active order
-        await resumeOrderMutation.mutateAsync(createdOrder.id);
-
-        // Store the item and order info for adding after order creation
-        setPendingItemAfterDraft({ menuItem, orderId: createdOrder.id });
-        setSelectedItemForModifiers(menuItem);
-        setModifierDialogOpen(true);
-        return;
-      } catch (error) {
-        toast.error(t("failed_create_order"));
-        return;
-      }
+    // FIRST-ITEM FLOW: If no current order (or order has zero items), show order type dialog
+    const activeOrderItems = currentOrder?.order_items?.filter((i: { voided: boolean }) => !i.voided) || [];
+    if (!currentOrder?.id || activeOrderItems.length === 0) {
+      // Store the pending item and show order type dialog
+      setPendingItemForOrderType({ menuItem });
+      setNewOrderDialogOpen(true);
+      return;
     }
 
     // Open modifier dialog - it will check if modifiers exist
@@ -985,10 +992,14 @@ export default function POS() {
   };
 
   // Handler for New Order button in OrderPanel
+  // NEW UX: "New Order" button does NOT show order type dialog
+  // It only prepares empty state - order type is asked on first item click
   const handleNewOrderButton = async () => {
     if (!currentOrder) {
-      // No current order - open new order dialog directly
-      setNewOrderDialogOpen(true);
+      // No current order - just clear any pending item state, ready for first item click
+      setPendingItemForOrderType(null);
+      setDraftOrder(null);
+      // Don't show dialog - cashier will click an item to start
       return;
     }
 
@@ -996,21 +1007,20 @@ export default function POS() {
     const activeItems = currentOrder.order_items?.filter((i: { voided: boolean }) => !i.voided) || [];
     
     if (activeItems.length === 0) {
-      // Order has zero items - auto-discard and open new order dialog
+      // Order has zero items - auto-discard silently, ready for first item click
       try {
         await cancelOrderMutation.mutateAsync({ 
           orderId: currentOrder.id, 
           reason: "Empty order discarded" 
         });
-        setNewOrderDialogOpen(true);
-      } catch (error) {
-        // Even if cancel fails, proceed to new order
-        setNewOrderDialogOpen(true);
+      } catch {
+        // Ignore cancel failure - proceed anyway
       }
+      // Don't show dialog - cashier will click an item to start
       return;
     }
 
-    // Has items - show confirmation dialog
+    // Has items - show confirmation dialog (hold current order first)
     setConfirmNewOrderDialogOpen(true);
   };
 
@@ -1031,7 +1041,7 @@ export default function POS() {
         // Ignore cancel failure
       }
       setConfirmNewOrderDialogOpen(false);
-      setNewOrderDialogOpen(true);
+      // Don't show dialog - cashier will click an item to start
       return;
     }
     
@@ -1054,8 +1064,7 @@ export default function POS() {
       toast.success(t("order_held"));
       setConfirmNewOrderDialogOpen(false);
       
-      // Open new order dialog
-      setNewOrderDialogOpen(true);
+      // Don't show dialog - cashier will click an item to start new order
     } catch (error) {
       // Hold failed - auto-discard and proceed
       try {
@@ -1068,7 +1077,7 @@ export default function POS() {
         // Ignore cancel failure
       }
       setConfirmNewOrderDialogOpen(false);
-      setNewOrderDialogOpen(true);
+      // Don't show dialog - cashier will click an item to start
     }
   };
 
@@ -2028,7 +2037,13 @@ export default function POS() {
 
       <NewOrderDialog
         open={newOrderDialogOpen}
-        onOpenChange={setNewOrderDialogOpen}
+        onOpenChange={(open) => {
+          setNewOrderDialogOpen(open);
+          // Clear pending item if dialog is closed without confirming
+          if (!open) {
+            setPendingItemForOrderType(null);
+          }
+        }}
         tables={tables}
         tablesLoading={tablesLoading}
         onConfirm={handleNewOrder}
