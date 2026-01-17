@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -79,63 +80,65 @@ export function NewOrderDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4 space-y-6">
-          <OrderTypeSelector
-            selectedType={orderType}
-            onSelectType={setOrderType}
-          />
+        <DialogBody>
+          <div className="py-4 space-y-6">
+            <OrderTypeSelector
+              selectedType={orderType}
+              onSelectType={setOrderType}
+            />
 
-          {orderType === "dine-in" && (
-            <div className="space-y-2">
-              <h4 className="font-medium text-sm">{t("select_table")}</h4>
-              <TableSelector
-                tables={tables}
-                selectedTableId={selectedTableId}
-                onSelectTable={setSelectedTableId}
-                isLoading={tablesLoading}
-              />
-            </div>
-          )}
+            {orderType === "dine-in" && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm">{t("select_table")}</h4>
+                <TableSelector
+                  tables={tables}
+                  selectedTableId={selectedTableId}
+                  onSelectTable={setSelectedTableId}
+                  isLoading={tablesLoading}
+                />
+              </div>
+            )}
 
-          {orderType === "takeaway" && (
-            <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-              <h4 className="font-medium text-sm">{t("customer_info_optional")}</h4>
-              <div className="space-y-3">
-                <div className="space-y-1">
-                  <Label htmlFor="customerName" className="text-xs text-muted-foreground">
-                    {t("customer_name")}
-                  </Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="customerName"
-                      placeholder={t("enter_name")}
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      className="h-12 pl-10"
-                    />
+            {orderType === "takeaway" && (
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                <h4 className="font-medium text-sm">{t("customer_info_optional")}</h4>
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="customerName" className="text-xs text-muted-foreground">
+                      {t("customer_name")}
+                    </Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="customerName"
+                        placeholder={t("enter_name")}
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        className="h-12 pl-10"
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="customerPhone" className="text-xs text-muted-foreground">
-                    {t("phone_number")}
-                  </Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="customerPhone"
-                      type="tel"
-                      placeholder={t("enter_phone")}
-                      value={customerPhone}
-                      onChange={(e) => setCustomerPhone(e.target.value)}
-                      className="h-12 pl-10"
-                    />
+                  <div className="space-y-1">
+                    <Label htmlFor="customerPhone" className="text-xs text-muted-foreground">
+                      {t("phone_number")}
+                    </Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="customerPhone"
+                        type="tel"
+                        placeholder={t("enter_phone")}
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        className="h-12 pl-10"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        </DialogBody>
 
         <DialogFooter>
           <Button variant="outline" onClick={handleClose} className="h-12">

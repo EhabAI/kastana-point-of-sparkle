@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -56,32 +57,34 @@ export function CancelOrderDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Warning Banner */}
-        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 flex items-start gap-3">
-          <AlertTriangle className="h-6 w-6 text-destructive flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-medium text-destructive">{t("cancel_order_warning")}</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              {t("cancel_order_warning_desc")}
-            </p>
+        <DialogBody>
+          {/* Warning Banner */}
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 flex items-start gap-3">
+            <AlertTriangle className="h-6 w-6 text-destructive flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-destructive">{t("cancel_order_warning")}</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {t("cancel_order_warning_desc")}
+              </p>
+            </div>
           </div>
-        </div>
 
-        <div className="space-y-4 py-2">
-          <div className="space-y-2">
-            <Label htmlFor="cancelReason">
-              {t("reason_for_cancellation")} <span className="text-destructive">*</span>
-            </Label>
-            <Textarea
-              id="cancelReason"
-              placeholder={t("cancel_reason_input_placeholder")}
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              rows={3}
-              className="min-h-[100px]"
-            />
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="cancelReason">
+                {t("reason_for_cancellation")} <span className="text-destructive">*</span>
+              </Label>
+              <Textarea
+                id="cancelReason"
+                placeholder={t("cancel_reason_input_placeholder")}
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                rows={3}
+                className="min-h-[100px]"
+              />
+            </div>
           </div>
-        </div>
+        </DialogBody>
 
         <DialogFooter className="gap-2 sm:gap-0">
           <Button 

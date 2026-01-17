@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -185,180 +186,192 @@ export function PaymentDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          {/* Remaining amount indicator */}
-          <div className={cn(
-            "p-4 rounded-lg text-center",
-            isExactMatch ? "bg-green-500/10 border border-green-500/30" :
-            (hasOverpayment && allPaymentsCash) ? "bg-blue-500/10 border border-blue-500/30" :
-            hasOverpayment ? "bg-destructive/10 border border-destructive/30" :
-            "bg-muted"
-          )}>
-            <p className="text-sm text-muted-foreground mb-1">
-              {isExactMatch ? t("payment_complete") : 
-               (hasOverpayment && allPaymentsCash) ? t("change_to_give") :
-               hasOverpayment ? t("card_must_be_exact") : 
-               t("remaining_to_pay")}
-            </p>
-            <p className={cn(
-              "text-2xl font-bold",
-              isExactMatch ? "text-green-600" :
-              (hasOverpayment && allPaymentsCash) ? "text-blue-600" :
-              hasOverpayment ? "text-destructive" :
-              "text-foreground"
-            )}>
-              {formatJOD(Math.abs(remaining))} {currency}
-            </p>
-          </div>
+        <DialogBody>
+          <div className="space-y-4 py-4">
+            {/* Remaining amount indicator */}
+            <div
+              className={cn(
+                "p-4 rounded-lg text-center",
+                isExactMatch
+                  ? "bg-green-500/10 border border-green-500/30"
+                  : hasOverpayment && allPaymentsCash
+                    ? "bg-blue-500/10 border border-blue-500/30"
+                    : hasOverpayment
+                      ? "bg-destructive/10 border border-destructive/30"
+                      : "bg-muted",
+              )}
+            >
+              <p className="text-sm text-muted-foreground mb-1">
+                {isExactMatch
+                  ? t("payment_complete")
+                  : hasOverpayment && allPaymentsCash
+                    ? t("change_to_give")
+                    : hasOverpayment
+                      ? t("card_must_be_exact")
+                      : t("remaining_to_pay")}
+              </p>
+              <p
+                className={cn(
+                  "text-2xl font-bold",
+                  isExactMatch
+                    ? "text-green-600"
+                    : hasOverpayment && allPaymentsCash
+                      ? "text-blue-600"
+                      : hasOverpayment
+                        ? "text-destructive"
+                        : "text-foreground",
+                )}
+              >
+                {formatJOD(Math.abs(remaining))} {currency}
+              </p>
+            </div>
 
-          {/* Payment rows */}
-          <div className="space-y-3">
-            {splitPayments.map((payment, index) => {
-              const methodInfo = enabledMethods.find((m) => m.id === payment.method);
-              const isCash = payment.method === "cash";
-              
-              return (
-                <div key={index} className="space-y-2 p-3 border rounded-lg bg-background">
-                  <div className="flex items-center gap-2">
-                    {/* Payment method selector */}
-                    <Select
-                      value={payment.method}
-                      onValueChange={(value) => updatePaymentMethod(index, value)}
-                    >
-                      <SelectTrigger className="w-[140px] h-12">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {enabledMethods.map((method) => {
-                          const Icon = methodIcons[method.id] || CreditCard;
-                          return (
-                            <SelectItem key={method.id} value={method.id}>
-                              <div className="flex items-center gap-2">
-                                <Icon className="h-4 w-4" />
-                                {method.label}
-                              </div>
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
+            {/* Payment rows */}
+            <div className="space-y-3">
+              {splitPayments.map((payment, index) => {
+                const methodInfo = enabledMethods.find((m) => m.id === payment.method);
+                const isCash = payment.method === "cash";
 
-                    {/* Amount input */}
-                    <div className="relative flex-1">
-                      <Input
-                        type="number"
-                        step="0.001"
-                        min="0"
-                        placeholder="0.000"
-                        value={payment.amount}
-                        onChange={(e) => updatePaymentAmount(index, e.target.value)}
-                        className="h-12 text-lg pr-16"
-                      />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                        {currency}
-                      </span>
-                    </div>
+                return (
+                  <div key={index} className="space-y-2 p-3 border rounded-lg bg-background">
+                    <div className="flex items-center gap-2">
+                      {/* Payment method selector */}
+                      <Select value={payment.method} onValueChange={(value) => updatePaymentMethod(index, value)}>
+                        <SelectTrigger className="w-[140px] h-12">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {enabledMethods.map((method) => {
+                            const Icon = methodIcons[method.id] || CreditCard;
+                            return (
+                              <SelectItem key={method.id} value={method.id}>
+                                <div className="flex items-center gap-2">
+                                  <Icon className="h-4 w-4" />
+                                  {method.label}
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
 
-                    {/* Numeric keypad button */}
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-12 w-12"
-                      onClick={() => setKeypadState({ open: true, index })}
-                      title="Enter amount"
-                    >
-                      <Hash className="h-5 w-5" />
-                    </Button>
+                      {/* Amount input */}
+                      <div className="relative flex-1">
+                        <Input
+                          type="number"
+                          step="0.001"
+                          min="0"
+                          placeholder="0.000"
+                          value={payment.amount}
+                          onChange={(e) => updatePaymentAmount(index, e.target.value)}
+                          className="h-12 text-lg pr-16"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                          {currency}
+                        </span>
+                      </div>
 
-                    {/* Fill remaining button - always show for first row when remaining > 0 */}
-                    {remaining > 0 && index === 0 && (
+                      {/* Numeric keypad button */}
                       <Button
                         variant="outline"
-                        size="sm"
-                        onClick={() => fillRemaining(index)}
-                        className="h-12 px-3 whitespace-nowrap"
-                        title={t("fill_remaining")}
+                        size="icon"
+                        className="h-12 w-12"
+                        onClick={() => setKeypadState({ open: true, index })}
+                        title="Enter amount"
                       >
-                        {t("fill")}
+                        <Hash className="h-5 w-5" />
                       </Button>
-                    )}
-                    {/* Fill button for other rows when not exact and remaining > 0 */}
-                    {remaining > 0 && index > 0 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => fillRemaining(index)}
-                        className="h-12 px-3 whitespace-nowrap"
-                        title={t("fill_remaining")}
-                      >
-                        {t("fill")}
-                      </Button>
-                    )}
 
-                    {/* Remove row button */}
-                    {splitPayments.length > 1 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removePaymentRow(index)}
-                        className="h-12 w-12 p-0 text-muted-foreground hover:text-destructive"
-                      >
-                        <X className="h-5 w-5" />
-                      </Button>
-                    )}
-                  </div>
-
-                  {/* Quick cash denominations for cash payments */}
-                  {isCash && (
-                    <div className="flex flex-wrap gap-2 pt-2">
-                      {cashDenominations.map((denom) => (
+                      {/* Fill remaining button - always show for first row when remaining > 0 */}
+                      {remaining > 0 && index === 0 && (
                         <Button
-                          key={denom}
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            const current = parseFloat(payment.amount) || 0;
-                            updatePaymentAmount(index, formatJOD(current + denom));
-                          }}
-                          className="h-10 min-w-[60px]"
+                          onClick={() => fillRemaining(index)}
+                          className="h-12 px-3 whitespace-nowrap"
+                          title={t("fill_remaining")}
                         >
-                          +{denom}
+                          {t("fill")}
                         </Button>
-                      ))}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updatePaymentAmount(index, formatJOD(total))}
-                        className="h-10"
-                      >
-                        {t("exact")}
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => updatePaymentAmount(index, "0.000")}
-                        className="h-10"
-                      >
-                        {t("reset")}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                      )}
+                      {/* Fill button for other rows when not exact and remaining > 0 */}
+                      {remaining > 0 && index > 0 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fillRemaining(index)}
+                          className="h-12 px-3 whitespace-nowrap"
+                          title={t("fill_remaining")}
+                        >
+                          {t("fill")}
+                        </Button>
+                      )}
 
-          {/* Add payment row button */}
-          <Button
-            variant="outline"
-            className="w-full h-12"
-            onClick={addPaymentRow}
-            disabled={isSubmitting}
-          >
-            <Plus className="h-5 w-5 mr-2" />
-            {t("add_payment_method")}
-          </Button>
-        </div>
+                      {/* Remove row button */}
+                      {splitPayments.length > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removePaymentRow(index)}
+                          className="h-12 w-12 p-0 text-muted-foreground hover:text-destructive"
+                        >
+                          <X className="h-5 w-5" />
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* Quick cash denominations for cash payments */}
+                    {isCash && (
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        {cashDenominations.map((denom) => (
+                          <Button
+                            key={denom}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const current = parseFloat(payment.amount) || 0;
+                              updatePaymentAmount(index, formatJOD(current + denom));
+                            }}
+                            className="h-10 min-w-[60px]"
+                          >
+                            +{denom}
+                          </Button>
+                        ))}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => updatePaymentAmount(index, formatJOD(total))}
+                          className="h-10"
+                        >
+                          {t("exact")}
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => updatePaymentAmount(index, "0.000")}
+                          className="h-10"
+                        >
+                          {t("reset")}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Add payment row button */}
+            <Button
+              variant="outline"
+              className="w-full h-12"
+              onClick={addPaymentRow}
+              disabled={isSubmitting}
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              {t("add_payment_method")}
+            </Button>
+          </div>
+        </DialogBody>
 
         <DialogFooter className="gap-2 sm:gap-0">
           <Button
@@ -372,7 +385,13 @@ export function PaymentDialog({
           <div className="flex flex-col items-end gap-1">
             <Button
               onClick={handleConfirm}
-              disabled={isLoading || isSubmitting || !hasValidPayments || isOrderBlocked || !(isExactMatch || (hasOverpayment && allPaymentsCash))}
+              disabled={
+                isLoading ||
+                isSubmitting ||
+                !hasValidPayments ||
+                isOrderBlocked ||
+                !(isExactMatch || (hasOverpayment && allPaymentsCash))
+              }
               className="h-12 min-w-[180px]"
             >
               {isLoading || isSubmitting ? (
@@ -386,15 +405,13 @@ export function PaymentDialog({
             </Button>
             {/* Helper text explaining why button is disabled */}
             {isOrderBlocked && !isLoading && !isSubmitting && (
-              <p className="text-xs text-destructive">
-                {t("payment_blocked_pending")}
-              </p>
+              <p className="text-xs text-destructive">{t("payment_blocked_pending")}</p>
             )}
             {!isOrderBlocked && !isExactMatch && !isLoading && !isSubmitting && hasValidPayments && (
               <p className="text-xs text-muted-foreground">
-                {remaining > 0 
+                {remaining > 0
                   ? t("remaining_must_be_zero")
-                  : hasOverpayment && !allPaymentsCash 
+                  : hasOverpayment && !allPaymentsCash
                     ? t("overpayment_cash_only")
                     : null}
               </p>
