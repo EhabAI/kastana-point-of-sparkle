@@ -7,6 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Round monetary value for JOD currency (3 decimal places, HALF-UP rounding)
+ * @deprecated Use roundJOD from '@/lib/orderCalculations' instead
  * @param value - The numeric value to round
  * @returns Number rounded to exactly 3 decimal places
  */

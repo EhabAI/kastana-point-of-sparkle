@@ -1,5 +1,6 @@
 import { Separator } from "@/components/ui/separator";
 import { formatJOD, getCurrencySymbol } from "@/lib/utils";
+import { calculateOrderTotals } from "@/lib/orderCalculations";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OrderTotalsProps {
@@ -29,12 +30,16 @@ export function OrderTotals({
   const hasDiscount = discountValue && discountValue > 0;
   const localizedCurrency = getCurrencySymbol(currency, language);
 
-  // Calculate actual discount amount
-  const discountAmount = hasDiscount
-    ? discountType === "percentage"
-      ? (subtotal * Number(discountValue)) / 100
-      : Number(discountValue)
-    : 0;
+  // Use shared calculation utility for consistent discount calculation
+  const calculatedTotals = calculateOrderTotals({
+    subtotal,
+    discountType,
+    discountValue,
+    serviceChargeRate: 0, // Not used for display, already passed as serviceCharge
+    taxRate: 0, // Not used for display, already passed as taxAmount
+    currency,
+  });
+  const discountAmount = calculatedTotals.discountAmount;
 
   // Display label for discount
   const discountLabel = hasDiscount
