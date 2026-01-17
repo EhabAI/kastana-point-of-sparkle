@@ -15,12 +15,18 @@ export function roundJOD(value: number): number {
 }
 
 /**
- * Round to nearest 5 fils (0.005) for JOD cash handling
+ * Round to nearest 5 fils (0.005) for JOD cash handling using INTEGER math
+ * to avoid floating-point precision bugs.
  * @param value - The numeric value to round
  * @returns Number rounded to nearest 0.005
  */
 export function roundTo5Fils(value: number): number {
-  return Math.round(value / 0.005) * 0.005;
+  // Step 1: Convert to fils (integer)
+  const totalFils = Math.round(value * 1000);
+  // Step 2: Round to nearest 5 fils
+  const roundedFils = Math.round(totalFils / 5) * 5;
+  // Step 3: Convert back to JOD
+  return roundedFils / 1000;
 }
 
 /**
