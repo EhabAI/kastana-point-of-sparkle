@@ -394,8 +394,10 @@ export default function POS() {
   ));
 
   // Round to nearest 5 fils (0.005) for JOD cash handling
+  // NOTE: use EPSILON to avoid floating point issues (e.g., 6.675000000000001)
   const roundTo5Fils = useCallback((n: number): number => {
-    return Math.round(n / 0.005) * 0.005;
+    const step = 0.005;
+    return Math.round((n + Number.EPSILON) / step) * step;
   }, []);
 
   const calculateTotals = useCallback(
@@ -404,30 +406,32 @@ export default function POS() {
       if (discVal && discVal > 0) {
         discountAmount = discType === "percentage" ? (sub * discVal) / 100 : discVal;
       }
-      const afterDiscount = sub - discountAmount;
-      const serviceCharge = afterDiscount * serviceChargeRate;
-      const taxAmount = (afterDiscount + serviceCharge) * taxRate;
-      const rawTotal = afterDiscount + serviceCharge + taxAmount;
-      
-      // Round all monetary values to 3 decimals (JOD standard)
-      const roundedRawTotal = roundJOD(rawTotal);
-      
-      // Apply cash rounding: round to nearest 5 fils (0.005) for JOD cash handling
-      const payableTotal = roundTo5Fils(roundedRawTotal);
-      const roundingAdjustment = roundJOD(payableTotal - roundedRawTotal);
-      
-      return { 
-        discountAmount: roundJOD(discountAmount), 
-        serviceCharge: roundJOD(serviceCharge), 
-        taxAmount: roundJOD(taxAmount), 
-        rawTotal: roundedRawTotal,
+
+      // Keep line values stable at JOD precision (3 decimals)
+      const discountAmountRounded = roundJOD(discountAmount);
+      const afterDiscount = sub - discountAmountRounded;
+      const serviceChargeRounded = roundJOD(afterDiscount * serviceChargeRate);
+      const taxAmountRounded = roundJOD((afterDiscount + serviceChargeRounded) * taxRate);
+
+      // Raw total BEFORE cash rounding (still 3 decimals)
+      const rawTotal = roundJOD(afterDiscount + serviceChargeRounded + taxAmountRounded);
+
+      // Apply cash rounding to final total only (JOD): nearest 0.005
+      const payableTotal = currency === "JOD" ? roundJOD(roundTo5Fils(rawTotal)) : rawTotal;
+      const roundingAdjustment = roundJOD(payableTotal - rawTotal);
+
+      return {
+        discountAmount: discountAmountRounded,
+        serviceCharge: serviceChargeRounded,
+        taxAmount: taxAmountRounded,
+        rawTotal,
         payableTotal,
         roundingAdjustment,
         // Keep 'total' as payableTotal for backward compatibility with DB saves
-        total: payableTotal
+        total: payableTotal,
       };
     },
-    [serviceChargeRate, taxRate, roundJOD, roundTo5Fils],
+    [serviceChargeRate, taxRate, roundJOD, roundTo5Fils, currency],
   );
 
   const { discountAmount, serviceCharge, taxAmount, total, rawTotal, payableTotal, roundingAdjustment } = calculateTotals(
