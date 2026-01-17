@@ -88,6 +88,7 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
   const getItemUnit = (itemId: string) => {
     if (!itemId) return { unitId: "", unitName: "" };
     const item = itemsMap.get(itemId);
+    console.log("[ReceivePurchase] getItemUnit:", { itemId, item, mapSize: itemsMap.size, baseUnitName: item?.baseUnitName });
     return { unitId: item?.baseUnitId || "", unitName: item?.baseUnitName || "" };
   };
 
