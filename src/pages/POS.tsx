@@ -1780,9 +1780,7 @@ export default function POS() {
               activeTab={activeTab}
               onTabChange={(tab) => {
                 setActiveTab(tab);
-                if (tab === "new-order" && !currentOrder) {
-                  setNewOrderDialogOpen(true);
-                }
+                // Tab switch is UI navigation only - no order creation or dialogs
               }}
               pendingCount={pendingOrders.length}
               openCount={openOrdersNoTable.length}
