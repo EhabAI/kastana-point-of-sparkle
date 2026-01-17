@@ -1589,4 +1589,9 @@ export default {
   z_inv_count: "Count",
   z_inv_total: "Total Movements",
   z_inv_no_movements: "No inventory movements during this shift",
+  
+  // Menu Item Arabic Name Warning
+  missing_arabic_name: "Missing Arabic name",
+  missing_arabic_name_warning: "Item will not appear in Arabic POS search",
+  missing_arabic_name_tooltip: "To make this item searchable in Arabic, add an Arabic name in the description field.",
 } as const;
