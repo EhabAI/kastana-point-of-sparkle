@@ -11,10 +11,8 @@ import { Separator } from "@/components/ui/separator";
 import { FileText, Printer } from "lucide-react";
 import { format } from "date-fns";
 import type { ZReportData } from "@/hooks/pos/useZReport";
-import type { ShiftInventoryData } from "@/hooks/useShiftInventoryMovements";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatJOD } from "@/lib/utils";
-import { ZReportInventorySection } from "./ZReportInventorySection";
 
 interface ZReportDialogProps {
   open: boolean;
@@ -22,8 +20,6 @@ interface ZReportDialogProps {
   report: ZReportData | null;
   currency: string;
   isLoading?: boolean;
-  inventoryData?: ShiftInventoryData | null;
-  inventoryLoading?: boolean;
 }
 
 export function ZReportDialog({
@@ -32,8 +28,6 @@ export function ZReportDialog({
   report,
   currency,
   isLoading,
-  inventoryData,
-  inventoryLoading,
 }: ZReportDialogProps) {
   const { t } = useLanguage();
 
@@ -58,7 +52,7 @@ export function ZReportDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{t("z_report")}</DialogTitle>
+            <DialogTitle>{t("z_financial_report") || "تقرير Z المالي"}</DialogTitle>
           </DialogHeader>
           <div className="text-center py-8 text-muted-foreground">
             {t("no_report_data")}
@@ -74,7 +68,7 @@ export function ZReportDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            {t("z_report")}
+            {t("z_financial_report") || "تقرير Z المالي"}
           </DialogTitle>
           <DialogDescription>
             {t("shift_opened_at")}: {format(new Date(report.openedAt), "PPp")}
@@ -276,14 +270,6 @@ export function ZReportDialog({
               )}
             </div>
           </div>
-
-          <Separator />
-
-          {/* Inventory Movements Section */}
-          <ZReportInventorySection 
-            inventoryData={inventoryData || null} 
-            isLoading={inventoryLoading} 
-          />
 
           <Separator />
 

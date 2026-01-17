@@ -98,6 +98,7 @@ import {
   ConfirmNewOrderDialog,
   TableOrdersDialog,
   InventoryWarningsDialog,
+  InventorySummaryDialog,
 } from "@/components/pos/dialogs";
 import {
   Tooltip,
@@ -208,6 +209,7 @@ export default function POS() {
   const [voidOrderDialogOpen, setVoidOrderDialogOpen] = useState(false);
   const [cashMovementDialogOpen, setCashMovementDialogOpen] = useState(false);
   const [zReportDialogOpen, setZReportDialogOpen] = useState(false);
+  const [inventorySummaryDialogOpen, setInventorySummaryDialogOpen] = useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [modifierDialogOpen, setModifierDialogOpen] = useState(false);
   const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
@@ -1860,7 +1862,9 @@ export default function POS() {
         onViewHeldOrders={() => setHeldOrdersDialogOpen(true)}
         onViewRecentOrders={() => setRecentOrdersDialogOpen(true)}
         onViewZReport={() => setZReportDialogOpen(true)}
+        onViewInventorySummary={() => setInventorySummaryDialogOpen(true)}
         heldOrdersCount={heldOrders.length}
+        inventoryEnabled={settings?.inventory_enabled}
       />
 
       {!shiftOpen ? (
@@ -2351,8 +2355,15 @@ export default function POS() {
         report={zReportData || null}
         currency={currency}
         isLoading={zReportLoading}
-        inventoryData={inventoryMovements}
-        inventoryLoading={inventoryMovementsLoading}
+      />
+
+      <InventorySummaryDialog
+        open={inventorySummaryDialogOpen}
+        onOpenChange={setInventorySummaryDialogOpen}
+        inventoryData={inventoryMovements || null}
+        isLoading={inventoryMovementsLoading}
+        shiftOpenedAt={currentShift?.opened_at}
+        shiftClosedAt={currentShift?.closed_at}
       />
 
       <ItemNotesDialog

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, Clock, FileText, DollarSign, MoreHorizontal } from "lucide-react";
+import { LogOut, Clock, FileText, DollarSign, MoreHorizontal, Package } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +24,9 @@ interface POSHeaderProps {
   onViewHeldOrders: () => void;
   onViewRecentOrders: () => void;
   onViewZReport: () => void;
+  onViewInventorySummary: () => void;
   heldOrdersCount: number;
+  inventoryEnabled?: boolean;
 }
 
 export function POSHeader({
@@ -39,7 +41,9 @@ export function POSHeader({
   onViewHeldOrders,
   onViewRecentOrders,
   onViewZReport,
+  onViewInventorySummary,
   heldOrdersCount,
+  inventoryEnabled = false,
 }: POSHeaderProps) {
   const { t } = useLanguage();
 
@@ -120,6 +124,12 @@ export function POSHeader({
                       <FileText className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
                       {t("z_report")}
                     </DropdownMenuItem>
+                    {inventoryEnabled && (
+                      <DropdownMenuItem onClick={onViewInventorySummary}>
+                        <Package className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                        {t("inventory_summary") || "ملخص المخزون"}
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={onCloseShift} className="text-destructive">
                       <Clock className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
