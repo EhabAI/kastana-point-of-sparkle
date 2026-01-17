@@ -66,7 +66,8 @@ export function useCashierMenuItems(categoryId: string | undefined) {
             description,
             price,
             is_available,
-            category_id
+            category_id,
+            is_favorite
           )
         `)
         .eq("branch_id", session.branch.id)
@@ -98,6 +99,7 @@ export function useCashierMenuItems(categoryId: string | undefined) {
           price: basePrice,
           is_available: item.is_available,
           is_offer: false,
+          is_favorite: item.menu_item.is_favorite,
           sort_order: item.sort_order ?? 0,
           promo_price: item.promo_price,
           promo_label: item.promo_label,
@@ -136,6 +138,7 @@ export function useCashierAllMenuItems() {
             price,
             is_available,
             category_id,
+            is_favorite,
             menu_category:menu_categories!inner(
               id,
               name
@@ -171,6 +174,7 @@ export function useCashierAllMenuItems() {
           price: basePrice,
           is_available: item.is_available,
           is_offer: false,
+          is_favorite: item.menu_item.is_favorite,
           sort_order: item.sort_order ?? 0,
           promo_price: item.promo_price,
           promo_label: item.promo_label,

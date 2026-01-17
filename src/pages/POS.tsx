@@ -48,6 +48,7 @@ import {
 import type { SelectedModifier } from "@/hooks/pos/useModifiers";
 import { useCreateRefund } from "@/hooks/pos/useRefunds";
 import { useAuditLog } from "@/hooks/pos/useAuditLog";
+import { useToggleFavorite } from "@/hooks/pos/useToggleFavorite";
 import { useRestaurantActiveStatus } from "@/hooks/useRestaurantActiveStatus";
 import { useShiftInventoryMovements } from "@/hooks/useShiftInventoryMovements";
 import { RestaurantInactiveScreen } from "@/components/RestaurantInactiveScreen";
@@ -135,6 +136,7 @@ export default function POS() {
   const { data: menuItems = [], isLoading: itemsLoading } = useCashierMenuItems(selectedCategoryId);
   const { data: allMenuItems = [], isLoading: allItemsLoading } = useCashierAllMenuItems();
   const { data: favoriteItems = [], isLoading: favoritesLoading } = useCashierFavoriteItems();
+  const toggleFavoriteMutation = useToggleFavorite();
 
   // B1: Menu item search - GLOBAL search across all categories
   const [menuSearch, setMenuSearch] = useState("");
@@ -1809,6 +1811,7 @@ export default function POS() {
                     items={filteredMenuItems}
                     currency={currency}
                     onSelectItem={handleSelectItem}
+                    onToggleFavorite={(itemId, isFavorite) => toggleFavoriteMutation.mutate({ itemId, isFavorite })}
                     isLoading={isSearchActive ? allItemsLoading : itemsLoading}
                     showCategoryName={isSearchActive}
                   />
@@ -1857,6 +1860,7 @@ export default function POS() {
                   items={favoriteItems}
                   currency={currency}
                   onSelectItem={handleSelectItem}
+                  onToggleFavorite={(itemId, isFavorite) => toggleFavoriteMutation.mutate({ itemId, isFavorite })}
                   isLoading={favoritesLoading}
                 />
               </div>

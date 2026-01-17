@@ -8,6 +8,7 @@ interface MenuItem {
   price: number;
   is_offer: boolean;
   is_available: boolean;
+  is_favorite?: boolean;
   promo_price?: number | null;
   promo_label?: string | null;
 }
@@ -16,6 +17,7 @@ interface FavoritesGridProps {
   items: MenuItem[];
   currency: string;
   onSelectItem: (item: MenuItem) => void;
+  onToggleFavorite?: (itemId: string, isFavorite: boolean) => void;
   isLoading?: boolean;
 }
 
@@ -23,6 +25,7 @@ export function FavoritesGrid({
   items,
   currency,
   onSelectItem,
+  onToggleFavorite,
   isLoading,
 }: FavoritesGridProps) {
   if (isLoading) {
@@ -53,9 +56,10 @@ export function FavoritesGrid({
         {items.map((item) => (
           <MenuItemCard
             key={item.id}
-            item={item}
+            item={{ ...item, is_favorite: true }}
             currency={currency}
             onSelect={onSelectItem}
+            onToggleFavorite={onToggleFavorite}
           />
         ))}
       </div>
