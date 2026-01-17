@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +37,18 @@ interface LineItem {
   itemId: string;
   qty: string;
 }
+
+// Validate a single quantity value
+const validateQty = (qty: string): { isValid: boolean; showError: boolean } => {
+  if (!qty || qty.trim() === "") {
+    return { isValid: false, showError: false };
+  }
+  const qtyNum = parseFloat(qty);
+  if (isNaN(qtyNum) || qtyNum <= 0) {
+    return { isValid: false, showError: true };
+  }
+  return { isValid: true, showError: false };
+};
 
 export function TransferDialog({ restaurantId, open, onOpenChange }: TransferDialogProps) {
   const { t } = useLanguage();
@@ -84,9 +96,11 @@ export function TransferDialog({ restaurantId, open, onOpenChange }: TransferDia
       return;
     }
 
-    // Validate lines and check each item has a unit
+    // Validate lines and check each item has a unit and valid qty
     const validLines = lines.filter((line) => {
-      if (!line.itemId || !(parseFloat(line.qty) > 0)) return false;
+      if (!line.itemId) return false;
+      const qtyNum = parseFloat(line.qty);
+      if (isNaN(qtyNum) || qtyNum <= 0) return false;
       const { unitId } = getItemUnit(line.itemId);
       if (!unitId) {
         toast({ title: t("inv_item_no_unit"), variant: "destructive" });
@@ -128,12 +142,17 @@ export function TransferDialog({ restaurantId, open, onOpenChange }: TransferDia
     }
   };
 
-  const isValid = fromBranch && toBranch && fromBranch !== toBranch && 
-    lines.some((line) => {
-      if (!line.itemId || !(parseFloat(line.qty) > 0)) return false;
+  // Check if form is valid
+  const isValid = useMemo(() => {
+    if (!fromBranch || !toBranch || fromBranch === toBranch) return false;
+    return lines.some((line) => {
+      if (!line.itemId) return false;
+      const qtyNum = parseFloat(line.qty);
+      if (isNaN(qtyNum) || qtyNum <= 0) return false;
       const { unitId } = getItemUnit(line.itemId);
       return !!unitId;
     });
+  }, [fromBranch, toBranch, lines, fromBranchItems]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -147,58 +166,60 @@ export function TransferDialog({ restaurantId, open, onOpenChange }: TransferDia
         </DialogHeader>
 
         <DialogBody className="space-y-4 py-4">
-            {/* Branches */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t("inv_from_branch")} *</Label>
-                <Select value={fromBranch} onValueChange={(v) => { setFromBranch(v); setLines([{ id: "1", itemId: "", qty: "" }]); }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("select_branch_required")} />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover border shadow-lg z-50">
-                    {activeBranches.map((branch) => (
-                      <SelectItem key={branch.id} value={branch.id} disabled={branch.id === toBranch}>
-                        {branch.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>{t("inv_to_branch")} *</Label>
-                <Select value={toBranch} onValueChange={setToBranch}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("select_branch_required")} />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover border shadow-lg z-50">
-                    {activeBranches.map((branch) => (
-                      <SelectItem key={branch.id} value={branch.id} disabled={branch.id === fromBranch}>
-                        {branch.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Line Items */}
+          {/* Branches */}
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>{t("items")} *</Label>
-                <Button size="sm" variant="outline" onClick={addLine} disabled={!fromBranch}>
-                  <Plus className="h-4 w-4 ltr:mr-1 rtl:ml-1" />
-                  {t("inv_add_line")}
-                </Button>
-              </div>
-              <div className="space-y-2">
-                {lines.map((line, index) => {
-                  const { unitName } = getItemUnit(line.itemId);
-                  return (
-                    <div key={line.id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border">
+              <Label>{t("inv_from_branch")} *</Label>
+              <Select value={fromBranch} onValueChange={(v) => { setFromBranch(v); setLines([{ id: "1", itemId: "", qty: "" }]); }}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("select_branch_required")} />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border shadow-lg z-50">
+                  {activeBranches.map((branch) => (
+                    <SelectItem key={branch.id} value={branch.id} disabled={branch.id === toBranch}>
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>{t("inv_to_branch")} *</Label>
+              <Select value={toBranch} onValueChange={setToBranch}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("select_branch_required")} />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border shadow-lg z-50">
+                  {activeBranches.map((branch) => (
+                    <SelectItem key={branch.id} value={branch.id} disabled={branch.id === fromBranch}>
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Line Items */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>{t("items")} *</Label>
+              <Button size="sm" variant="outline" onClick={addLine} disabled={!fromBranch}>
+                <Plus className="h-4 w-4 ltr:mr-1 rtl:ml-1" />
+                {t("inv_add_line")}
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {lines.map((line, index) => {
+                const { unitName } = getItemUnit(line.itemId);
+                const qtyValidation = validateQty(line.qty);
+                return (
+                  <div key={line.id} className="space-y-1">
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border">
                       <span className="text-xs text-muted-foreground w-6">{index + 1}</span>
                       <Select
                         value={line.itemId}
-                        onValueChange={(v) => updateLine(line.id, "itemId", v)}
+                        onValueChange={(v) => { updateLine(line.id, "itemId", v); updateLine(line.id, "qty", ""); }}
                         disabled={!fromBranch}
                       >
                         <SelectTrigger className="flex-1">
@@ -214,12 +235,12 @@ export function TransferDialog({ restaurantId, open, onOpenChange }: TransferDia
                       </Select>
                       <Input
                         type="number"
-                        min="0"
+                        min="0.01"
                         step="0.01"
                         placeholder={t("inv_qty")}
                         value={line.qty}
                         onChange={(e) => updateLine(line.id, "qty", e.target.value)}
-                        className="w-24"
+                        className={`w-24 ${qtyValidation.showError ? "border-destructive" : ""}`}
                         disabled={!line.itemId}
                       />
                       <Input
@@ -236,25 +257,29 @@ export function TransferDialog({ restaurantId, open, onOpenChange }: TransferDia
                         onClick={() => removeLine(line.id)}
                         disabled={lines.length === 1}
                       >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {qtyValidation.showError && (
+                      <p className="text-xs text-destructive ltr:ml-8 rtl:mr-8">{t("inv_qty_must_be_positive")}</p>
+                    )}
                   </div>
-                  );
-                })}
-              </div>
+                );
+              })}
             </div>
+          </div>
 
-            {/* Notes */}
-            <div className="space-y-2">
-              <Label>{t("inv_notes")}</Label>
-              <Textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder={t("inv_notes_placeholder")}
-                rows={2}
-              />
-            </div>
-          </DialogBody>
+          {/* Notes */}
+          <div className="space-y-2">
+            <Label>{t("inv_notes")}</Label>
+            <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder={t("inv_notes_placeholder")}
+              rows={2}
+            />
+          </div>
+        </DialogBody>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

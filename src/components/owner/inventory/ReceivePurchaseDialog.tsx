@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -40,6 +40,18 @@ interface LineItem {
   qty: string;
   unitCost: string;
 }
+
+// Validate a single quantity value
+const validateQty = (qty: string): { isValid: boolean; showError: boolean } => {
+  if (!qty || qty.trim() === "") {
+    return { isValid: false, showError: false };
+  }
+  const qtyNum = parseFloat(qty);
+  if (isNaN(qtyNum) || qtyNum <= 0) {
+    return { isValid: false, showError: true };
+  }
+  return { isValid: true, showError: false };
+};
 
 export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: ReceivePurchaseDialogProps) {
   const { t } = useLanguage();
@@ -103,9 +115,11 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
       return;
     }
 
-    // Validate lines and check each item has a unit
+    // Validate lines and check each item has a unit and valid qty
     const validLines = lines.filter((line) => {
-      if (!line.itemId || !(parseFloat(line.qty) > 0)) return false;
+      if (!line.itemId) return false;
+      const qtyNum = parseFloat(line.qty);
+      if (isNaN(qtyNum) || qtyNum <= 0) return false;
       const { unitId } = getItemUnit(line.itemId);
       if (!unitId) {
         toast({ title: t("inv_item_no_unit"), variant: "destructive" });
@@ -150,11 +164,17 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
     }
   };
 
-  const isValid = selectedBranch && lines.some((line) => {
-    if (!line.itemId || !(parseFloat(line.qty) > 0)) return false;
-    const { unitId } = getItemUnit(line.itemId);
-    return !!unitId;
-  });
+  // Check if form is valid
+  const isValid = useMemo(() => {
+    if (!selectedBranch) return false;
+    return lines.some((line) => {
+      if (!line.itemId) return false;
+      const qtyNum = parseFloat(line.qty);
+      if (isNaN(qtyNum) || qtyNum <= 0) return false;
+      const { unitId } = getItemUnit(line.itemId);
+      return !!unitId;
+    });
+  }, [selectedBranch, lines, branchItems]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -245,61 +265,67 @@ export function ReceivePurchaseDialog({ restaurantId, open, onOpenChange }: Rece
             <div className="space-y-2">
               {lines.map((line, index) => {
                 const { unitName } = getItemUnit(line.itemId);
+                const qtyValidation = validateQty(line.qty);
                 return (
-                  <div key={line.id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border">
-                    <span className="text-xs text-muted-foreground w-6">{index + 1}</span>
-                    <Select
-                      value={line.itemId}
-                      onValueChange={(v) => updateLine(line.id, "itemId", v)}
-                      disabled={!selectedBranch}
-                    >
-                      <SelectTrigger className="flex-1">
-                        <SelectValue placeholder={t("inv_select_item")} />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover border shadow-lg z-50">
-                        {branchItems.map((item) => (
-                          <SelectItem key={item.id} value={item.id}>
-                            {item.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder={t("inv_qty")}
-                      value={line.qty}
-                      onChange={(e) => updateLine(line.id, "qty", e.target.value)}
-                      className="w-20"
-                      disabled={!line.itemId}
-                    />
-                    <Input
-                      value={unitName}
-                      disabled
-                      readOnly
-                      className="w-24 bg-muted cursor-not-allowed"
-                      placeholder={line.itemId ? t("inv_item_no_unit") : t("inv_unit")}
-                    />
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.001"
-                      placeholder={t("inv_unit_cost")}
-                      value={line.unitCost}
-                      onChange={(e) => updateLine(line.id, "unitCost", e.target.value)}
-                      className="w-24"
-                      title={t("inv_unit_cost_helper")}
-                    />
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                      onClick={() => removeLine(line.id)}
-                      disabled={lines.length === 1}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                  <div key={line.id} className="space-y-1">
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border">
+                      <span className="text-xs text-muted-foreground w-6">{index + 1}</span>
+                      <Select
+                        value={line.itemId}
+                        onValueChange={(v) => { updateLine(line.id, "itemId", v); updateLine(line.id, "qty", ""); }}
+                        disabled={!selectedBranch}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder={t("inv_select_item")} />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover border shadow-lg z-50">
+                          {branchItems.map((item) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        placeholder={t("inv_qty")}
+                        value={line.qty}
+                        onChange={(e) => updateLine(line.id, "qty", e.target.value)}
+                        className={`w-20 ${qtyValidation.showError ? "border-destructive" : ""}`}
+                        disabled={!line.itemId}
+                      />
+                      <Input
+                        value={unitName}
+                        disabled
+                        readOnly
+                        className="w-24 bg-muted cursor-not-allowed"
+                        placeholder={line.itemId ? t("inv_item_no_unit") : t("inv_unit")}
+                      />
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.001"
+                        placeholder={t("inv_unit_cost")}
+                        value={line.unitCost}
+                        onChange={(e) => updateLine(line.id, "unitCost", e.target.value)}
+                        className="w-24"
+                        title={t("inv_unit_cost_helper")}
+                      />
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => removeLine(line.id)}
+                        disabled={lines.length === 1}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {qtyValidation.showError && (
+                      <p className="text-xs text-destructive ltr:ml-8 rtl:mr-8">{t("inv_qty_must_be_positive")}</p>
+                    )}
                   </div>
                 );
               })}

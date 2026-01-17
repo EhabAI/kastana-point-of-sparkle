@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -60,6 +60,18 @@ export function WasteDialog({ restaurantId, open, onOpenChange }: WasteDialogPro
   const selectedUnit = selectedItemData?.baseUnitId || "";
   const selectedUnitName = selectedItemData?.baseUnitName || "";
 
+  // Quantity validation
+  const qtyValidation = useMemo(() => {
+    if (!qty || qty.trim() === "") {
+      return { isValid: false, showError: false };
+    }
+    const qtyNum = parseFloat(qty);
+    if (isNaN(qtyNum) || qtyNum <= 0) {
+      return { isValid: false, showError: true };
+    }
+    return { isValid: true, showError: false };
+  }, [qty]);
+
   const handleSubmit = async () => {
     if (!selectedBranch || !selectedItem || !qty || !reason) {
       toast({ title: t("inv_fill_required"), variant: "destructive" });
@@ -73,7 +85,7 @@ export function WasteDialog({ restaurantId, open, onOpenChange }: WasteDialogPro
     }
 
     const qtyNum = parseFloat(qty);
-    if (qtyNum <= 0) {
+    if (isNaN(qtyNum) || qtyNum <= 0) {
       toast({ title: t("inv_qty_positive"), variant: "destructive" });
       return;
     }
@@ -104,7 +116,7 @@ export function WasteDialog({ restaurantId, open, onOpenChange }: WasteDialogPro
     }
   };
 
-  const isValid = selectedBranch && selectedItem && parseFloat(qty) > 0 && selectedUnit && reason;
+  const isValid = selectedBranch && selectedItem && qtyValidation.isValid && selectedUnit && reason;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -121,7 +133,7 @@ export function WasteDialog({ restaurantId, open, onOpenChange }: WasteDialogPro
           {/* Branch */}
           <div className="space-y-2">
             <Label>{t("branch")} *</Label>
-            <Select value={selectedBranch} onValueChange={(v) => { setSelectedBranch(v); setSelectedItem(""); }}>
+            <Select value={selectedBranch} onValueChange={(v) => { setSelectedBranch(v); setSelectedItem(""); setQty(""); }}>
               <SelectTrigger>
                 <SelectValue placeholder={t("select_branch_required")} />
               </SelectTrigger>
@@ -138,7 +150,7 @@ export function WasteDialog({ restaurantId, open, onOpenChange }: WasteDialogPro
           {/* Item */}
           <div className="space-y-2">
             <Label>{t("inv_item")} *</Label>
-            <Select value={selectedItem} onValueChange={setSelectedItem} disabled={!selectedBranch}>
+            <Select value={selectedItem} onValueChange={(v) => { setSelectedItem(v); setQty(""); }} disabled={!selectedBranch}>
               <SelectTrigger>
                 <SelectValue placeholder={t("inv_select_item")} />
               </SelectTrigger>
@@ -158,12 +170,16 @@ export function WasteDialog({ restaurantId, open, onOpenChange }: WasteDialogPro
               <Label>{t("inv_qty")} *</Label>
               <Input
                 type="number"
-                min="0"
+                min="0.01"
                 step="0.01"
                 value={qty}
                 onChange={(e) => setQty(e.target.value)}
                 disabled={!selectedItem}
+                className={qtyValidation.showError ? "border-destructive" : ""}
               />
+              {qtyValidation.showError && (
+                <p className="text-xs text-destructive">{t("inv_qty_must_be_positive")}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label>{t("inv_unit")}</Label>
