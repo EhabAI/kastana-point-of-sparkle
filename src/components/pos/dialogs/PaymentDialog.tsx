@@ -182,15 +182,15 @@ export function PaymentDialog({
       <DialogContent className="sm:max-w-lg max-h-[90vh] h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{t("payment")}</DialogTitle>
-          <DialogDescription>
-            {t("order_total")}: <span className="font-bold text-foreground text-lg">{formatJOD(total)} {currency}</span>
+          <DialogDescription className="flex items-center gap-2 flex-wrap">
+            <span>{t("order_total")}:</span>
+            <span className="font-semibold text-foreground">{formatJOD(total)} {currency}</span>
             {remaining > 0.001 && (
-              <span className="mx-2">•</span>
-            )}
-            {remaining > 0.001 && (
-              <span className="text-amber-600 dark:text-amber-400 font-semibold">
-                {t("remaining")}: {formatJOD(remaining)} {currency}
-              </span>
+              <>
+                <span className="text-muted-foreground">•</span>
+                <span>{t("remaining")}:</span>
+                <span className="font-semibold text-amber-600 dark:text-amber-400">{formatJOD(remaining)} {currency}</span>
+              </>
             )}
           </DialogDescription>
         </DialogHeader>
