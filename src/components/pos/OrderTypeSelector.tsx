@@ -10,8 +10,22 @@ interface OrderTypeSelectorProps {
 
 export function OrderTypeSelector({ selectedType, onSelectType }: OrderTypeSelectorProps) {
   const types = [
-    { id: "dine-in" as OrderType, label: "Dine In", icon: UtensilsCrossed },
-    { id: "takeaway" as OrderType, label: "Takeaway", icon: ShoppingBag },
+    { 
+      id: "dine-in" as OrderType, 
+      label: "Dine In", 
+      icon: UtensilsCrossed,
+      selectedClasses: "border-blue-500 bg-blue-500/10 ring-1 ring-blue-500",
+      selectedText: "text-blue-600 dark:text-blue-400",
+      hoverClass: "hover:border-blue-400/50"
+    },
+    { 
+      id: "takeaway" as OrderType, 
+      label: "Takeaway", 
+      icon: ShoppingBag,
+      selectedClasses: "border-emerald-500 bg-emerald-500/10 ring-1 ring-emerald-500",
+      selectedText: "text-emerald-600 dark:text-emerald-400",
+      hoverClass: "hover:border-emerald-400/50"
+    },
   ];
 
   return (
@@ -23,17 +37,17 @@ export function OrderTypeSelector({ selectedType, onSelectType }: OrderTypeSelec
           className={cn(
             "flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all",
             selectedType === type.id
-              ? "border-primary bg-primary/10 ring-1 ring-primary"
-              : "border-muted hover:border-primary/50"
+              ? type.selectedClasses
+              : cn("border-muted", type.hoverClass)
           )}
         >
           <type.icon className={cn(
             "h-5 w-5",
-            selectedType === type.id ? "text-primary" : "text-muted-foreground"
+            selectedType === type.id ? type.selectedText : "text-muted-foreground"
           )} />
           <span className={cn(
             "font-semibold text-sm",
-            selectedType === type.id ? "text-primary" : "text-foreground"
+            selectedType === type.id ? type.selectedText : "text-foreground"
           )}>{type.label}</span>
         </button>
       ))}
