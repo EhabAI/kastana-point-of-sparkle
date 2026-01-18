@@ -1145,9 +1145,11 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
       <SheetTrigger asChild>
         <Button
           size="lg"
+          variant="ghost"
           className={cn(
-            "fixed bottom-6 z-50 h-14 w-14 rounded-full shadow-lg",
-            "bg-primary hover:bg-primary/90 text-primary-foreground",
+            "fixed bottom-6 z-50 h-14 w-14 rounded-full",
+            "bg-background/80 hover:bg-muted text-foreground border border-border/50",
+            "backdrop-blur-sm shadow-md",
             "transition-all duration-200 hover:scale-105",
             isRTL ? "right-6" : "left-6"
           )}
