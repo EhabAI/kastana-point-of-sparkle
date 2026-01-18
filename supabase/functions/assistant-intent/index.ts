@@ -19,7 +19,7 @@ interface IntentRequest {
 }
 
 interface IntentResponse {
-  intent: "report" | "training" | "explanation" | "example" | "follow_up" | "unknown";
+  intent: "report" | "training" | "explanation" | "example" | "follow_up" | "system_overview" | "unknown";
   matchedEntryIds: string[];
   depth: "brief" | "detailed";
   reasoning: string;
@@ -61,24 +61,25 @@ You are NOT allowed to answer questions from your own knowledge. You can ONLY id
 
 Your job is to:
 1. Understand the user's question
-2. Identify the user's intent (report, training, explanation, example, follow_up, unknown)
+2. Identify the user's intent (report, training, explanation, example, follow_up, system_overview, unknown)
 3. Find the most relevant knowledge entry IDs from the provided list
 4. Determine if user wants brief or detailed answer
 
 IMPORTANT RULES:
 - ONLY use the knowledge entries provided below. Do not invent answers.
+- If user asks about the system in general, overview, what is Kastana, "نبذة عن النظام", "اشرحلي النظام", "شرح النظام", "عن النظام", "ما هو كاستنا", "what is Kastana", "system overview", "explain the system", intent is "system_overview" with depth "brief". Do NOT return unknown for these.
 - If user says "اشرح أكثر" or "more details" or "explain more", intent is "follow_up" and depth is "detailed"
-- If user asks "ما هو" / "what is" / "كيف" / "how", intent is "explanation"
+- If user asks "ما هو" / "what is" / "كيف" / "how" about a SPECIFIC feature, intent is "explanation"
 - If user mentions "تقرير" / "report", intent is "report"
 - If user asks for "مثال" / "example", intent is "example"
-- If user wants to learn the system, intent is "training"
+- If user wants to learn the system step by step, intent is "training"
 
 Knowledge Base Entries:
 ${knowledgeSummary}
 
 Respond ONLY with a valid JSON object in this exact format:
 {
-  "intent": "report" | "training" | "explanation" | "example" | "follow_up" | "unknown",
+  "intent": "report" | "training" | "explanation" | "example" | "follow_up" | "system_overview" | "unknown",
   "matchedEntryIds": ["entry_id_1", "entry_id_2"],
   "depth": "brief" | "detailed",
   "reasoning": "Brief explanation of why you matched these entries"

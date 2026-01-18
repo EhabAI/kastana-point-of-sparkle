@@ -8,7 +8,7 @@ import {
 } from "@/lib/assistantKnowledge";
 
 interface IntentResult {
-  intent: "report" | "training" | "explanation" | "example" | "follow_up" | "unknown";
+  intent: "report" | "training" | "explanation" | "example" | "follow_up" | "system_overview" | "unknown";
   matchedEntryIds: string[];
   depth: "brief" | "detailed";
   reasoning: string;
@@ -129,12 +129,107 @@ export function useAssistantAI(): UseAssistantAIReturn {
 }
 
 /**
+ * Built-in system overview responses (not from knowledge base)
+ */
+const SYSTEM_OVERVIEW_RESPONSES = {
+  brief: {
+    ar: `نظام Kastana POS هو نظام نقاط بيع متكامل للمطاعم والمقاهي.
+
+✨ المميزات الرئيسية:
+• إدارة الطلبات (سفري/صالة)
+• الدفع بطرق متعددة (نقد/بطاقة)
+• إدارة الورديات وتقارير Z
+• المرتجعات والإلغاءات
+• إدارة الطاولات والدمج
+• تتبع المخزون
+
+💡 اكتب "اشرح أكثر" لمعرفة المزيد عن أي ميزة.`,
+    en: `Kastana POS is a complete point-of-sale system for restaurants and cafes.
+
+✨ Key Features:
+• Order management (Takeaway/Dine-in)
+• Multiple payment methods (Cash/Card)
+• Shift management and Z Reports
+• Refunds and voids
+• Table management and merging
+• Inventory tracking
+
+💡 Type "explain more" to learn about any feature.`
+  },
+  detailed: {
+    ar: `نظام Kastana POS - نظرة شاملة
+
+🛒 إدارة الطلبات:
+• إنشاء طلبات سفري أو صالة
+• إضافة أصناف من القائمة مع تعديلات
+• تعليق واستئناف الطلبات
+• دمج طلبات الطاولات
+• نقل أصناف بين الطلبات
+
+💳 الدفع والمالية:
+• دفع نقدي أو بالبطاقة
+• تطبيق خصومات
+• إدارة المرتجعات
+• تقارير Z اليومية
+
+👥 إدارة الورديات:
+• فتح وإغلاق الورديات
+• إيداع وسحب النقد
+• مطابقة الصندوق
+
+📊 التقارير:
+• تقرير المبيعات
+• تقرير المرتجعات
+• أداء الموظفين
+
+📦 المخزون:
+• تتبع المواد الخام
+• إنشاء الوصفات
+• تنبيهات النقص`,
+    en: `Kastana POS - Complete Overview
+
+🛒 Order Management:
+• Create takeaway or dine-in orders
+• Add menu items with modifiers
+• Hold and resume orders
+• Merge table orders
+• Transfer items between orders
+
+💳 Payments & Finance:
+• Cash or card payments
+• Apply discounts
+• Process refunds
+• Daily Z Reports
+
+👥 Shift Management:
+• Open and close shifts
+• Cash in/out
+• Drawer reconciliation
+
+📊 Reports:
+• Sales reports
+• Refunds report
+• Staff performance
+
+📦 Inventory:
+• Track raw materials
+• Create recipes
+• Low stock alerts`
+  }
+};
+
+/**
  * Generate response strictly from Knowledge Base entries
  */
 function generateResponseFromKnowledge(
   intent: IntentResult,
   language: "ar" | "en"
 ): string {
+  // Handle system overview intent with built-in responses
+  if (intent.intent === "system_overview") {
+    return SYSTEM_OVERVIEW_RESPONSES[intent.depth][language];
+  }
+
   // No matches found
   if (intent.matchedEntryIds.length === 0 || intent.intent === "unknown") {
     return getFallbackResponse(language);
