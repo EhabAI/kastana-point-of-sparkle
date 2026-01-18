@@ -34,13 +34,15 @@ export function InventoryRiskCard({
         .select(`
           id,
           reorder_point,
-          inventory_stock_levels!inner(on_hand_base)
+          inventory_stock_levels!inner(on_hand_base, branch_id)
         `)
         .eq("restaurant_id", restaurantId)
         .eq("is_active", true);
 
       if (selectedBranch?.id) {
         itemsQuery = itemsQuery.eq("branch_id", selectedBranch.id);
+        // Ensure the embedded stock level also matches the selected branch
+        itemsQuery = itemsQuery.eq("inventory_stock_levels.branch_id", selectedBranch.id);
       }
 
       const { data: items, error: itemsError } = await itemsQuery;
@@ -51,8 +53,17 @@ export function InventoryRiskCard({
       let negativeStockCount = 0;
 
       items?.forEach((item) => {
-        const stockLevel = item.inventory_stock_levels as unknown as { on_hand_base: number } | null;
-        const onHand = stockLevel?.on_hand_base || 0;
+        const stockLevels =
+          (item.inventory_stock_levels as unknown as Array<{
+            on_hand_base: number;
+            branch_id: string;
+          }>) || [];
+
+        const relevantStock = selectedBranch?.id
+          ? stockLevels.find((sl) => sl.branch_id === selectedBranch.id)
+          : stockLevels[0];
+
+        const onHand = relevantStock?.on_hand_base ?? 0;
         const reorderPoint = item.reorder_point || 0;
 
         if (onHand < 0) {
