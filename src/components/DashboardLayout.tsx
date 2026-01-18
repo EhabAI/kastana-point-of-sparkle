@@ -53,25 +53,22 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
               </div>
             </div>
 
-            {/* CENTER – Page Title (hidden on mobile) */}
+            {/* CENTER – User Display (hidden on mobile) */}
             <div className="hidden md:flex items-center justify-center flex-1">
-              <h1 className="text-base font-medium text-foreground">{title}</h1>
+              {displayName && roleLabel && (
+                <span className="text-sm font-medium text-foreground">
+                  {displayName} – {roleLabel}
+                </span>
+              )}
             </div>
 
-            {/* RIGHT – User Area */}
+            {/* RIGHT – Actions Area */}
             <div className="flex items-center gap-1 sm:gap-1.5">
               <ThemeToggle />
               <LanguageToggle />
               
               {/* Divider */}
               <div className="hidden sm:block w-px h-5 bg-border/60 mx-1.5" />
-              
-              {/* User display name and role - single line */}
-              {displayName && roleLabel && (
-                <span className="hidden sm:block text-xs text-muted-foreground max-w-[200px] truncate">
-                  {displayName} – {roleLabel}
-                </span>
-              )}
               
               {/* Sign Out */}
               <Button 
