@@ -50,3 +50,6 @@ verify_jwt = false
 
 [functions.recipe-csv-import]
 verify_jwt = false
+
+[functions.assistant-intent]
+verify_jwt = false
