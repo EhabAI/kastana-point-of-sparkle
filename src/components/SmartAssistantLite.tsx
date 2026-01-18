@@ -86,7 +86,7 @@ interface TopicCategory {
 const TOPIC_CATEGORIES: TopicCategory[] = [
   {
     id: "getting_started",
-    title: { ar: "البدء مع Kastana POS", en: "Getting Started" },
+    title: { ar: "البدء مع النظام", en: "Getting Started" },
     icon: <BookOpen className="h-4 w-4" />,
     topicIds: ["new_order_flow", "open_shift", "close_shift", "favorites_screen"]
   },
