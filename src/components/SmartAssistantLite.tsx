@@ -1388,8 +1388,6 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                       </div>
                     </ScrollArea>
                   )}
-                </div>
-              </div>
             </div>
           </>
         )}
