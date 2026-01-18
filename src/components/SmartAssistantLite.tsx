@@ -660,7 +660,7 @@ function FullTrainingCTA({
 
 export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("alerts");
+  const [activeTab, setActiveTab] = useState("suggestions");
   const [alertsViewed, setAlertsViewed] = useState(false);
   const [suggestionsViewed, setSuggestionsViewed] = useState(false);
   const [lastAlertCount, setLastAlertCount] = useState(0);
@@ -1177,12 +1177,7 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
 
             {/* Tabbed Content */}
             <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col min-h-0">
-              <TabsList className="mx-4 mt-3 grid w-auto grid-cols-3">
-                <TabsTrigger value="alerts" className="flex items-center justify-center">
-                  <AlertCircle className="h-3.5 w-3.5 mr-1.5" />
-                  {language === "ar" ? "تنبيهات" : "Alerts"}
-                  <TabBadge show={showAlertsBadge} count={totalAlertCount} variant="count" />
-                </TabsTrigger>
+              <TabsList className="mx-4 mt-3 grid w-auto grid-cols-2">
                 <TabsTrigger value="suggestions" className="flex items-center justify-center">
                   <Lightbulb className="h-3.5 w-3.5 mr-1.5" />
                   {language === "ar" ? "اقتراحات" : "Tips"}
@@ -1195,59 +1190,6 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
               </TabsList>
 
               <ScrollArea className="flex-1">
-                {/* Alerts Tab */}
-                <TabsContent value="alerts" className="p-4 space-y-3 mt-0">
-                  {/* Feature Announcements - Dismissible */}
-                  {announcements.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-xs font-medium text-muted-foreground">
-                        {language === "ar" ? "ميزات جديدة" : "What's New"}
-                      </p>
-                      {announcements.map((announcement) => (
-                        <FeatureAnnouncementCard
-                          key={announcement.id}
-                          announcement={announcement}
-                          language={language}
-                          onDismiss={handleDismissAnnouncement}
-                          onExplain={handleExplainAnnouncement}
-                        />
-                      ))}
-                    </div>
-                  )}
-                  
-                  {/* System Alerts */}
-                  {hasAlerts && (
-                    <div className="space-y-2">
-                      {announcements.length > 0 && (
-                        <p className="text-xs font-medium text-muted-foreground pt-2">
-                          {language === "ar" ? "تنبيهات النظام" : "System Alerts"}
-                        </p>
-                      )}
-                      {alerts.map((alert, index) => (
-                        <AlertCard 
-                          key={`${alert.id}-${index}`} 
-                          alert={alert} 
-                          language={language} 
-                        />
-                      ))}
-                    </div>
-                  )}
-                  
-                  {/* Empty State */}
-                  {!hasAnyAlerts && (
-                    <div className="rounded-lg border border-dashed p-4 text-center">
-                      <div className="mx-auto w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center mb-2">
-                        <Info className="h-5 w-5 text-green-600 dark:text-green-400" />
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {language === "ar" 
-                          ? "لا توجد تنبيهات حالياً. كل شيء يعمل بشكل طبيعي."
-                          : "No alerts at the moment. Everything is running smoothly."
-                        }
-                      </p>
-                    </div>
-                  )}
-                </TabsContent>
 
                 {/* Suggestions Tab - Tips from Knowledge Base */}
                 <TabsContent value="suggestions" className="p-4 space-y-3 mt-0">
