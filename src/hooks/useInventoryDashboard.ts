@@ -59,9 +59,13 @@ export function useLowStockItems(restaurantId: string | undefined) {
         return [];
       }
 
-      // Filter items where on_hand_base < min_level
+      // Filter items where on_hand_base <= reorder_point (matches InventoryRiskCard logic)
       const lowStock = (stockLevels || [])
-        .filter((sl: any) => sl.on_hand_base < sl.inventory_items.min_level)
+        .filter((sl: any) => {
+          const onHand = sl.on_hand_base || 0;
+          const reorderPoint = sl.inventory_items.reorder_point || 0;
+          return onHand <= reorderPoint;
+        })
         .map((sl: any) => ({
           itemId: sl.item_id,
           itemName: sl.inventory_items.name,
@@ -108,13 +112,15 @@ export function useNearReorderItems(restaurantId: string | undefined) {
         return [];
       }
 
-      // Filter items where on_hand_base < reorder_point but >= min_level (not already critical)
+      // Filter items where on_hand_base is between min_level and reorder_point (warning level)
       const nearReorder = (stockLevels || [])
-        .filter(
-          (sl: any) =>
-            sl.on_hand_base < sl.inventory_items.reorder_point &&
-            sl.on_hand_base >= sl.inventory_items.min_level
-        )
+        .filter((sl: any) => {
+          const onHand = sl.on_hand_base || 0;
+          const minLevel = sl.inventory_items.min_level || 0;
+          const reorderPoint = sl.inventory_items.reorder_point || 0;
+          // Items above min_level but at or below reorder_point
+          return onHand > minLevel && onHand <= reorderPoint;
+        })
         .map((sl: any) => ({
           itemId: sl.item_id,
           itemName: sl.inventory_items.name,
