@@ -66,15 +66,12 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
               {/* Divider */}
               <div className="hidden sm:block w-px h-5 bg-border/60 mx-1.5" />
               
-              {/* User display name and role */}
-              <div className="hidden sm:flex flex-col items-end max-w-[200px]">
-                <span className="text-xs font-medium text-foreground truncate leading-tight">
-                  {displayName || 'User'}
+              {/* User display name and role - single line */}
+              {displayName && roleLabel && (
+                <span className="hidden sm:block text-xs text-muted-foreground max-w-[200px] truncate">
+                  {displayName} – {roleLabel}
                 </span>
-                <span className="text-[10px] text-muted-foreground leading-tight">
-                  {roleLabel}
-                </span>
-              </div>
+              )}
               
               {/* Sign Out */}
               <Button 
