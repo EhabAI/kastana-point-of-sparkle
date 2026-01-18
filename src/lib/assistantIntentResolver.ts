@@ -1,19 +1,24 @@
 // Kastana POS Assistant - Intent Resolver
 // Enhanced intent classification with mode and confidence
+// CRITICAL: UI-first matching takes priority over AI classification
 
 import type { AssistantIntent } from "@/lib/assistantScopeGuard";
+import type { UIElementMatch } from "@/lib/assistantUIResolver";
+import type { ScreenContext } from "@/lib/smartAssistantContext";
 
 export type ResolvedMode = 
   | "help"        // Standard help/how-to guidance
   | "blocked"     // Action is blocked due to state/permissions
   | "training"    // User wants deeper explanation
-  | "admin_decision"; // Requires admin/owner decision
+  | "admin_decision" // Requires admin/owner decision
+  | "ui_element"; // Direct UI element explanation (highest priority)
 
 export interface ResolvedIntent {
   intent: AssistantIntent;
   mode: ResolvedMode;
   confidence: number;
   escalateDetail?: boolean; // User asked for more detail
+  uiMatch?: UIElementMatch; // UI element match if found
 }
 
 // Training escalation patterns
@@ -60,6 +65,8 @@ const ADMIN_DECISION_PATTERNS = {
 
 /**
  * Resolve intent with mode and confidence
+ * CRITICAL: UI-first matching is checked in useAssistantAI hook before this function
+ * This function handles secondary intent classification (training, blocked, admin patterns)
  */
 export function resolveIntent(
   message: string,
@@ -68,6 +75,7 @@ export function resolveIntent(
     userRole?: string; 
     orderStatus?: string;
     shiftStatus?: string;
+    screenContext?: ScreenContext;
   }
 ): ResolvedIntent {
   const lowerMessage = message.toLowerCase();
@@ -142,6 +150,10 @@ export function getModePrefix(mode: ResolvedMode, language: "ar" | "en"): string
     admin_decision: {
       ar: "🔐 يتطلب صلاحيات إدارية:\n\n",
       en: "🔐 Requires admin permissions:\n\n",
+    },
+    ui_element: {
+      ar: "",
+      en: "",
     },
   };
   
