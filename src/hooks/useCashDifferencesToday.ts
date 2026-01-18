@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { startOfDay, endOfDay } from "date-fns";
+import { startOfDay, endOfDay, format } from "date-fns";
 
 /**
  * Cash difference data per closed shift
@@ -20,22 +20,21 @@ export interface CashDifferencesTodayData {
 }
 
 /**
- * Fetches cash differences for all closed shifts today
+ * Fetches cash differences for all closed shifts on a specific date
  * Used exclusively in Owner Dashboard
  */
-export function useCashDifferencesToday(restaurantId: string | undefined) {
+export function useCashDifferences(restaurantId: string | undefined, date: Date = new Date()) {
   return useQuery({
-    queryKey: ["cash-differences-today", restaurantId],
+    queryKey: ["cash-differences", restaurantId, format(date, "yyyy-MM-dd")],
     queryFn: async (): Promise<CashDifferencesTodayData> => {
       if (!restaurantId) {
         return { rows: [], totalDifference: 0, closedShiftsCount: 0 };
       }
 
-      const today = new Date();
-      const todayStart = startOfDay(today).toISOString();
-      const todayEnd = endOfDay(today).toISOString();
+      const dayStart = startOfDay(date).toISOString();
+      const dayEnd = endOfDay(date).toISOString();
 
-      // Get all closed shifts today with cashier profile
+      // Get all closed shifts on selected date with cashier profile
       const { data: closedShifts, error: shiftsError } = await supabase
         .from("shifts")
         .select(`
@@ -48,8 +47,8 @@ export function useCashDifferencesToday(restaurantId: string | undefined) {
         `)
         .eq("restaurant_id", restaurantId)
         .eq("status", "closed")
-        .gte("closed_at", todayStart)
-        .lt("closed_at", todayEnd)
+        .gte("closed_at", dayStart)
+        .lt("closed_at", dayEnd)
         .order("closed_at", { ascending: false });
 
       if (shiftsError) {
@@ -155,4 +154,12 @@ export function useCashDifferencesToday(restaurantId: string | undefined) {
     enabled: !!restaurantId,
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
   });
+}
+
+/**
+ * @deprecated Use useCashDifferences instead
+ * Backwards compatibility wrapper for today's date
+ */
+export function useCashDifferencesToday(restaurantId: string | undefined) {
+  return useCashDifferences(restaurantId, new Date());
 }

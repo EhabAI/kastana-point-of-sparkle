@@ -3,16 +3,20 @@
  * Displays a clear daily summary for restaurant owners
  */
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { startOfDay, endOfDay, format } from "date-fns";
-import { formatJOD } from "@/lib/utils";
+import { formatJOD, cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
-  Calendar,
+  Calendar as CalendarIcon,
   ClipboardList,
   DollarSign,
   RotateCcw,
@@ -34,37 +38,37 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
   const { language } = useLanguage();
   const t = translations[language as keyof typeof translations] || translations.en;
   
-  const today = new Date();
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   
   const { data: summary, isLoading } = useQuery({
-    queryKey: ["daily-summary-card", restaurantId, format(today, "yyyy-MM-dd")],
+    queryKey: ["daily-summary-card", restaurantId, format(selectedDate, "yyyy-MM-dd")],
     queryFn: async () => {
-      const todayStart = startOfDay(today).toISOString();
-      const todayEnd = endOfDay(today).toISOString();
+      const dayStart = startOfDay(selectedDate).toISOString();
+      const dayEnd = endOfDay(selectedDate).toISOString();
       
       // Today's orders
       const { data: todayOrders } = await supabase
         .from("orders")
         .select("id, total, subtotal, status, discount_value")
         .eq("restaurant_id", restaurantId)
-        .gte("created_at", todayStart)
-        .lt("created_at", todayEnd);
+        .gte("created_at", dayStart)
+        .lt("created_at", dayEnd);
       
       // Today's refunds with reasons
       const { data: todayRefunds } = await supabase
         .from("refunds")
         .select("amount, reason")
         .eq("restaurant_id", restaurantId)
-        .gte("created_at", todayStart)
-        .lt("created_at", todayEnd);
+        .gte("created_at", dayStart)
+        .lt("created_at", dayEnd);
       
       // Today's payments
       const { data: todayPayments } = await supabase
         .from("payments")
         .select("amount")
         .eq("restaurant_id", restaurantId)
-        .gte("created_at", todayStart)
-        .lt("created_at", todayEnd);
+        .gte("created_at", dayStart)
+        .lt("created_at", dayEnd);
       
       // Get top seller today
       const { data: topSeller } = await supabase
@@ -72,8 +76,8 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
         .select("name, quantity")
         .eq("restaurant_id", restaurantId)
         .eq("voided", false)
-        .gte("created_at", todayStart)
-        .lt("created_at", todayEnd);
+        .gte("created_at", dayStart)
+        .lt("created_at", dayEnd);
       
       // Calculate stats
       const paidOrders = todayOrders?.filter(o => o.status === "paid") || [];
@@ -133,7 +137,7 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <div className="p-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30">
-              <Calendar className="h-4 w-4 text-blue-600" />
+              <CalendarIcon className="h-4 w-4 text-blue-600" />
             </div>
             {t.daily_summary_title}
           </CardTitle>
@@ -164,13 +168,35 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             <div className="p-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30">
-              <Calendar className="h-4 w-4 text-blue-600" />
+              <CalendarIcon className="h-4 w-4 text-blue-600" />
             </div>
             {t.daily_summary_title}
           </CardTitle>
-          <span className="text-xs text-muted-foreground">
-            {format(today, language === "ar" ? "d MMMM yyyy" : "MMMM d, yyyy")}
-          </span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "h-7 px-2 text-xs bg-white dark:bg-background border-blue-200 dark:border-blue-800/50",
+                  !selectedDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="h-3.5 w-3.5 ltr:mr-1.5 rtl:ml-1.5" />
+                {format(selectedDate, language === "ar" ? "d MMM" : "MMM d")}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => date && setSelectedDate(date)}
+                disabled={(date) => date > new Date()}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
