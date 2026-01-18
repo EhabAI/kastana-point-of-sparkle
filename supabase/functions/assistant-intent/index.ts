@@ -101,7 +101,7 @@ Identify the intent and find matching knowledge entries. Return JSON only.`;
           { role: "user", content: userMessage },
         ],
         temperature: 0.3,
-        max_tokens: 500,
+        max_completion_tokens: 500,
       }),
     });
 
