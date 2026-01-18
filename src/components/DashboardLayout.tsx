@@ -16,7 +16,7 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, title }: DashboardLayoutProps) {
-  const { signOut, user, role } = useAuth();
+  const { signOut, user } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
 
@@ -41,21 +41,33 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
     }
   };
 
-  const roleLabel = role ? getRoleLabel(role) : '';
-
-  const { data: profileUsername } = useQuery({
-    queryKey: ['profile_username', user?.id],
+  const { data: profile } = useQuery({
+    queryKey: ['profile_header', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
       if (!user?.id) return null;
-      const { data, error } = await supabase
+      
+      // Fetch username from profiles
+      const { data: profileData } = await supabase
         .from('profiles')
         .select('username')
         .eq('id', user.id)
         .maybeSingle();
-
-      if (error) return null;
-      return data?.username ?? null;
+      
+      // Fetch role from user_roles
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+      
+      if (!profileData?.username || !roleData?.role) return null;
+      
+      return {
+        username: profileData.username,
+        role: roleData.role
+      };
     },
   });
 
@@ -75,9 +87,9 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
 
             {/* CENTER – User Display (hidden on mobile) */}
             <div className="hidden md:flex items-center justify-center flex-1">
-              {profileUsername && roleLabel ? (
+              {profile?.username && profile?.role ? (
                 <span className="text-sm font-medium text-foreground">
-                  {profileUsername} – {roleLabel}
+                  {profile.username} – {getRoleLabel(profile.role)}
                 </span>
               ) : null}
             </div>
