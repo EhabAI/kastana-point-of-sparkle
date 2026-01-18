@@ -850,23 +850,8 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
     setOnRequestExplanation 
   } = useErrorContextInternal();
   
-  // Get user role and user id for role-based changelog filtering and greeting
-  const { role, user } = useAuth();
-  
-  // Fetch user's display name directly from profiles table using authenticated user id
-  const { data: profileUsername } = useQuery({
-    queryKey: ["assistant_profile_username", user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("username")
-        .eq("id", user!.id)
-        .maybeSingle();
-
-      return data?.username ?? null;
-    },
-  });
+  // Get user role and displayName from centralized AuthContext
+  const { role, displayName: profileUsername } = useAuth();
   
   // Width mode state with localStorage persistence
   const [widthMode, setWidthMode] = useState<WidthMode>(() => {

@@ -45,6 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return null;
     }
     
+    return data?.username ?? null;
   };
 
   const fetchUserRole = async (userId: string) => {
