@@ -481,6 +481,186 @@ const TROUBLESHOOT_RESPONSES: Record<string, { ar: string; en: string }> = {
 
 ❓ Is the shift already closed or still open?`
   },
+  csv_inventory: {
+    ar: `أفهم أن لديك مشكلة في تحميل ملف CSV للمخزون. هذه من أكثر العمليات التي تحتاج دقة! 💡
+
+🔍 الأسباب الأكثر شيوعاً لفشل استيراد CSV المخزون:
+
+1️⃣ **أسماء الأعمدة غير صحيحة**
+   → الأعمدة المطلوبة: item_name, unit, quantity, cost
+   → تأكد من كتابتها بالإنجليزية بالضبط كما هو مطلوب
+   → لا تستخدم أسماء عربية للأعمدة
+
+2️⃣ **تكرار أسماء الأصناف**
+   → كل صنف يجب أن يكون باسم فريد
+   → راجع الملف بحثاً عن تكرارات
+
+3️⃣ **قيم الوحدات غير صالحة**
+   → الوحدات يجب أن تكون موجودة مسبقاً في النظام
+   → أضف الوحدات أولاً من إعدادات المخزون
+
+4️⃣ **كميات فارغة أو صفرية**
+   → لا تترك حقل الكمية فارغاً
+   → الكمية يجب أن تكون رقم موجب
+
+5️⃣ **المخزون غير مفعل**
+   → تأكد أن ميزة المخزون مفعلة في إعدادات المطعم
+
+6️⃣ **مشكلة الترميز (Encoding)**
+   → احفظ الملف بترميز UTF-8
+   → تجنب الرموز الخاصة في الأسماء
+
+⚠️ ملاحظة: المخزون في Kastana على مستوى الفرع. تأكد من اختيار الفرع الصحيح.
+
+❓ هل يظهر الخطأ قبل المعاينة (Preview) أم بعد تأكيد الاستيراد؟`,
+    en: `I understand you're having an issue with Inventory CSV import. This operation requires precision! 💡
+
+🔍 Most Common Causes for Inventory CSV Import Failure:
+
+1️⃣ **Incorrect column names**
+   → Required columns: item_name, unit, quantity, cost
+   → Make sure to use exact English names as required
+   → Don't use Arabic column names
+
+2️⃣ **Duplicate item names**
+   → Each item must have a unique name
+   → Check the file for duplicates
+
+3️⃣ **Invalid unit values**
+   → Units must already exist in the system
+   → Add units first from Inventory Settings
+
+4️⃣ **Empty or zero quantities**
+   → Don't leave quantity field empty
+   → Quantity must be a positive number
+
+5️⃣ **Inventory not enabled**
+   → Make sure inventory feature is enabled in restaurant settings
+
+6️⃣ **Encoding issue**
+   → Save the file with UTF-8 encoding
+   → Avoid special characters in names
+
+⚠️ Note: Inventory in Kastana is branch-level. Make sure to select the correct branch.
+
+❓ Does the error appear before Preview or after confirming import?`
+  },
+  csv_recipes: {
+    ar: `أفهم أن لديك مشكلة في تحميل ملف CSV للوصفات. دعني أساعدك! 💡
+
+🔍 الأسباب الأكثر شيوعاً لفشل استيراد CSV الوصفات:
+
+1️⃣ **الصنف المرتبط غير موجود**
+   → الوصفة يجب أن ترتبط بصنف قائمة موجود
+   → أضف أصناف القائمة أولاً
+
+2️⃣ **مكونات الوصفة غير موجودة في المخزون**
+   → كل مكون في الوصفة يجب أن يكون صنف مخزون موجود
+   → أضف أصناف المخزون أولاً ثم الوصفات
+
+3️⃣ **كمية أو وحدة غير صالحة**
+   → الكمية يجب أن تكون رقم موجب
+   → الوحدة يجب أن تكون موجودة في النظام
+
+4️⃣ **تكرار الوصفات**
+   → لا يمكن إنشاء وصفتين لنفس الصنف
+   → الوصفة الجديدة قد تحل محل القديمة
+
+5️⃣ **المخزون غير مفعل**
+   → لا يمكن إضافة وصفات إذا كان المخزون معطل
+   → فعّل المخزون من الإعدادات أولاً
+
+6️⃣ **عدم تطابق أسماء الأعمدة**
+   → تأكد من أسماء الأعمدة المطلوبة في القالب
+   → استخدم القالب المتوفر في النظام
+
+⚠️ ملاحظة: الوصفات تعتمد على أصناف المخزون. يجب إضافة المخزون أولاً.
+
+❓ هل أصناف المخزون موجودة بالفعل أم تحاول استيراد كل شيء معاً؟`,
+    en: `I understand you're having an issue with Recipes CSV import. Let me help! 💡
+
+🔍 Most Common Causes for Recipes CSV Import Failure:
+
+1️⃣ **Linked menu item doesn't exist**
+   → Recipe must be linked to an existing menu item
+   → Add menu items first
+
+2️⃣ **Recipe ingredients don't exist in inventory**
+   → Each ingredient must be an existing inventory item
+   → Add inventory items first, then recipes
+
+3️⃣ **Invalid quantity or unit**
+   → Quantity must be a positive number
+   → Unit must exist in the system
+
+4️⃣ **Duplicate recipes**
+   → Cannot create two recipes for the same item
+   → New recipe may replace the old one
+
+5️⃣ **Inventory not enabled**
+   → Cannot add recipes if inventory is disabled
+   → Enable inventory from settings first
+
+6️⃣ **Column name mismatch**
+   → Make sure column names match the required template
+   → Use the template provided in the system
+
+⚠️ Note: Recipes depend on inventory items. You must add inventory first.
+
+❓ Do inventory items already exist or are you trying to import everything together?`
+  },
+  csv_general: {
+    ar: `أفهم أن لديك مشكلة في تحميل ملف CSV. دعني أساعدك في تحديدها! 💡
+
+في Kastana POS يوجد نوعان من ملفات CSV:
+
+📦 **CSV المخزون** - لإضافة أصناف المخزون (مواد خام)
+📝 **CSV الوصفات** - لربط أصناف القائمة بمكونات المخزون
+
+🔍 مشاكل عامة شائعة:
+
+1️⃣ **ترميز الملف**
+   → احفظ الملف بترميز UTF-8
+   → افتح الملف في Excel واحفظه كـ CSV UTF-8
+
+2️⃣ **الفواصل**
+   → استخدم فاصلة (,) وليس فاصلة منقوطة (;)
+
+3️⃣ **الصف الأول**
+   → يجب أن يحتوي على أسماء الأعمدة
+   → لا تبدأ بصف بيانات مباشرة
+
+4️⃣ **أحرف خاصة**
+   → تجنب الرموز الخاصة مثل #، @، %
+   → استخدم أسماء بسيطة
+
+❓ هل المشكلة في ملف المخزون أم الوصفات؟ حدد لي لأعطيك التفاصيل الدقيقة.`,
+    en: `I understand you're having a CSV file import issue. Let me help identify it! 💡
+
+In Kastana POS there are two types of CSV files:
+
+📦 **Inventory CSV** - To add inventory items (raw materials)
+📝 **Recipes CSV** - To link menu items with inventory ingredients
+
+🔍 Common General Issues:
+
+1️⃣ **File encoding**
+   → Save file with UTF-8 encoding
+   → Open in Excel and save as CSV UTF-8
+
+2️⃣ **Separators**
+   → Use comma (,) not semicolon (;)
+
+3️⃣ **First row**
+   → Must contain column names
+   → Don't start with data directly
+
+4️⃣ **Special characters**
+   → Avoid special symbols like #, @, %
+   → Use simple names
+
+❓ Is the problem with the inventory file or recipes file? Specify so I can give you exact details.`
+  },
   general: {
     ar: `أفهم أنك تواجه مشكلة. دعني أساعدك في تحديدها! 💡
 

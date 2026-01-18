@@ -77,17 +77,24 @@ IMPORTANT RULES:
 
 CRITICAL - TROUBLESHOOTING DETECTION (HIGHEST PRIORITY):
 If user message contains problem words like:
-- Arabic: مشكلة, ما بيسكر, ما اكتملت, فشل, مش راضي, ما بيشتغل, لا يعمل, خطأ, توقف, مش شغال
+- Arabic: مشكلة, ما بيسكر, ما اكتملت, فشل, مش راضي, ما بيشتغل, لا يعمل, خطأ, توقف, مش شغال, ما بزبط
 - English: problem, error, failed, not working, stuck, issue, crash, broken
 
 Then set intent to "troubleshoot" and determine the troubleshootFlow based on context:
 
-TROUBLESHOOT FLOW DETECTION:
+TROUBLESHOOT FLOW DETECTION (check in this order):
+
+CSV IMPORT TROUBLESHOOTING (HIGHEST PRIORITY FOR CSV):
+- If mentions CSV/ملف/تحميل/استيراد/import/upload AND (مخزون/inventory) → troubleshootFlow: "csv_inventory"
+- If mentions CSV/ملف/تحميل/استيراد/import/upload AND (وصفات/recipes/وصفة) → troubleshootFlow: "csv_recipes"
+- If mentions CSV/ملف/تحميل/استيراد/import/upload without clear context → troubleshootFlow: "csv_general"
+
+OTHER FLOWS:
 - If mentions فاتورة/invoice/إغلاق/close/دفع/payment/pay → troubleshootFlow: "payment"
 - If mentions طلب/order/إنشاء طلب → troubleshootFlow: "orders"
 - If mentions مرتجع/refund/استرجاع → troubleshootFlow: "refunds"
 - If mentions وردية/shift/فتح وردية/إغلاق وردية → troubleshootFlow: "shifts"
-- If mentions مخزون/inventory/أصناف/جرد → troubleshootFlow: "inventory"
+- If mentions مخزون/inventory/أصناف/جرد (without CSV) → troubleshootFlow: "inventory"
 - If mentions طاولة/table/دمج/merge → troubleshootFlow: "tables"
 - If mentions Z تقرير/Z Report/تقرير اليوم → troubleshootFlow: "z_report"
 - Default: troubleshootFlow: "general"
@@ -163,7 +170,7 @@ Respond ONLY with a valid JSON object in this exact format:
   "matchedEntryIds": ["entry_id_1", "entry_id_2"],
   "depth": "brief" | "detailed",
   "reasoning": "Brief explanation of why you matched these entries",
-  "troubleshootFlow": "payment" | "orders" | "refunds" | "shifts" | "inventory" | "tables" | "z_report" | "general" (only if intent is troubleshoot)
+  "troubleshootFlow": "payment" | "orders" | "refunds" | "shifts" | "inventory" | "tables" | "z_report" | "csv_inventory" | "csv_recipes" | "csv_general" | "general" (only if intent is troubleshoot)
 }`;
 
     const userMessage = `User query (${language}): "${userQuery}"${conversationContext}
