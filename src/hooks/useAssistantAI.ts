@@ -8,7 +8,7 @@ import {
 } from "@/lib/assistantKnowledge";
 
 interface IntentResult {
-  intent: "report" | "training" | "explanation" | "example" | "follow_up" | "system_overview" | "unknown";
+  intent: "report" | "training" | "explanation" | "example" | "follow_up" | "system_overview" | "section_help" | "unknown";
   matchedEntryIds: string[];
   depth: "brief" | "detailed";
   reasoning: string;
