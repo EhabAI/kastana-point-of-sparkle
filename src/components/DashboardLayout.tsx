@@ -21,9 +21,28 @@ export function DashboardLayout({
     role
   } = useAuth();
   const {
-    t
+    t,
+    language
   } = useLanguage();
+
   const navigate = useNavigate();
+
+  const formatRole = (roleValue: string | null) => {
+    if (!roleValue) return '';
+    
+    const roleTranslations: Record<string, string> = {
+      system_admin: 'مدير النظام',
+      owner: 'صاحب المطعم',
+      cashier: 'كاشيير',
+      kitchen: 'المطبخ'
+    };
+
+    if (language === 'ar') {
+      return roleTranslations[roleValue] || roleValue;
+    }
+    
+    return roleValue.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  };
   const handleSignOut = async () => {
     await signOut();
     navigate('/login', {
@@ -47,7 +66,7 @@ export function DashboardLayout({
             <div className="hidden md:flex items-center justify-center flex-1">
               {displayName && (
                 <span className="font-medium text-foreground text-lg font-sans">
-                  {displayName} {role && `- ${role.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}`}
+                  {displayName} {role && `- ${formatRole(role)}`}
                 </span>
               )}
             </div>
