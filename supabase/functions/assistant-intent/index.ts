@@ -19,10 +19,11 @@ interface IntentRequest {
 }
 
 interface IntentResponse {
-  intent: "report" | "training" | "explanation" | "example" | "follow_up" | "system_overview" | "section_help" | "unknown";
+  intent: "report" | "training" | "explanation" | "example" | "follow_up" | "system_overview" | "section_help" | "troubleshoot" | "unknown";
   matchedEntryIds: string[];
   depth: "brief" | "detailed";
   reasoning: string;
+  troubleshootFlow?: string;
 }
 
 serve(async (req) => {
@@ -61,7 +62,7 @@ You are NOT allowed to answer questions from your own knowledge. You can ONLY id
 
 Your job is to:
 1. Understand the user's question
-2. Identify the user's intent (report, training, explanation, example, follow_up, system_overview, section_help, unknown)
+2. Identify the user's intent (report, training, explanation, example, follow_up, system_overview, section_help, troubleshoot, unknown)
 3. Find the most relevant knowledge entry IDs from the provided list
 4. Determine if user wants brief or detailed answer
 
@@ -73,6 +74,25 @@ IMPORTANT RULES:
 - If user mentions "تقرير" / "report", intent is "report"
 - If user asks for "مثال" / "example", intent is "example"
 - If user wants to learn the system step by step, intent is "training"
+
+CRITICAL - TROUBLESHOOTING DETECTION (HIGHEST PRIORITY):
+If user message contains problem words like:
+- Arabic: مشكلة, ما بيسكر, ما اكتملت, فشل, مش راضي, ما بيشتغل, لا يعمل, خطأ, توقف, مش شغال
+- English: problem, error, failed, not working, stuck, issue, crash, broken
+
+Then set intent to "troubleshoot" and determine the troubleshootFlow based on context:
+
+TROUBLESHOOT FLOW DETECTION:
+- If mentions فاتورة/invoice/إغلاق/close/دفع/payment/pay → troubleshootFlow: "payment"
+- If mentions طلب/order/إنشاء طلب → troubleshootFlow: "orders"
+- If mentions مرتجع/refund/استرجاع → troubleshootFlow: "refunds"
+- If mentions وردية/shift/فتح وردية/إغلاق وردية → troubleshootFlow: "shifts"
+- If mentions مخزون/inventory/أصناف/جرد → troubleshootFlow: "inventory"
+- If mentions طاولة/table/دمج/merge → troubleshootFlow: "tables"
+- If mentions Z تقرير/Z Report/تقرير اليوم → troubleshootFlow: "z_report"
+- Default: troubleshootFlow: "general"
+
+Match to troubleshoot_* entries in knowledge base.
 
 CRITICAL - SECTION-LEVEL HELP (applies to ALL screens):
 - If user asks about a SPECIFIC SECTION inside a screen, intent is "section_help"
@@ -139,10 +159,11 @@ ${knowledgeSummary}
 
 Respond ONLY with a valid JSON object in this exact format:
 {
-  "intent": "report" | "training" | "explanation" | "example" | "follow_up" | "system_overview" | "section_help" | "unknown",
+  "intent": "report" | "training" | "explanation" | "example" | "follow_up" | "system_overview" | "section_help" | "troubleshoot" | "unknown",
   "matchedEntryIds": ["entry_id_1", "entry_id_2"],
   "depth": "brief" | "detailed",
-  "reasoning": "Brief explanation of why you matched these entries"
+  "reasoning": "Brief explanation of why you matched these entries",
+  "troubleshootFlow": "payment" | "orders" | "refunds" | "shifts" | "inventory" | "tables" | "z_report" | "general" (only if intent is troubleshoot)
 }`;
 
     const userMessage = `User query (${language}): "${userQuery}"${conversationContext}

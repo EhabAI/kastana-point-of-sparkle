@@ -8,10 +8,11 @@ import {
 } from "@/lib/assistantKnowledge";
 
 interface IntentResult {
-  intent: "report" | "training" | "explanation" | "example" | "follow_up" | "system_overview" | "section_help" | "unknown";
+  intent: "report" | "training" | "explanation" | "example" | "follow_up" | "system_overview" | "section_help" | "troubleshoot" | "unknown";
   matchedEntryIds: string[];
   depth: "brief" | "detailed";
   reasoning: string;
+  troubleshootFlow?: string;
 }
 
 interface ConversationMessage {
@@ -219,6 +220,308 @@ const SYSTEM_OVERVIEW_RESPONSES = {
 };
 
 /**
+ * Troubleshooting responses for common flows
+ */
+const TROUBLESHOOT_RESPONSES: Record<string, { ar: string; en: string }> = {
+  payment: {
+    ar: `أفهم أن لديك مشكلة في الدفع أو إغلاق الفاتورة. لا تقلق، هذه مشاكل شائعة ولها حلول! 💡
+
+🔍 الأسباب الأكثر شيوعاً:
+
+1️⃣ **الطلب معلق (ON_HOLD)**
+   → يجب استئناف الطلب أولاً من قائمة الطلبات المعلقة
+
+2️⃣ **الطلب فارغ**
+   → لا يمكن الدفع لطلب بدون أصناف
+
+3️⃣ **طريقة الدفع معطلة**
+   → تأكد أن طريقة الدفع المطلوبة مفعلة في الإعدادات
+
+4️⃣ **الوردية مغلقة**
+   → يجب فتح وردية أولاً للقيام بأي عملية دفع
+
+❓ هل المشكلة تحدث قبل محاولة الدفع أم بعد اختيار طريقة الدفع؟`,
+    en: `I understand you're having a payment or invoice issue. Don't worry, these are common and have solutions! 💡
+
+🔍 Most Common Causes:
+
+1️⃣ **Order is on hold (ON_HOLD)**
+   → Resume the order first from held orders list
+
+2️⃣ **Order is empty**
+   → Cannot pay for an order without items
+
+3️⃣ **Payment method disabled**
+   → Check if the required payment method is enabled in settings
+
+4️⃣ **Shift is closed**
+   → Must open a shift first to process any payment
+
+❓ Does the problem occur before attempting payment or after selecting payment method?`
+  },
+  orders: {
+    ar: `أفهم أن لديك مشكلة في الطلبات. دعني أساعدك! 💡
+
+🔍 الأسباب الأكثر شيوعاً:
+
+1️⃣ **لا يمكن إنشاء طلب جديد**
+   → تأكد أن الوردية مفتوحة
+   → تأكد من اختيار نوع الطلب (سفري/صالة)
+
+2️⃣ **لا يمكن إضافة أصناف**
+   → الطلب قد يكون معلق، استأنفه أولاً
+   → الصنف قد يكون غير متوفر
+
+3️⃣ **لا يمكن تعديل الطلب**
+   → الطلب المغلق (CLOSED) لا يمكن تعديله
+   → استخدم المرتجع بدلاً من التعديل
+
+❓ هل المشكلة في إنشاء الطلب أم في تعديله أم في إضافة الأصناف؟`,
+    en: `I understand you're having an order issue. Let me help! 💡
+
+🔍 Most Common Causes:
+
+1️⃣ **Cannot create new order**
+   → Make sure shift is open
+   → Make sure to select order type (takeaway/dine-in)
+
+2️⃣ **Cannot add items**
+   → Order might be on hold, resume it first
+   → Item might be unavailable
+
+3️⃣ **Cannot edit order**
+   → CLOSED orders cannot be edited
+   → Use refund instead of editing
+
+❓ Is the problem with creating the order, editing it, or adding items?`
+  },
+  refunds: {
+    ar: `أفهم أن لديك مشكلة في المرتجعات. هذه العملية لها شروط محددة! 💡
+
+🔍 الأسباب الأكثر شيوعاً:
+
+1️⃣ **لا يظهر خيار المرتجع**
+   → المرتجع متاح فقط للطلبات المغلقة (CLOSED)
+   → الطلبات المفتوحة تستخدم الإلغاء (Void)
+
+2️⃣ **مبلغ المرتجع غير صحيح**
+   → لا يمكن استرجاع أكثر من قيمة الطلب
+   → تحقق من المبلغ المتبقي
+
+3️⃣ **لا يظهر الطلب في قائمة المرتجعات**
+   → ابحث عن الطلب برقمه
+   → تأكد أنه من نفس اليوم
+
+❓ هل الطلب مغلق بالفعل أم لا يزال مفتوحاً؟`,
+    en: `I understand you're having a refund issue. This process has specific conditions! 💡
+
+🔍 Most Common Causes:
+
+1️⃣ **Refund option not showing**
+   → Refund is only available for CLOSED orders
+   → Open orders use Void instead
+
+2️⃣ **Refund amount incorrect**
+   → Cannot refund more than order value
+   → Check remaining amount
+
+3️⃣ **Order not showing in refunds list**
+   → Search for order by number
+   → Make sure it's from the same day
+
+❓ Is the order already closed or still open?`
+  },
+  shifts: {
+    ar: `أفهم أن لديك مشكلة في الورديات. دعني أساعدك! 💡
+
+🔍 الأسباب الأكثر شيوعاً:
+
+1️⃣ **لا يمكن فتح وردية**
+   → قد تكون هناك وردية مفتوحة بالفعل
+   → تأكد من إغلاق الوردية السابقة
+
+2️⃣ **لا يمكن إغلاق الوردية**
+   → قد توجد طلبات مفتوحة يجب إغلاقها أولاً
+   → تحقق من الطلبات المعلقة
+
+3️⃣ **فرق في الصندوق**
+   → هذا تنبيه وليس خطأ
+   → راجع عمليات السحب والإيداع
+
+4️⃣ **تقرير Z لا يظهر**
+   → يتم إنشاء التقرير عند إغلاق الوردية
+
+❓ هل المشكلة في فتح الوردية أم إغلاقها؟`,
+    en: `I understand you're having a shift issue. Let me help! 💡
+
+🔍 Most Common Causes:
+
+1️⃣ **Cannot open shift**
+   → There might be an already open shift
+   → Make sure to close previous shift
+
+2️⃣ **Cannot close shift**
+   → There might be open orders that need to be closed first
+   → Check held orders
+
+3️⃣ **Cash difference**
+   → This is a warning, not an error
+   → Review cash in/out transactions
+
+4️⃣ **Z Report not showing**
+   → Report is generated when shift is closed
+
+❓ Is the problem with opening the shift or closing it?`
+  },
+  inventory: {
+    ar: `أفهم أن لديك مشكلة في المخزون. دعني أساعدك! 💡
+
+🔍 الأسباب الأكثر شيوعاً:
+
+1️⃣ **الخصم التلقائي لا يعمل**
+   → تأكد أن الصنف مربوط بوصفة
+   → تأكد أن المخزون مفعل في الإعدادات
+
+2️⃣ **الكميات غير صحيحة**
+   → راجع حركات المخزون
+   → قد يكون هناك عملية استلام أو إهدار غير مسجلة
+
+3️⃣ **الصنف لا يظهر**
+   → تأكد أن الصنف مفعل
+   → تأكد من الفرع الصحيح
+
+❓ هل المشكلة في الخصم التلقائي أم في الكميات أم في إضافة أصناف؟`,
+    en: `I understand you're having an inventory issue. Let me help! 💡
+
+🔍 Most Common Causes:
+
+1️⃣ **Auto-deduction not working**
+   → Make sure item has a recipe linked
+   → Make sure inventory is enabled in settings
+
+2️⃣ **Quantities incorrect**
+   → Review inventory transactions
+   → There might be unrecorded receiving or waste
+
+3️⃣ **Item not showing**
+   → Make sure item is active
+   → Make sure you're in the correct branch
+
+❓ Is the problem with auto-deduction, quantities, or adding items?`
+  },
+  tables: {
+    ar: `أفهم أن لديك مشكلة في الطاولات. دعني أساعدك! 💡
+
+🔍 الأسباب الأكثر شيوعاً:
+
+1️⃣ **لا يمكن دمج الطلبات**
+   → كلا الطلبين يجب أن يكونا OPEN
+   → لا يمكن دمج الطلبات المعلقة
+
+2️⃣ **الطاولة مشغولة**
+   → يوجد طلب مفتوح على الطاولة
+   → أغلق الطلب أو انقله لطاولة أخرى
+
+3️⃣ **لا يمكن نقل الطلب**
+   → الطاولة المستهدفة قد تكون مشغولة
+   → استخدم الدمج بدلاً من النقل
+
+❓ هل المشكلة في الدمج أم النقل أم فتح طلب على طاولة؟`,
+    en: `I understand you're having a table issue. Let me help! 💡
+
+🔍 Most Common Causes:
+
+1️⃣ **Cannot merge orders**
+   → Both orders must be OPEN
+   → Cannot merge held orders
+
+2️⃣ **Table is occupied**
+   → There's an open order on the table
+   → Close the order or move it to another table
+
+3️⃣ **Cannot transfer order**
+   → Target table might be occupied
+   → Use merge instead of transfer
+
+❓ Is the problem with merging, transferring, or opening an order on a table?`
+  },
+  z_report: {
+    ar: `أفهم أن لديك مشكلة في تقرير Z. دعني أساعدك! 💡
+
+🔍 الأسباب الأكثر شيوعاً:
+
+1️⃣ **التقرير لا يظهر**
+   → يتم إنشاء تقرير Z عند إغلاق الوردية فقط
+   → تأكد أن الوردية أُغلقت
+
+2️⃣ **الأرقام غير صحيحة**
+   → التقرير يشمل فقط الطلبات المغلقة
+   → الطلبات المعلقة لا تظهر في التقرير
+
+3️⃣ **لا يمكن طباعة التقرير**
+   → تحقق من اتصال الطابعة
+   → جرب تحميل PDF بدلاً من الطباعة
+
+❓ هل الوردية مغلقة بالفعل أم لا تزال مفتوحة؟`,
+    en: `I understand you're having a Z Report issue. Let me help! 💡
+
+🔍 Most Common Causes:
+
+1️⃣ **Report not showing**
+   → Z Report is generated only when shift is closed
+   → Make sure shift was closed
+
+2️⃣ **Numbers are incorrect**
+   → Report only includes closed orders
+   → Held orders don't appear in report
+
+3️⃣ **Cannot print report**
+   → Check printer connection
+   → Try downloading PDF instead of printing
+
+❓ Is the shift already closed or still open?`
+  },
+  general: {
+    ar: `أفهم أنك تواجه مشكلة. دعني أساعدك في تحديدها! 💡
+
+لكي أساعدك بشكل أفضل، أخبرني:
+
+1️⃣ **في أي شاشة تحدث المشكلة؟**
+   • شاشة الكاشير (POS)
+   • شاشة المالك
+   • شاشة المخزون
+   • شاشة التقارير
+
+2️⃣ **ما الذي تحاول فعله؟**
+   • إنشاء طلب / دفع / مرتجع
+   • فتح أو إغلاق وردية
+   • عملية مخزون
+
+3️⃣ **ما هي رسالة الخطأ (إن وجدت)؟**
+
+❓ حدد لي الشاشة والعملية لأعطيك الحل المناسب.`,
+    en: `I understand you're facing an issue. Let me help identify it! 💡
+
+To help you better, tell me:
+
+1️⃣ **Which screen is the problem on?**
+   • Cashier (POS) screen
+   • Owner screen
+   • Inventory screen
+   • Reports screen
+
+2️⃣ **What are you trying to do?**
+   • Create order / Pay / Refund
+   • Open or close shift
+   • Inventory operation
+
+3️⃣ **What's the error message (if any)?**
+
+❓ Specify the screen and operation so I can give you the right solution.`
+  }
+};
+
+/**
  * Generate response strictly from Knowledge Base entries
  */
 function generateResponseFromKnowledge(
@@ -228,6 +531,12 @@ function generateResponseFromKnowledge(
   // Handle system overview intent with built-in responses
   if (intent.intent === "system_overview") {
     return SYSTEM_OVERVIEW_RESPONSES[intent.depth][language];
+  }
+
+  // Handle troubleshooting intent with empathetic trainer-like responses
+  if (intent.intent === "troubleshoot") {
+    const flow = intent.troubleshootFlow || "general";
+    return TROUBLESHOOT_RESPONSES[flow]?.[language] || TROUBLESHOOT_RESPONSES.general[language];
   }
 
   // No matches found
