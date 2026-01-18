@@ -226,19 +226,21 @@ export default function OwnerAdmin() {
             {/* Smart Features Row */}
             {role === "owner" && (
               <div className="space-y-3">
-                {/* Full-width summary cards */}
+                {/* Main dashboard grid: Daily Summary left, Cash + Inventory stacked right */}
                 <div className="grid gap-3 grid-cols-1 lg:grid-cols-2">
                   <DailySummaryCard restaurantId={restaurant.id} currency={currency} />
-                  <CashDifferencesCard restaurantId={restaurant.id} currency={currency} />
+                  <div className="flex flex-col gap-3">
+                    <CashDifferencesCard restaurantId={restaurant.id} currency={currency} compact />
+                    <ItemsWithoutRecipesCard restaurantId={restaurant.id} />
+                    <InventoryRiskCard 
+                      restaurantId={restaurant.id} 
+                      inventoryEnabled={inventoryEnabled}
+                    />
+                  </div>
                 </div>
-                {/* Action & Alert cards */}
-                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                {/* Action cards row */}
+                <div className="grid gap-3 grid-cols-1">
                   <SuggestedNextAction restaurantId={restaurant.id} />
-                  <ItemsWithoutRecipesCard restaurantId={restaurant.id} />
-                  <InventoryRiskCard 
-                    restaurantId={restaurant.id} 
-                    inventoryEnabled={inventoryEnabled}
-                  />
                 </div>
               </div>
             )}
