@@ -116,7 +116,7 @@ interface MenuItemWithModifiers {
 }
 
 export default function POS() {
-  const { signOut, user } = useAuth();
+  const { signOut, user, displayName, role } = useAuth();
   const { t } = useLanguage();
   const { data: session, isLoading: sessionLoading, error: sessionError } = useCashierSession();
   const restaurant = session?.restaurant;
@@ -1867,7 +1867,7 @@ export default function POS() {
       <POSHeader
         restaurantName={restaurant.name}
         restaurantLogo={restaurant.logo_url}
-        cashierEmail={user?.email || ""}
+        cashierDisplayName={displayName ? `${displayName} - ${role?.replace('_', ' ')}` : (user?.email || "")}
         shiftStatus={shiftOpen ? "open" : "closed"}
         onSignOut={signOut}
         onOpenShift={handleOpenShift}

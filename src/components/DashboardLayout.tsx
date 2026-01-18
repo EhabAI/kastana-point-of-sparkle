@@ -14,7 +14,7 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, title }: DashboardLayoutProps) {
-  const { signOut, user, role } = useAuth();
+  const { signOut, user, role, displayName } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
 
@@ -24,6 +24,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
   };
 
   const roleLabel = role?.replace('_', ' ') || '';
+  const userDisplayLabel = displayName ? `${displayName} - ${roleLabel}` : (user?.email || '');
 
   return (
     <div className="min-h-screen bg-background">
@@ -57,9 +58,9 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
               {/* Divider */}
               <div className="hidden sm:block w-px h-5 bg-border/60 mx-1.5" />
               
-              {/* User email */}
-              <span className="text-xs text-muted-foreground hidden lg:block max-w-[160px] truncate">
-                {user?.email}
+              {/* User display name - role */}
+              <span className="text-xs text-muted-foreground hidden lg:block max-w-[200px] truncate capitalize">
+                {userDisplayLabel}
               </span>
               
               {/* Sign Out */}

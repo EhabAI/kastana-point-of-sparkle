@@ -8,6 +8,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   role: AppRole;
+  displayName: string | null;
   isActive: boolean;
   restaurantId: string | null;
   isRestaurantActive: boolean;
@@ -15,6 +16,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   checkRestaurantStatus: () => Promise<void>;
+  refreshDisplayName: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,12 +25,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<AppRole>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const [isActive, setIsActive] = useState(true);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [isRestaurantActive, setIsRestaurantActive] = useState(true);
 
   // 🔒 loading يبقى true إلى أن نحدد الدور بشكل نهائي
   const [loading, setLoading] = useState(true);
+
+  const fetchDisplayName = async (userId: string): Promise<string | null> => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("username")
+      .eq("id", userId)
+      .maybeSingle();
+    
+    if (error) {
+      console.error("Error fetching display name:", error);
+      return null;
+    }
+    
+  };
 
   const fetchUserRole = async (userId: string) => {
     const { data, error } = await supabase
@@ -95,6 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setSession(null);
     setRole(null);
+    setDisplayName(null);
     setIsActive(true);
     setRestaurantId(null);
     setIsRestaurantActive(true);
@@ -118,6 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (!session?.user) {
       setRole(null);
+      setDisplayName(null);
       setIsActive(true);
       setRestaurantId(null);
       setIsRestaurantActive(true);
@@ -129,6 +148,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setRole(role);
     setIsActive(isActive);
     setRestaurantId(restaurantId);
+
+    // Fetch display name from profiles
+    const name = await fetchDisplayName(session.user.id);
+    setDisplayName(name);
 
     // For owners and cashiers, check restaurant active status
     if ((role === "owner" || role === "cashier" || role === "kitchen") && restaurantId) {
@@ -147,6 +170,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setLoading(false);
   };
+
+  const refreshDisplayName = useCallback(async () => {
+    if (!user?.id) return;
+    const name = await fetchDisplayName(user.id);
+    setDisplayName(name);
+  }, [user?.id]);
 
   useEffect(() => {
     // 1️⃣ تحميل الجلسة الحالية
@@ -190,6 +219,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setSession(null);
     setRole(null);
+    setDisplayName(null);
     setIsActive(true);
     setRestaurantId(null);
     setIsRestaurantActive(true);
@@ -202,6 +232,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         session,
         role,
+        displayName,
         isActive,
         restaurantId,
         isRestaurantActive,
@@ -209,6 +240,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signIn,
         signOut,
         checkRestaurantStatus,
+        refreshDisplayName,
       }}
     >
       {children}
