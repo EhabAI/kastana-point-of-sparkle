@@ -151,15 +151,28 @@ export function domainGuard(
   return { isAllowed: true, matchedKeywords: [], confidence: 0.3 };
 }
 
+// Type for knowledge entries
+interface KnowledgeDataEntry {
+  keywords?: {
+    ar?: string[];
+    en?: string[];
+  };
+}
+
+interface KnowledgeData {
+  entries?: Record<string, KnowledgeDataEntry>;
+}
+
 /**
  * Check message against knowledge base keywords
  */
 function checkKnowledgeKeywords(message: string): string[] {
   const matches: string[] = [];
-  const entries = Object.values(knowledgeData.entries || {});
+  const data = knowledgeData as unknown as KnowledgeData;
+  const entries = Object.values(data.entries || {});
   
   for (const entry of entries) {
-    const keywords = entry.keywords as { ar?: string[]; en?: string[] } | undefined;
+    const keywords = entry.keywords;
     if (keywords) {
       const allKeywords = [...(keywords.ar || []), ...(keywords.en || [])];
       for (const kw of allKeywords) {

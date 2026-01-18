@@ -1,98 +1,266 @@
 {
   "version": "1.0.0",
   "lastUpdated": "2026-01-18",
-
-  "quickReplies": {
-    "en": [],
-    "ar": []
-  },
-
   "fallbackResponses": {
-    "en": ["I can help you with Kastana POS. Please ask your question clearly."],
-    "ar": ["أستطيع مساعدتك في نظام Kastana POS. يرجى كتابة سؤالك بشكل واضح."]
+    "ar": "أستطيع مساعدتك في نظام Kastana POS. يرجى كتابة سؤالك بشكل واضح.",
+    "en": "I can help you with Kastana POS. Please ask your question clearly."
   },
-
-  "entries": [
-    {
-      "id": "kastana_core",
-      "domain": "system",
-      "keywords": ["order", "payment", "refund", "inventory", "reports", "tables", "shift", "kds"],
+  "quickReplies": {
+    "ar": ["كيف أفتح طلب جديد؟", "ما هو تقرير Z؟", "كيف أعمل مرتجع؟"],
+    "en": ["How do I create an order?", "What is Z Report?", "How do I process a refund?"]
+  },
+  "entries": {
+    "new_order": {
+      "id": "new_order",
+      "intent": ["create_order", "open_order", "new_order"],
+      "keywords": {
+        "ar": ["طلب جديد", "فتح طلب", "إنشاء طلب", "طلب", "أضف طلب"],
+        "en": ["new order", "create order", "open order", "add order", "start order"]
+      },
+      "title": {
+        "ar": "إنشاء طلب جديد",
+        "en": "Create New Order"
+      },
       "content": {
-        "meta": {
-          "project": "Kastana POS",
-          "language": "ar",
-          "style": "clear_formal_arabic_with_system_terms",
-          "source_of_truth": "github_repo",
-          "last_updated": "2026-01-18"
-        },
-
-        "core_concepts": {
-          "order_states": {
-            "OPEN": "طلب مفتوح قابل للإضافة والتعديل والدفع",
-            "ON_HOLD": "طلب معلّق لا يسمح بالدفع أو التعديل",
-            "CLOSED": "طلب مغلق بعد إتمام الدفع"
-          },
-          "payment_methods": ["Cash", "Card"],
-          "roles": ["Cashier", "Owner", "SystemAdmin"]
-        },
-
-        "features": [
-          {
-            "key": "new_order",
-            "title": "إنشاء طلب جديد",
-            "roles": ["Cashier"],
-            "screens": ["POS"],
-            "description": "إنشاء طلب Takeaway أو Dine-in وبدء إضافته.",
-            "notes": ["الطلب يبقى OPEN حتى الدفع", "لا يدخل أي تقرير قبل الدفع"]
-          },
-          {
-            "key": "hold_resume_order",
-            "title": "تعليق واستئناف الطلب",
-            "roles": ["Cashier"],
-            "screens": ["POS"],
-            "description": "إيقاف الطلب مؤقتًا ومنع الدفع عليه."
-          },
-          {
-            "key": "merge_orders",
-            "title": "دمج طلبات الطاولات",
-            "roles": ["Cashier"],
-            "screens": ["Tables"],
-            "description": "دمج الطلبات المفتوحة مع الحفاظ على الطلب الأقدم."
-          },
-          {
-            "key": "payment",
-            "title": "الدفع",
-            "roles": ["Cashier"],
-            "screens": ["POS"],
-            "description": "إتمام الدفع النقدي أو بالبطاقة وإغلاق الطلب."
-          },
-          {
-            "key": "refund",
-            "title": "المرتجعات",
-            "roles": ["Cashier", "Owner"],
-            "screens": ["POS"],
-            "description": "إرجاع طلب مدفوع مع تسجيله في التقارير."
-          },
-          {
-            "key": "inventory_recipes",
-            "title": "المخزون والوصفات",
-            "roles": ["Owner"],
-            "screens": ["Inventory"],
-            "description": "خصم المخزون تلقائيًا عند الدفع في حال وجود وصفة."
-          }
-        ],
-
-        "audit_logs": [
-          "ORDER_CREATED",
-          "ORDER_MERGED",
-          "PAYMENT_COMPLETED",
-          "REFUND_CREATED",
-          "VOID_CREATED",
-          "INVENTORY_DEDUCTED",
-          "SHIFT_OPENED",
-          "SHIFT_CLOSED"
-        ]
+        "ar": "إنشاء طلب جديد:\n• اختر نوع الطلب (Takeaway أو Dine-in)\n• أضف الأصناف من القائمة\n• الطلب يبقى OPEN حتى الدفع\n• لا يدخل أي تقرير قبل الدفع",
+        "en": "Creating a new order:\n• Select order type (Takeaway or Dine-in)\n• Add items from menu\n• Order stays OPEN until payment\n• Does not appear in reports until paid"
+      },
+      "metadata": {
+        "feature_id": "pos_new_order",
+        "affected_screens": ["POS"],
+        "user_roles": ["cashier"]
+      }
+    },
+    "hold_order": {
+      "id": "hold_order",
+      "intent": ["hold_order", "pause_order", "suspend_order"],
+      "keywords": {
+        "ar": ["تعليق", "طلب معلق", "إيقاف طلب", "hold"],
+        "en": ["hold", "hold order", "pause order", "suspend order", "on hold"]
+      },
+      "title": {
+        "ar": "تعليق واستئناف الطلب",
+        "en": "Hold and Resume Order"
+      },
+      "content": {
+        "ar": "تعليق الطلب:\n• يمكنك تعليق الطلب مؤقتاً\n• الطلب المعلق ON_HOLD لا يسمح بالدفع أو التعديل\n• يمكن استئنافه لاحقاً",
+        "en": "Holding an order:\n• You can temporarily hold an order\n• ON_HOLD orders cannot be paid or modified\n• Can be resumed later"
+      },
+      "metadata": {
+        "feature_id": "pos_hold_order",
+        "affected_screens": ["POS"],
+        "user_roles": ["cashier"]
+      }
+    },
+    "merge_orders": {
+      "id": "merge_orders",
+      "intent": ["merge_orders", "combine_orders", "join_orders"],
+      "keywords": {
+        "ar": ["دمج", "دمج طلبات", "جمع طلبات", "merge"],
+        "en": ["merge", "merge orders", "combine orders", "join orders"]
+      },
+      "title": {
+        "ar": "دمج طلبات الطاولات",
+        "en": "Merge Table Orders"
+      },
+      "content": {
+        "ar": "دمج الطلبات:\n• يمكن دمج الطلبات المفتوحة على الطاولات\n• يتم الحفاظ على الطلب الأقدم\n• تنتقل جميع الأصناف للطلب المدمج",
+        "en": "Merging orders:\n• Open table orders can be merged\n• The older order is preserved\n• All items are transferred to merged order"
+      },
+      "metadata": {
+        "feature_id": "pos_merge_orders",
+        "affected_screens": ["Tables", "POS"],
+        "user_roles": ["cashier"]
+      }
+    },
+    "payment": {
+      "id": "payment",
+      "intent": ["payment", "pay", "checkout", "complete_order"],
+      "keywords": {
+        "ar": ["دفع", "تسديد", "نقد", "بطاقة", "فيزا", "كاش", "إتمام"],
+        "en": ["payment", "pay", "cash", "card", "visa", "checkout", "complete"]
+      },
+      "title": {
+        "ar": "الدفع",
+        "en": "Payment"
+      },
+      "content": {
+        "ar": "الدفع:\n• اختر طريقة الدفع (نقد أو بطاقة)\n• أدخل المبلغ المستلم\n• الطلب يصبح CLOSED بعد الدفع\n• يظهر في التقارير فوراً",
+        "en": "Payment:\n• Select payment method (Cash or Card)\n• Enter amount received\n• Order becomes CLOSED after payment\n• Appears in reports immediately"
+      },
+      "metadata": {
+        "feature_id": "pos_payment",
+        "affected_screens": ["POS"],
+        "user_roles": ["cashier"]
+      }
+    },
+    "refund": {
+      "id": "refund",
+      "intent": ["refund", "return", "money_back"],
+      "keywords": {
+        "ar": ["مرتجع", "استرداد", "إرجاع", "refund"],
+        "en": ["refund", "return", "money back", "give back"]
+      },
+      "title": {
+        "ar": "المرتجعات",
+        "en": "Refunds"
+      },
+      "content": {
+        "ar": "المرتجعات:\n• يمكن إرجاع طلب مدفوع فقط\n• حدد سبب الإرجاع\n• يتم تسجيل المرتجع في التقارير\n• يخصم من إجمالي المبيعات",
+        "en": "Refunds:\n• Only paid orders can be refunded\n• Specify refund reason\n• Refund is recorded in reports\n• Deducted from total sales"
+      },
+      "metadata": {
+        "feature_id": "pos_refund",
+        "affected_screens": ["POS"],
+        "user_roles": ["cashier", "owner"]
+      }
+    },
+    "void_item": {
+      "id": "void_item",
+      "intent": ["void", "cancel_item", "remove_item"],
+      "keywords": {
+        "ar": ["إلغاء صنف", "void", "حذف صنف", "إلغاء"],
+        "en": ["void", "void item", "cancel item", "remove item"]
+      },
+      "title": {
+        "ar": "إلغاء صنف",
+        "en": "Void Item"
+      },
+      "content": {
+        "ar": "إلغاء صنف:\n• يمكن إلغاء صنف من طلب مفتوح\n• يجب تحديد سبب الإلغاء\n• يتم تسجيل الإلغاء في سجل التدقيق",
+        "en": "Void item:\n• Items can be voided from open orders\n• Must specify void reason\n• Void is recorded in audit log"
+      },
+      "metadata": {
+        "feature_id": "pos_void",
+        "affected_screens": ["POS"],
+        "user_roles": ["cashier"]
+      }
+    },
+    "inventory": {
+      "id": "inventory",
+      "intent": ["inventory", "stock", "warehouse"],
+      "keywords": {
+        "ar": ["مخزون", "مخازن", "كمية", "جرد", "وحدات"],
+        "en": ["inventory", "stock", "quantity", "count", "units", "warehouse"]
+      },
+      "title": {
+        "ar": "المخزون والوصفات",
+        "en": "Inventory & Recipes"
+      },
+      "content": {
+        "ar": "المخزون:\n• يتم خصم المخزون تلقائياً عند الدفع\n• يحتاج الصنف لوصفة (Recipe) للخصم التلقائي\n• يمكن تفعيل/إيقاف المخزون من الإعدادات",
+        "en": "Inventory:\n• Stock is auto-deducted on payment\n• Item needs a Recipe for auto-deduction\n• Inventory can be enabled/disabled in settings"
+      },
+      "metadata": {
+        "feature_id": "inventory_management",
+        "affected_screens": ["Inventory", "Settings"],
+        "user_roles": ["owner"]
+      }
+    },
+    "z_report": {
+      "id": "z_report",
+      "intent": ["z_report", "shift_report", "end_of_day"],
+      "keywords": {
+        "ar": ["تقرير z", "تقرير زد", "z report", "إغلاق الوردية", "نهاية اليوم"],
+        "en": ["z report", "z-report", "shift report", "end of day", "close shift"]
+      },
+      "title": {
+        "ar": "تقرير Z",
+        "en": "Z Report"
+      },
+      "content": {
+        "ar": "تقرير Z:\n• يعرض ملخص الوردية\n• يشمل المبيعات والمرتجعات\n• يظهر فرق الكاش\n• يُطبع عند إغلاق الوردية",
+        "en": "Z Report:\n• Shows shift summary\n• Includes sales and refunds\n• Shows cash difference\n• Printed when closing shift"
+      },
+      "metadata": {
+        "feature_id": "reports_z",
+        "affected_screens": ["POS", "Reports"],
+        "user_roles": ["cashier", "owner"]
+      }
+    },
+    "shift": {
+      "id": "shift",
+      "intent": ["shift", "open_shift", "close_shift"],
+      "keywords": {
+        "ar": ["وردية", "شفت", "فتح وردية", "إغلاق وردية", "افتتاحي"],
+        "en": ["shift", "open shift", "close shift", "opening cash", "closing"]
+      },
+      "title": {
+        "ar": "الورديات",
+        "en": "Shifts"
+      },
+      "content": {
+        "ar": "الورديات:\n• يجب فتح وردية قبل استقبال الطلبات\n• أدخل المبلغ الافتتاحي عند الفتح\n• أغلق الوردية في نهاية اليوم\n• يظهر تقرير Z عند الإغلاق",
+        "en": "Shifts:\n• Must open shift before taking orders\n• Enter opening cash when opening\n• Close shift at end of day\n• Z Report shows on close"
+      },
+      "metadata": {
+        "feature_id": "shift_management",
+        "affected_screens": ["POS"],
+        "user_roles": ["cashier"]
+      }
+    },
+    "kds": {
+      "id": "kds",
+      "intent": ["kds", "kitchen", "kitchen_display"],
+      "keywords": {
+        "ar": ["مطبخ", "شاشة المطبخ", "kds", "تحضير", "جاهز"],
+        "en": ["kitchen", "kds", "kitchen display", "cooking", "ready", "preparation"]
+      },
+      "title": {
+        "ar": "شاشة المطبخ KDS",
+        "en": "Kitchen Display (KDS)"
+      },
+      "content": {
+        "ar": "شاشة المطبخ:\n• تعرض الطلبات للمطبخ\n• يمكن تغيير حالة الطلب\n• تتبع وقت التحضير\n• يمكن تفعيلها من الإعدادات",
+        "en": "Kitchen Display:\n• Shows orders for kitchen\n• Can change order status\n• Tracks preparation time\n• Can be enabled in settings"
+      },
+      "metadata": {
+        "feature_id": "kds",
+        "affected_screens": ["KDS", "Settings"],
+        "user_roles": ["kitchen", "owner"]
+      }
+    },
+    "order_states": {
+      "id": "order_states",
+      "intent": ["order_status", "order_state", "what_is_open"],
+      "keywords": {
+        "ar": ["حالة الطلب", "open", "closed", "on hold", "مفتوح", "مغلق", "معلق"],
+        "en": ["order status", "order state", "open", "closed", "on hold"]
+      },
+      "title": {
+        "ar": "حالات الطلب",
+        "en": "Order States"
+      },
+      "content": {
+        "ar": "حالات الطلب:\n• OPEN: طلب مفتوح قابل للإضافة والتعديل والدفع\n• ON_HOLD: طلب معلّق لا يسمح بالدفع أو التعديل\n• CLOSED: طلب مغلق بعد إتمام الدفع",
+        "en": "Order States:\n• OPEN: Order can be edited and paid\n• ON_HOLD: Order cannot be paid or modified\n• CLOSED: Order is paid and complete"
+      },
+      "metadata": {
+        "feature_id": "order_states",
+        "affected_screens": ["POS"],
+        "user_roles": ["cashier", "owner"]
+      }
+    },
+    "audit_logs": {
+      "id": "audit_logs",
+      "intent": ["audit", "logs", "history", "tracking"],
+      "keywords": {
+        "ar": ["سجل", "تدقيق", "تتبع", "audit", "log"],
+        "en": ["audit", "log", "logs", "history", "tracking", "record"]
+      },
+      "title": {
+        "ar": "سجل التدقيق",
+        "en": "Audit Logs"
+      },
+      "content": {
+        "ar": "سجل التدقيق:\n• يسجل جميع العمليات في النظام\n• يشمل: ORDER_CREATED, PAYMENT_COMPLETED, REFUND_CREATED, VOID_CREATED\n• يتتبع SHIFT_OPENED و SHIFT_CLOSED\n• يسجل INVENTORY_DEDUCTED للمخزون",
+        "en": "Audit Logs:\n• Records all system operations\n• Includes: ORDER_CREATED, PAYMENT_COMPLETED, REFUND_CREATED, VOID_CREATED\n• Tracks SHIFT_OPENED and SHIFT_CLOSED\n• Records INVENTORY_DEDUCTED for stock"
+      },
+      "metadata": {
+        "feature_id": "audit_logs",
+        "affected_screens": ["Reports", "Admin"],
+        "user_roles": ["owner"]
       }
     }
-  ]
+  }
 }

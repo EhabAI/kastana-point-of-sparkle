@@ -58,8 +58,8 @@ export interface KnowledgeBase {
   featureAnnouncements?: FeatureAnnouncement[];
 }
 
-// Type-safe access to knowledge data
-const knowledge = knowledgeData as KnowledgeBase;
+// Type-safe access to knowledge data with explicit unknown cast for safety
+const knowledge = knowledgeData as unknown as KnowledgeBase;
 
 // Storage key for dismissed announcements
 const DISMISSED_ANNOUNCEMENTS_KEY = "kastana_dismissed_announcements";
