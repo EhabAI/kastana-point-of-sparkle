@@ -1679,4 +1679,10 @@ export default {
   username_updated: "Display name updated successfully",
   edit_display_name: "Edit Display Name",
   not_authenticated: "Not authenticated",
+  
+  // Email management
+  edit_email: "Edit Email",
+  edit_email_desc: "Enter the new email address for this staff member",
+  email_updated: "Email updated successfully",
+  invalid_email: "Please enter a valid email address",
 } as const;
