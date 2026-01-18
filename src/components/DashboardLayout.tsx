@@ -87,9 +87,9 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
 
             {/* CENTER – User Display (hidden on mobile) */}
             <div className="hidden md:flex items-center justify-center flex-1">
-              {profile?.username ? (
+              {profile?.username && profile?.role ? (
                 <span className="text-sm font-medium text-foreground">
-                  {profile.username}
+                  {profile.username} – {getRoleLabel(profile.role)}
                 </span>
               ) : null}
             </div>
