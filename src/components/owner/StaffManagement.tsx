@@ -416,57 +416,60 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
 
       {/* Create Staff Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="p-4 sm:p-5">
+          <DialogHeader className="pb-2">
+            <DialogTitle className="text-base">
               {createType === "cashier" ? t("add_new_cashier") : t("add_new_kitchen_staff")}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs">
               {createType === "cashier" ? t("create_cashier_desc") : t("create_kitchen_desc")}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="staff-username">{t("display_name")} *</Label>
+          <div className="space-y-3 py-2">
+            <div className="space-y-1">
+              <Label htmlFor="staff-username" className="text-sm">{t("display_name")} *</Label>
               <Input
                 id="staff-username"
                 type="text"
                 value={newStaff.username}
                 onChange={(e) => setNewStaff({ ...newStaff, username: e.target.value })}
                 placeholder={t("display_name_placeholder")}
+                className="h-9"
               />
-              <p className="text-xs text-muted-foreground">{t("username_min_2_hint")}</p>
+              <p className="text-[11px] text-muted-foreground">{t("username_min_2_hint")}</p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="staff-email">{t("email")}</Label>
+            <div className="space-y-1">
+              <Label htmlFor="staff-email" className="text-sm">{t("email")}</Label>
               <Input
                 id="staff-email"
                 type="email"
                 value={newStaff.email}
                 onChange={(e) => setNewStaff({ ...newStaff, email: e.target.value })}
                 placeholder={createType === "cashier" ? "cashier@example.com" : "kitchen@example.com"}
+                className="h-9"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="staff-password">{t("password")}</Label>
+            <div className="space-y-1">
+              <Label htmlFor="staff-password" className="text-sm">{t("password")}</Label>
               <Input
                 id="staff-password"
                 type="password"
                 value={newStaff.password}
                 onChange={(e) => setNewStaff({ ...newStaff, password: e.target.value })}
                 placeholder={t("min_6_chars")}
+                className="h-9"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="staff-branch" className="flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
+            <div className="space-y-1">
+              <Label htmlFor="staff-branch" className="flex items-center gap-1.5 text-sm">
+                <Building2 className="h-3.5 w-3.5" />
                 {t("assign_to_branch")} *
               </Label>
               <Select
                 value={newStaff.branchId}
                 onValueChange={(value) => setNewStaff({ ...newStaff, branchId: value })}
               >
-                <SelectTrigger id="staff-branch">
+                <SelectTrigger id="staff-branch" className="h-9">
                   <SelectValue placeholder={t("select_branch")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -480,11 +483,11 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
               </Select>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+          <DialogFooter className="pt-2 gap-2">
+            <Button variant="outline" size="sm" onClick={() => setCreateDialogOpen(false)}>
               {t("cancel")}
             </Button>
-            <Button onClick={handleCreateStaff} disabled={isPending}>
+            <Button size="sm" onClick={handleCreateStaff} disabled={isPending}>
               {isPending ? <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" /> : null}
               {createType === "cashier" ? t("create_cashier") : t("create_kitchen_staff")}
             </Button>
