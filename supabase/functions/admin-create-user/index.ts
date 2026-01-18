@@ -135,44 +135,52 @@ Deno.serve(async (req) => {
     console.log(`Caller role: ${callerRole.role}`)
 
     // Step 3: Enforce authorization rules
-    // Only owners can use this function to create cashier/kitchen
-    if (callerRole.role !== 'owner') {
+    // System admins can create owners
+    // Owners can create cashier/kitchen for their restaurant
+    
+    if (callerRole.role === 'system_admin') {
+      // System admin can only create owners
+      if (requestedRole !== 'owner') {
+        return errorResponse('not_authorized', 'System admins can only create owner accounts.', 403)
+      }
+      // No restaurant validation needed for system admin creating owner
+    } else if (callerRole.role === 'owner') {
+      // Owners can only create cashier or kitchen staff
+      if (requestedRole !== 'cashier' && requestedRole !== 'kitchen') {
+        return errorResponse('not_authorized', 'Owners can only create cashier or kitchen staff accounts.', 403)
+      }
+
+      // Restaurant ID is required for staff creation
+      if (!restaurantId) {
+        return errorResponse('missing_restaurant', 'Restaurant ID is required when creating staff.', 400)
+      }
+
+      // Verify the owner owns this restaurant
+      if (callerRole.restaurant_id !== restaurantId) {
+        console.error(`Restaurant mismatch: owner has ${callerRole.restaurant_id}, requested ${restaurantId}`)
+        return errorResponse('not_authorized', 'You can only create staff for your own restaurant.', 403)
+      }
+
+      // For kitchen role, verify KDS is enabled
+      if (requestedRole === 'kitchen') {
+        const { data: kdsSettings, error: kdsErr } = await supabaseAdmin
+          .from('restaurant_settings')
+          .select('kds_enabled')
+          .eq('restaurant_id', restaurantId)
+          .maybeSingle()
+
+        if (kdsErr) {
+          console.error('KDS settings lookup failed:', kdsErr.message)
+          return errorResponse('unexpected', 'Unable to verify KDS settings.', 500)
+        }
+
+        if (!kdsSettings?.kds_enabled) {
+          return errorResponse('kds_disabled', 'KDS must be enabled to create kitchen staff.', 400)
+        }
+      }
+    } else {
       console.error(`Unauthorized role: ${callerRole.role}`)
-      return errorResponse('not_authorized', 'Only restaurant owners can create staff accounts.', 403)
-    }
-
-    // Owners can only create cashier or kitchen staff
-    if (requestedRole !== 'cashier' && requestedRole !== 'kitchen') {
-      return errorResponse('not_authorized', 'Owners can only create cashier or kitchen staff accounts.', 403)
-    }
-
-    // Restaurant ID is required for staff creation
-    if (!restaurantId) {
-      return errorResponse('missing_restaurant', 'Restaurant ID is required when creating staff.', 400)
-    }
-
-    // Verify the owner owns this restaurant
-    if (callerRole.restaurant_id !== restaurantId) {
-      console.error(`Restaurant mismatch: owner has ${callerRole.restaurant_id}, requested ${restaurantId}`)
-      return errorResponse('not_authorized', 'You can only create staff for your own restaurant.', 403)
-    }
-
-    // For kitchen role, verify KDS is enabled
-    if (requestedRole === 'kitchen') {
-      const { data: kdsSettings, error: kdsErr } = await supabaseAdmin
-        .from('restaurant_settings')
-        .select('kds_enabled')
-        .eq('restaurant_id', restaurantId)
-        .maybeSingle()
-
-      if (kdsErr) {
-        console.error('KDS settings lookup failed:', kdsErr.message)
-        return errorResponse('unexpected', 'Unable to verify KDS settings.', 500)
-      }
-
-      if (!kdsSettings?.kds_enabled) {
-        return errorResponse('kds_disabled', 'KDS must be enabled to create kitchen staff.', 400)
-      }
+      return errorResponse('not_authorized', 'You do not have permission to create accounts.', 403)
     }
 
     // Step 4: Create the user using admin API (service role)
@@ -210,14 +218,17 @@ Deno.serve(async (req) => {
     console.log(`User created: ${newUserId}`)
 
     // Step 5: Insert role record
-    const roleInsertData: { user_id: string; role: AppRole; restaurant_id: string; branch_id?: string } = {
+    const roleInsertData: { user_id: string; role: AppRole; restaurant_id?: string; branch_id?: string } = {
       user_id: newUserId,
       role: requestedRole as AppRole,
-      restaurant_id: restaurantId,
     }
 
-    if (branchId) {
-      roleInsertData.branch_id = branchId
+    // Only add restaurant_id and branch_id for non-owner roles
+    if (requestedRole !== 'owner' && restaurantId) {
+      roleInsertData.restaurant_id = restaurantId
+      if (branchId) {
+        roleInsertData.branch_id = branchId
+      }
     }
 
     const { error: roleInsertErr } = await supabaseAdmin
