@@ -306,10 +306,10 @@
     },
     "z_report": {
       "id": "z_report",
-      "intent": ["z_report", "shift_report", "end_of_day"],
+      "intent": ["z_report", "shift_report", "end_of_day", "explain_report"],
       "keywords": {
-        "ar": ["تقرير z", "تقرير زد", "z report", "إغلاق الوردية", "نهاية اليوم", "ملخص الوردية"],
-        "en": ["z report", "z-report", "shift report", "end of day", "close shift", "shift summary"]
+        "ar": ["تقرير z", "تقرير زد", "z report", "إغلاق الوردية", "نهاية اليوم", "ملخص الوردية", "تقرير Z", "Z تقرير", "زد تقرير", "اشرحلي z", "اشرح z", "اشرحلي تقرير z", "شو تقرير z", "ايش تقرير z", "z ريبورت"],
+        "en": ["z report", "z-report", "shift report", "end of day", "close shift", "shift summary", "explain z report", "what is z report", "z report explained"]
       },
       "title": {
         "ar": "تقرير Z",
@@ -328,10 +328,10 @@
     },
     "cash_daily_report": {
       "id": "cash_daily_report",
-      "intent": ["cash_report", "daily_cash", "cash_reconciliation"],
+      "intent": ["cash_report", "daily_cash", "cash_reconciliation", "explain_report"],
       "keywords": {
-        "ar": ["تقرير الكاش", "كاش يومي", "فرق الكاش", "مطابقة الكاش", "الصندوق"],
-        "en": ["cash report", "daily cash", "cash difference", "cash reconciliation", "drawer"]
+        "ar": ["تقرير الكاش", "كاش يومي", "فرق الكاش", "مطابقة الكاش", "الصندوق", "تقرير النقد", "النقد اليومي", "كاش ريبورت", "اشرحلي تقرير الكاش", "اشرح تقرير النقد", "شو تقرير الكاش", "ايش تقرير النقد", "تقرير الصندوق"],
+        "en": ["cash report", "daily cash", "cash difference", "cash reconciliation", "drawer", "cash daily report", "explain cash report", "what is cash report"]
       },
       "title": {
         "ar": "تقرير الكاش اليومي",
@@ -350,10 +350,10 @@
     },
     "inventory_summary_report": {
       "id": "inventory_summary_report",
-      "intent": ["inventory_report", "stock_report", "inventory_summary"],
+      "intent": ["inventory_report", "stock_report", "inventory_summary", "explain_report"],
       "keywords": {
-        "ar": ["تقرير المخزون", "ملخص المخزون", "حركة المخزون", "جرد", "variance"],
-        "en": ["inventory report", "stock report", "inventory summary", "stock movement", "variance"]
+        "ar": ["تقرير المخزون", "ملخص المخزون", "حركة المخزون", "جرد", "variance", "اشرحلي تقرير المخزون", "اشرح تقرير المخزون", "شو تقرير المخزون", "ايش تقرير المخزون", "انفنتوري ريبورت", "الجرد"],
+        "en": ["inventory report", "stock report", "inventory summary", "stock movement", "variance", "explain inventory report", "what is inventory report", "stock count report"]
       },
       "title": {
         "ar": "تقرير ملخص المخزون",

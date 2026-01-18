@@ -136,6 +136,34 @@ function normalizeArabic(text: string): string {
 }
 
 /**
+ * Extract individual words and common report-related terms from query
+ */
+function extractSearchTerms(query: string): string[] {
+  const normalized = query.toLowerCase();
+  const terms: string[] = [];
+  
+  // Add the full query
+  terms.push(normalized);
+  
+  // Extract individual words
+  const words = normalized.split(/\s+/).filter(w => w.length > 1);
+  terms.push(...words);
+  
+  // Check for common report patterns
+  if (normalized.includes('z') || normalized.includes('زد') || normalized.includes('زي')) {
+    terms.push('z report', 'z_report', 'تقرير z', 'زد');
+  }
+  if (normalized.includes('كاش') || normalized.includes('cash') || normalized.includes('نقد')) {
+    terms.push('cash report', 'تقرير الكاش', 'تقرير النقد');
+  }
+  if (normalized.includes('مخزون') || normalized.includes('inventory') || normalized.includes('جرد')) {
+    terms.push('inventory report', 'تقرير المخزون');
+  }
+  
+  return [...new Set(terms)];
+}
+
+/**
  * Enhanced search with role/screen filtering and Arabic normalization
  */
 export function searchKnowledge(
@@ -149,6 +177,7 @@ export function searchKnowledge(
 ): KnowledgeEntry | null {
   const lowerQuery = query.toLowerCase();
   const normalizedQuery = language === "ar" ? normalizeArabic(query) : lowerQuery;
+  const searchTerms = extractSearchTerms(query);
   const entries = Object.values(knowledge.entries);
   
   let bestMatch: KnowledgeEntry | null = null;
@@ -181,22 +210,39 @@ export function searchKnowledge(
     const keywords = entry.keywords[language];
     for (const keyword of keywords) {
       const normalizedKeyword = language === "ar" ? normalizeArabic(keyword) : keyword.toLowerCase();
+      
+      // Exact match in query - high score
       if (normalizedQuery.includes(normalizedKeyword)) {
-        score += 10;
+        score += 15;
       }
+      
+      // Check if any extracted search term matches keyword
+      for (const term of searchTerms) {
+        const normalizedTerm = language === "ar" ? normalizeArabic(term) : term.toLowerCase();
+        if (normalizedKeyword.includes(normalizedTerm) || normalizedTerm.includes(normalizedKeyword)) {
+          score += 10;
+        }
+      }
+      
       // Partial match for longer keywords
       if (normalizedKeyword.length > 3 && normalizedQuery.includes(normalizedKeyword.substring(0, 3))) {
         score += 3;
       }
     }
     
-    // Also check the other language keywords (user might mix)
+    // Also check the other language keywords (user might mix languages)
     const otherLang = language === "ar" ? "en" : "ar";
     const otherKeywords = entry.keywords[otherLang];
     for (const keyword of otherKeywords) {
       const normalizedKeyword = otherLang === "ar" ? normalizeArabic(keyword) : keyword.toLowerCase();
       if (lowerQuery.includes(normalizedKeyword)) {
-        score += 5;
+        score += 8;
+      }
+      // Check search terms against other language keywords too
+      for (const term of searchTerms) {
+        if (normalizedKeyword.includes(term.toLowerCase()) || term.toLowerCase().includes(normalizedKeyword)) {
+          score += 6;
+        }
       }
     }
     
@@ -215,6 +261,11 @@ export function searchKnowledge(
       if (titleText.includes(normalizedQuery)) {
         score += 10;
       }
+    }
+    
+    // Check entry ID for direct matches (e.g., "z_report" query matches "z_report" id)
+    if (lowerQuery.includes(entry.id.replace(/_/g, ' ')) || lowerQuery.includes(entry.id.replace(/_/g, ''))) {
+      score += 12;
     }
     
     if (score > bestScore) {
