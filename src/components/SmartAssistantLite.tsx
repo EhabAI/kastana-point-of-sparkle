@@ -3,13 +3,15 @@
  * Smart Coach floating assistant with drawer UI
  * Domain-locked to Kastana POS
  * Integrated with static knowledge base (assistant_knowledge.json)
+ * Enhanced with AI intent understanding via Lovable AI
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { 
   Bot, AlertCircle, AlertTriangle, Info, Lightbulb, ChevronRight, 
   HelpCircle, BookOpen, Send, User, X, Sparkles, GraduationCap, 
-  MessageCircle, Target, Search, ArrowLeftRight, Maximize2, Minimize2
+  MessageCircle, Target, Search, ArrowLeftRight, Maximize2, Minimize2,
+  Loader2
 } from "lucide-react";
 import {
   Tooltip,
@@ -47,6 +49,7 @@ import {
   type ChangelogEntry,
 } from "@/lib/assistantChangelog";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAssistantAI } from "@/hooks/useAssistantAI";
 
 // Badge indicator component for tabs
 interface TabBadgeProps {
@@ -563,6 +566,7 @@ interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  isThinking?: boolean;
 }
 
 // Chat bubble component
@@ -574,6 +578,7 @@ function ChatBubble({
   language: "ar" | "en";
 }) {
   const isUser = message.role === "user";
+  const isThinking = (message as ChatMessage & { isThinking?: boolean }).isThinking;
   
   return (
     <div className={cn(
@@ -586,26 +591,34 @@ function ChatBubble({
           ? "bg-primary text-primary-foreground" 
           : "bg-secondary text-secondary-foreground"
       )}>
-        {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+        {isUser ? <User className="h-4 w-4" /> : (
+          isThinking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bot className="h-4 w-4" />
+        )}
       </div>
       <div className={cn(
         "max-w-[80%] rounded-xl px-4 py-2.5",
         isUser 
           ? "bg-primary text-primary-foreground" 
-          : "bg-muted text-foreground"
+          : "bg-muted text-foreground",
+        isThinking && "animate-pulse"
       )}>
-        <p className="text-sm whitespace-pre-wrap leading-relaxed">
+        <p className={cn(
+          "text-sm whitespace-pre-wrap leading-relaxed",
+          isThinking && "text-muted-foreground italic"
+        )}>
           {message.content}
         </p>
-        <p className={cn(
-          "text-[10px] mt-1.5 opacity-60",
-          isUser ? "text-right" : "text-left"
-        )}>
-          {message.timestamp.toLocaleTimeString(language === "ar" ? "ar-SA" : "en-US", {
-            hour: "2-digit",
-            minute: "2-digit"
-          })}
-        </p>
+        {!isThinking && (
+          <p className={cn(
+            "text-[10px] mt-1.5 opacity-60",
+            isUser ? "text-right" : "text-left"
+          )}>
+            {message.timestamp.toLocaleTimeString(language === "ar" ? "ar-SA" : "en-US", {
+              hour: "2-digit",
+              minute: "2-digit"
+            })}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -678,6 +691,9 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   
   // Content mode state for browse readability
   const [contentMode, setContentMode] = useState<ContentMode>("chat");
+  
+  // AI-powered intent understanding
+  const { processQuery, isLoading: isAIProcessing, error: aiError } = useAssistantAI();
   
   // Get user role for role-based changelog filtering
   const { role } = useAuth();
@@ -913,10 +929,10 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
     }
   }, [chatMessages]);
 
-  // Handle sending a chat message
-  const handleSendMessage = useCallback((messageText?: string) => {
+  // Handle sending a chat message with AI intent understanding
+  const handleSendMessage = useCallback(async (messageText?: string) => {
     const text = (messageText || chatInput).trim();
-    if (!text) return;
+    if (!text || isAIProcessing) return;
 
     // Add user message
     const userMessage: ChatMessage = {
@@ -929,29 +945,46 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
     setChatMessages(prev => [...prev, userMessage]);
     setChatInput("");
 
-    // Search knowledge base for answer
-    const knowledgeMatch = searchKnowledge(text, language);
-    
-    let responseContent: string;
-    if (knowledgeMatch) {
-      // Found a match - format for chat (shorter, clearer)
-      responseContent = formatChatResponse(knowledgeMatch.content[language]);
-    } else {
-      // No match found - use fallback
-      responseContent = getFallbackResponse(language);
-    }
+    // Add a placeholder "thinking" message
+    const thinkingId = `thinking-${Date.now()}`;
+    setChatMessages(prev => [...prev, {
+      id: thinkingId,
+      role: "assistant",
+      content: language === "ar" ? "جاري التفكير..." : "Thinking...",
+      timestamp: new Date(),
+      isThinking: true
+    } as ChatMessage]);
 
-    // Add assistant response with slight delay for natural feel
-    setTimeout(() => {
-      const assistantMessage: ChatMessage = {
-        id: `assistant-${Date.now()}`,
-        role: "assistant",
-        content: responseContent,
-        timestamp: new Date()
-      };
-      setChatMessages(prev => [...prev, assistantMessage]);
-    }, 300);
-  }, [chatInput, language]);
+    try {
+      // Use AI to understand intent and get response from Knowledge Base
+      const responseContent = await processQuery(text, language);
+      
+      // Replace thinking message with actual response
+      setChatMessages(prev => prev.map(msg => 
+        msg.id === thinkingId 
+          ? {
+              id: `assistant-${Date.now()}`,
+              role: "assistant",
+              content: responseContent,
+              timestamp: new Date()
+            }
+          : msg
+      ));
+    } catch (error) {
+      console.error("Assistant error:", error);
+      // Replace thinking with fallback
+      setChatMessages(prev => prev.map(msg => 
+        msg.id === thinkingId 
+          ? {
+              id: `assistant-${Date.now()}`,
+              role: "assistant",
+              content: getFallbackResponse(language),
+              timestamp: new Date()
+            }
+          : msg
+      ));
+    }
+  }, [chatInput, language, isAIProcessing, processQuery]);
 
   // Handle quick question click (from suggestions tab or chat)
   const handleQuickQuestion = useCallback((question: string) => {
