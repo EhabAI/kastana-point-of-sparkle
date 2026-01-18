@@ -1153,7 +1153,9 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
             isRTL ? "right-6" : "left-6"
           )}
         >
-          <Bot className="h-6 w-6" strokeWidth={2.5} />
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500">
+            <Bot className="h-5 w-5 text-white" strokeWidth={2.5} />
+          </div>
         </Button>
       </SheetTrigger>
       
