@@ -180,6 +180,64 @@ const TOPIC_TITLES: Record<string, { ar: string; en: string }> = {
   pos_shift_required: { ar: "الوردية مطلوبة", en: "Shift Required" },
 };
 
+// Predefined questions for topics (triggers assistant on click)
+const TOPIC_QUESTIONS: Record<string, { ar: string; en: string }> = {
+  // Getting Started
+  new_order_flow: { ar: "كيف أنشئ طلب جديد؟", en: "How do I create a new order?" },
+  open_shift: { ar: "كيف أفتح الوردية؟", en: "How do I open a shift?" },
+  close_shift: { ar: "كيف أغلق الوردية؟", en: "How do I close a shift?" },
+  favorites_screen: { ar: "اشرحلي شاشة المفضلة", en: "Explain the favorites screen" },
+  // Orders & Payments
+  payment_flow: { ar: "كيف أتم الدفع للطلب؟", en: "How do I complete payment?" },
+  hold_resume: { ar: "كيف أعلق وأستأنف الطلب؟", en: "How do I hold and resume an order?" },
+  order_notes: { ar: "كيف أضيف ملاحظات للطلب؟", en: "How do I add order notes?" },
+  modifiers_addons: { ar: "اشرحلي الإضافات والتعديلات", en: "Explain modifiers and add-ons" },
+  discount_application: { ar: "كيف أطبق خصم على الطلب؟", en: "How do I apply a discount?" },
+  cash_in_out: { ar: "كيف أعمل إيداع أو سحب نقد؟", en: "How do I do cash in/out?" },
+  // Tables & Dining
+  move_table: { ar: "كيف أنقل طلب لطاولة أخرى؟", en: "How do I move an order to another table?" },
+  merge_orders: { ar: "كيف أدمج طلبين؟", en: "How do I merge orders?" },
+  split_order: { ar: "كيف أقسم الطلب؟", en: "How do I split an order?" },
+  transfer_items_between_orders: { ar: "كيف أنقل أصناف بين الطلبات؟", en: "How do I transfer items between orders?" },
+  // Refunds & Voids
+  refund_overview: { ar: "اشرحلي المرتجعات", en: "Explain refunds" },
+  void_vs_refund: { ar: "ما الفرق بين الإلغاء والمرتجع؟", en: "What's the difference between void and refund?" },
+  reopen_order: { ar: "كيف أعيد فتح طلب مغلق؟", en: "How do I reopen a closed order?" },
+  // Reports
+  z_report: { ar: "اشرحلي تقرير Z", en: "Explain Z Report" },
+  z_report_explain: { ar: "ما هو تقرير Z بالتفصيل؟", en: "What is Z Report in detail?" },
+  sales_summary_report: { ar: "اشرحلي تقرير المبيعات", en: "Explain sales report" },
+  gross_vs_net: { ar: "ما الفرق بين الإجمالي والصافي؟", en: "What's the difference between gross and net?" },
+  refunds_report_explain: { ar: "اشرحلي تقرير المرتجعات", en: "Explain refunds report" },
+  payments_report_explain: { ar: "اشرحلي تقرير المدفوعات", en: "Explain payments report" },
+  cash_drawer_reconciliation: { ar: "كيف أطابق الصندوق؟", en: "How do I reconcile the cash drawer?" },
+  // Inventory & Recipes
+  inventory_overview: { ar: "اشرحلي نظام المخزون", en: "Explain the inventory system" },
+  recipe_management: { ar: "كيف أدير الوصفات؟", en: "How do I manage recipes?" },
+  stock_count: { ar: "كيف أعمل جرد للمخزون؟", en: "How do I do stock count?" },
+  inventory_alerts: { ar: "اشرحلي تنبيهات المخزون", en: "Explain inventory alerts" },
+  // QR Orders
+  qr_menu_access: { ar: "كيف يعمل نظام QR؟", en: "How does QR system work?" },
+  qr_pending_orders: { ar: "كيف أتعامل مع طلبات QR المعلقة؟", en: "How do I handle pending QR orders?" },
+  qr_order_states: { ar: "اشرحلي حالات طلب QR", en: "Explain QR order states" },
+  // Troubleshooting
+  disabled_button_reasons: { ar: "ليش بعض الأزرار معطلة؟", en: "Why are some buttons disabled?" },
+  payment_disabled: { ar: "ليش زر الدفع مش شغال؟", en: "Why is payment button disabled?" },
+  pos_shift_required: { ar: "ليش يطلب مني فتح وردية؟", en: "Why is it asking me to open a shift?" },
+};
+
+// Category questions (for clicking category header)
+const CATEGORY_QUESTIONS: Record<string, { ar: string; en: string }> = {
+  getting_started: { ar: "علمني كيف أبدأ مع النظام", en: "Teach me how to get started" },
+  orders_payments: { ar: "علمني عن الطلبات والدفع", en: "Teach me about orders and payments" },
+  tables_dining: { ar: "علمني عن الطاولات والصالة", en: "Teach me about tables and dining" },
+  refunds_voids: { ar: "علمني عن المرتجعات والإلغاء", en: "Teach me about refunds and voids" },
+  reports: { ar: "اشرحلي التقارير في النظام", en: "Explain reports in the system" },
+  inventory_recipes: { ar: "علمني عن المخزون والوصفات", en: "Teach me about inventory and recipes" },
+  qr_orders: { ar: "اشرحلي نظام طلبات QR", en: "Explain the QR orders system" },
+  troubleshooting: { ar: "ساعدني في حل مشكلة", en: "Help me troubleshoot an issue" },
+};
+
 // Helper to get topic title with fallback
 function getTopicTitle(topicId: string, language: "ar" | "en", allTopics: Array<{ id: string; title: string }>): string {
   // First check static titles
@@ -193,6 +251,24 @@ function getTopicTitle(topicId: string, language: "ar" | "en", allTopics: Array<
   }
   // Last resort: format the ID
   return topicId.replace(/_/g, ' ');
+}
+
+// Helper to get topic question
+function getTopicQuestion(topicId: string, language: "ar" | "en"): string {
+  if (TOPIC_QUESTIONS[topicId]) {
+    return TOPIC_QUESTIONS[topicId][language];
+  }
+  // Fallback: generate a simple question from title
+  const title = TOPIC_TITLES[topicId]?.[language] || topicId.replace(/_/g, ' ');
+  return language === "ar" ? `اشرحلي ${title}` : `Explain ${title}`;
+}
+
+// Helper to get category question
+function getCategoryQuestion(categoryId: string, language: "ar" | "en"): string {
+  if (CATEGORY_QUESTIONS[categoryId]) {
+    return CATEGORY_QUESTIONS[categoryId][language];
+  }
+  return language === "ar" ? "اشرحلي هذا الموضوع" : "Explain this topic";
 }
 
 // Width mode types and configuration
@@ -1342,7 +1418,10 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                                           <button
                                             key={topicId}
                                             className="w-full text-left rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground text-xs px-2 py-1.5"
-                                            onClick={() => setSelectedTopicId(topicId)}
+                                            onClick={() => {
+                                              const question = getTopicQuestion(topicId, language);
+                                              handleQuickQuestion(question);
+                                            }}
                                           >
                                             {title}
                                           </button>
