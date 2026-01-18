@@ -129,17 +129,19 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
   
   if (isLoading) {
     return (
-      <Card>
+      <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800/50 border h-full">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-primary" />
+            <div className="p-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30">
+              <Calendar className="h-4 w-4 text-blue-600" />
+            </div>
             {t.daily_summary_title}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="animate-pulse space-y-3">
-            <div className="h-4 bg-muted rounded w-3/4"></div>
-            <div className="h-4 bg-muted rounded w-1/2"></div>
+            <div className="h-4 bg-blue-100 dark:bg-blue-900/30 rounded w-3/4"></div>
+            <div className="h-4 bg-blue-100 dark:bg-blue-900/30 rounded w-1/2"></div>
           </div>
         </CardContent>
       </Card>
@@ -157,11 +159,13 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
   };
   
   return (
-    <Card>
+    <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800/50 border h-full">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-primary" />
+            <div className="p-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30">
+              <Calendar className="h-4 w-4 text-blue-600" />
+            </div>
             {t.daily_summary_title}
           </CardTitle>
           <span className="text-xs text-muted-foreground">
@@ -172,7 +176,7 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
       <CardContent className="space-y-4">
         {/* Section 1: Operational Activity */}
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-primary">
+          <div className="flex items-center gap-2 text-sm font-medium text-blue-600">
             <ClipboardList className="h-4 w-4" />
             {t.daily_summary_operational_activity}
           </div>
@@ -196,7 +200,7 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
         
         {/* Section 2: Sales */}
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-primary">
+          <div className="flex items-center gap-2 text-sm font-medium text-blue-600">
             <DollarSign className="h-4 w-4" />
             {t.daily_summary_sales}
             <TooltipProvider>
@@ -222,7 +226,7 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
         
         {/* Section 3: Refunds */}
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-primary">
+          <div className="flex items-center gap-2 text-sm font-medium text-blue-600">
             <RotateCcw className="h-4 w-4" />
             {t.daily_summary_refunds}
           </div>
@@ -246,7 +250,7 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
         
         {/* Section 4: Revenue */}
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-primary">
+          <div className="flex items-center gap-2 text-sm font-medium text-blue-600">
             <Wallet className="h-4 w-4" />
             {t.daily_summary_revenue}
           </div>
