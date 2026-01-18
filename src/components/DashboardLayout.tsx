@@ -42,31 +42,20 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
   };
 
   const { data: profile } = useQuery({
-    queryKey: ['profile_header', user?.id],
-    enabled: !!user?.id,
+    queryKey: ['profile_header', user?.email],
+    enabled: !!user?.email,
     queryFn: async () => {
-      if (!user?.id) return null;
+      if (!user?.email) return null;
       
-      // Fetch username from profiles
+      // Fetch username from profiles using email
       const { data: profileData } = await supabase
         .from('profiles')
         .select('username')
-        .eq('id', user.id)
+        .eq('email', user.email)
         .maybeSingle();
-      
-      // Fetch role from user_roles
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .maybeSingle();
-      
-      if (!profileData?.username || !roleData?.role) return null;
       
       return {
-        username: profileData.username,
-        role: roleData.role
+        username: profileData?.username || null
       };
     },
   });
