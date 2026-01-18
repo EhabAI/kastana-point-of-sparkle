@@ -85,22 +85,22 @@ interface TopicCategory {
 
 const TOPIC_CATEGORIES: TopicCategory[] = [
   {
-    id: "pos_basics",
-    title: { ar: "أساسيات POS", en: "POS Basics" },
+    id: "getting_started",
+    title: { ar: "البدء مع Kastana POS", en: "Getting Started" },
     icon: <BookOpen className="h-4 w-4" />,
-    topicIds: ["new_order_flow", "payment_flow", "hold_resume", "favorites_screen", "order_notes"]
+    topicIds: ["new_order_flow", "open_shift", "close_shift", "favorites_screen"]
   },
   {
-    id: "shifts_cash",
-    title: { ar: "الورديات والنقد", en: "Shifts & Cash" },
+    id: "orders_payments",
+    title: { ar: "الطلبات والدفع", en: "Orders & Payments" },
     icon: <BookOpen className="h-4 w-4" />,
-    topicIds: ["open_shift", "close_shift", "z_report", "opening_cash", "closing_cash", "cash_in_out", "cash_drawer_reconciliation"]
+    topicIds: ["payment_flow", "hold_resume", "order_notes", "modifiers_addons", "discount_application", "cash_in_out"]
   },
   {
-    id: "orders_tables",
-    title: { ar: "الطلبات والطاولات", en: "Orders & Tables" },
+    id: "tables_dining",
+    title: { ar: "الطاولات والصالة", en: "Tables & Dining" },
     icon: <BookOpen className="h-4 w-4" />,
-    topicIds: ["move_table", "merge_orders", "split_order", "transfer_items_between_orders", "modifiers_addons"]
+    topicIds: ["move_table", "merge_orders", "split_order", "transfer_items_between_orders"]
   },
   {
     id: "refunds_voids",
@@ -109,22 +109,22 @@ const TOPIC_CATEGORIES: TopicCategory[] = [
     topicIds: ["refund_overview", "void_vs_refund", "reopen_order"]
   },
   {
-    id: "discounts",
-    title: { ar: "الخصومات", en: "Discounts" },
+    id: "reports",
+    title: { ar: "التقارير", en: "Reports" },
     icon: <BookOpen className="h-4 w-4" />,
-    topicIds: ["discount_application", "discount_settings"]
+    topicIds: ["z_report", "z_report_explain", "sales_summary_report", "gross_vs_net", "refunds_report_explain", "payments_report_explain", "cash_drawer_reconciliation"]
+  },
+  {
+    id: "inventory_recipes",
+    title: { ar: "المخزون والوصفات", en: "Inventory & Recipes" },
+    icon: <BookOpen className="h-4 w-4" />,
+    topicIds: ["inventory_overview", "recipe_management", "stock_count", "inventory_alerts"]
   },
   {
     id: "qr_orders",
     title: { ar: "طلبات QR", en: "QR Orders" },
     icon: <BookOpen className="h-4 w-4" />,
     topicIds: ["qr_menu_access", "qr_pending_orders", "qr_order_states"]
-  },
-  {
-    id: "reports",
-    title: { ar: "التقارير", en: "Reports" },
-    icon: <BookOpen className="h-4 w-4" />,
-    topicIds: ["sales_summary_report", "z_report_explain", "gross_vs_net", "refunds_report_explain", "payments_report_explain"]
   },
   {
     id: "troubleshooting",
