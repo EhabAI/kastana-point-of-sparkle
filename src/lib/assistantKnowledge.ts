@@ -299,10 +299,142 @@ export function getKnowledgeContent(
 }
 
 /**
- * Get the fallback response when no match is found
+ * Get contextual fallback response when no match is found
+ * Uses screen context and display name to provide helpful guidance
  */
-export function getFallbackResponse(language: "ar" | "en"): string {
-  return knowledge.fallbackResponses[language];
+export function getFallbackResponse(
+  language: "ar" | "en",
+  options?: {
+    displayName?: string;
+    screenContext?: string;
+  }
+): string {
+  // If no context provided, return generic fallback
+  if (!options?.screenContext) {
+    return knowledge.fallbackResponses[language];
+  }
+
+  const { displayName, screenContext } = options;
+  
+  // Screen-specific contextual fallbacks
+  const contextualFallbacks: Record<string, { ar: string; en: string; suggestions: { ar: string[]; en: string[] } }> = {
+    pos_main: {
+      ar: "هذه شاشة إنشاء الطلبات.\nتساعدك على إضافة الأصناف للطلب واختيار نوع الطلب وإتمام الدفع.",
+      en: "This is the Order Creation screen.\nIt helps you add items to orders, select order type, and complete payments.",
+      suggestions: {
+        ar: ["شرح طريقة إنشاء طلب", "كيف أعمل تخفيض؟", "شرح أنواع الطلبات"],
+        en: ["Explain how to create an order", "How to apply a discount?", "Explain order types"]
+      }
+    },
+    pos_tables: {
+      ar: "هذه شاشة إدارة الطاولات.\nتعرض حالة جميع الطاولات والطلبات المرتبطة بها.",
+      en: "This is the Table Management screen.\nIt shows the status of all tables and their associated orders.",
+      suggestions: {
+        ar: ["كيف أربط طلب بطاولة؟", "شرح دمج الطاولات", "كيف أنقل طلب لطاولة أخرى؟"],
+        en: ["How to assign order to table?", "Explain table merging", "How to transfer order to another table?"]
+      }
+    },
+    pos_open_orders: {
+      ar: "هذه شاشة الطلبات المفتوحة.\nتعرض جميع الطلبات النشطة التي لم تُدفع بعد.",
+      en: "This is the Open Orders screen.\nIt displays all active orders that haven't been paid yet.",
+      suggestions: {
+        ar: ["كيف أستأنف طلب معلق؟", "شرح حالات الطلب", "كيف ألغي طلب؟"],
+        en: ["How to resume a held order?", "Explain order statuses", "How to cancel an order?"]
+      }
+    },
+    pos_qr_pending: {
+      ar: "هذه شاشة طلبات QR المعلقة.\nتعرض الطلبات الواردة من العملاء عبر رمز QR.",
+      en: "This is the QR Pending Orders screen.\nIt shows orders received from customers via QR code.",
+      suggestions: {
+        ar: ["كيف أقبل طلب QR؟", "كيف أرفض طلب QR؟", "شرح نظام QR"],
+        en: ["How to accept a QR order?", "How to reject a QR order?", "Explain QR system"]
+      }
+    },
+    owner_dashboard: {
+      ar: "هذه لوحة تحكم صاحب المطعم.\nتعرض نظرة عامة على أداء المطعم والمبيعات.",
+      en: "This is the Owner Dashboard.\nIt provides an overview of restaurant performance and sales.",
+      suggestions: {
+        ar: ["شرح مؤشرات الأداء", "كيف أقرأ التقارير؟", "شرح الإعدادات"],
+        en: ["Explain performance indicators", "How to read reports?", "Explain settings"]
+      }
+    },
+    owner_menu: {
+      ar: "هذه شاشة إدارة القائمة.\nتتيح لك إضافة وتعديل الأصناف والتصنيفات.",
+      en: "This is the Menu Management screen.\nIt allows you to add and edit items and categories.",
+      suggestions: {
+        ar: ["كيف أضيف صنف جديد؟", "شرح الكومبو", "كيف أعدل السعر؟"],
+        en: ["How to add a new item?", "Explain combos", "How to change price?"]
+      }
+    },
+    owner_inventory: {
+      ar: "هذه شاشة إدارة المخزون.\nتتيح لك تتبع المواد واستلام البضائع ومراقبة المستويات.",
+      en: "This is the Inventory Management screen.\nIt allows you to track items, receive goods, and monitor levels.",
+      suggestions: {
+        ar: ["كيف أستلم بضاعة؟", "شرح الوصفات", "كيف أعمل جرد؟"],
+        en: ["How to receive goods?", "Explain recipes", "How to do stock count?"]
+      }
+    },
+    owner_reports: {
+      ar: "هذه شاشة التقارير.\nتعرض تقارير المبيعات والأداء والتحليلات.",
+      en: "This is the Reports screen.\nIt displays sales, performance, and analytics reports.",
+      suggestions: {
+        ar: ["ما هو تقرير Z؟", "شرح تقرير المبيعات", "كيف أصدر تقرير؟"],
+        en: ["What is Z Report?", "Explain sales report", "How to export a report?"]
+      }
+    },
+    owner_staff: {
+      ar: "هذه شاشة إدارة الموظفين.\nتتيح لك إضافة موظفين وتعديل صلاحياتهم.",
+      en: "This is the Staff Management screen.\nIt allows you to add staff and modify their permissions.",
+      suggestions: {
+        ar: ["كيف أضيف كاشير؟", "شرح الصلاحيات", "كيف أعيد تعيين كلمة المرور؟"],
+        en: ["How to add a cashier?", "Explain permissions", "How to reset password?"]
+      }
+    },
+    owner_settings: {
+      ar: "هذه شاشة الإعدادات.\nتتيح لك تعديل إعدادات المطعم والضرائب والخصومات.",
+      en: "This is the Settings screen.\nIt allows you to modify restaurant settings, taxes, and discounts.",
+      suggestions: {
+        ar: ["كيف أعدل الضريبة؟", "شرح إعدادات الخصم", "كيف أفعّل المخزون؟"],
+        en: ["How to change tax rate?", "Explain discount settings", "How to enable inventory?"]
+      }
+    },
+    kds: {
+      ar: "هذه شاشة عرض المطبخ (KDS).\nتعرض الطلبات الواردة للتحضير.",
+      en: "This is the Kitchen Display Screen (KDS).\nIt shows incoming orders for preparation.",
+      suggestions: {
+        ar: ["كيف أغير حالة الطلب؟", "شرح ألوان الطلبات", "اختصارات لوحة المفاتيح"],
+        en: ["How to change order status?", "Explain order colors", "Keyboard shortcuts"]
+      }
+    },
+    system_admin: {
+      ar: "هذه شاشة إدارة النظام.\nتتيح لك إدارة المطاعم والمستخدمين وإعدادات النظام.",
+      en: "This is the System Administration screen.\nIt allows you to manage restaurants, users, and system settings.",
+      suggestions: {
+        ar: ["كيف أضيف مطعم؟", "كيف أضيف صاحب مطعم؟", "كيف أعيد تعيين كلمة المرور؟"],
+        en: ["How to add a restaurant?", "How to add an owner?", "How to reset password?"]
+      }
+    }
+  };
+
+  const contextData = contextualFallbacks[screenContext];
+  
+  if (!contextData) {
+    return knowledge.fallbackResponses[language];
+  }
+
+  // Build contextual response
+  const greeting = displayName 
+    ? (language === "ar" ? `مرحباً ${displayName}،` : `Hello ${displayName},`)
+    : (language === "ar" ? "مرحباً،" : "Hello,");
+  
+  const screenDescription = contextData[language];
+  const suggestions = contextData.suggestions[language];
+  
+  const suggestionsText = language === "ar"
+    ? `\n\nيمكنك سؤالي عن:\n• ${suggestions.join("\n• ")}`
+    : `\n\nYou can ask me to:\n• ${suggestions.join("\n• ")}`;
+  
+  return `${greeting}\n\n${screenDescription}${suggestionsText}`;
 }
 
 /**

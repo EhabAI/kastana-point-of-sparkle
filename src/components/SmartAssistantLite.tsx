@@ -1143,8 +1143,11 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
     } as ChatMessage]);
 
     try {
-      // Use AI to understand intent and get response from Knowledge Base
-      const responseContent = await processQuery(text, language);
+      // Use AI to understand intent and get response from Knowledge Base with context
+      const responseContent = await processQuery(text, language, {
+        displayName: profileUsername || undefined,
+        screenContext: state.screenContext
+      });
       
       // Replace thinking message with actual response
       setChatMessages(prev => prev.map(msg => 
@@ -1159,13 +1162,16 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
       ));
     } catch (error) {
       console.error("Assistant error:", error);
-      // Replace thinking with fallback
+      // Replace thinking with contextual fallback
       setChatMessages(prev => prev.map(msg => 
         msg.id === thinkingId 
           ? {
               id: `assistant-${Date.now()}`,
               role: "assistant",
-              content: getFallbackResponse(language),
+              content: getFallbackResponse(language, {
+                displayName: profileUsername || undefined,
+                screenContext: state.screenContext
+              }),
               timestamp: new Date()
             }
           : msg

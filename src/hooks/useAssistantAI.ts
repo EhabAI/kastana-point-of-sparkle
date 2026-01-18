@@ -20,8 +20,13 @@ interface ConversationMessage {
   content: string;
 }
 
+interface FallbackContext {
+  displayName?: string;
+  screenContext?: string;
+}
+
 interface UseAssistantAIReturn {
-  processQuery: (query: string, language: "ar" | "en") => Promise<string>;
+  processQuery: (query: string, language: "ar" | "en", fallbackContext?: FallbackContext) => Promise<string>;
   isLoading: boolean;
   lastIntent: IntentResult | null;
   error: string | null;
@@ -45,7 +50,8 @@ export function useAssistantAI(): UseAssistantAIReturn {
 
   const processQuery = useCallback(async (
     query: string, 
-    language: "ar" | "en"
+    language: "ar" | "en",
+    fallbackContext?: FallbackContext
   ): Promise<string> => {
     setIsLoading(true);
     setError(null);
@@ -80,8 +86,8 @@ export function useAssistantAI(): UseAssistantAIReturn {
       // Handle rate limit or payment errors
       if (data?.error) {
         setError(data.error);
-        // Fall back to basic search
-        return getFallbackResponse(language);
+        // Fall back to contextual response
+        return getFallbackResponse(language, fallbackContext);
       }
 
       const intentResult: IntentResult = data;
@@ -97,7 +103,8 @@ export function useAssistantAI(): UseAssistantAIReturn {
       // Generate response from Knowledge Base
       const response = generateResponseFromKnowledge(
         intentResult,
-        language
+        language,
+        fallbackContext
       );
 
       // Update conversation history
@@ -119,8 +126,8 @@ export function useAssistantAI(): UseAssistantAIReturn {
     } catch (err) {
       console.error("Assistant AI error:", err);
       setError(err instanceof Error ? err.message : "Unknown error");
-      // Return fallback on error
-      return getFallbackResponse(language);
+      // Return contextual fallback on error
+      return getFallbackResponse(language, fallbackContext);
     } finally {
       setIsLoading(false);
     }
@@ -706,7 +713,8 @@ To help you better, tell me:
  */
 function generateResponseFromKnowledge(
   intent: IntentResult,
-  language: "ar" | "en"
+  language: "ar" | "en",
+  fallbackContext?: FallbackContext
 ): string {
   // Handle system overview intent with built-in responses
   if (intent.intent === "system_overview") {
@@ -719,9 +727,9 @@ function generateResponseFromKnowledge(
     return TROUBLESHOOT_RESPONSES[flow]?.[language] || TROUBLESHOOT_RESPONSES.general[language];
   }
 
-  // No matches found
+  // No matches found - use contextual fallback
   if (intent.matchedEntryIds.length === 0 || intent.intent === "unknown") {
-    return getFallbackResponse(language);
+    return getFallbackResponse(language, fallbackContext);
   }
 
   // Get the matched entries
@@ -730,7 +738,7 @@ function generateResponseFromKnowledge(
     .filter((e): e is KnowledgeEntry => e !== null);
 
   if (entries.length === 0) {
-    return getFallbackResponse(language);
+    return getFallbackResponse(language, fallbackContext);
   }
 
   // For detailed responses, return full content
