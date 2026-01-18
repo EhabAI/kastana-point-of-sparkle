@@ -693,13 +693,57 @@ interface ChatMessage {
 // Chat bubble component
 function ChatBubble({ 
   message, 
-  language 
+  language,
+  onExplainMore
 }: { 
   message: ChatMessage; 
   language: "ar" | "en";
+  onExplainMore?: () => void;
 }) {
   const isUser = message.role === "user";
   const isThinking = (message as ChatMessage & { isThinking?: boolean }).isThinking;
+  
+  // Parse content to make "اشرح أكثر" or "explain more" clickable
+  const renderContent = () => {
+    if (isUser || isThinking) {
+      return message.content;
+    }
+    
+    const explainMorePatterns = [
+      { pattern: /"اشرح أكثر"/, text: "اشرح أكثر" },
+      { pattern: /"explain more"/i, text: "explain more" },
+    ];
+    
+    let content = message.content;
+    let hasExplainMore = false;
+    let matchedText = "";
+    
+    for (const { pattern, text } of explainMorePatterns) {
+      if (pattern.test(content)) {
+        hasExplainMore = true;
+        matchedText = text;
+        break;
+      }
+    }
+    
+    if (hasExplainMore && onExplainMore) {
+      const parts = content.split(`"${matchedText}"`);
+      return (
+        <>
+          {parts[0]}
+          <button
+            onClick={onExplainMore}
+            className="text-primary hover:underline font-medium inline"
+          >
+            "{matchedText}"
+          </button>
+          {parts[1]}
+        </>
+      );
+    }
+    
+    return content;
+  };
   
   return (
     <div className={cn(
@@ -727,7 +771,7 @@ function ChatBubble({
           "text-sm whitespace-pre-wrap leading-relaxed",
           isThinking && "text-muted-foreground italic"
         )}>
-          {message.content}
+          {renderContent()}
         </p>
         {!isThinking && (
           <p className={cn(
@@ -1352,7 +1396,8 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                               <ChatBubble 
                                 key={message.id} 
                                 message={message} 
-                                language={language} 
+                                language={language}
+                                onExplainMore={() => handleSendMessage(language === "ar" ? "اشرح أكثر" : "explain more")}
                               />
                             ))}
                           </>
