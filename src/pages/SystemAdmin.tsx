@@ -44,14 +44,7 @@ const emailSchema = z.string().email("Please enter a valid email");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
 
 export default function SystemAdmin() {
-  const { language, setLanguage } = useLanguage();
-  
-  // Force English language for System Admin
-  useEffect(() => {
-    if (language !== "en") {
-      setLanguage("en");
-    }
-  }, [language, setLanguage]);
+  const { t } = useLanguage();
 
   const { data: restaurants = [], isLoading: loadingRestaurants } = useRestaurants();
   const { data: owners = [], isLoading: loadingOwners } = useOwners();
