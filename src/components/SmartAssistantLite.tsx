@@ -1143,12 +1143,17 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
     } as ChatMessage]);
 
     try {
-      // PRODUCTION: Use AI with full context for screen-locked, role-aware responses
+      // V2 PRODUCTION: Use AI with full context for screen-locked, role-aware responses
+      // Pass V2 context enrichment fields for smart suggestions and feature filtering
       const responseContent = await processQuery(text, language, {
         displayName: profileUsername || undefined,
         screenContext: state.screenContext,
         userRole: role || undefined,
-        // Feature visibility is determined from restaurant settings - passed via context
+        // V2 Context Enrichment - system state
+        shiftOpen: props.shiftOpenedAt != null,
+        restaurantActive: true, // Always active if user is logged in
+        hasOpenOrders: (props.orderItemCount ?? 0) > 0 || props.orderStatus === "OPEN",
+        // Feature visibility would come from restaurant settings if available
       });
       
       // Replace thinking message with actual response

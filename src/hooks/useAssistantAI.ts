@@ -18,6 +18,14 @@ import {
   getScreenName,
   type FeatureVisibility
 } from "@/lib/assistantScreenLock";
+import {
+  buildV2Context,
+  formatV2Response,
+  classifySoftIntent,
+  shouldHideFeature,
+  type V2SystemContext,
+  type V2SoftIntent,
+} from "@/lib/assistantV2Context";
 import type { ScreenContext } from "@/lib/smartAssistantContext";
 
 interface IntentResult {
@@ -38,6 +46,10 @@ interface FallbackContext {
   screenContext?: string;
   userRole?: string;
   featureVisibility?: FeatureVisibility;
+  // V2 Context Enrichment fields
+  shiftOpen?: boolean;
+  restaurantActive?: boolean;
+  hasOpenOrders?: boolean;
 }
 
 interface UseAssistantAIReturn {
@@ -45,6 +57,7 @@ interface UseAssistantAIReturn {
   isLoading: boolean;
   lastIntent: IntentResult | null;
   lastUIMatch: UIElementMatch | null;
+  lastSoftIntent: V2SoftIntent | null;
   error: string | null;
 }
 
@@ -62,6 +75,7 @@ export function useAssistantAI(): UseAssistantAIReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [lastIntent, setLastIntent] = useState<IntentResult | null>(null);
   const [lastUIMatch, setLastUIMatch] = useState<UIElementMatch | null>(null);
+  const [lastSoftIntent, setLastSoftIntent] = useState<V2SoftIntent | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   // Keep track of last matched entry for follow-up questions
@@ -69,6 +83,9 @@ export function useAssistantAI(): UseAssistantAIReturn {
   
   // Keep recent conversation for context
   const conversationHistoryRef = useRef<ConversationMessage[]>([]);
+  
+  // V2: Track question count for adaptive tone
+  const questionCountRef = useRef<number>(0);
 
   const processQuery = useCallback(async (
     query: string, 
@@ -78,52 +95,80 @@ export function useAssistantAI(): UseAssistantAIReturn {
     setIsLoading(true);
     setError(null);
     setLastUIMatch(null);
+    setLastSoftIntent(null);
+    
+    // V2: Increment question count for adaptive tone
+    questionCountRef.current += 1;
+    
+    // V2: Build enriched context
+    const screenContext = fallbackContext?.screenContext as ScreenContext | undefined;
+    const v2Context: V2SystemContext | null = screenContext ? buildV2Context(
+      screenContext,
+      fallbackContext?.userRole || null,
+      fallbackContext?.displayName,
+      fallbackContext?.shiftOpen ?? false,
+      fallbackContext?.restaurantActive ?? true,
+      fallbackContext?.hasOpenOrders ?? false,
+      fallbackContext?.featureVisibility,
+      language
+    ) : null;
+    
+    // V2: Classify soft intent (question type only, not destination)
+    const softIntent = classifySoftIntent(query, language);
+    setLastSoftIntent(softIntent);
     
     try {
-      // ===== UI-FIRST INTENT RESOLUTION =====
-      // CRITICAL: Check for direct UI element matches BEFORE calling AI
+      // ===== V2 UI-FIRST INTENT RESOLUTION (Rule 4) =====
+      // Priority 1: Exact UI keyword match on current screen
       // This has HIGHER priority than AI intent classification
-      if (fallbackContext?.screenContext) {
-        const uiMatch = matchUIElement(
-          query, 
-          fallbackContext.screenContext as ScreenContext, 
-          language
-        );
+      if (screenContext) {
+        const uiMatch = matchUIElement(query, screenContext, language);
         
         if (uiMatch && uiMatch.confidence >= 0.6) {
-          // Direct UI element match found - respond immediately without AI
-          setLastUIMatch(uiMatch);
-          setIsLoading(false);
-          
-          const response = formatUIElementResponse(uiMatch, language);
-          
-          // Update conversation history
-          conversationHistoryRef.current.push({ role: "user", content: query });
-          conversationHistoryRef.current.push({ role: "assistant", content: response });
-          
-          // Keep only last 6 messages
-          if (conversationHistoryRef.current.length > 6) {
-            conversationHistoryRef.current = conversationHistoryRef.current.slice(-6);
+          // V2: Check if this element should be hidden
+          if (v2Context && shouldHideFeature(uiMatch.elementId, v2Context)) {
+            // Element is hidden/disabled - fall through to screen-level response
+          } else {
+            // Direct UI element match found - respond immediately without AI
+            setLastUIMatch(uiMatch);
+            setIsLoading(false);
+            
+            let response = formatUIElementResponse(uiMatch, language);
+            
+            // V2: Add smart suggestions
+            if (v2Context) {
+              response = formatV2Response(response, v2Context, true);
+            }
+            
+            // Update conversation history
+            conversationHistoryRef.current.push({ role: "user", content: query });
+            conversationHistoryRef.current.push({ role: "assistant", content: response });
+            
+            // Keep only last 6 messages
+            if (conversationHistoryRef.current.length > 6) {
+              conversationHistoryRef.current = conversationHistoryRef.current.slice(-6);
+            }
+            
+            return response;
           }
-          
-          return response;
         }
       }
-      // ===== END UI-FIRST RESOLUTION =====
+      // ===== END V2 UI-FIRST RESOLUTION =====
       
-      // ===== SCREEN-LOCK ENFORCEMENT =====
-      // PRODUCTION RULE 1: Only respond about current screen features
-      const screenContext = fallbackContext?.screenContext as ScreenContext | undefined;
-      
+      // ===== V2 SCREEN-LOCK ENFORCEMENT (V1 Rule 1 + V2 Rule 2) =====
       // No UI match found - proceed with AI intent classification
       // Get all knowledge entry summaries for the AI
-      // IMPORTANT: Filter by screen context to enforce screen-lock
+      // IMPORTANT: Filter by screen context AND feature visibility
       const topics = getAllTopics(language);
       const knowledgeEntries = topics
         .filter(t => {
-          // If we have screen context, filter topics to current screen only
-          if (screenContext) {
-            return isTopicAllowedOnScreen(t.id, screenContext);
+          // V1: Filter by screen context
+          if (screenContext && !isTopicAllowedOnScreen(t.id, screenContext)) {
+            return false;
+          }
+          // V2: Filter by feature visibility
+          if (v2Context && shouldHideFeature(t.id, v2Context)) {
+            return false;
           }
           return true;
         })
@@ -186,11 +231,16 @@ export function useAssistantAI(): UseAssistantAIReturn {
       // ===== END SCREEN-LOCK VALIDATION =====
 
       // Generate response from Knowledge Base
-      const response = generateResponseFromKnowledge(
+      let response = generateResponseFromKnowledge(
         intentResult,
         language,
         fallbackContext
       );
+      
+      // V2: Add smart suggestions to response
+      if (v2Context) {
+        response = formatV2Response(response, v2Context, true);
+      }
 
       // Update conversation history
       conversationHistoryRef.current.push({ role: "user", content: query });
@@ -218,7 +268,7 @@ export function useAssistantAI(): UseAssistantAIReturn {
     }
   }, []);
 
-  return { processQuery, isLoading, lastIntent, lastUIMatch, error };
+  return { processQuery, isLoading, lastIntent, lastUIMatch, lastSoftIntent, error };
 }
 
 /**
