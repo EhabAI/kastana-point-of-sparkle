@@ -7,24 +7,29 @@ import posLogoNew from '@/assets/pos-logo-new.png';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useLanguage } from '@/contexts/LanguageContext';
-
 interface DashboardLayoutProps {
   children: ReactNode;
   title: string;
 }
-
-export function DashboardLayout({ children, title }: DashboardLayoutProps) {
-  const { signOut, displayName } = useAuth();
-  const { t } = useLanguage();
+export function DashboardLayout({
+  children,
+  title
+}: DashboardLayoutProps) {
+  const {
+    signOut,
+    displayName
+  } = useAuth();
+  const {
+    t
+  } = useLanguage();
   const navigate = useNavigate();
-
   const handleSignOut = async () => {
     await signOut();
-    navigate('/login', { replace: true });
+    navigate('/login', {
+      replace: true
+    });
   };
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Header - cleaner, reduced height */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -39,11 +44,9 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
 
             {/* CENTER – User Display (hidden on mobile) */}
             <div className="hidden md:flex items-center justify-center flex-1">
-              {displayName && (
-                <span className="text-sm font-medium text-foreground">
+              {displayName && <span className="font-medium text-foreground text-lg font-sans">
                   {displayName}
-                </span>
-              )}
+                </span>}
             </div>
 
             {/* RIGHT – Actions Area */}
@@ -55,12 +58,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
               <div className="hidden sm:block w-px h-5 bg-border/60 mx-1.5" />
               
               {/* Sign Out */}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleSignOut}
-                className="text-muted-foreground hover:text-foreground h-8 px-2"
-              >
+              <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground hover:text-foreground h-8 px-2">
                 <LogOut className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline ltr:ml-1.5 rtl:mr-1.5 text-xs">{t("sign_out")}</span>
               </Button>
@@ -73,6 +71,5 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {children}
       </main>
-    </div>
-  );
+    </div>;
 }
