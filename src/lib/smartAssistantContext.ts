@@ -15,6 +15,7 @@ export type ScreenContext =
   | "owner_inventory"
   | "owner_reports"
   | "owner_settings"
+  | "system_admin"
   | "kds"
   | "login"
   | "unknown";
@@ -103,6 +104,13 @@ const CONTEXT_HINTS: Record<ScreenContext, ContextHint> = {
       en: "Incoming orders for preparation. Click to change status."
     }
   },
+  system_admin: {
+    title: { ar: "إدارة النظام", en: "System Administration" },
+    description: { 
+      ar: "إدارة المطاعم والمستخدمين وإعدادات النظام.",
+      en: "Manage restaurants, users, and system settings."
+    }
+  },
   login: {
     title: { ar: "تسجيل الدخول", en: "Login" },
     description: { 
@@ -127,6 +135,7 @@ export function detectScreenContext(pathname: string): ScreenContext {
   if (pathname === "/kds") return "kds";
   if (pathname === "/login") return "login";
   if (pathname === "/admin") return "owner_dashboard";
+  if (pathname === "/system-admin") return "system_admin";
   if (pathname.startsWith("/menu/")) return "unknown"; // Customer menu - assistant not shown
   
   return "unknown";
