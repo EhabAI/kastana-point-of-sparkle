@@ -23,8 +23,16 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
     navigate('/login', { replace: true });
   };
 
-  const roleLabel = role?.replace('_', ' ') || '';
-  const userDisplayLabel = displayName ? `${displayName} - ${roleLabel}` : (user?.email || '');
+  const getRoleLabel = (r: string | null) => {
+    switch (r) {
+      case 'owner': return 'Owner';
+      case 'cashier': return 'Cashier';
+      case 'kitchen': return 'Kitchen';
+      case 'system_admin': return 'System Admin';
+      default: return r?.replace('_', ' ') || '';
+    }
+  };
+  const roleLabel = getRoleLabel(role);
 
   return (
     <div className="min-h-screen bg-background">
@@ -58,10 +66,15 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
               {/* Divider */}
               <div className="hidden sm:block w-px h-5 bg-border/60 mx-1.5" />
               
-              {/* User display name - role */}
-              <span className="text-xs text-muted-foreground hidden sm:block max-w-[200px] truncate capitalize">
-                {userDisplayLabel}
-              </span>
+              {/* User display name and role */}
+              <div className="hidden sm:flex flex-col items-end max-w-[200px]">
+                <span className="text-xs font-medium text-foreground truncate leading-tight">
+                  {displayName || 'User'}
+                </span>
+                <span className="text-[10px] text-muted-foreground leading-tight">
+                  {roleLabel}
+                </span>
+              </div>
               
               {/* Sign Out */}
               <Button 
