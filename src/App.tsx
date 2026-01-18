@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { BranchProvider } from "@/contexts/BranchContext";
 import { AssistantContextProvider } from "@/contexts/AssistantContext";
+import { ErrorContextProvider } from "@/contexts/ErrorContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { SmartAssistantLite } from "@/components/SmartAssistantLite";
 import Login from "./pages/Login";
@@ -27,50 +28,52 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <LanguageProvider>
-            <AssistantContextProvider>
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route
-                  path="/system-admin"
-                  element={
-                    <ProtectedRoute allowedRoles={['system_admin']}>
-                      <SystemAdmin />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute allowedRoles={['owner']}>
-                      <BranchProvider>
-                        <OwnerAdmin />
-                      </BranchProvider>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/pos"
-                  element={
-                    <ProtectedRoute allowedRoles={['cashier']}>
-                      <POS />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/kds"
-                  element={
-                    <ProtectedRoute allowedRoles={['kitchen', 'owner']}>
-                      <KDS />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/menu/:restaurantId/:branchId/:tableCode" element={<Menu />} />
-                <Route path="/menu/:restaurantId/:tableCode" element={<Menu />} />
-                <Route path="/" element={<Navigate to="/login" replace />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <SmartAssistantLite />
-            </AssistantContextProvider>
+            <ErrorContextProvider>
+              <AssistantContextProvider>
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route
+                    path="/system-admin"
+                    element={
+                      <ProtectedRoute allowedRoles={['system_admin']}>
+                        <SystemAdmin />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin"
+                    element={
+                      <ProtectedRoute allowedRoles={['owner']}>
+                        <BranchProvider>
+                          <OwnerAdmin />
+                        </BranchProvider>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/pos"
+                    element={
+                      <ProtectedRoute allowedRoles={['cashier']}>
+                        <POS />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/kds"
+                    element={
+                      <ProtectedRoute allowedRoles={['kitchen', 'owner']}>
+                        <KDS />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/menu/:restaurantId/:branchId/:tableCode" element={<Menu />} />
+                  <Route path="/menu/:restaurantId/:tableCode" element={<Menu />} />
+                  <Route path="/" element={<Navigate to="/login" replace />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <SmartAssistantLite />
+              </AssistantContextProvider>
+            </ErrorContextProvider>
           </LanguageProvider>
         </AuthProvider>
       </BrowserRouter>

@@ -50,6 +50,7 @@ import {
 } from "@/lib/assistantChangelog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAssistantAI } from "@/hooks/useAssistantAI";
+import { useErrorContextInternal, type SystemError } from "@/contexts/ErrorContext";
 
 // Badge indicator component for tabs
 interface TabBadgeProps {
@@ -838,6 +839,15 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   // AI-powered intent understanding
   const { processQuery, isLoading: isAIProcessing, error: aiError } = useAssistantAI();
   
+  // Error context for auto-explanation feature
+  const { 
+    lastError, 
+    pendingExplanation, 
+    clearPendingExplanation, 
+    getErrorExplanation,
+    setOnRequestExplanation 
+  } = useErrorContextInternal();
+  
   // Get user role for role-based changelog filtering
   const { role } = useAuth();
   
@@ -1005,6 +1015,38 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
       setAnnouncements(getUnseenChangelog(role));
     }
   }, [role]);
+  
+  // Register error explanation callback - opens drawer and auto-explains error
+  useEffect(() => {
+    setOnRequestExplanation(() => {
+      setOpen(true);
+      setActiveTab("help");
+      setShowChat(true);
+    });
+    
+    return () => setOnRequestExplanation(null);
+  }, [setOnRequestExplanation]);
+  
+  // Auto-explain error when drawer opens with pending explanation
+  useEffect(() => {
+    if (open && pendingExplanation && lastError && showChat) {
+      // Clear pending flag
+      clearPendingExplanation();
+      
+      // Get explanation for the error
+      const explanation = getErrorExplanation(lastError, language);
+      
+      // Add error context message
+      const errorContextMessage: ChatMessage = {
+        id: `error-context-${Date.now()}`,
+        role: "assistant",
+        content: explanation,
+        timestamp: new Date()
+      };
+      
+      setChatMessages(prev => [...prev, errorContextMessage]);
+    }
+  }, [open, pendingExplanation, lastError, showChat, language, clearPendingExplanation, getErrorExplanation]);
   
   // Handle dismissing an announcement
   const handleDismissAnnouncement = useCallback((id: string) => {
