@@ -1065,19 +1065,16 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
         )}
         style={sheetStyle}
       >
-        {/* Enhanced Header with Width Toggle */}
-        <SheetHeader className="p-6 py-16 border-b bg-gradient-to-br from-primary/10 to-primary/5">
-          <div className="flex items-start gap-3">
-            <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-              <Bot className="h-6 w-6 text-primary" />
+        {/* Compact Header with Width Toggle */}
+        <SheetHeader className="px-4 py-2.5 border-b bg-gradient-to-br from-primary/10 to-primary/5">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+              <Bot className="h-4 w-4 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <SheetTitle className="text-foreground text-lg font-semibold mb-0.5">
+              <SheetTitle className="text-foreground text-sm font-semibold leading-tight">
                 {assistantTitle}
               </SheetTitle>
-              <p className="text-sm text-muted-foreground">
-                {assistantSubtitle}
-              </p>
             </div>
             <div className="flex items-center gap-1 shrink-0">
               {/* Width Toggle Button - only show in panel mode */}
@@ -1179,38 +1176,38 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
 
             {/* Help Content - Direct without tabs */}
             <div className="flex-1 flex flex-col min-h-0">
-                  {/* Navigation Bar - Chat and Browse as equal modes */}
-                  <div className="border-b px-3 py-2">
-                    <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+                  {/* Compact Navigation Bar - Chat and Browse tabs */}
+                  <div className="border-b px-2 py-1.5">
+                    <div className="flex items-center gap-0.5 bg-muted/50 rounded-md p-0.5">
                       <button
                         className={cn(
-                          "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-sm font-medium transition-all duration-200",
+                          "flex-1 flex items-center justify-center gap-1 py-1 px-2 rounded text-xs font-medium transition-all duration-150",
                           showChat 
                             ? "bg-background text-foreground shadow-sm" 
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                            : "text-muted-foreground hover:text-foreground"
                         )}
                         onClick={() => {
                           setShowChat(true);
                           setContentMode("chat");
                         }}
                       >
-                        <MessageCircle className="h-3.5 w-3.5" />
+                        <MessageCircle className="h-3 w-3" />
                         <span>{language === "ar" ? "المحادثة" : "Chat"}</span>
                       </button>
                       <button
                         className={cn(
-                          "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-sm font-medium transition-all duration-200",
+                          "flex-1 flex items-center justify-center gap-1 py-1 px-2 rounded text-xs font-medium transition-all duration-150",
                           !showChat 
                             ? "bg-background text-foreground shadow-sm" 
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                            : "text-muted-foreground hover:text-foreground"
                         )}
                         onClick={() => {
                           setShowChat(false);
                           setContentMode("browse");
                         }}
                       >
-                        <BookOpen className="h-3.5 w-3.5" />
-                        <span>{language === "ar" ? "تصفح المواضيع" : "Browse Topics"}</span>
+                        <BookOpen className="h-3 w-3" />
+                        <span>{language === "ar" ? "المواضيع" : "Topics"}</span>
                       </button>
                     </div>
                   </div>
@@ -1397,10 +1394,10 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
           </>
         )}
         
-        {/* Footer */}
-        <div className="p-3 border-t bg-muted/30">
-          <p className="text-xs text-center text-muted-foreground">
-            {assistantTitle} • {assistantSubtitle}
+        {/* Compact Footer */}
+        <div className="px-3 py-1.5 border-t bg-muted/30">
+          <p className="text-[10px] text-center text-muted-foreground">
+            {assistantTitle}
           </p>
         </div>
       </SheetContent>
