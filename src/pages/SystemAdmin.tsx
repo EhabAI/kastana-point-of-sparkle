@@ -895,7 +895,7 @@ export default function SystemAdmin() {
                     if (trimmedDisplayName !== (editingOwner.username || '')) {
                       const { error: nameError } = await supabase.functions.invoke('update-display-name', {
                         body: { 
-                          target_user_id: editingOwner.id, 
+                          user_id: editingOwner.id, 
                           new_username: trimmedDisplayName 
                         },
                         headers: { Authorization: `Bearer ${accessToken}` },
