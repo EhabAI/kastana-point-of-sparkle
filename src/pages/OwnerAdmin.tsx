@@ -77,7 +77,6 @@ import { SuggestedNextAction } from "@/components/owner/SuggestedNextAction";
 import { MistakePatternDetector } from "@/components/owner/MistakePatternDetector";
 
 
-import { ItemsWithoutRecipesCard } from "@/components/owner/ItemsWithoutRecipesCard";
 import { InventoryRiskCard } from "@/components/owner/InventoryRiskCard";
 import { useRestaurantTables } from "@/hooks/useRestaurantTables";
 import { useCashiers } from "@/hooks/useCashiers";
@@ -231,7 +230,6 @@ export default function OwnerAdmin() {
                   <DailySummaryCard restaurantId={restaurant.id} currency={currency} />
                   <div className="flex flex-col gap-3">
                     <CashDifferencesCard restaurantId={restaurant.id} currency={currency} compact />
-                    <ItemsWithoutRecipesCard restaurantId={restaurant.id} />
                     <InventoryRiskCard 
                       restaurantId={restaurant.id} 
                       inventoryEnabled={inventoryEnabled}

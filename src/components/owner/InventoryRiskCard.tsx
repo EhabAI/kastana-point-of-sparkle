@@ -33,6 +33,7 @@ export function InventoryRiskCard({
         .from("inventory_items")
         .select(`
           id,
+          min_level,
           reorder_point,
           inventory_stock_levels!inner(on_hand_base, branch_id)
         `)
@@ -48,8 +49,9 @@ export function InventoryRiskCard({
       const { data: items, error: itemsError } = await itemsQuery;
       if (itemsError) throw itemsError;
 
-      // Calculate low stock and negative stock counts
-      let lowStockCount = 0;
+      // Calculate counts for different stock levels
+      let lowStockCount = 0; // Items below min_level (critical)
+      let nearReorderCount = 0; // Items between min_level and reorder_point (warning)
       let negativeStockCount = 0;
 
       items?.forEach((item) => {
@@ -64,12 +66,15 @@ export function InventoryRiskCard({
           : stockLevels[0];
 
         const onHand = relevantStock?.on_hand_base ?? 0;
+        const minLevel = item.min_level || 0;
         const reorderPoint = item.reorder_point || 0;
 
         if (onHand < 0) {
           negativeStockCount++;
+        } else if (onHand < minLevel) {
+          lowStockCount++; // Critical - below minimum
         } else if (onHand <= reorderPoint) {
-          lowStockCount++;
+          nearReorderCount++; // Warning - at or below reorder point but above min
         }
       });
 
@@ -83,7 +88,7 @@ export function InventoryRiskCard({
       const categoryIds = categories?.map((c) => c.id) || [];
 
       if (categoryIds.length === 0) {
-        return { lowStockCount, negativeStockCount, withoutRecipeCount: 0 };
+        return { lowStockCount, nearReorderCount, negativeStockCount, withoutRecipeCount: 0 };
       }
 
       // Get menu items that require recipes
@@ -110,7 +115,7 @@ export function InventoryRiskCard({
         (item) => !recipeItemIds.has(item.id)
       ).length || 0;
 
-      return { lowStockCount, negativeStockCount, withoutRecipeCount };
+      return { lowStockCount, nearReorderCount, negativeStockCount, withoutRecipeCount };
     },
     enabled: !!restaurantId && inventoryEnabled,
     refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
@@ -131,19 +136,28 @@ export function InventoryRiskCard({
     );
   }
 
-  const { lowStockCount = 0, negativeStockCount = 0, withoutRecipeCount = 0 } = data || {};
+  const { lowStockCount = 0, nearReorderCount = 0, negativeStockCount = 0, withoutRecipeCount = 0 } = data || {};
 
   // Hide card if all counts are 0
-  if (lowStockCount === 0 && negativeStockCount === 0 && withoutRecipeCount === 0) {
+  if (lowStockCount === 0 && nearReorderCount === 0 && negativeStockCount === 0 && withoutRecipeCount === 0) {
     return null;
   }
 
   const rows = [
     {
       icon: AlertTriangle,
-      label: t("inv_near_reorder_short"),
-      tooltip: t("inv_near_reorder_tooltip"),
+      label: t("inv_low_stock"),
+      tooltip: t("inv_low_stock_desc"),
       count: lowStockCount,
+      color: "text-red-600",
+      bgColor: "bg-red-100 dark:bg-red-900/30",
+      onClick: onLowStockClick,
+    },
+    {
+      icon: Package,
+      label: t("inv_near_reorder"),
+      tooltip: t("inv_near_reorder_tooltip"),
+      count: nearReorderCount,
       color: "text-amber-600",
       bgColor: "bg-amber-100 dark:bg-amber-900/30",
       onClick: onLowStockClick,
