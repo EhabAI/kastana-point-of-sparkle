@@ -1142,22 +1142,31 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button
-          size="icon"
-          variant="ghost"
-          className={cn(
-            "fixed bottom-6 z-50 h-10 w-10",
-            "text-muted-foreground hover:text-foreground hover:bg-transparent",
-            "transition-all duration-200 hover:scale-110",
-            isRTL ? "right-6" : "left-6"
-          )}
-        >
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500">
-            <Bot className="h-5 w-5 text-white" strokeWidth={2.5} />
-          </div>
-        </Button>
-      </SheetTrigger>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <SheetTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                className={cn(
+                  "fixed bottom-6 z-50 h-10 w-10",
+                  "text-muted-foreground hover:text-foreground hover:bg-transparent",
+                  "transition-all duration-200 hover:scale-110",
+                  isRTL ? "right-6" : "left-6"
+                )}
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500">
+                  <Bot className="h-5 w-5 text-white" strokeWidth={2.5} />
+                </div>
+              </Button>
+            </SheetTrigger>
+          </TooltipTrigger>
+          <TooltipContent side={isRTL ? "left" : "right"}>
+            <p>{isRTL ? "المساعد الذكي" : "Smart Assistant"}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       
       <SheetContent
         side={isRTL ? "right" : "left"}
