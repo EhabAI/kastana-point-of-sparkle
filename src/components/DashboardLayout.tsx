@@ -1,5 +1,7 @@
 import { ReactNode } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +16,7 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, title }: DashboardLayoutProps) {
-  const { signOut, user, role, displayName } = useAuth();
+  const { signOut, user, role } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
 
@@ -25,14 +27,35 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
 
   const getRoleLabel = (r: string | null) => {
     switch (r) {
-      case 'owner': return 'Owner';
-      case 'cashier': return 'Cashier';
-      case 'kitchen': return 'Kitchen';
-      case 'system_admin': return 'System Admin';
-      default: return r?.replace('_', ' ') || '';
+      case 'owner':
+        return 'Owner';
+      case 'cashier':
+        return 'Cashier';
+      case 'kitchen':
+        return 'Kitchen';
+      case 'system_admin':
+        return 'System Admin';
+      default:
+        return r?.replace('_', ' ') || '';
     }
   };
   const roleLabel = getRoleLabel(role);
+
+  const { data: profileUsername } = useQuery({
+    queryKey: ['profile_username', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (error) return null;
+      return data?.username ?? null;
+    },
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -50,9 +73,9 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
 
             {/* CENTER – User Display (hidden on mobile) */}
             <div className="hidden md:flex items-center justify-center flex-1">
-              {displayName && roleLabel && (
+              {profileUsername && roleLabel && (
                 <span className="text-sm font-medium text-foreground">
-                  {displayName} – {roleLabel}
+                  {profileUsername} – {roleLabel}
                 </span>
               )}
             </div>
