@@ -134,21 +134,7 @@ const TOPIC_CATEGORIES: TopicCategory[] = [
   }
 ];
 
-// Quick action pills for common questions
-const QUICK_ACTION_PILLS = {
-  ar: [
-    { label: "اشرح النظام", query: "اشرح لي نظام كاستنا" },
-    { label: "ليش الزر مش شغال؟", query: "ليش زر الدفع مش شغال" },
-    { label: "كيف أدفع الطلب؟", query: "كيف أدفع الطلب" },
-    { label: "شو الجديد؟", query: "ما الجديد في النظام" },
-  ],
-  en: [
-    { label: "Explain System", query: "Explain Kastana system" },
-    { label: "Why is button disabled?", query: "Why is payment button disabled" },
-    { label: "How to pay order?", query: "How to pay order" },
-    { label: "What's new?", query: "What's new in the system" },
-  ]
-};
+// Width mode types and configuration moved up after removing quick action pills
 
 // Width mode types and configuration
 type WidthMode = "compact" | "default" | "expanded";
@@ -624,28 +610,6 @@ function ChatBubble({
   );
 }
 
-// Quick Action Pill Component
-function QuickActionPill({ 
-  label, 
-  onClick 
-}: { 
-  label: string; 
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium",
-        "bg-secondary/80 hover:bg-secondary text-secondary-foreground",
-        "border border-border/50 hover:border-border",
-        "transition-all duration-150 hover:shadow-sm"
-      )}
-    >
-      {label}
-    </button>
-  );
-}
 
 // Full Training CTA Button
 function FullTrainingCTA({ 
@@ -1234,21 +1198,6 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                                 : "Ask me anything about Kastana POS system"
                               }
                             </p>
-                            
-                            {/* Quick question suggestions */}
-                            <div className="flex flex-wrap gap-1.5 justify-center">
-                              {quickRepliesFromKB.slice(0, 3).map((reply, idx) => (
-                                <Button
-                                  key={idx}
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-xs h-8 px-3"
-                                  onClick={() => handleSendMessage(reply)}
-                                >
-                                  {reply}
-                                </Button>
-                              ))}
-                            </div>
                           </div>
                         ) : (
                           <>
@@ -1263,18 +1212,6 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                         )}
                       </div>
 
-                      {/* Quick Action Pills - Above Input */}
-                      <div className="px-3 py-2 border-t bg-muted/30">
-                        <div className="flex flex-wrap gap-1.5">
-                          {QUICK_ACTION_PILLS[language].map((pill, idx) => (
-                            <QuickActionPill
-                              key={idx}
-                              label={pill.label}
-                              onClick={() => handleSendMessage(pill.query)}
-                            />
-                          ))}
-                        </div>
-                      </div>
 
                       {/* Enhanced Chat Input */}
                       <div className="p-3 border-t bg-background shrink-0">
