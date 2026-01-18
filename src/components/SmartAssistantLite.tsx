@@ -51,6 +51,8 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useAssistantAI } from "@/hooks/useAssistantAI";
 import { useErrorContextInternal, type SystemError } from "@/contexts/ErrorContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 // Badge indicator component for tabs
 interface TabBadgeProps {
@@ -849,7 +851,22 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   } = useErrorContextInternal();
   
   // Get user role for role-based changelog filtering
-  const { role } = useAuth();
+  const { role, user } = useAuth();
+  
+  // Fetch user's display name from profiles table
+  const { data: displayName } = useQuery({
+    queryKey: ['assistant_username', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', user.id)
+        .maybeSingle();
+      return data?.username ?? null;
+    },
+  });
   
   // Width mode state with localStorage persistence
   const [widthMode, setWidthMode] = useState<WidthMode>(() => {
@@ -1423,7 +1440,10 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                               <MessageCircle className="h-7 w-7 text-primary" />
                             </div>
                             <p className="text-base font-medium mb-1">
-                              {language === "ar" ? "مرحباً! كيف أساعدك؟" : "Hello! How can I help?"}
+                              {language === "ar" 
+                                ? (displayName ? `مرحبًا ${displayName} 👋` : "مرحبًا 👋") 
+                                : (displayName ? `Hi ${displayName} 👋` : "Hello 👋")
+                              }
                             </p>
                             <p className="text-sm text-muted-foreground mb-5">
                               {language === "ar" 
