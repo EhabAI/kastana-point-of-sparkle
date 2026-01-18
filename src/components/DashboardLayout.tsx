@@ -17,7 +17,8 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
   const {
     signOut,
-    displayName
+    displayName,
+    role
   } = useAuth();
   const {
     t
@@ -44,9 +45,11 @@ export function DashboardLayout({
 
             {/* CENTER – User Display (hidden on mobile) */}
             <div className="hidden md:flex items-center justify-center flex-1">
-              {displayName && <span className="font-medium text-foreground text-lg font-sans">
-                  {displayName}
-                </span>}
+              {displayName && (
+                <span className="font-medium text-foreground text-lg font-sans">
+                  {displayName} {role && `- ${role}`}
+                </span>
+              )}
             </div>
 
             {/* RIGHT – Actions Area */}
