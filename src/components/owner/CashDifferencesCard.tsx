@@ -30,16 +30,18 @@ export function CashDifferencesCard({ restaurantId, currency = "JOD" }: CashDiff
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/50 border h-full">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <Wallet className="h-4 w-4 text-primary" />
+            <div className="p-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+              <Wallet className="h-4 w-4 text-emerald-600" />
+            </div>
             {t.cash_diff_title}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
           </div>
         </CardContent>
       </Card>
@@ -70,12 +72,14 @@ export function CashDifferencesCard({ restaurantId, currency = "JOD" }: CashDiff
   };
 
   return (
-    <Card>
+    <Card className="bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/50 border h-full">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
-              <Wallet className="h-4 w-4 text-primary" />
+              <div className="p-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+                <Wallet className="h-4 w-4 text-emerald-600" />
+              </div>
               {t.cash_diff_title}
             </CardTitle>
             <CardDescription className="text-xs mt-1">
@@ -88,7 +92,7 @@ export function CashDifferencesCard({ restaurantId, currency = "JOD" }: CashDiff
         {/* Summary Section */}
         {data && data.closedShiftsCount > 0 ? (
           <>
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-emerald-100/50 dark:bg-emerald-900/20 rounded-lg">
               <div className="space-y-0.5">
                 <p className="text-xs text-muted-foreground">{t.cash_diff_closed_shifts}</p>
                 <p className="text-lg font-semibold">{data.closedShiftsCount}</p>
