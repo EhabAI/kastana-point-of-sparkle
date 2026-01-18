@@ -47,7 +47,7 @@ export function DashboardLayout({
             <div className="hidden md:flex items-center justify-center flex-1">
               {displayName && (
                 <span className="font-medium text-foreground text-lg font-sans">
-                  {displayName} {role && `- ${role}`}
+                  {displayName} {role && `- ${role.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}`}
                 </span>
               )}
             </div>
