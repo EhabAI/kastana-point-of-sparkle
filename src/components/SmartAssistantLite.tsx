@@ -1153,7 +1153,7 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
             isRTL ? "right-6" : "left-6"
           )}
         >
-          <Bot className="h-6 w-6" />
+          <Bot className="h-6 w-6" strokeWidth={2.5} />
         </Button>
       </SheetTrigger>
       
