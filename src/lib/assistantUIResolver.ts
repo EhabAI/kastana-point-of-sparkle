@@ -242,6 +242,72 @@ const SCREEN_UI_ELEMENTS: Record<string, Array<{
         ar: "لحفظ الطلب مؤقتاً والعودة إليه لاحقاً.\nالطلب المعلق يظهر في قائمة الطلبات المفتوحة.",
         en: "To temporarily save the order and return to it later.\nHeld orders appear in the open orders list."
       }
+    },
+    {
+      id: "discount_button",
+      phrases: {
+        ar: ["خصم", "تخفيض", "الخصم"],
+        en: ["discount", "apply discount"]
+      },
+      name: { ar: "زر الخصم", en: "Discount Button" },
+      description: {
+        ar: "لتطبيق خصم على الطلب (نسبة أو مبلغ ثابت).\nيتطلب صلاحية الخصم من المالك.",
+        en: "To apply a discount to the order (percentage or fixed amount).\nRequires discount permission from owner."
+      }
+    },
+    {
+      id: "shift_button",
+      phrases: {
+        ar: ["الوردية", "فتح وردية", "إغلاق وردية"],
+        en: ["shift", "open shift", "close shift"]
+      },
+      name: { ar: "إدارة الوردية", en: "Shift Management" },
+      description: {
+        ar: "فتح أو إغلاق الوردية.\n• لا يمكن إنشاء طلبات بدون وردية مفتوحة\n• عند الإغلاق يظهر تقرير Z",
+        en: "Open or close the shift.\n• Cannot create orders without an open shift\n• Z Report is shown when closing"
+      }
+    }
+  ],
+  pos_tables: [
+    {
+      id: "table_map",
+      phrases: {
+        ar: ["الطاولات", "خريطة الطاولات", "طاولة"],
+        en: ["tables", "table map", "table"]
+      },
+      name: { ar: "خريطة الطاولات", en: "Table Map" },
+      description: {
+        ar: "تعرض جميع الطاولات المعرفة.\n• أخضر = متاحة\n• أحمر = مشغولة بطلب\n• اضغط على طاولة لفتح طلب عليها أو استئناف الطلب الحالي",
+        en: "Shows all defined tables.\n• Green = available\n• Red = occupied with order\n• Click a table to open an order or resume current order"
+      }
+    }
+  ],
+  pos_open_orders: [
+    {
+      id: "open_orders_list",
+      phrases: {
+        ar: ["الطلبات المفتوحة", "طلبات مفتوحة", "الطلبات"],
+        en: ["open orders", "orders list", "orders"]
+      },
+      name: { ar: "قائمة الطلبات المفتوحة", en: "Open Orders List" },
+      description: {
+        ar: "جميع الطلبات النشطة غير المدفوعة.\n• اضغط على طلب للعودة إليه\n• يعرض رقم الطلب، الإجمالي، ووقت الإنشاء",
+        en: "All active unpaid orders.\n• Click an order to resume it\n• Shows order number, total, and creation time"
+      }
+    }
+  ],
+  pos_qr_pending: [
+    {
+      id: "qr_pending_list",
+      phrases: {
+        ar: ["طلبات QR", "طلبات معلقة", "QR"],
+        en: ["qr orders", "pending orders", "qr"]
+      },
+      name: { ar: "طلبات QR المعلقة", en: "Pending QR Orders" },
+      description: {
+        ar: "طلبات من العملاء عبر رمز QR.\n• راجع التفاصيل ثم اقبل أو ارفض\n• القبول ينقل الطلب للمطبخ",
+        en: "Orders from customers via QR code.\n• Review details then accept or reject\n• Accepting sends order to kitchen"
+      }
     }
   ],
   kds: [
@@ -255,6 +321,18 @@ const SCREEN_UI_ELEMENTS: Record<string, Array<{
       description: {
         ar: "كل بطاقة تمثل طلب واحد يحتاج تحضير.\nالألوان تدل على الوقت المنقضي:\n• أخضر: أقل من 5 دقائق\n• أصفر: 5-10 دقائق\n• أحمر: أكثر من 10 دقائق",
         en: "Each card represents an order that needs preparation.\nColors indicate elapsed time:\n• Green: less than 5 minutes\n• Yellow: 5-10 minutes\n• Red: more than 10 minutes"
+      }
+    },
+    {
+      id: "bump_button",
+      phrases: {
+        ar: ["جاهز", "انتهى", "done"],
+        en: ["done", "bump", "complete"]
+      },
+      name: { ar: "زر جاهز", en: "Done Button" },
+      description: {
+        ar: "اضغط عند اكتمال تحضير الطلب.\nالطلب ينتقل لقائمة المكتملة.",
+        en: "Press when order is ready.\nOrder moves to completed list."
       }
     }
   ],
@@ -281,6 +359,89 @@ const SCREEN_UI_ELEMENTS: Record<string, Array<{
       description: {
         ar: "يعرض قائمة أصحاب المطاعم.\nيمكنك إضافة مالك جديد أو إعادة تعيين كلمة المرور.",
         en: "Shows list of restaurant owners.\nYou can add new owners or reset passwords."
+      }
+    },
+    {
+      id: "add_restaurant",
+      phrases: {
+        ar: ["إضافة مطعم", "مطعم جديد"],
+        en: ["add restaurant", "new restaurant"]
+      },
+      name: { ar: "إضافة مطعم جديد", en: "Add New Restaurant" },
+      description: {
+        ar: "لإضافة مطعم جديد للنظام.\nيتطلب اسم المطعم وبيانات المالك.",
+        en: "To add a new restaurant to the system.\nRequires restaurant name and owner details."
+      }
+    }
+  ],
+  // owner_dashboard is already defined above with full UI elements
+  owner_menu: [
+    {
+      id: "menu_items_list",
+      phrases: {
+        ar: ["الأصناف", "القائمة", "المنتجات"],
+        en: ["items", "menu", "products"]
+      },
+      name: { ar: "قائمة الأصناف", en: "Menu Items" },
+      description: {
+        ar: "جميع الأصناف في القائمة.\n• يمكنك إضافة صنف جديد\n• تعديل السعر أو الوصف\n• تفعيل/تعطيل الصنف",
+        en: "All items in the menu.\n• You can add a new item\n• Edit price or description\n• Enable/disable item"
+      }
+    }
+  ],
+  owner_reports: [
+    {
+      id: "reports_section",
+      phrases: {
+        ar: ["التقارير", "تقرير", "Z"],
+        en: ["reports", "report", "Z"]
+      },
+      name: { ar: "التقارير", en: "Reports" },
+      description: {
+        ar: "تقارير متعددة:\n• تقرير المبيعات\n• تقرير المدفوعات\n• تقرير المرتجعات\n• تقرير Z (نهاية الوردية)",
+        en: "Multiple reports:\n• Sales report\n• Payments report\n• Refunds report\n• Z Report (end of shift)"
+      }
+    }
+  ],
+  owner_inventory: [
+    {
+      id: "inventory_items",
+      phrases: {
+        ar: ["المخزون", "المواد", "البضاعة"],
+        en: ["inventory", "items", "stock"]
+      },
+      name: { ar: "قائمة المخزون", en: "Inventory Items" },
+      description: {
+        ar: "المواد الخام والمكونات.\n• استلام بضاعة\n• تسجيل هدر\n• عمل جرد\n• نقل بين الفروع",
+        en: "Raw materials and ingredients.\n• Receive goods\n• Record waste\n• Stock count\n• Transfer between branches"
+      }
+    }
+  ],
+  owner_staff: [
+    {
+      id: "staff_list",
+      phrases: {
+        ar: ["الموظفين", "الكاشير", "المطبخ"],
+        en: ["staff", "cashiers", "kitchen"]
+      },
+      name: { ar: "قائمة الموظفين", en: "Staff List" },
+      description: {
+        ar: "جميع الموظفين (كاشير، مطبخ).\n• إضافة موظف جديد\n• إعادة تعيين كلمة المرور\n• تفعيل/تعطيل الموظف",
+        en: "All staff (cashiers, kitchen).\n• Add new staff\n• Reset password\n• Enable/disable staff"
+      }
+    }
+  ],
+  owner_settings: [
+    {
+      id: "restaurant_settings",
+      phrases: {
+        ar: ["الإعدادات", "الضريبة", "ساعات العمل"],
+        en: ["settings", "tax", "business hours"]
+      },
+      name: { ar: "إعدادات المطعم", en: "Restaurant Settings" },
+      description: {
+        ar: "إعدادات المطعم:\n• نسبة الضريبة\n• العملة\n• ساعات العمل\n• طرق الدفع\n• إعدادات الخصم",
+        en: "Restaurant settings:\n• Tax rate\n• Currency\n• Business hours\n• Payment methods\n• Discount settings"
       }
     }
   ]
