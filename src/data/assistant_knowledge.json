@@ -2,28 +2,49 @@
   "version": "1.0.0",
   "lastUpdated": "2026-01-18",
   "fallbackResponses": {
-    "ar": "أستطيع مساعدتك في نظام Kastana POS. يرجى كتابة سؤالك بشكل واضح.",
-    "en": "I can help you with Kastana POS. Please ask your question clearly."
+    "ar": "أستطيع مساعدتك في نظام Kastana POS. يرجى كتابة سؤالك بشكل واضح حول الطلبات، الدفع، المخزون، التقارير، أو أي ميزة أخرى في النظام.",
+    "en": "I can help you with Kastana POS. Please ask your question clearly about orders, payments, inventory, reports, or any other system feature."
   },
   "quickReplies": {
-    "ar": ["كيف أفتح طلب جديد؟", "ما هو تقرير Z؟", "كيف أعمل مرتجع؟"],
-    "en": ["How do I create an order?", "What is Z Report?", "How do I process a refund?"]
+    "ar": ["كيف أفتح طلب جديد؟", "ما هو تقرير Z؟", "كيف أعمل مرتجع؟", "شرح حالات الطلب", "كيف يعمل المخزون؟"],
+    "en": ["How do I create an order?", "What is Z Report?", "How do I process a refund?", "Explain order states", "How does inventory work?"]
   },
   "entries": {
+    "order_lifecycle": {
+      "id": "order_lifecycle",
+      "intent": ["order_status", "order_state", "order_lifecycle"],
+      "keywords": {
+        "ar": ["حالة الطلب", "دورة الطلب", "مراحل الطلب", "مفتوح", "مغلق", "معلق"],
+        "en": ["order status", "order state", "order lifecycle", "open", "closed", "on hold"]
+      },
+      "title": {
+        "ar": "دورة حياة الطلب",
+        "en": "Order Lifecycle"
+      },
+      "content": {
+        "ar": "حالات الطلب في النظام:\n\n• OPEN: طلب مفتوح قابل للإضافة والتعديل والدفع\n• ON_HOLD: طلب معلّق مؤقتاً، لا يسمح بالدفع أو التعديل حتى يتم استئنافه\n• CLOSED: طلب مغلق بعد إتمام الدفع، يظهر في التقارير\n\nالانتقال بين الحالات:\n- OPEN → ON_HOLD: عند تعليق الطلب\n- ON_HOLD → OPEN: عند استئناف الطلب\n- OPEN → CLOSED: عند إتمام الدفع",
+        "en": "Order states in the system:\n\n• OPEN: Order can be edited, items added, and paid\n• ON_HOLD: Temporarily suspended, cannot be paid or modified until resumed\n• CLOSED: Completed after payment, appears in reports\n\nState transitions:\n- OPEN → ON_HOLD: When holding order\n- ON_HOLD → OPEN: When resuming order\n- OPEN → CLOSED: When payment is completed"
+      },
+      "metadata": {
+        "feature_id": "order_lifecycle",
+        "affected_screens": ["POS"],
+        "user_roles": ["cashier", "owner"]
+      }
+    },
     "new_order": {
       "id": "new_order",
       "intent": ["create_order", "open_order", "new_order"],
       "keywords": {
-        "ar": ["طلب جديد", "فتح طلب", "إنشاء طلب", "طلب", "أضف طلب"],
-        "en": ["new order", "create order", "open order", "add order", "start order"]
+        "ar": ["طلب جديد", "فتح طلب", "إنشاء طلب", "طلب", "أضف طلب", "سفري", "صالة"],
+        "en": ["new order", "create order", "open order", "add order", "start order", "takeaway", "dine-in"]
       },
       "title": {
         "ar": "إنشاء طلب جديد",
         "en": "Create New Order"
       },
       "content": {
-        "ar": "إنشاء طلب جديد:\n• اختر نوع الطلب (Takeaway أو Dine-in)\n• أضف الأصناف من القائمة\n• الطلب يبقى OPEN حتى الدفع\n• لا يدخل أي تقرير قبل الدفع",
-        "en": "Creating a new order:\n• Select order type (Takeaway or Dine-in)\n• Add items from menu\n• Order stays OPEN until payment\n• Does not appear in reports until paid"
+        "ar": "إنشاء طلب جديد:\n\n1. اختر نوع الطلب:\n   • Takeaway (سفري): للطلبات الخارجية\n   • Dine-in (صالة): للطلبات داخل المطعم مع تحديد الطاولة\n\n2. أضف الأصناف من القائمة\n3. يمكن إضافة ملاحظات على الأصناف\n4. يمكن تطبيق خصم على الطلب\n\nملاحظات:\n• الطلب يبقى بحالة OPEN حتى الدفع\n• لا يظهر في التقارير إلا بعد الدفع\n• يمكن تعليقه أو إلغاؤه قبل الدفع",
+        "en": "Creating a new order:\n\n1. Select order type:\n   • Takeaway: For external orders\n   • Dine-in: For in-restaurant orders with table selection\n\n2. Add items from menu\n3. Can add notes to items\n4. Can apply discount to order\n\nNotes:\n• Order stays OPEN until payment\n• Does not appear in reports until paid\n• Can be held or cancelled before payment"
       },
       "metadata": {
         "feature_id": "pos_new_order",
@@ -31,20 +52,20 @@
         "user_roles": ["cashier"]
       }
     },
-    "hold_order": {
-      "id": "hold_order",
-      "intent": ["hold_order", "pause_order", "suspend_order"],
+    "hold_resume_order": {
+      "id": "hold_resume_order",
+      "intent": ["hold_order", "pause_order", "resume_order"],
       "keywords": {
-        "ar": ["تعليق", "طلب معلق", "إيقاف طلب", "hold"],
-        "en": ["hold", "hold order", "pause order", "suspend order", "on hold"]
+        "ar": ["تعليق", "طلب معلق", "إيقاف طلب", "استئناف", "hold", "resume"],
+        "en": ["hold", "hold order", "pause order", "suspend order", "on hold", "resume", "resume order"]
       },
       "title": {
         "ar": "تعليق واستئناف الطلب",
         "en": "Hold and Resume Order"
       },
       "content": {
-        "ar": "تعليق الطلب:\n• يمكنك تعليق الطلب مؤقتاً\n• الطلب المعلق ON_HOLD لا يسمح بالدفع أو التعديل\n• يمكن استئنافه لاحقاً",
-        "en": "Holding an order:\n• You can temporarily hold an order\n• ON_HOLD orders cannot be paid or modified\n• Can be resumed later"
+        "ar": "تعليق الطلب:\n\n• يمكنك تعليق الطلب مؤقتاً لأي سبب\n• الطلب المعلق يصبح بحالة ON_HOLD\n• لا يمكن الدفع أو تعديل الطلب المعلق\n\nاستئناف الطلب:\n• اختر الطلب المعلق من قائمة الطلبات المعلقة\n• اضغط على استئناف\n• يعود الطلب لحالة OPEN\n• يمكنك الآن التعديل والدفع",
+        "en": "Holding an order:\n\n• You can temporarily hold an order for any reason\n• Held order becomes ON_HOLD state\n• Cannot pay or modify held orders\n\nResuming an order:\n• Select held order from held orders list\n• Click resume\n• Order returns to OPEN state\n• You can now modify and pay"
       },
       "metadata": {
         "feature_id": "pos_hold_order",
@@ -56,19 +77,40 @@
       "id": "merge_orders",
       "intent": ["merge_orders", "combine_orders", "join_orders"],
       "keywords": {
-        "ar": ["دمج", "دمج طلبات", "جمع طلبات", "merge"],
+        "ar": ["دمج", "دمج طلبات", "جمع طلبات", "merge", "ضم طلبات"],
         "en": ["merge", "merge orders", "combine orders", "join orders"]
       },
       "title": {
-        "ar": "دمج طلبات الطاولات",
-        "en": "Merge Table Orders"
+        "ar": "دمج الطلبات",
+        "en": "Merge Orders"
       },
       "content": {
-        "ar": "دمج الطلبات:\n• يمكن دمج الطلبات المفتوحة على الطاولات\n• يتم الحفاظ على الطلب الأقدم\n• تنتقل جميع الأصناف للطلب المدمج",
-        "en": "Merging orders:\n• Open table orders can be merged\n• The older order is preserved\n• All items are transferred to merged order"
+        "ar": "دمج الطلبات:\n\n• يمكن دمج طلبين مفتوحين على طاولات مختلفة\n• يتم الاحتفاظ بالطلب الأقدم (الذي تم إنشاؤه أولاً)\n• تنتقل جميع أصناف الطلب الثاني إلى الطلب الأول\n• يتم إلغاء الطلب الثاني تلقائياً\n\nشروط الدمج:\n• كلا الطلبين يجب أن يكونا بحالة OPEN\n• الطلبات المعلقة ON_HOLD لا يمكن دمجها\n• يتم تسجيل عملية الدمج في سجل التدقيق",
+        "en": "Merging orders:\n\n• Can merge two open orders on different tables\n• The older order (created first) is preserved\n• All items from second order move to first\n• Second order is automatically cancelled\n\nMerge conditions:\n• Both orders must be OPEN\n• ON_HOLD orders cannot be merged\n• Merge is recorded in audit log"
       },
       "metadata": {
         "feature_id": "pos_merge_orders",
+        "affected_screens": ["Tables", "POS"],
+        "user_roles": ["cashier"]
+      }
+    },
+    "move_order_table": {
+      "id": "move_order_table",
+      "intent": ["move_order", "transfer_order", "change_table"],
+      "keywords": {
+        "ar": ["نقل طلب", "تغيير طاولة", "نقل لطاولة", "transfer", "move"],
+        "en": ["move order", "transfer order", "change table", "switch table"]
+      },
+      "title": {
+        "ar": "نقل الطلب بين الطاولات",
+        "en": "Move Order Between Tables"
+      },
+      "content": {
+        "ar": "نقل الطلب لطاولة أخرى:\n\n1. اختر الطلب المراد نقله\n2. اضغط على نقل/تحويل\n3. اختر الطاولة الجديدة\n4. تأكيد النقل\n\nشروط النقل:\n• الطلب يجب أن يكون بحالة OPEN\n• الطاولة الجديدة يجب أن تكون فارغة أو تختار الدمج\n• يتم تسجيل عملية النقل في سجل التدقيق",
+        "en": "Moving order to another table:\n\n1. Select the order to move\n2. Click transfer/move\n3. Select new table\n4. Confirm transfer\n\nTransfer conditions:\n• Order must be OPEN\n• New table must be empty or choose to merge\n• Transfer is recorded in audit log"
+      },
+      "metadata": {
+        "feature_id": "pos_move_order",
         "affected_screens": ["Tables", "POS"],
         "user_roles": ["cashier"]
       }
@@ -77,19 +119,40 @@
       "id": "payment",
       "intent": ["payment", "pay", "checkout", "complete_order"],
       "keywords": {
-        "ar": ["دفع", "تسديد", "نقد", "بطاقة", "فيزا", "كاش", "إتمام"],
-        "en": ["payment", "pay", "cash", "card", "visa", "checkout", "complete"]
+        "ar": ["دفع", "تسديد", "نقد", "بطاقة", "فيزا", "كاش", "إتمام", "card", "cash"],
+        "en": ["payment", "pay", "cash", "card", "visa", "checkout", "complete", "mastercard"]
       },
       "title": {
         "ar": "الدفع",
         "en": "Payment"
       },
       "content": {
-        "ar": "الدفع:\n• اختر طريقة الدفع (نقد أو بطاقة)\n• أدخل المبلغ المستلم\n• الطلب يصبح CLOSED بعد الدفع\n• يظهر في التقارير فوراً",
-        "en": "Payment:\n• Select payment method (Cash or Card)\n• Enter amount received\n• Order becomes CLOSED after payment\n• Appears in reports immediately"
+        "ar": "إتمام الدفع:\n\n1. تأكد من صحة الطلب\n2. اختر طريقة الدفع:\n   • Cash (نقد): أدخل المبلغ المستلم لحساب الباقي\n   • Card (بطاقة): فيزا أو ماستركارد\n3. أكد الدفع\n\nبعد الدفع:\n• الطلب يصبح بحالة CLOSED\n• يظهر في التقارير فوراً\n• يتم خصم المخزون تلقائياً (إذا كانت الوصفات مفعلة)\n• يمكن طباعة الفاتورة\n• يتم تسجيل الدفع في سجل التدقيق",
+        "en": "Completing payment:\n\n1. Verify order is correct\n2. Select payment method:\n   • Cash: Enter amount received to calculate change\n   • Card: Visa or Mastercard\n3. Confirm payment\n\nAfter payment:\n• Order becomes CLOSED\n• Appears in reports immediately\n• Inventory auto-deducted (if recipes enabled)\n• Can print receipt\n• Payment recorded in audit log"
       },
       "metadata": {
         "feature_id": "pos_payment",
+        "affected_screens": ["POS"],
+        "user_roles": ["cashier"]
+      }
+    },
+    "void_item": {
+      "id": "void_item",
+      "intent": ["void", "cancel_item", "remove_item", "void_order"],
+      "keywords": {
+        "ar": ["إلغاء صنف", "void", "حذف صنف", "إلغاء", "إلغاء طلب", "حذف"],
+        "en": ["void", "void item", "cancel item", "remove item", "void order", "cancel"]
+      },
+      "title": {
+        "ar": "الإلغاء (Void)",
+        "en": "Void"
+      },
+      "content": {
+        "ar": "الإلغاء (Void) - قبل الدفع فقط:\n\n• يستخدم لإلغاء صنف أو طلب كامل قبل الدفع\n• يجب تحديد سبب الإلغاء\n• لا يؤثر على التقارير المالية (لأن الطلب لم يُدفع)\n• يتم تسجيل الإلغاء في سجل التدقيق\n\nالفرق عن المرتجع:\n• Void: قبل الدفع\n• Refund: بعد الدفع\n\nأسباب الإلغاء الشائعة:\n• خطأ في الإدخال\n• تغيير رأي العميل\n• صنف غير متوفر",
+        "en": "Void - Before payment only:\n\n• Used to cancel an item or full order before payment\n• Must specify void reason\n• Does not affect financial reports (order not paid)\n• Void is recorded in audit log\n\nDifference from Refund:\n• Void: Before payment\n• Refund: After payment\n\nCommon void reasons:\n• Input error\n• Customer changed mind\n• Item unavailable"
+      },
+      "metadata": {
+        "feature_id": "pos_void",
         "affected_screens": ["POS"],
         "user_roles": ["cashier"]
       }
@@ -98,16 +161,16 @@
       "id": "refund",
       "intent": ["refund", "return", "money_back"],
       "keywords": {
-        "ar": ["مرتجع", "استرداد", "إرجاع", "refund"],
-        "en": ["refund", "return", "money back", "give back"]
+        "ar": ["مرتجع", "استرداد", "إرجاع", "refund", "رد المبلغ", "إرجاع طلب"],
+        "en": ["refund", "return", "money back", "give back", "return order"]
       },
       "title": {
-        "ar": "المرتجعات",
+        "ar": "المرتجعات (Refund)",
         "en": "Refunds"
       },
       "content": {
-        "ar": "المرتجعات:\n• يمكن إرجاع طلب مدفوع فقط\n• حدد سبب الإرجاع\n• يتم تسجيل المرتجع في التقارير\n• يخصم من إجمالي المبيعات",
-        "en": "Refunds:\n• Only paid orders can be refunded\n• Specify refund reason\n• Refund is recorded in reports\n• Deducted from total sales"
+        "ar": "المرتجعات (Refund) - بعد الدفع فقط:\n\n1. ابحث عن الطلب المدفوع\n2. اختر عمل مرتجع\n3. حدد سبب الإرجاع\n4. أكد المرتجع\n\nتأثير المرتجع:\n• يُخصم من إجمالي المبيعات في التقارير\n• يظهر في تقرير Z بشكل منفصل\n• يؤثر على حساب الكاش المتوقع\n• يتم تسجيله في سجل التدقيق\n\nملاحظة: المرتجع لا يُعيد المخزون تلقائياً",
+        "en": "Refunds - After payment only:\n\n1. Find the paid order\n2. Select refund\n3. Specify refund reason\n4. Confirm refund\n\nRefund effects:\n• Deducted from total sales in reports\n• Shown separately in Z Report\n• Affects expected cash calculation\n• Recorded in audit log\n\nNote: Refund does not auto-restore inventory"
       },
       "metadata": {
         "feature_id": "pos_refund",
@@ -115,104 +178,83 @@
         "user_roles": ["cashier", "owner"]
       }
     },
-    "void_item": {
-      "id": "void_item",
-      "intent": ["void", "cancel_item", "remove_item"],
+    "tables_management": {
+      "id": "tables_management",
+      "intent": ["tables", "table_management", "seating"],
       "keywords": {
-        "ar": ["إلغاء صنف", "void", "حذف صنف", "إلغاء"],
-        "en": ["void", "void item", "cancel item", "remove item"]
+        "ar": ["طاولات", "طاولة", "إدارة الطاولات", "جلوس", "صالة"],
+        "en": ["tables", "table", "table management", "seating", "dine-in"]
       },
       "title": {
-        "ar": "إلغاء صنف",
-        "en": "Void Item"
+        "ar": "إدارة الطاولات",
+        "en": "Tables Management"
       },
       "content": {
-        "ar": "إلغاء صنف:\n• يمكن إلغاء صنف من طلب مفتوح\n• يجب تحديد سبب الإلغاء\n• يتم تسجيل الإلغاء في سجل التدقيق",
-        "en": "Void item:\n• Items can be voided from open orders\n• Must specify void reason\n• Void is recorded in audit log"
+        "ar": "إدارة الطاولات:\n\n• عرض جميع الطاولات وحالتها\n• الطاولة الخضراء: فارغة ومتاحة\n• الطاولة الحمراء/البرتقالية: مشغولة بطلب\n\nعمليات الطاولات:\n• فتح طلب جديد على طاولة\n• عرض تفاصيل الطلب الحالي\n• نقل الطلب لطاولة أخرى\n• دمج طلبات طاولتين\n\nالإعدادات (للمالك):\n• إضافة طاولات جديدة\n• تعديل أسماء الطاولات\n• تفعيل/إيقاف الطاولات",
+        "en": "Tables Management:\n\n• View all tables and their status\n• Green table: Empty and available\n• Red/Orange table: Occupied with order\n\nTable operations:\n• Open new order on table\n• View current order details\n• Transfer order to another table\n• Merge orders from two tables\n\nSettings (Owner):\n• Add new tables\n• Edit table names\n• Enable/disable tables"
       },
       "metadata": {
-        "feature_id": "pos_void",
-        "affected_screens": ["POS"],
-        "user_roles": ["cashier"]
+        "feature_id": "tables",
+        "affected_screens": ["Tables", "POS"],
+        "user_roles": ["cashier", "owner"]
       }
     },
     "inventory": {
       "id": "inventory",
       "intent": ["inventory", "stock", "warehouse"],
       "keywords": {
-        "ar": ["مخزون", "مخازن", "كمية", "جرد", "وحدات"],
-        "en": ["inventory", "stock", "quantity", "count", "units", "warehouse"]
+        "ar": ["مخزون", "مخازن", "كمية", "جرد", "وحدات", "مواد", "خامات"],
+        "en": ["inventory", "stock", "quantity", "count", "units", "warehouse", "materials"]
       },
       "title": {
-        "ar": "المخزون والوصفات",
-        "en": "Inventory & Recipes"
+        "ar": "المخزون",
+        "en": "Inventory"
       },
       "content": {
-        "ar": "المخزون:\n• يتم خصم المخزون تلقائياً عند الدفع\n• يحتاج الصنف لوصفة (Recipe) للخصم التلقائي\n• يمكن تفعيل/إيقاف المخزون من الإعدادات",
-        "en": "Inventory:\n• Stock is auto-deducted on payment\n• Item needs a Recipe for auto-deduction\n• Inventory can be enabled/disabled in settings"
+        "ar": "نظام المخزون:\n\n• يتتبع كميات المواد الخام والمنتجات\n• يدعم وحدات قياس متعددة\n• يمكن تفعيله/إيقافه من الإعدادات\n\nعمليات المخزون:\n• استلام مشتريات\n• تسجيل هدر\n• نقل بين الفروع\n• جرد المخزون\n• تعديل الكميات\n\nالخصم التلقائي:\n• يتم خصم المخزون عند الدفع\n• يعتمد على الوصفات المحددة للأصناف\n• الأصناف بدون وصفة لا تؤثر على المخزون",
+        "en": "Inventory System:\n\n• Tracks raw materials and products\n• Supports multiple units of measure\n• Can be enabled/disabled in settings\n\nInventory operations:\n• Receive purchases\n• Record waste\n• Transfer between branches\n• Stock count\n• Adjust quantities\n\nAuto-deduction:\n• Inventory deducted on payment\n• Based on recipes assigned to items\n• Items without recipes don't affect inventory"
       },
       "metadata": {
-        "feature_id": "inventory_management",
+        "feature_id": "inventory",
         "affected_screens": ["Inventory", "Settings"],
         "user_roles": ["owner"]
       }
     },
-    "z_report": {
-      "id": "z_report",
-      "intent": ["z_report", "shift_report", "end_of_day"],
+    "recipes": {
+      "id": "recipes",
+      "intent": ["recipe", "recipes", "ingredients"],
       "keywords": {
-        "ar": ["تقرير z", "تقرير زد", "z report", "إغلاق الوردية", "نهاية اليوم"],
-        "en": ["z report", "z-report", "shift report", "end of day", "close shift"]
+        "ar": ["وصفة", "وصفات", "مكونات", "recipe", "خامات الصنف"],
+        "en": ["recipe", "recipes", "ingredients", "components"]
       },
       "title": {
-        "ar": "تقرير Z",
-        "en": "Z Report"
+        "ar": "الوصفات (Recipes)",
+        "en": "Recipes"
       },
       "content": {
-        "ar": "تقرير Z:\n• يعرض ملخص الوردية\n• يشمل المبيعات والمرتجعات\n• يظهر فرق الكاش\n• يُطبع عند إغلاق الوردية",
-        "en": "Z Report:\n• Shows shift summary\n• Includes sales and refunds\n• Shows cash difference\n• Printed when closing shift"
+        "ar": "نظام الوصفات:\n\n• يربط أصناف القائمة بمواد المخزون\n• يحدد الكميات المستخدمة من كل مادة\n• أساسي للخصم التلقائي من المخزون\n\nإنشاء وصفة:\n1. اختر الصنف من القائمة\n2. أضف مواد المخزون المستخدمة\n3. حدد الكمية لكل مادة\n4. احفظ الوصفة\n\nعند البيع:\n• يتم خصم الكميات تلقائياً عند الدفع\n• الخصم = كمية الوصفة × عدد الأصناف المباعة\n• يظهر في تقرير حركة المخزون",
+        "en": "Recipe System:\n\n• Links menu items to inventory materials\n• Specifies quantities used from each material\n• Essential for auto-deduction from inventory\n\nCreating a recipe:\n1. Select menu item\n2. Add inventory materials used\n3. Specify quantity for each\n4. Save recipe\n\nOn sale:\n• Quantities auto-deducted on payment\n• Deduction = recipe qty × items sold\n• Shows in inventory movement report"
       },
       "metadata": {
-        "feature_id": "reports_z",
-        "affected_screens": ["POS", "Reports"],
-        "user_roles": ["cashier", "owner"]
-      }
-    },
-    "shift": {
-      "id": "shift",
-      "intent": ["shift", "open_shift", "close_shift"],
-      "keywords": {
-        "ar": ["وردية", "شفت", "فتح وردية", "إغلاق وردية", "افتتاحي"],
-        "en": ["shift", "open shift", "close shift", "opening cash", "closing"]
-      },
-      "title": {
-        "ar": "الورديات",
-        "en": "Shifts"
-      },
-      "content": {
-        "ar": "الورديات:\n• يجب فتح وردية قبل استقبال الطلبات\n• أدخل المبلغ الافتتاحي عند الفتح\n• أغلق الوردية في نهاية اليوم\n• يظهر تقرير Z عند الإغلاق",
-        "en": "Shifts:\n• Must open shift before taking orders\n• Enter opening cash when opening\n• Close shift at end of day\n• Z Report shows on close"
-      },
-      "metadata": {
-        "feature_id": "shift_management",
-        "affected_screens": ["POS"],
-        "user_roles": ["cashier"]
+        "feature_id": "recipes",
+        "affected_screens": ["Menu", "Inventory"],
+        "user_roles": ["owner"]
       }
     },
     "kds": {
       "id": "kds",
       "intent": ["kds", "kitchen", "kitchen_display"],
       "keywords": {
-        "ar": ["مطبخ", "شاشة المطبخ", "kds", "تحضير", "جاهز"],
-        "en": ["kitchen", "kds", "kitchen display", "cooking", "ready", "preparation"]
+        "ar": ["مطبخ", "شاشة المطبخ", "kds", "تحضير", "جاهز", "طباخ", "شيف"],
+        "en": ["kitchen", "kds", "kitchen display", "cooking", "ready", "preparation", "chef"]
       },
       "title": {
-        "ar": "شاشة المطبخ KDS",
-        "en": "Kitchen Display (KDS)"
+        "ar": "شاشة المطبخ (KDS)",
+        "en": "Kitchen Display System (KDS)"
       },
       "content": {
-        "ar": "شاشة المطبخ:\n• تعرض الطلبات للمطبخ\n• يمكن تغيير حالة الطلب\n• تتبع وقت التحضير\n• يمكن تفعيلها من الإعدادات",
-        "en": "Kitchen Display:\n• Shows orders for kitchen\n• Can change order status\n• Tracks preparation time\n• Can be enabled in settings"
+        "ar": "شاشة المطبخ (KDS):\n\nحالات الطلب في المطبخ:\n• NEW: طلب جديد وصل للمطبخ\n• IN_PROGRESS: قيد التحضير\n• READY: جاهز للتقديم\n\nميزات الشاشة:\n• عرض الطلبات المفتوحة\n• تغيير حالة الطلب\n• تتبع وقت التحضير\n• تنبيه للطلبات المتأخرة\n\nالتفعيل:\n• يمكن تفعيل KDS من الإعدادات\n• يتطلب حساب مستخدم بدور Kitchen",
+        "en": "Kitchen Display System (KDS):\n\nOrder states in kitchen:\n• NEW: New order arrived at kitchen\n• IN_PROGRESS: Being prepared\n• READY: Ready to serve\n\nScreen features:\n• Display open orders\n• Change order status\n• Track preparation time\n• Alert for delayed orders\n\nActivation:\n• KDS can be enabled in settings\n• Requires user account with Kitchen role"
       },
       "metadata": {
         "feature_id": "kds",
@@ -220,46 +262,154 @@
         "user_roles": ["kitchen", "owner"]
       }
     },
-    "order_states": {
-      "id": "order_states",
-      "intent": ["order_status", "order_state", "what_is_open"],
+    "user_roles": {
+      "id": "user_roles",
+      "intent": ["roles", "permissions", "users"],
       "keywords": {
-        "ar": ["حالة الطلب", "open", "closed", "on hold", "مفتوح", "مغلق", "معلق"],
-        "en": ["order status", "order state", "open", "closed", "on hold"]
+        "ar": ["صلاحيات", "أدوار", "مستخدمين", "كاشير", "مالك", "مدير"],
+        "en": ["roles", "permissions", "users", "cashier", "owner", "admin", "staff"]
       },
       "title": {
-        "ar": "حالات الطلب",
-        "en": "Order States"
+        "ar": "الأدوار والصلاحيات",
+        "en": "Roles and Permissions"
       },
       "content": {
-        "ar": "حالات الطلب:\n• OPEN: طلب مفتوح قابل للإضافة والتعديل والدفع\n• ON_HOLD: طلب معلّق لا يسمح بالدفع أو التعديل\n• CLOSED: طلب مغلق بعد إتمام الدفع",
-        "en": "Order States:\n• OPEN: Order can be edited and paid\n• ON_HOLD: Order cannot be paid or modified\n• CLOSED: Order is paid and complete"
+        "ar": "أدوار المستخدمين:\n\n• Cashier (كاشير):\n  - إنشاء وإدارة الطلبات\n  - الدفع والمرتجعات\n  - فتح وإغلاق الوردية\n\n• Owner (مالك):\n  - جميع صلاحيات الكاشير\n  - إدارة القائمة والأسعار\n  - إدارة المخزون والوصفات\n  - عرض التقارير\n  - إدارة الموظفين والفروع\n\n• SystemAdmin (مدير النظام):\n  - إدارة المطاعم\n  - إنشاء حسابات المالكين\n  - إعدادات النظام العامة",
+        "en": "User Roles:\n\n• Cashier:\n  - Create and manage orders\n  - Payments and refunds\n  - Open and close shifts\n\n• Owner:\n  - All cashier permissions\n  - Menu and pricing management\n  - Inventory and recipes\n  - View reports\n  - Staff and branch management\n\n• SystemAdmin:\n  - Restaurant management\n  - Create owner accounts\n  - System-wide settings"
       },
       "metadata": {
-        "feature_id": "order_states",
+        "feature_id": "roles",
+        "affected_screens": ["Settings", "Admin"],
+        "user_roles": ["owner", "system_admin"]
+      }
+    },
+    "shift": {
+      "id": "shift",
+      "intent": ["shift", "open_shift", "close_shift"],
+      "keywords": {
+        "ar": ["وردية", "شفت", "فتح وردية", "إغلاق وردية", "افتتاحي", "ختامي"],
+        "en": ["shift", "open shift", "close shift", "opening cash", "closing"]
+      },
+      "title": {
+        "ar": "الورديات",
+        "en": "Shifts"
+      },
+      "content": {
+        "ar": "نظام الورديات:\n\nفتح الوردية:\n• يجب فتح وردية قبل استقبال الطلبات\n• أدخل المبلغ الافتتاحي (Opening Cash)\n• يتم تسجيل وقت الفتح والكاشير\n\nأثناء الوردية:\n• جميع الطلبات تُسجل على الوردية الحالية\n• يمكن إضافة/سحب نقد من الدرج\n\nإغلاق الوردية:\n• أدخل المبلغ الختامي الفعلي\n• يظهر تقرير Z تلقائياً\n• يُحسب فرق الكاش (إن وجد)\n• يتم تسجيل الإغلاق في سجل التدقيق",
+        "en": "Shift System:\n\nOpening shift:\n• Must open shift before taking orders\n• Enter opening cash amount\n• Records opening time and cashier\n\nDuring shift:\n• All orders recorded under current shift\n• Can add/withdraw cash from drawer\n\nClosing shift:\n• Enter actual closing cash amount\n• Z Report shown automatically\n• Cash difference calculated (if any)\n• Closing recorded in audit log"
+      },
+      "metadata": {
+        "feature_id": "shift",
         "affected_screens": ["POS"],
-        "user_roles": ["cashier", "owner"]
+        "user_roles": ["cashier"]
+      }
+    },
+    "z_report": {
+      "id": "z_report",
+      "intent": ["z_report", "shift_report", "end_of_day"],
+      "keywords": {
+        "ar": ["تقرير z", "تقرير زد", "z report", "إغلاق الوردية", "نهاية اليوم", "ملخص الوردية"],
+        "en": ["z report", "z-report", "shift report", "end of day", "close shift", "shift summary"]
+      },
+      "title": {
+        "ar": "تقرير Z",
+        "en": "Z Report"
+      },
+      "content": {
+        "ar": "تقرير Z - ملخص الوردية:\n\nالغرض:\n• ملخص شامل لجميع عمليات الوردية\n• يُطبع عند إغلاق الوردية\n• أساسي للمحاسبة اليومية\n\nالبيانات المشمولة:\n• عدد الطلبات المكتملة\n• إجمالي المبيعات (Gross Sales)\n• تفصيل حسب طريقة الدفع (Cash / Card)\n• إجمالي الخصومات\n• إجمالي المرتجعات\n• صافي المبيعات (Net Sales)\n\nحساب المبيعات:\nصافي المبيعات = إجمالي المبيعات - الخصومات - المرتجعات\n\nمعالجة المرتجعات:\n• المرتجعات تُخصم من إجمالي المبيعات\n• تظهر كبند منفصل في التقرير\n• تؤثر على حساب الكاش المتوقع",
+        "en": "Z Report - Shift Summary:\n\nPurpose:\n• Comprehensive summary of all shift operations\n• Printed when closing shift\n• Essential for daily accounting\n\nIncluded data:\n• Number of completed orders\n• Gross Sales total\n• Breakdown by payment method (Cash / Card)\n• Total discounts\n• Total refunds\n• Net Sales\n\nSales calculation:\nNet Sales = Gross Sales - Discounts - Refunds\n\nRefund handling:\n• Refunds deducted from gross sales\n• Shown as separate line item\n• Affects expected cash calculation"
+      },
+      "metadata": {
+        "feature_id": "z_report",
+        "affected_screens": ["POS", "Reports"],
+        "user_roles": ["cashier", "owner"],
+        "training_required": true
+      }
+    },
+    "cash_daily_report": {
+      "id": "cash_daily_report",
+      "intent": ["cash_report", "daily_cash", "cash_reconciliation"],
+      "keywords": {
+        "ar": ["تقرير الكاش", "كاش يومي", "فرق الكاش", "مطابقة الكاش", "الصندوق"],
+        "en": ["cash report", "daily cash", "cash difference", "cash reconciliation", "drawer"]
+      },
+      "title": {
+        "ar": "تقرير الكاش اليومي",
+        "en": "Cash Daily Report"
+      },
+      "content": {
+        "ar": "تقرير الكاش اليومي:\n\nمكونات التقرير:\n1. الرصيد الافتتاحي (Opening Cash)\n   - المبلغ المُدخل عند فتح الوردية\n\n2. المبيعات النقدية\n   - إجمالي المدفوعات بطريقة Cash\n\n3. المرتجعات النقدية\n   - المرتجعات التي تمت بطريقة Cash\n\n4. حركات النقد الأخرى\n   - إضافات للصندوق (Cash In)\n   - سحوبات من الصندوق (Cash Out)\n\nالكاش المتوقع = الافتتاحي + المبيعات النقدية - المرتجعات النقدية + الإضافات - السحوبات\n\nفرق الكاش:\n• الفرق = الكاش الفعلي - الكاش المتوقع\n• فرق موجب: زيادة في الصندوق\n• فرق سالب: نقص في الصندوق\n• يجب تحديد سبب الفرق",
+        "en": "Cash Daily Report:\n\nReport components:\n1. Opening Cash\n   - Amount entered when opening shift\n\n2. Cash Sales\n   - Total Cash payment method transactions\n\n3. Cash Refunds\n   - Refunds made in Cash\n\n4. Other Cash Movements\n   - Cash In (additions to drawer)\n   - Cash Out (withdrawals from drawer)\n\nExpected Cash = Opening + Cash Sales - Cash Refunds + Cash In - Cash Out\n\nCash Difference:\n• Difference = Actual Cash - Expected Cash\n• Positive: Surplus in drawer\n• Negative: Shortage in drawer\n• Must specify reason for difference"
+      },
+      "metadata": {
+        "feature_id": "cash_report",
+        "affected_screens": ["POS", "Reports"],
+        "user_roles": ["cashier", "owner"],
+        "training_required": true
+      }
+    },
+    "inventory_summary_report": {
+      "id": "inventory_summary_report",
+      "intent": ["inventory_report", "stock_report", "inventory_summary"],
+      "keywords": {
+        "ar": ["تقرير المخزون", "ملخص المخزون", "حركة المخزون", "جرد", "variance"],
+        "en": ["inventory report", "stock report", "inventory summary", "stock movement", "variance"]
+      },
+      "title": {
+        "ar": "تقرير ملخص المخزون",
+        "en": "Inventory Summary Report"
+      },
+      "content": {
+        "ar": "تقرير ملخص المخزون:\n\n1. رصيد البداية (Opening Stock)\n   - الكمية في بداية الفترة\n\n2. الحركات الداخلة:\n   - استلام مشتريات\n   - نقل من فرع آخر\n   - تعديلات بالزيادة\n\n3. الحركات الخارجة:\n   - خصم الوصفات (عند البيع)\n   - هدر مسجل\n   - نقل لفرع آخر\n   - تعديلات بالنقص\n\n4. رصيد الإغلاق (Closing Stock)\n   = البداية + الداخل - الخارج\n\n5. الفرق (Variance)\n   = الرصيد الفعلي (جرد) - الرصيد النظري\n   - يُستخدم لاكتشاف الفاقد أو الأخطاء",
+        "en": "Inventory Summary Report:\n\n1. Opening Stock\n   - Quantity at period start\n\n2. Incoming movements:\n   - Purchase receipts\n   - Transfers from other branches\n   - Positive adjustments\n\n3. Outgoing movements:\n   - Recipe deductions (on sales)\n   - Recorded waste\n   - Transfers to other branches\n   - Negative adjustments\n\n4. Closing Stock\n   = Opening + Incoming - Outgoing\n\n5. Variance\n   = Actual count - Theoretical stock\n   - Used to detect losses or errors"
+      },
+      "metadata": {
+        "feature_id": "inventory_report",
+        "affected_screens": ["Inventory", "Reports"],
+        "user_roles": ["owner"],
+        "training_required": true
       }
     },
     "audit_logs": {
       "id": "audit_logs",
       "intent": ["audit", "logs", "history", "tracking"],
       "keywords": {
-        "ar": ["سجل", "تدقيق", "تتبع", "audit", "log"],
-        "en": ["audit", "log", "logs", "history", "tracking", "record"]
+        "ar": ["سجل", "تدقيق", "تتبع", "audit", "log", "سجل العمليات"],
+        "en": ["audit", "log", "logs", "history", "tracking", "record", "audit trail"]
       },
       "title": {
-        "ar": "سجل التدقيق",
+        "ar": "سجل التدقيق (Audit Log)",
         "en": "Audit Logs"
       },
       "content": {
-        "ar": "سجل التدقيق:\n• يسجل جميع العمليات في النظام\n• يشمل: ORDER_CREATED, PAYMENT_COMPLETED, REFUND_CREATED, VOID_CREATED\n• يتتبع SHIFT_OPENED و SHIFT_CLOSED\n• يسجل INVENTORY_DEDUCTED للمخزون",
-        "en": "Audit Logs:\n• Records all system operations\n• Includes: ORDER_CREATED, PAYMENT_COMPLETED, REFUND_CREATED, VOID_CREATED\n• Tracks SHIFT_OPENED and SHIFT_CLOSED\n• Records INVENTORY_DEDUCTED for stock"
+        "ar": "سجل التدقيق:\n\nيسجل جميع العمليات الهامة في النظام:\n\nعمليات الطلبات:\n• ORDER_CREATED: إنشاء طلب جديد\n• ORDER_MERGED: دمج طلبات\n• ORDER_TRANSFERRED: نقل طلب لطاولة أخرى\n\nالمالية:\n• PAYMENT_COMPLETED: إتمام دفع\n• REFUND_CREATED: تسجيل مرتجع\n• VOID_CREATED: إلغاء صنف/طلب\n\nالورديات:\n• SHIFT_OPENED: فتح وردية\n• SHIFT_CLOSED: إغلاق وردية\n\nالمخزون:\n• INVENTORY_DEDUCTED: خصم من المخزون\n• INVENTORY_ADJUSTED: تعديل كمية\n\nكل سجل يحتوي:\n• التاريخ والوقت\n• المستخدم\n• نوع العملية\n• التفاصيل",
+        "en": "Audit Log:\n\nRecords all important system operations:\n\nOrder operations:\n• ORDER_CREATED: New order created\n• ORDER_MERGED: Orders merged\n• ORDER_TRANSFERRED: Order moved to another table\n\nFinancial:\n• PAYMENT_COMPLETED: Payment completed\n• REFUND_CREATED: Refund recorded\n• VOID_CREATED: Item/order voided\n\nShifts:\n• SHIFT_OPENED: Shift opened\n• SHIFT_CLOSED: Shift closed\n\nInventory:\n• INVENTORY_DEDUCTED: Deducted from inventory\n• INVENTORY_ADJUSTED: Quantity adjusted\n\nEach record contains:\n• Date and time\n• User\n• Operation type\n• Details"
       },
       "metadata": {
         "feature_id": "audit_logs",
         "affected_screens": ["Reports", "Admin"],
         "user_roles": ["owner"]
+      }
+    },
+    "discounts": {
+      "id": "discounts",
+      "intent": ["discount", "promo", "price_reduction"],
+      "keywords": {
+        "ar": ["خصم", "تخفيض", "عرض", "نسبة", "مبلغ"],
+        "en": ["discount", "promo", "reduction", "percentage", "amount"]
+      },
+      "title": {
+        "ar": "الخصومات",
+        "en": "Discounts"
+      },
+      "content": {
+        "ar": "الخصومات:\n\nأنواع الخصم:\n• نسبة مئوية (%): خصم نسبة من الإجمالي\n• مبلغ ثابت: خصم مبلغ محدد\n\nتطبيق الخصم:\n1. افتح الطلب\n2. اضغط على خصم\n3. اختر النوع (نسبة/مبلغ)\n4. أدخل القيمة\n5. أكد الخصم\n\nإعدادات الخصم (للمالك):\n• تفعيل/إيقاف الخصومات\n• تحديد الحد الأقصى للخصم\n• اختيار نوع الخصم الافتراضي\n\nالخصومات تظهر في:\n• تفاصيل الطلب\n• الفاتورة\n• تقرير Z",
+        "en": "Discounts:\n\nDiscount types:\n• Percentage (%): Discount percentage of total\n• Fixed amount: Specific amount discount\n\nApplying discount:\n1. Open the order\n2. Click discount\n3. Select type (percentage/amount)\n4. Enter value\n5. Confirm discount\n\nDiscount settings (Owner):\n• Enable/disable discounts\n• Set maximum discount limit\n• Choose default discount type\n\nDiscounts appear in:\n• Order details\n• Receipt\n• Z Report"
+      },
+      "metadata": {
+        "feature_id": "discounts",
+        "affected_screens": ["POS", "Settings"],
+        "user_roles": ["cashier", "owner"]
       }
     }
   }
