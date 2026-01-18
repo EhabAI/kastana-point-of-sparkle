@@ -25,49 +25,19 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
     navigate('/login', { replace: true });
   };
 
-  const getRoleLabel = (r: string | null): string => {
-    if (!r) return '';
-    switch (r) {
-      case 'owner':
-        return 'Owner';
-      case 'cashier':
-        return 'Cashier';
-      case 'kitchen':
-        return 'Kitchen';
-      case 'system_admin':
-        return 'System Admin';
-      default:
-        return r.replace('_', ' ');
-    }
-  };
-
-  const { data: profile } = useQuery({
-    queryKey: ['profile_header', user?.id],
+  const { data: profileUsername } = useQuery({
+    queryKey: ['profile_username', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
       if (!user?.id) return null;
       
-      // Fetch username from profiles
-      const { data: profileData } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('username')
         .eq('id', user.id)
         .maybeSingle();
       
-      // Fetch role from user_roles
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .maybeSingle();
-      
-      if (!profileData?.username || !roleData?.role) return null;
-      
-      return {
-        username: profileData.username,
-        role: roleData.role
-      };
+      return data?.username ?? null;
     },
   });
 
@@ -87,11 +57,11 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
 
             {/* CENTER – User Display (hidden on mobile) */}
             <div className="hidden md:flex items-center justify-center flex-1">
-              {profile?.username && profile?.role ? (
+              {profileUsername && (
                 <span className="text-sm font-medium text-foreground">
-                  {profile.username} – {getRoleLabel(profile.role)}
+                  {profileUsername}
                 </span>
-              ) : null}
+              )}
             </div>
 
             {/* RIGHT – Actions Area */}
