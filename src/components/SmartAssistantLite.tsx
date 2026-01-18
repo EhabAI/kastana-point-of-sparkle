@@ -1033,7 +1033,7 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
         style={sheetStyle}
       >
         {/* Enhanced Header with Width Toggle */}
-        <SheetHeader className="p-6 py-8 border-b bg-gradient-to-br from-primary/10 to-primary/5">
+        <SheetHeader className="p-6 py-12 border-b bg-gradient-to-br from-primary/10 to-primary/5">
           <div className="flex items-start gap-3">
             <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
               <Bot className="h-6 w-6 text-primary" />
