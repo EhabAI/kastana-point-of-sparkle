@@ -134,7 +134,66 @@ const TOPIC_CATEGORIES: TopicCategory[] = [
   }
 ];
 
-// Width mode types and configuration moved up after removing quick action pills
+// Static fallback titles for topics (ensures no empty headers)
+const TOPIC_TITLES: Record<string, { ar: string; en: string }> = {
+  // Getting Started
+  new_order_flow: { ar: "إنشاء طلب جديد", en: "Create New Order" },
+  open_shift: { ar: "فتح الوردية", en: "Open Shift" },
+  close_shift: { ar: "إغلاق الوردية", en: "Close Shift" },
+  favorites_screen: { ar: "شاشة المفضلة", en: "Favorites Screen" },
+  // Orders & Payments
+  payment_flow: { ar: "إتمام الدفع", en: "Complete Payment" },
+  hold_resume: { ar: "تعليق واستئناف الطلب", en: "Hold & Resume Order" },
+  order_notes: { ar: "ملاحظات الطلب", en: "Order Notes" },
+  modifiers_addons: { ar: "الإضافات والتعديلات", en: "Modifiers & Add-ons" },
+  discount_application: { ar: "تطبيق الخصم", en: "Apply Discount" },
+  cash_in_out: { ar: "إيداع وسحب النقد", en: "Cash In/Out" },
+  // Tables & Dining
+  move_table: { ar: "نقل الطاولة", en: "Move Table" },
+  merge_orders: { ar: "دمج الطلبات", en: "Merge Orders" },
+  split_order: { ar: "تقسيم الطلب", en: "Split Order" },
+  transfer_items_between_orders: { ar: "نقل الأصناف بين الطلبات", en: "Transfer Items" },
+  // Refunds & Voids
+  refund_overview: { ar: "نظرة عامة على المرتجعات", en: "Refunds Overview" },
+  void_vs_refund: { ar: "الفرق بين الإلغاء والمرتجع", en: "Void vs Refund" },
+  reopen_order: { ar: "إعادة فتح طلب", en: "Reopen Order" },
+  // Reports
+  z_report: { ar: "تقرير Z", en: "Z Report" },
+  z_report_explain: { ar: "شرح تقرير Z", en: "Z Report Explained" },
+  sales_summary_report: { ar: "تقرير المبيعات", en: "Sales Summary" },
+  gross_vs_net: { ar: "الإجمالي مقابل الصافي", en: "Gross vs Net" },
+  refunds_report_explain: { ar: "تقرير المرتجعات", en: "Refunds Report" },
+  payments_report_explain: { ar: "تقرير المدفوعات", en: "Payments Report" },
+  cash_drawer_reconciliation: { ar: "مطابقة الصندوق", en: "Cash Reconciliation" },
+  // Inventory & Recipes
+  inventory_overview: { ar: "نظرة عامة على المخزون", en: "Inventory Overview" },
+  recipe_management: { ar: "إدارة الوصفات", en: "Recipe Management" },
+  stock_count: { ar: "جرد المخزون", en: "Stock Count" },
+  inventory_alerts: { ar: "تنبيهات المخزون", en: "Inventory Alerts" },
+  // QR Orders
+  qr_menu_access: { ar: "الوصول لقائمة QR", en: "QR Menu Access" },
+  qr_pending_orders: { ar: "طلبات QR المعلقة", en: "Pending QR Orders" },
+  qr_order_states: { ar: "حالات طلب QR", en: "QR Order States" },
+  // Troubleshooting
+  disabled_button_reasons: { ar: "أسباب تعطل الأزرار", en: "Why Buttons Disabled" },
+  payment_disabled: { ar: "الدفع معطل", en: "Payment Disabled" },
+  pos_shift_required: { ar: "الوردية مطلوبة", en: "Shift Required" },
+};
+
+// Helper to get topic title with fallback
+function getTopicTitle(topicId: string, language: "ar" | "en", allTopics: Array<{ id: string; title: string }>): string {
+  // First check static titles
+  if (TOPIC_TITLES[topicId]) {
+    return TOPIC_TITLES[topicId][language];
+  }
+  // Fall back to knowledge base
+  const topic = allTopics.find(t => t.id === topicId);
+  if (topic?.title) {
+    return topic.title;
+  }
+  // Last resort: format the ID
+  return topicId.replace(/_/g, ' ');
+}
 
 // Width mode types and configuration
 type WidthMode = "compact" | "default" | "expanded";
@@ -1278,15 +1337,14 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                                   {expandedCategory === category.id && (
                                     <div className="border-t bg-muted/30 p-2 space-y-1">
                                       {category.topicIds.map((topicId) => {
-                                        const topic = allTopics.find(t => t.id === topicId);
-                                        if (!topic) return null;
+                                        const title = getTopicTitle(topicId, language, allTopics);
                                         return (
                                           <button
                                             key={topicId}
                                             className="w-full text-left rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground text-xs px-2 py-1.5"
                                             onClick={() => setSelectedTopicId(topicId)}
                                           >
-                                            {topic.title}
+                                            {title}
                                           </button>
                                         );
                                       })}
