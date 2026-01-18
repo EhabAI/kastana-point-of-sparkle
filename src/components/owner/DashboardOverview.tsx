@@ -139,7 +139,7 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
   const zeroSalesWarning = hasZeroSalesWithOpenShift && currentHour >= 11;
 
   return (
-    <div className="bg-muted/30 dark:bg-muted/10 rounded-lg p-3 border border-border transition-all duration-200 hover:shadow-md">
+    <div className="bg-muted/30 dark:bg-muted/10 rounded-lg p-2 border border-border transition-all duration-200 hover:shadow-md">
       {/* Section Header - Commanding */}
       <div className="flex items-center gap-2 mb-4">
         <span className="text-[10px] font-bold text-foreground/80 uppercase tracking-[0.15em]">
