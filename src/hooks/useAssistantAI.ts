@@ -6,6 +6,12 @@ import {
   getFallbackResponse,
   getAllTopics
 } from "@/lib/assistantKnowledge";
+import { 
+  matchUIElement, 
+  formatUIElementResponse,
+  type UIElementMatch 
+} from "@/lib/assistantUIResolver";
+import type { ScreenContext } from "@/lib/smartAssistantContext";
 
 interface IntentResult {
   intent: "report" | "training" | "explanation" | "example" | "follow_up" | "system_overview" | "section_help" | "troubleshoot" | "unknown";
@@ -29,6 +35,7 @@ interface UseAssistantAIReturn {
   processQuery: (query: string, language: "ar" | "en", fallbackContext?: FallbackContext) => Promise<string>;
   isLoading: boolean;
   lastIntent: IntentResult | null;
+  lastUIMatch: UIElementMatch | null;
   error: string | null;
 }
 
@@ -40,6 +47,7 @@ interface UseAssistantAIReturn {
 export function useAssistantAI(): UseAssistantAIReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [lastIntent, setLastIntent] = useState<IntentResult | null>(null);
+  const [lastUIMatch, setLastUIMatch] = useState<UIElementMatch | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   // Keep track of last matched entry for follow-up questions
@@ -55,8 +63,41 @@ export function useAssistantAI(): UseAssistantAIReturn {
   ): Promise<string> => {
     setIsLoading(true);
     setError(null);
+    setLastUIMatch(null);
     
     try {
+      // ===== UI-FIRST INTENT RESOLUTION =====
+      // CRITICAL: Check for direct UI element matches BEFORE calling AI
+      // This has HIGHER priority than AI intent classification
+      if (fallbackContext?.screenContext) {
+        const uiMatch = matchUIElement(
+          query, 
+          fallbackContext.screenContext as ScreenContext, 
+          language
+        );
+        
+        if (uiMatch && uiMatch.confidence >= 0.6) {
+          // Direct UI element match found - respond immediately without AI
+          setLastUIMatch(uiMatch);
+          setIsLoading(false);
+          
+          const response = formatUIElementResponse(uiMatch, language);
+          
+          // Update conversation history
+          conversationHistoryRef.current.push({ role: "user", content: query });
+          conversationHistoryRef.current.push({ role: "assistant", content: response });
+          
+          // Keep only last 6 messages
+          if (conversationHistoryRef.current.length > 6) {
+            conversationHistoryRef.current = conversationHistoryRef.current.slice(-6);
+          }
+          
+          return response;
+        }
+      }
+      // ===== END UI-FIRST RESOLUTION =====
+      
+      // No UI match found - proceed with AI intent classification
       // Get all knowledge entry summaries for the AI
       const topics = getAllTopics(language);
       const knowledgeEntries = topics.map(t => {
@@ -133,7 +174,7 @@ export function useAssistantAI(): UseAssistantAIReturn {
     }
   }, []);
 
-  return { processQuery, isLoading, lastIntent, error };
+  return { processQuery, isLoading, lastIntent, lastUIMatch, error };
 }
 
 /**
