@@ -43,14 +43,9 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
             {/* LEFT – Brand Area */}
             <div className="flex items-center gap-2.5">
               <img src={posLogoNew} alt="Kastana POS" className="h-8 sm:h-10 w-auto" />
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-foreground leading-tight">
-                  Kastana POS
-                </span>
-                <span className="text-[11px] text-muted-foreground capitalize leading-tight">
-                  {roleLabel}
-                </span>
-              </div>
+              <span className="text-sm font-semibold text-foreground">
+                Kastana POS
+              </span>
             </div>
 
             {/* CENTER – User Display (hidden on mobile) */}
