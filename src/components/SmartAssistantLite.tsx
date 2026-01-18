@@ -851,19 +851,22 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   } = useErrorContextInternal();
   
   // Get user role for role-based changelog filtering
-  const { role, user } = useAuth();
+  const { role } = useAuth();
   
-  // Fetch user's display name from profiles table
-  const { data: displayName } = useQuery({
-    queryKey: ['assistant_username', user?.id],
-    enabled: !!user?.id,
+  // Fetch user's display name directly from authenticated user -> profiles.username
+  const { data: profileUsername } = useQuery({
+    queryKey: ["assistant_profile_username"],
     queryFn: async () => {
-      if (!user?.id) return null;
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+      if (!userId) return null;
+
       const { data } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("username")
+        .eq("id", userId)
         .maybeSingle();
+
       return data?.username ?? null;
     },
   });
@@ -1440,10 +1443,9 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                               <MessageCircle className="h-7 w-7 text-primary" />
                             </div>
                             <p className="text-base font-medium mb-1">
-                              {language === "ar" 
-                                ? (displayName ? `مرحبًا ${displayName} 👋` : "مرحبًا 👋") 
-                                : (displayName ? `Hi ${displayName} 👋` : "Hello 👋")
-                              }
+                              {language === "ar"
+                                ? (profileUsername ? `مرحبًا ${profileUsername} 👋` : "مرحبًا 👋")
+                                : (profileUsername ? `Hi ${profileUsername} 👋` : "Hi 👋")}
                             </p>
                             <p className="text-sm text-muted-foreground mb-5">
                               {language === "ar" 
