@@ -1144,13 +1144,12 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button
-          size="lg"
+          size="icon"
           variant="ghost"
           className={cn(
-            "fixed bottom-6 z-50 h-14 w-14 rounded-full",
-            "bg-background/80 hover:bg-muted text-foreground border border-border/50",
-            "backdrop-blur-sm shadow-md",
-            "transition-all duration-200 hover:scale-105",
+            "fixed bottom-6 z-50 h-10 w-10",
+            "text-muted-foreground hover:text-foreground hover:bg-transparent",
+            "transition-all duration-200 hover:scale-110",
             isRTL ? "right-6" : "left-6"
           )}
         >
