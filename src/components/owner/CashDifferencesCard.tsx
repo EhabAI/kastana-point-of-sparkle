@@ -1,17 +1,22 @@
 /**
  * Cash Differences Card Component
- * Shows cash differences per cashier for closed shifts today
+ * Shows cash differences per cashier for closed shifts
  * Owner Dashboard only - read-only
  */
 
-import { useCashDifferencesToday } from "@/hooks/useCashDifferencesToday";
+import { useState } from "react";
+import { useCashDifferences } from "@/hooks/useCashDifferencesToday";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { formatJOD } from "@/lib/utils";
+import { formatJOD, cn } from "@/lib/utils";
+import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Wallet, Info, AlertTriangle, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Loader2, Wallet, Info, AlertTriangle, TrendingUp, TrendingDown, Minus, Calendar as CalendarIcon } from "lucide-react";
 import en from "@/locales/en";
 import ar from "@/locales/ar";
 
@@ -27,7 +32,8 @@ export function CashDifferencesCard({ restaurantId, currency = "JOD", compact = 
   const { language } = useLanguage();
   const t = translations[language as keyof typeof translations] || translations.en;
   
-  const { data, isLoading } = useCashDifferencesToday(restaurantId);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const { data, isLoading } = useCashDifferences(restaurantId, selectedDate);
 
   if (isLoading) {
     return (
@@ -89,6 +95,31 @@ export function CashDifferencesCard({ restaurantId, currency = "JOD", compact = 
               </CardDescription>
             )}
           </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "h-7 px-2 text-xs bg-white dark:bg-background border-emerald-200 dark:border-emerald-800/50",
+                  !selectedDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="h-3.5 w-3.5 ltr:mr-1.5 rtl:ml-1.5" />
+                {format(selectedDate, language === "ar" ? "d MMM" : "MMM d")}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => date && setSelectedDate(date)}
+                disabled={(date) => date > new Date()}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </CardHeader>
       <CardContent className={compact ? "space-y-2 px-4 pb-3" : "space-y-4"}>
