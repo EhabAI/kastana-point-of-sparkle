@@ -1684,4 +1684,10 @@ export default {
   username_updated: "تم تحديث اسم المستخدم بنجاح",
   edit_display_name: "تعديل اسم المستخدم",
   not_authenticated: "غير مسجل الدخول",
+  
+  // Email management
+  edit_email: "تعديل البريد الإلكتروني",
+  edit_email_desc: "أدخل البريد الإلكتروني الجديد لهذا الموظف",
+  email_updated: "تم تحديث البريد الإلكتروني بنجاح",
+  invalid_email: "الرجاء إدخال بريد إلكتروني صالح",
 } as const;

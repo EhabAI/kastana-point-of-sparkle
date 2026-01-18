@@ -53,3 +53,15 @@ verify_jwt = false
 
 [functions.assistant-intent]
 verify_jwt = false
+
+[functions.system-admin-reset-password]
+verify_jwt = false
+
+[functions.system-admin-update-email]
+verify_jwt = false
+
+[functions.update-display-name]
+verify_jwt = false
+
+[functions.owner-update-staff-email]
+verify_jwt = false
