@@ -439,7 +439,7 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
               <p className="text-[11px] text-muted-foreground">{t("username_min_2_hint")}</p>
             </div>
             <div className="space-y-1">
-              <Label htmlFor="staff-email" className="text-sm">{t("email")}</Label>
+              <Label htmlFor="staff-email" className="text-sm">{t("email")} *</Label>
               <Input
                 id="staff-email"
                 type="email"
@@ -450,7 +450,7 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="staff-password" className="text-sm">{t("password")}</Label>
+              <Label htmlFor="staff-password" className="text-sm">{t("password")} *</Label>
               <Input
                 id="staff-password"
                 type="password"
