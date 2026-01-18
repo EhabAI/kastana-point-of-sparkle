@@ -8,6 +8,7 @@ export interface Owner {
   role: 'owner';
   created_at: string;
   email?: string;
+  username?: string;
 }
 
 export function useOwners() {
@@ -28,16 +29,17 @@ export function useOwners() {
       const userIds = roles.map(r => r.user_id);
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, email')
+        .select('id, email, username')
         .in('id', userIds);
       
       if (profilesError) throw profilesError;
 
-      // Map emails to owners
-      const emailMap = new Map(profiles?.map(p => [p.id, p.email]) || []);
+      // Map profiles to owners
+      const profileMap = new Map(profiles?.map(p => [p.id, { email: p.email, username: p.username }]) || []);
       return roles.map(row => ({
         ...row,
-        email: emailMap.get(row.user_id) || undefined
+        email: profileMap.get(row.user_id)?.email || undefined,
+        username: profileMap.get(row.user_id)?.username || undefined
       })) as Owner[];
     },
   });
@@ -48,7 +50,7 @@ export function useCreateOwner() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ email, password }: { email: string; password: string }) => {
+    mutationFn: async ({ email, password, username }: { email: string; password: string; username: string }) => {
       // Ensure we send a valid user JWT to the backend function
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       const accessToken = sessionData?.session?.access_token;
@@ -57,8 +59,8 @@ export function useCreateOwner() {
         throw new Error('Not authenticated. Please sign in again.');
       }
 
-      const payload = { email, password, role: 'owner' as const };
-      console.log('Create owner payload:', { email, role: payload.role });
+      const payload = { email, password, role: 'owner' as const, username };
+      console.log('Create owner payload:', { email, role: payload.role, username });
 
       const { data, error } = await supabase.functions.invoke('admin-create-user', {
         body: payload,

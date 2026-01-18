@@ -38,6 +38,7 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { formatJOD } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 
 const emailSchema = z.string().email("Please enter a valid email");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -64,6 +65,7 @@ export default function SystemAdmin() {
   const toggleInventory = useToggleInventoryModule();
   const toggleKDS = useToggleKDSModule();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   // Form states
@@ -73,6 +75,7 @@ export default function SystemAdmin() {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [ownerEmail, setOwnerEmail] = useState("");
   const [ownerPassword, setOwnerPassword] = useState("");
+  const [ownerDisplayName, setOwnerDisplayName] = useState("");
   const [selectedRestaurant, setSelectedRestaurant] = useState("");
   const [selectedOwner, setSelectedOwner] = useState("");
   const [viewingRestaurant, setViewingRestaurant] = useState<string | null>(null);
@@ -85,9 +88,10 @@ export default function SystemAdmin() {
   
   // Edit owner states
   const [editOwnerDialogOpen, setEditOwnerDialogOpen] = useState(false);
-  const [editingOwner, setEditingOwner] = useState<{id: string; email: string} | null>(null);
+  const [editingOwner, setEditingOwner] = useState<{id: string; email: string; username?: string} | null>(null);
   const [newOwnerEmail, setNewOwnerEmail] = useState("");
   const [newOwnerPassword, setNewOwnerPassword] = useState("");
+  const [newOwnerDisplayName, setNewOwnerDisplayName] = useState("");
   const [updatingOwner, setUpdatingOwner] = useState(false);
 
   // Dialog states
@@ -198,9 +202,15 @@ export default function SystemAdmin() {
       toast({ title: passwordResult.error.errors[0].message, variant: "destructive" });
       return;
     }
-    await createOwner.mutateAsync({ email: ownerEmail, password: ownerPassword });
+    const trimmedDisplayName = ownerDisplayName.trim();
+    if (trimmedDisplayName.length < 2) {
+      toast({ title: "Display name must be at least 2 characters", variant: "destructive" });
+      return;
+    }
+    await createOwner.mutateAsync({ email: ownerEmail, password: ownerPassword, username: trimmedDisplayName });
     setOwnerEmail("");
     setOwnerPassword("");
+    setOwnerDisplayName("");
     setOwnerDialogOpen(false);
   };
 
@@ -385,9 +395,19 @@ export default function SystemAdmin() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Create Owner</DialogTitle>
-                <DialogDescription>Create a new owner account with email and password.</DialogDescription>
+                <DialogDescription>Create a new owner account with email, password, and display name.</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="owner-display-name">Display Name</Label>
+                  <Input
+                    id="owner-display-name"
+                    value={ownerDisplayName}
+                    onChange={(e) => setOwnerDisplayName(e.target.value)}
+                    placeholder="John Doe"
+                  />
+                  <p className="text-xs text-muted-foreground">Minimum 2 characters</p>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="owner-email">Email</Label>
                   <Input
@@ -410,10 +430,13 @@ export default function SystemAdmin() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setOwnerDialogOpen(false)}>
+                <Button variant="outline" onClick={() => {
+                  setOwnerDialogOpen(false);
+                  setOwnerDisplayName("");
+                }}>
                   Cancel
                 </Button>
-                <Button onClick={handleCreateOwner} disabled={createOwner.isPending}>
+                <Button onClick={handleCreateOwner} disabled={createOwner.isPending || ownerDisplayName.trim().length < 2}>
                   {createOwner.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Create
                 </Button>
@@ -573,9 +596,10 @@ export default function SystemAdmin() {
                                 onClick={() => {
                                   const owner = owners.find(o => o.user_id === restaurant.owner_id);
                                   if (owner) {
-                                    setEditingOwner({ id: owner.user_id, email: owner.email || '' });
+                                    setEditingOwner({ id: owner.user_id, email: owner.email || '', username: owner.username });
                                     setNewOwnerEmail(owner.email || '');
                                     setNewOwnerPassword('');
+                                    setNewOwnerDisplayName(owner.username || '');
                                     setEditOwnerDialogOpen(true);
                                   }
                                 }}
@@ -785,14 +809,25 @@ export default function SystemAdmin() {
             setEditingOwner(null);
             setNewOwnerEmail("");
             setNewOwnerPassword("");
+            setNewOwnerDisplayName("");
           }
         }}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Edit Owner Account</DialogTitle>
-              <DialogDescription>Update email or password for {editingOwner?.email}.</DialogDescription>
+              <DialogDescription>Update details for {editingOwner?.username || editingOwner?.email}.</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-owner-display-name">Display Name</Label>
+                <Input
+                  id="edit-owner-display-name"
+                  value={newOwnerDisplayName}
+                  onChange={(e) => setNewOwnerDisplayName(e.target.value)}
+                  placeholder="John Doe"
+                />
+                <p className="text-xs text-muted-foreground">Minimum 2 characters</p>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-owner-email">Email</Label>
                 <Input
@@ -820,12 +855,19 @@ export default function SystemAdmin() {
                 setEditingOwner(null);
                 setNewOwnerEmail("");
                 setNewOwnerPassword("");
+                setNewOwnerDisplayName("");
               }}>
                 Cancel
               </Button>
               <Button 
                 onClick={async () => {
                   if (!editingOwner) return;
+                  
+                  const trimmedDisplayName = newOwnerDisplayName.trim();
+                  if (trimmedDisplayName.length < 2) {
+                    toast({ title: "Display name must be at least 2 characters", variant: "destructive" });
+                    return;
+                  }
                   
                   const emailResult = emailSchema.safeParse(newOwnerEmail);
                   if (!emailResult.success) {
@@ -849,6 +891,18 @@ export default function SystemAdmin() {
                   }
                   
                   try {
+                    // Update display name if changed
+                    if (trimmedDisplayName !== (editingOwner.username || '')) {
+                      const { error: nameError } = await supabase.functions.invoke('update-display-name', {
+                        body: { 
+                          target_user_id: editingOwner.id, 
+                          new_username: trimmedDisplayName 
+                        },
+                        headers: { Authorization: `Bearer ${accessToken}` },
+                      });
+                      if (nameError) throw nameError;
+                    }
+                    
                     // Update email if changed
                     if (newOwnerEmail !== editingOwner.email) {
                       const { error: emailError } = await supabase.functions.invoke('system-admin-update-email', {
@@ -867,18 +921,20 @@ export default function SystemAdmin() {
                       if (passError) throw passError;
                     }
                     
+                    queryClient.invalidateQueries({ queryKey: ['owners'] });
                     toast({ title: "Owner updated successfully" });
                     setEditOwnerDialogOpen(false);
                     setEditingOwner(null);
                     setNewOwnerEmail("");
                     setNewOwnerPassword("");
+                    setNewOwnerDisplayName("");
                   } catch (error: any) {
                     toast({ title: "Error updating owner", description: error.message, variant: "destructive" });
                   } finally {
                     setUpdatingOwner(false);
                   }
                 }} 
-                disabled={updatingOwner || !newOwnerEmail.trim()}
+                disabled={updatingOwner || !newOwnerEmail.trim() || newOwnerDisplayName.trim().length < 2}
               >
                 {updatingOwner ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Save
