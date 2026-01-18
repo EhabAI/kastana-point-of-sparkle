@@ -7,6 +7,21 @@ export default {
   shift_cash_match: "متطابق",
   calculating_expected_cash: "جارِ حساب النقد المتوقع...",
   failed_to_load_expected_cash: "فشل تحميل النقد المتوقع. يرجى المحاولة مرة أخرى.",
+  
+  // Cash Differences Card (Owner Dashboard)
+  cash_diff_title: "فروقات النقد – اليوم",
+  cash_diff_desc: "فروقات درج النقد من الورديات المغلقة",
+  cash_diff_closed_shifts: "الورديات المغلقة",
+  cash_diff_total: "إجمالي الفروقات",
+  cash_diff_username: "اسم المستخدم",
+  cash_diff_shift_id: "رقم الوردية",
+  cash_diff_expected: "النقد المتوقع",
+  cash_diff_actual: "النقد الفعلي",
+  cash_diff_difference: "فرق النقد",
+  cash_diff_tooltip: "الفرق بين النقد المتوقع والمُدخل عند إغلاق الوردية",
+  cash_diff_shortage: "نقص نقدي",
+  cash_diff_excess: "زيادة نقدية",
+  cash_diff_empty: "لا توجد فروقات نقد اليوم",
   // Menu page - phone & table
   menu_phone_label: "رقم الهاتف (اختياري)",
   menu_phone_placeholder: "+962 7XX XXX XXX",

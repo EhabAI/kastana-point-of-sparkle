@@ -7,6 +7,21 @@ export default {
   shift_cash_match: "Balanced",
   calculating_expected_cash: "Calculating expected cash...",
   failed_to_load_expected_cash: "Failed to load expected cash. Please try again.",
+  
+  // Cash Differences Card (Owner Dashboard)
+  cash_diff_title: "Cash Differences – Today",
+  cash_diff_desc: "Cash drawer variances from closed shifts",
+  cash_diff_closed_shifts: "Closed Shifts",
+  cash_diff_total: "Total Difference",
+  cash_diff_username: "Username",
+  cash_diff_shift_id: "Shift ID",
+  cash_diff_expected: "Expected Cash",
+  cash_diff_actual: "Actual Cash",
+  cash_diff_difference: "Cash Difference",
+  cash_diff_tooltip: "Difference between expected and entered cash when closing the shift",
+  cash_diff_shortage: "Cash Shortage",
+  cash_diff_excess: "Cash Excess",
+  cash_diff_empty: "No cash differences today",
   // Menu page - phone & table
   menu_phone_label: "Phone Number (Optional)",
   menu_phone_placeholder: "+962 7XX XXX XXX",

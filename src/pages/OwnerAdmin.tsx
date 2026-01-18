@@ -72,6 +72,7 @@ import { MenuLanguageGuidance } from "@/components/owner/MenuLanguageGuidance";
 import { InventoryDashboard } from "@/components/owner/InventoryDashboard";
 import { InventoryDisabledCard } from "@/components/owner/InventoryDisabledCard";
 import { DailySummaryCard } from "@/components/owner/DailySummaryCard";
+import { CashDifferencesCard } from "@/components/owner/CashDifferencesCard";
 import { SuggestedNextAction } from "@/components/owner/SuggestedNextAction";
 import { MistakePatternDetector } from "@/components/owner/MistakePatternDetector";
 
@@ -226,6 +227,7 @@ export default function OwnerAdmin() {
             {role === "owner" && (
               <div className="space-y-3">
                 <DailySummaryCard restaurantId={restaurant.id} currency={currency} />
+                <CashDifferencesCard restaurantId={restaurant.id} currency={currency} />
                 <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
                   <SuggestedNextAction restaurantId={restaurant.id} />
                   <ItemsWithoutRecipesCard restaurantId={restaurant.id} />
