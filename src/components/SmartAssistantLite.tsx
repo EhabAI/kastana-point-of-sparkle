@@ -660,7 +660,7 @@ function FullTrainingCTA({
 
 export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("suggestions");
+  const [activeTab, setActiveTab] = useState("help");
   const [alertsViewed, setAlertsViewed] = useState(false);
   const [suggestionsViewed, setSuggestionsViewed] = useState(false);
   const [lastAlertCount, setLastAlertCount] = useState(0);
@@ -974,9 +974,6 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
     handleQuickQuestion(trainingQuery);
   }, [language, handleQuickQuestion, handleExpandForTraining]);
 
-  // Badge visibility logic
-  const showAlertsBadge = (hasAnyAlerts) && !alertsViewed;
-  const showSuggestionsBadge = !suggestionsViewed; // Show dot for unread suggestions
 
   // Don't render if not visible on current route
   if (!state.isVisible) {
@@ -1175,82 +1172,8 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
               )}
             </div>
 
-            {/* Tabbed Content */}
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col min-h-0">
-              <TabsList className="mx-4 mt-3 grid w-auto grid-cols-2">
-                <TabsTrigger value="suggestions" className="flex items-center justify-center">
-                  <Lightbulb className="h-3.5 w-3.5 mr-1.5" />
-                  {language === "ar" ? "اقتراحات" : "Tips"}
-                  <TabBadge show={showSuggestionsBadge} variant="dot" />
-                </TabsTrigger>
-                <TabsTrigger value="help" className="flex items-center justify-center">
-                  <HelpCircle className="h-3.5 w-3.5 mr-1.5" />
-                  {language === "ar" ? "مساعدة" : "Help"}
-                </TabsTrigger>
-              </TabsList>
-
-              <ScrollArea className="flex-1">
-
-                {/* Suggestions Tab - Tips from Knowledge Base */}
-                <TabsContent value="suggestions" className="p-4 space-y-3 mt-0">
-                  {/* Full Training CTA */}
-                  <FullTrainingCTA 
-                    language={language} 
-                    onClick={handleStartFullTraining}
-                  />
-                  
-                  {/* Contextual tips */}
-                  <QuickTipCard
-                    tip={language === "ar" 
-                      ? "استخدم اختصارات لوحة المفاتيح: Enter للدفع، H للتعليق، Esc للإلغاء."
-                      : "Use keyboard shortcuts: Enter to pay, H to hold, Esc to cancel."
-                    }
-                  />
-                  <QuickTipCard
-                    tip={language === "ar" 
-                      ? "تحقق من الطلبات المعلقة بانتظام لتجنب تأخير الخدمة."
-                      : "Check held orders regularly to avoid service delays."
-                    }
-                  />
-                  <QuickTipCard
-                    tip={language === "ar" 
-                      ? "افتح الوردية قبل أي عملية بيع. الدفع لا يعمل بدون وردية مفتوحة."
-                      : "Open shift before any sale. Payment won't work without an open shift."
-                    }
-                  />
-                  <QuickTipCard
-                    tip={language === "ar" 
-                      ? "Void = قبل الدفع (لا يُسجل). Refund = بعد الدفع (يُسجل في التقارير)."
-                      : "Void = Before payment (not recorded). Refund = After payment (recorded in reports)."
-                    }
-                  />
-                  
-                  {/* Quick questions from KB */}
-                  <div className="pt-2 border-t">
-                    <p className="text-xs font-medium text-muted-foreground mb-2">
-                      {language === "ar" ? "أسئلة سريعة:" : "Quick questions:"}
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {quickRepliesFromKB.slice(0, 4).map((reply, idx) => (
-                        <Button
-                          key={idx}
-                          variant="outline"
-                          size="sm"
-                          className="text-[10px] h-7 px-2"
-                          onClick={() => handleQuickQuestion(reply)}
-                        >
-                          {reply}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                </TabsContent>
-
-                {/* Help Tab - Chat with Knowledge Base */}
-                <TabsContent 
-                  value="help" 
-                  className="mt-0 flex flex-col h-[calc(100vh-320px)]"
-                >
+            {/* Help Content - Direct without tabs */}
+            <div className="flex-1 flex flex-col min-h-0">
                   {/* Navigation Bar - Chat and Browse as equal modes */}
                   <div className="border-b px-3 py-2">
                     <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
@@ -1465,10 +1388,9 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                       </div>
                     </ScrollArea>
                   )}
-                </TabsContent>
-
-              </ScrollArea>
-            </Tabs>
+                </div>
+              </div>
+            </div>
           </>
         )}
         
