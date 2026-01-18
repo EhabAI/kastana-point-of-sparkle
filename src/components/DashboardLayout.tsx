@@ -59,7 +59,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
               <div className="hidden sm:block w-px h-5 bg-border/60 mx-1.5" />
               
               {/* User display name - role */}
-              <span className="text-xs text-muted-foreground hidden lg:block max-w-[200px] truncate capitalize">
+              <span className="text-xs text-muted-foreground hidden sm:block max-w-[200px] truncate capitalize">
                 {userDisplayLabel}
               </span>
               
