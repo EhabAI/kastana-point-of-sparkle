@@ -25,7 +25,8 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
     navigate('/login', { replace: true });
   };
 
-  const getRoleLabel = (r: string | null) => {
+  const getRoleLabel = (r: string | null): string => {
+    if (!r) return '';
     switch (r) {
       case 'owner':
         return 'Owner';
@@ -36,10 +37,11 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
       case 'system_admin':
         return 'System Admin';
       default:
-        return r?.replace('_', ' ') || '';
+        return r.replace('_', ' ');
     }
   };
-  const roleLabel = getRoleLabel(role);
+
+  const roleLabel = role ? getRoleLabel(role) : '';
 
   const { data: profileUsername } = useQuery({
     queryKey: ['profile_username', user?.id],
@@ -73,11 +75,11 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
 
             {/* CENTER – User Display (hidden on mobile) */}
             <div className="hidden md:flex items-center justify-center flex-1">
-              {profileUsername && roleLabel && (
+              {profileUsername && roleLabel ? (
                 <span className="text-sm font-medium text-foreground">
                   {profileUsername} – {roleLabel}
                 </span>
-              )}
+              ) : null}
             </div>
 
             {/* RIGHT – Actions Area */}
