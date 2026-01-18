@@ -19,7 +19,7 @@ interface IntentRequest {
 }
 
 interface IntentResponse {
-  intent: "report" | "training" | "explanation" | "example" | "follow_up" | "system_overview" | "unknown";
+  intent: "report" | "training" | "explanation" | "example" | "follow_up" | "system_overview" | "section_help" | "unknown";
   matchedEntryIds: string[];
   depth: "brief" | "detailed";
   reasoning: string;
@@ -61,7 +61,7 @@ You are NOT allowed to answer questions from your own knowledge. You can ONLY id
 
 Your job is to:
 1. Understand the user's question
-2. Identify the user's intent (report, training, explanation, example, follow_up, system_overview, unknown)
+2. Identify the user's intent (report, training, explanation, example, follow_up, system_overview, section_help, unknown)
 3. Find the most relevant knowledge entry IDs from the provided list
 4. Determine if user wants brief or detailed answer
 
@@ -74,12 +74,23 @@ IMPORTANT RULES:
 - If user asks for "مثال" / "example", intent is "example"
 - If user wants to learn the system step by step, intent is "training"
 
+CRITICAL - SECTION-LEVEL HELP:
+- If user asks about a SPECIFIC SECTION inside a screen (e.g., "الفروع في شاشة صاحب المطعم", "المخزون داخل شاشة صاحب المطعم", "اشرحلي الفروع", "القائمة في لوحة التحكم", "التقارير في شاشة المالك", "الإعدادات في شاشة صاحب المطعم"), intent is "section_help"
+- Owner Dashboard sections include: الفروع (branches), الإدارة/الموظفين (staff), القائمة/المنيو (menu), التقارير (reports), المخزون (inventory), الإعدادات (settings)
+- For section_help, match the specific section entry (e.g., section_owner_branches, section_owner_staff) NOT the parent screen entry (screen_owner_dashboard)
+- Examples of section_help queries:
+  * "اشرحلي الفروع في شاشة صاحب المطعم" → match section_owner_branches
+  * "كيف أستخدم التقارير في لوحة التحكم" → match section_owner_reports
+  * "اشرحلي المخزون داخل شاشة صاحب المطعم" → match section_owner_inventory
+  * "الإدارة في شاشة المالك" → match section_owner_staff
+- ONLY use screen entry (screen_owner_dashboard) if user asks about the ENTIRE screen without mentioning a specific section
+
 Knowledge Base Entries:
 ${knowledgeSummary}
 
 Respond ONLY with a valid JSON object in this exact format:
 {
-  "intent": "report" | "training" | "explanation" | "example" | "follow_up" | "system_overview" | "unknown",
+  "intent": "report" | "training" | "explanation" | "example" | "follow_up" | "system_overview" | "section_help" | "unknown",
   "matchedEntryIds": ["entry_id_1", "entry_id_2"],
   "depth": "brief" | "detailed",
   "reasoning": "Brief explanation of why you matched these entries"

@@ -430,7 +430,146 @@
       "metadata": {
         "feature_id": "screen_owner_dashboard",
         "affected_screens": ["Owner", "Admin", "Dashboard"],
-        "user_roles": ["owner"]
+        "user_roles": ["owner"],
+        "sections": ["branches", "staff", "menu", "reports", "inventory", "settings"]
+      }
+    },
+    "section_owner_branches": {
+      "id": "section_owner_branches",
+      "intent": ["section_help", "explain_section", "branches"],
+      "keywords": {
+        "ar": ["الفروع", "فروع", "فرع", "اشرحلي الفروع", "الفروع في شاشة صاحب المطعم", "الفروع داخل شاشة", "الفروع في لوحة التحكم", "ادارة الفروع"],
+        "en": ["branches", "branch", "branch management", "branches section", "branches in owner dashboard", "explain branches"]
+      },
+      "title": {
+        "ar": "قسم الفروع (Branches)",
+        "en": "Branches Section"
+      },
+      "content": {
+        "ar": "قسم الفروع في شاشة صاحب المطعم:\n\n🎯 الغرض:\nإدارة فروع المطعم المختلفة من مكان واحد.\n\n✅ ما يمكنك فعله:\n• إضافة فرع جديد (اسم، عنوان، رقم هاتف)\n• تعديل بيانات الفروع الحالية\n• تفعيل أو إيقاف فرع مؤقتاً\n• تعيين الفرع الافتراضي\n• ربط الموظفين بالفروع\n• مشاهدة حالة كل فرع (نشط/متوقف)\n\n📋 المعلومات المطلوبة للفرع:\n• اسم الفرع (مثال: الفرع الرئيسي)\n• كود الفرع (مثال: MAIN)\n• العنوان (اختياري)\n• رقم الهاتف (اختياري)\n\n⚠️ ملاحظات مهمة:\n• كل فرع له طاولات ومخزون منفصل\n• الكاشير يعمل على فرع واحد فقط\n• إيقاف الفرع يمنع العمل عليه\n• الفرع الافتراضي يُستخدم للتقارير العامة\n\n💡 نصائح:\n• سمّي الفروع بأسماء واضحة ومميزة\n• تأكد من تعيين موظفين لكل فرع\n• راجع تقارير كل فرع بشكل منفصل",
+        "en": "Branches Section in Owner Dashboard:\n\n🎯 Purpose:\nManage all restaurant branches from one place.\n\n✅ What You Can Do:\n• Add new branch (name, address, phone)\n• Edit existing branch details\n• Enable or disable a branch temporarily\n• Set default branch\n• Assign staff to branches\n• View each branch status (active/inactive)\n\n📋 Required Branch Information:\n• Branch name (e.g., Main Branch)\n• Branch code (e.g., MAIN)\n• Address (optional)\n• Phone number (optional)\n\n⚠️ Important Notes:\n• Each branch has separate tables and inventory\n• Cashier works on one branch only\n• Disabling branch prevents operations on it\n• Default branch is used for general reports\n\n💡 Tips:\n• Use clear, distinctive branch names\n• Ensure staff are assigned to each branch\n• Review reports for each branch separately"
+      },
+      "metadata": {
+        "feature_id": "section_owner_branches",
+        "affected_screens": ["Owner", "Admin"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_owner_dashboard",
+        "section_key": "branches"
+      }
+    },
+    "section_owner_staff": {
+      "id": "section_owner_staff",
+      "intent": ["section_help", "explain_section", "staff_management"],
+      "keywords": {
+        "ar": ["الإدارة", "الموظفين", "الموظفون", "إدارة الموظفين", "كاشيرات", "الكاشيرات", "المستخدمين", "اشرحلي الإدارة", "الإدارة في شاشة صاحب المطعم", "ادارة الموظفين", "اضافة كاشير"],
+        "en": ["staff", "staff management", "employees", "users", "cashiers", "staff section", "manage staff", "add cashier", "staff in owner dashboard"]
+      },
+      "title": {
+        "ar": "قسم الإدارة/الموظفين",
+        "en": "Staff Management Section"
+      },
+      "content": {
+        "ar": "قسم إدارة الموظفين في شاشة صاحب المطعم:\n\n🎯 الغرض:\nإدارة جميع مستخدمي النظام وصلاحياتهم.\n\n✅ ما يمكنك فعله:\n• إضافة كاشير جديد\n• إضافة موظف مطبخ (Kitchen)\n• تعديل بيانات الموظفين\n• تفعيل أو إيقاف حساب موظف\n• إعادة تعيين كلمة المرور\n• تعيين الموظف لفرع معين\n\n📋 أنواع الموظفين:\n• كاشير (Cashier): يدير الطلبات والدفع\n• طباخ (Kitchen): يرى شاشة المطبخ KDS\n\n⚠️ ملاحظات مهمة:\n• كل موظف يحتاج بريد إلكتروني فريد\n• الموظف المُوقف لا يستطيع الدخول للنظام\n• كلمة المرور الأولية يجب تغييرها بعد أول دخول\n• الكاشير مرتبط بفرع واحد فقط\n\n💡 نصائح:\n• استخدم أسماء واضحة للموظفين\n• راجع أداء الكاشيرات من التقارير\n• أوقف الحسابات غير المستخدمة لأمان النظام",
+        "en": "Staff Management Section in Owner Dashboard:\n\n🎯 Purpose:\nManage all system users and their permissions.\n\n✅ What You Can Do:\n• Add new cashier\n• Add kitchen staff\n• Edit employee details\n• Enable or disable employee account\n• Reset password\n• Assign employee to specific branch\n\n📋 Employee Types:\n• Cashier: Manages orders and payments\n• Kitchen: Views KDS (Kitchen Display System)\n\n⚠️ Important Notes:\n• Each employee needs a unique email\n• Disabled employee cannot access the system\n• Initial password should be changed after first login\n• Cashier is linked to one branch only\n\n💡 Tips:\n• Use clear employee names\n• Review cashier performance from reports\n• Disable unused accounts for system security"
+      },
+      "metadata": {
+        "feature_id": "section_owner_staff",
+        "affected_screens": ["Owner", "Admin"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_owner_dashboard",
+        "section_key": "staff"
+      }
+    },
+    "section_owner_menu": {
+      "id": "section_owner_menu",
+      "intent": ["section_help", "explain_section", "menu_management"],
+      "keywords": {
+        "ar": ["القائمة", "المنيو", "الأصناف", "إدارة القائمة", "اشرحلي القائمة", "القائمة في شاشة صاحب المطعم", "تعديل الأصناف", "اضافة صنف", "ادارة المنيو"],
+        "en": ["menu", "menu management", "items", "menu items", "menu section", "manage menu", "add item", "menu in owner dashboard"]
+      },
+      "title": {
+        "ar": "قسم إدارة القائمة",
+        "en": "Menu Management Section"
+      },
+      "content": {
+        "ar": "قسم إدارة القائمة في شاشة صاحب المطعم:\n\n🎯 الغرض:\nإدارة جميع الأصناف والفئات والأسعار.\n\n✅ ما يمكنك فعله:\n• إضافة فئات جديدة (مثل: مشروبات، وجبات رئيسية)\n• إضافة أصناف جديدة للقائمة\n• تعديل الأسعار\n• تفعيل أو إيقاف صنف\n• ترتيب الأصناف والفئات\n• إضافة وصف للصنف\n• إنشاء كومبو (مجموعات)\n• ربط الأصناف بوصفات المخزون\n\n📋 معلومات الصنف:\n• اسم الصنف\n• السعر الأساسي\n• الفئة\n• متوفر/غير متوفر\n• صنف مفضل (يظهر في المفضلات)\n\n⚠️ ملاحظات مهمة:\n• تغييرات الأسعار تظهر فوراً للكاشير\n• إيقاف صنف يمنع بيعه من POS\n• الوصفة مهمة للخصم التلقائي من المخزون\n\n💡 نصائح:\n• رتب الفئات حسب الأكثر طلباً\n• استخدم صور واضحة للأصناف\n• حدّث الأسعار بانتظام",
+        "en": "Menu Management Section in Owner Dashboard:\n\n🎯 Purpose:\nManage all items, categories, and prices.\n\n✅ What You Can Do:\n• Add new categories (e.g., Drinks, Main Courses)\n• Add new menu items\n• Edit prices\n• Enable or disable items\n• Sort items and categories\n• Add item descriptions\n• Create combos\n• Link items to inventory recipes\n\n📋 Item Information:\n• Item name\n• Base price\n• Category\n• Available/Unavailable\n• Favorite item (shows in favorites)\n\n⚠️ Important Notes:\n• Price changes appear immediately for cashier\n• Disabling item prevents selling from POS\n• Recipe is important for auto inventory deduction\n\n💡 Tips:\n• Sort categories by most ordered\n• Use clear item images\n• Update prices regularly"
+      },
+      "metadata": {
+        "feature_id": "section_owner_menu",
+        "affected_screens": ["Owner", "Menu"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_owner_dashboard",
+        "section_key": "menu"
+      }
+    },
+    "section_owner_reports": {
+      "id": "section_owner_reports",
+      "intent": ["section_help", "explain_section", "reports_section"],
+      "keywords": {
+        "ar": ["التقارير", "تقارير", "اشرحلي التقارير", "التقارير في شاشة صاحب المطعم", "التقارير في لوحة التحكم", "قسم التقارير", "ادارة التقارير"],
+        "en": ["reports", "reports section", "reporting", "reports in owner dashboard", "explain reports section", "analytics"]
+      },
+      "title": {
+        "ar": "قسم التقارير",
+        "en": "Reports Section"
+      },
+      "content": {
+        "ar": "قسم التقارير في شاشة صاحب المطعم:\n\n🎯 الغرض:\nعرض تقارير تفصيلية لمتابعة أداء المطعم.\n\n📋 التقارير المتوفرة:\n• تقارير الطلبات: عدد الطلبات، متوسط القيمة، الأكثر مبيعاً\n• التقارير المالية: المبيعات، الإيرادات، المرتجعات\n• تقارير المخزون: الحركات، الفروقات، المواد الناقصة\n• تقارير الموظفين: أداء الكاشيرات، فروقات الكاش\n• تقارير الفروع: مقارنة أداء الفروع\n• التقارير التشغيلية: أوقات الذروة، أكثر الأصناف طلباً\n\n✅ ما يمكنك فعله:\n• تحديد نطاق التاريخ (يوم، أسبوع، شهر، مخصص)\n• فلترة حسب الفرع\n• تصدير التقارير\n• مقارنة فترات مختلفة\n• عرض رسوم بيانية\n\n⚠️ ملاحظات مهمة:\n• التقارير تعتمد على الطلبات المدفوعة فقط\n• تقرير Z يُنشأ عند إغلاق كل وردية\n• فروقات الكاش تظهر إذا وُجد اختلاف\n\n💡 نصائح:\n• راجع التقارير يومياً\n• قارن أداء الفروع أسبوعياً\n• تابع فروقات الكاش فوراً",
+        "en": "Reports Section in Owner Dashboard:\n\n🎯 Purpose:\nView detailed reports to monitor restaurant performance.\n\n📋 Available Reports:\n• Order Reports: Order count, average value, best sellers\n• Financial Reports: Sales, revenue, refunds\n• Inventory Reports: Movements, variances, low stock\n• Staff Reports: Cashier performance, cash differences\n• Branch Reports: Branch performance comparison\n• Operations Reports: Peak hours, most ordered items\n\n✅ What You Can Do:\n• Set date range (day, week, month, custom)\n• Filter by branch\n• Export reports\n• Compare different periods\n• View charts and graphs\n\n⚠️ Important Notes:\n• Reports are based on paid orders only\n• Z Report is generated when closing each shift\n• Cash differences appear if discrepancy exists\n\n💡 Tips:\n• Review reports daily\n• Compare branch performance weekly\n• Address cash differences immediately"
+      },
+      "metadata": {
+        "feature_id": "section_owner_reports",
+        "affected_screens": ["Owner", "Reports"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_owner_dashboard",
+        "section_key": "reports"
+      }
+    },
+    "section_owner_inventory": {
+      "id": "section_owner_inventory",
+      "intent": ["section_help", "explain_section", "inventory_section"],
+      "keywords": {
+        "ar": ["المخزون", "مخزون", "اشرحلي المخزون", "المخزون في شاشة صاحب المطعم", "المخزون داخل شاشة صاحب المطعم", "المخزون في لوحة التحكم", "قسم المخزون", "ادارة المخزون"],
+        "en": ["inventory", "inventory section", "stock", "inventory in owner dashboard", "explain inventory section", "manage inventory"]
+      },
+      "title": {
+        "ar": "قسم المخزون",
+        "en": "Inventory Section"
+      },
+      "content": {
+        "ar": "قسم المخزون في شاشة صاحب المطعم:\n\n🎯 الغرض:\nإدارة المواد الخام ومتابعة الكميات والوصفات.\n\n✅ ما يمكنك فعله:\n• إضافة مواد جديدة للمخزون\n• تحديد وحدات القياس (كيلو، جرام، لتر، قطعة)\n• تعيين حد أدنى للتنبيه\n• استلام مشتريات\n• تسجيل هدر\n• نقل بين الفروع\n• إجراء جرد\n• إنشاء وصفات للأصناف\n• مراجعة الفروقات\n\n📋 عمليات المخزون:\n• استلام (Purchase Receipt): إضافة مشتريات\n• هدر (Waste): تسجيل التالف والمفقود\n• نقل (Transfer): بين الفروع\n• تعديل (Adjustment): تصحيح الكميات\n• جرد (Stock Count): مطابقة الفعلي بالنظري\n\n⚠️ ملاحظات مهمة:\n• يجب تفعيل المخزون من الإعدادات أولاً\n• الخصم التلقائي يعتمد على الوصفات\n• الفروقات الكبيرة تحتاج مراجعة\n\n💡 نصائح:\n• أنشئ وصفات لجميع الأصناف\n• راجع الكميات الناقصة يومياً\n• أجرِ جرد دوري أسبوعي أو شهري",
+        "en": "Inventory Section in Owner Dashboard:\n\n🎯 Purpose:\nManage raw materials, track quantities, and recipes.\n\n✅ What You Can Do:\n• Add new inventory items\n• Set units of measure (kg, gram, liter, piece)\n• Set minimum level for alerts\n• Receive purchases\n• Record waste\n• Transfer between branches\n• Conduct stock count\n• Create item recipes\n• Review variances\n\n📋 Inventory Operations:\n• Purchase Receipt: Add purchases\n• Waste: Record damaged/lost items\n• Transfer: Between branches\n• Adjustment: Correct quantities\n• Stock Count: Match actual vs theoretical\n\n⚠️ Important Notes:\n• Must enable inventory in settings first\n• Auto deduction depends on recipes\n• Large variances need review\n\n💡 Tips:\n• Create recipes for all items\n• Review low stock daily\n• Conduct weekly or monthly stock counts"
+      },
+      "metadata": {
+        "feature_id": "section_owner_inventory",
+        "affected_screens": ["Owner", "Inventory"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_owner_dashboard",
+        "section_key": "inventory"
+      }
+    },
+    "section_owner_settings": {
+      "id": "section_owner_settings",
+      "intent": ["section_help", "explain_section", "settings_section"],
+      "keywords": {
+        "ar": ["الإعدادات", "اعدادات", "اشرحلي الإعدادات", "الإعدادات في شاشة صاحب المطعم", "الإعدادات في لوحة التحكم", "قسم الإعدادات", "ادارة الاعدادات", "ضبط النظام"],
+        "en": ["settings", "settings section", "configuration", "settings in owner dashboard", "explain settings section", "system settings"]
+      },
+      "title": {
+        "ar": "قسم الإعدادات",
+        "en": "Settings Section"
+      },
+      "content": {
+        "ar": "قسم الإعدادات في شاشة صاحب المطعم:\n\n🎯 الغرض:\nضبط إعدادات النظام العامة وتخصيصها.\n\n📋 الإعدادات المتوفرة:\n• الضرائب: تحديد نسبة الضريبة وطريقة الحساب\n• رسوم الخدمة: تفعيل وتحديد النسبة\n• الخصومات: تفعيل/إيقاف، الحد الأقصى، النوع الافتراضي\n• طرق الدفع: تفعيل/إيقاف (نقد، فيزا، ماستركارد، محفظة)\n• المخزون: تفعيل/إيقاف نظام المخزون\n• شاشة المطبخ KDS: تفعيل/إيقاف\n• التقريب: تفعيل تقريب المبالغ\n• العملة: تحديد العملة المستخدمة\n\n✅ ما يمكنك فعله:\n• تعديل نسبة الضريبة\n• اختيار طرق الدفع المتاحة\n• تفعيل أو إيقاف الميزات الإضافية\n• ضبط إعدادات الخصم\n\n⚠️ ملاحظات مهمة:\n• تغييرات الإعدادات تطبق فوراً\n• الضريبة تُحسب على جميع الطلبات الجديدة\n• إيقاف المخزون لا يحذف البيانات\n\n💡 نصائح:\n• راجع الإعدادات عند بداية العمل\n• تأكد من تفعيل طرق الدفع المناسبة\n• فعّل KDS إذا كان لديك مطبخ منفصل",
+        "en": "Settings Section in Owner Dashboard:\n\n🎯 Purpose:\nConfigure system settings and customization.\n\n📋 Available Settings:\n• Taxes: Set tax rate and calculation method\n• Service Charge: Enable and set percentage\n• Discounts: Enable/disable, max limit, default type\n• Payment Methods: Enable/disable (Cash, Visa, Mastercard, Wallet)\n• Inventory: Enable/disable inventory system\n• Kitchen Display KDS: Enable/disable\n• Rounding: Enable amount rounding\n• Currency: Set currency used\n\n✅ What You Can Do:\n• Modify tax rate\n• Choose available payment methods\n• Enable or disable additional features\n• Configure discount settings\n\n⚠️ Important Notes:\n• Settings changes apply immediately\n• Tax calculated on all new orders\n• Disabling inventory doesn't delete data\n\n💡 Tips:\n• Review settings when starting\n• Ensure appropriate payment methods are enabled\n• Enable KDS if you have a separate kitchen"
+      },
+      "metadata": {
+        "feature_id": "section_owner_settings",
+        "affected_screens": ["Owner", "Settings"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_owner_dashboard",
+        "section_key": "settings"
       }
     },
     "screen_cashier_pos": {
