@@ -829,7 +829,7 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
   // Chat state
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
-  const [showChat, setShowChat] = useState(false);
+  const [showChat, setShowChat] = useState(true);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   
   // Content mode state for browse readability
