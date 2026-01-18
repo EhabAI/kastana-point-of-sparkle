@@ -718,6 +718,535 @@
         "affected_screens": ["KDS", "Kitchen"],
         "user_roles": ["kitchen", "owner"]
       }
+    },
+    "section_pos_new_order": {
+      "id": "section_pos_new_order",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["طلب جديد", "طلب جديد في شاشة الكاشير", "اشرحلي طلب جديد", "فتح طلب", "إنشاء طلب", "طلب جديد في POS"],
+        "en": ["new order", "new order in pos", "explain new order", "create order", "open order", "new order section"]
+      },
+      "title": {
+        "ar": "قسم طلب جديد",
+        "en": "New Order Section"
+      },
+      "content": {
+        "ar": "قسم طلب جديد في شاشة الكاشير:\n\n🎯 الغرض:\nإنشاء طلبات جديدة للعملاء.\n\n✅ ما يمكنك فعله:\n• اختيار نوع الطلب (سفري أو صالة)\n• تحديد الطاولة لطلبات الصالة\n• إضافة أصناف من القائمة\n• تعديل الكميات والملاحظات\n• اختيار التعديلات (Modifiers)\n\n📋 أنواع الطلبات:\n• سفري (Takeaway): طلب للخارج\n• صالة (Dine-in): طلب على طاولة\n\n⚠️ ملاحظات مهمة:\n• يجب فتح وردية أولاً\n• الطلب يبقى مفتوحاً حتى الدفع\n• يمكن تعليق الطلب لاستكماله لاحقاً\n\n💡 نصائح:\n• تأكد من اختيار النوع الصحيح\n• راجع الطلب قبل الدفع\n• استخدم المفضلة للأصناف الشائعة",
+        "en": "New Order Section in Cashier POS:\n\n🎯 Purpose:\nCreate new orders for customers.\n\n✅ What You Can Do:\n• Select order type (takeaway or dine-in)\n• Choose table for dine-in orders\n• Add items from menu\n• Adjust quantities and notes\n• Select modifiers\n\n📋 Order Types:\n• Takeaway: Order to go\n• Dine-in: Order at table\n\n⚠️ Important Notes:\n• Must open shift first\n• Order stays open until payment\n• Can hold order to complete later\n\n💡 Tips:\n• Make sure to select correct type\n• Review order before payment\n• Use favorites for common items"
+      },
+      "metadata": {
+        "feature_id": "section_pos_new_order",
+        "affected_screens": ["POS"],
+        "user_roles": ["cashier", "owner"],
+        "parent_screen": "screen_cashier_pos",
+        "section_key": "new_order"
+      }
+    },
+    "section_pos_open_orders": {
+      "id": "section_pos_open_orders",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["الطلبات المفتوحة", "الطلبات الجارية", "اشرحلي الطلبات المفتوحة", "قائمة الطلبات", "الطلبات المفتوحة في شاشة الكاشير"],
+        "en": ["open orders", "current orders", "explain open orders", "orders list", "open orders in pos"]
+      },
+      "title": {
+        "ar": "قسم الطلبات المفتوحة",
+        "en": "Open Orders Section"
+      },
+      "content": {
+        "ar": "قسم الطلبات المفتوحة في شاشة الكاشير:\n\n🎯 الغرض:\nعرض وإدارة جميع الطلبات قيد التنفيذ.\n\n✅ ما يمكنك فعله:\n• عرض جميع الطلبات غير المدفوعة\n• الانتقال لتعديل أي طلب\n• متابعة حالة كل طلب\n• إتمام الدفع مباشرة\n\n📋 حالات الطلبات:\n• OPEN: طلب مفتوح قابل للتعديل\n• ON_HOLD: طلب معلق مؤقتاً\n\n⚠️ ملاحظات مهمة:\n• الطلبات المعلقة تظهر بلون مختلف\n• يجب إغلاق الطلبات قبل إغلاق الوردية\n• الطلبات تُرتب حسب وقت الإنشاء\n\n💡 نصائح:\n• راجع الطلبات المفتوحة بانتظام\n• أنهِ الطلبات القديمة أولاً\n• استخدم البحث للطلبات الكثيرة",
+        "en": "Open Orders Section in Cashier POS:\n\n🎯 Purpose:\nView and manage all orders in progress.\n\n✅ What You Can Do:\n• View all unpaid orders\n• Switch to edit any order\n• Track each order status\n• Complete payment directly\n\n📋 Order States:\n• OPEN: Order can be modified\n• ON_HOLD: Order temporarily held\n\n⚠️ Important Notes:\n• Held orders appear in different color\n• Must close orders before closing shift\n• Orders sorted by creation time\n\n💡 Tips:\n• Review open orders regularly\n• Complete older orders first\n• Use search for many orders"
+      },
+      "metadata": {
+        "feature_id": "section_pos_open_orders",
+        "affected_screens": ["POS"],
+        "user_roles": ["cashier", "owner"],
+        "parent_screen": "screen_cashier_pos",
+        "section_key": "open_orders"
+      }
+    },
+    "section_pos_tables": {
+      "id": "section_pos_tables",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["الطاولات في شاشة الكاشير", "تبويب الطاولات", "اشرحلي الطاولات في POS", "الطاولات في نقطة البيع"],
+        "en": ["tables in pos", "tables tab", "explain tables in pos", "tables in cashier screen"]
+      },
+      "title": {
+        "ar": "قسم الطاولات في الكاشير",
+        "en": "Tables Section in POS"
+      },
+      "content": {
+        "ar": "قسم الطاولات في شاشة الكاشير:\n\n🎯 الغرض:\nالوصول السريع للطاولات وإدارة طلباتها.\n\n✅ ما يمكنك فعله:\n• عرض جميع الطاولات وحالتها\n• فتح طلب جديد على طاولة فارغة\n• الانتقال لطلب طاولة مشغولة\n• نقل طلب بين الطاولات\n• دمج طلبات طاولتين\n\n🎨 دلالات الألوان:\n• أخضر: طاولة فارغة\n• برتقالي/أحمر: طاولة مشغولة\n• رمادي: طاولة معطلة\n\n⚠️ ملاحظات مهمة:\n• الطاولات تُعرّف من إعدادات المالك\n• النقل والدمج يُسجل في Audit Log\n• يمكن إيقاف طاولة مؤقتاً من الإعدادات\n\n💡 نصائح:\n• استخدم الألوان لمعرفة الحالة بسرعة\n• دمج الطلبات يوفر الوقت\n• تأكد من الطاولة الصحيحة قبل الدمج",
+        "en": "Tables Section in Cashier POS:\n\n🎯 Purpose:\nQuick access to tables and manage their orders.\n\n✅ What You Can Do:\n• View all tables and their status\n• Open new order on empty table\n• Switch to occupied table order\n• Transfer order between tables\n• Merge orders from two tables\n\n🎨 Color Meanings:\n• Green: Empty table\n• Orange/Red: Occupied table\n• Gray: Disabled table\n\n⚠️ Important Notes:\n• Tables are defined in owner settings\n• Transfers and merges recorded in Audit Log\n• Can temporarily disable table in settings\n\n💡 Tips:\n• Use colors to quickly see status\n• Merging orders saves time\n• Verify correct table before merging"
+      },
+      "metadata": {
+        "feature_id": "section_pos_tables",
+        "affected_screens": ["POS", "Tables"],
+        "user_roles": ["cashier", "owner"],
+        "parent_screen": "screen_cashier_pos",
+        "section_key": "tables"
+      }
+    },
+    "section_pos_favorites": {
+      "id": "section_pos_favorites",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["المفضلة", "الأصناف المفضلة", "اشرحلي المفضلة", "المفضلة في شاشة الكاشير", "المفضلة في POS"],
+        "en": ["favorites", "favorite items", "explain favorites", "favorites in pos", "favorites section"]
+      },
+      "title": {
+        "ar": "قسم المفضلة",
+        "en": "Favorites Section"
+      },
+      "content": {
+        "ar": "قسم المفضلة في شاشة الكاشير:\n\n🎯 الغرض:\nالوصول السريع للأصناف الأكثر طلباً.\n\n✅ ما يمكنك فعله:\n• عرض الأصناف المفضلة\n• إضافة صنف للطلب بضغطة واحدة\n• توفير الوقت في الطلبات المتكررة\n\n📋 كيفية إضافة صنف للمفضلة:\n• من إعدادات المالك → القائمة\n• اختر الصنف وفعّل \"مفضل\"\n• الصنف يظهر تلقائياً في قسم المفضلة\n\n⚠️ ملاحظات مهمة:\n• المفضلة يُديرها المالك\n• الأصناف المعطلة لا تظهر\n• ترتيب المفضلة حسب الاستخدام\n\n💡 نصائح:\n• أضف الأصناف الأكثر طلباً للمفضلة\n• راجع المفضلة دورياً\n• استخدمها لتسريع الخدمة",
+        "en": "Favorites Section in Cashier POS:\n\n🎯 Purpose:\nQuick access to most ordered items.\n\n✅ What You Can Do:\n• View favorite items\n• Add item to order with one click\n• Save time on recurring orders\n\n📋 How to Add Item to Favorites:\n• From owner settings → Menu\n• Select item and enable \"favorite\"\n• Item appears automatically in favorites\n\n⚠️ Important Notes:\n• Favorites managed by owner\n• Disabled items don't appear\n• Favorites sorted by usage\n\n💡 Tips:\n• Add most ordered items to favorites\n• Review favorites periodically\n• Use to speed up service"
+      },
+      "metadata": {
+        "feature_id": "section_pos_favorites",
+        "affected_screens": ["POS"],
+        "user_roles": ["cashier", "owner"],
+        "parent_screen": "screen_cashier_pos",
+        "section_key": "favorites"
+      }
+    },
+    "section_pos_payment": {
+      "id": "section_pos_payment",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["الدفع", "الدفع في شاشة الكاشير", "اشرحلي الدفع", "إتمام الدفع", "طرق الدفع في POS", "الدفع في نقطة البيع"],
+        "en": ["payment", "payment in pos", "explain payment", "complete payment", "payment methods", "checkout"]
+      },
+      "title": {
+        "ar": "قسم الدفع",
+        "en": "Payment Section"
+      },
+      "content": {
+        "ar": "قسم الدفع في شاشة الكاشير:\n\n🎯 الغرض:\nإتمام عمليات الدفع وإغلاق الطلبات.\n\n✅ ما يمكنك فعله:\n• اختيار طريقة الدفع\n• إدخال المبلغ المستلم (للنقد)\n• حساب الباقي تلقائياً\n• تطبيق خصم قبل الدفع\n• طباعة الإيصال\n\n📋 طرق الدفع المتاحة:\n• نقد (Cash): مع حساب الباقي\n• فيزا (Visa): بالبطاقة\n• ماستركارد (Mastercard): بالبطاقة\n• محفظة (Wallet): دفع إلكتروني\n\n⚠️ ملاحظات مهمة:\n• بعد الدفع الطلب يصبح CLOSED\n• يُخصم المخزون تلقائياً (إذا فُعّل)\n• الدفع يظهر فوراً في التقارير\n• لا يمكن التعديل بعد الدفع\n\n💡 نصائح:\n• تأكد من المبلغ قبل التأكيد\n• استخدم الآلة الحاسبة للباقي\n• اطبع الإيصال للعميل",
+        "en": "Payment Section in Cashier POS:\n\n🎯 Purpose:\nComplete payments and close orders.\n\n✅ What You Can Do:\n• Select payment method\n• Enter received amount (for cash)\n• Auto-calculate change\n• Apply discount before payment\n• Print receipt\n\n📋 Available Payment Methods:\n• Cash: With change calculation\n• Visa: Card payment\n• Mastercard: Card payment\n• Wallet: Electronic payment\n\n⚠️ Important Notes:\n• After payment order becomes CLOSED\n• Inventory auto-deducted (if enabled)\n• Payment appears immediately in reports\n• Cannot modify after payment\n\n💡 Tips:\n• Verify amount before confirming\n• Use calculator for change\n• Print receipt for customer"
+      },
+      "metadata": {
+        "feature_id": "section_pos_payment",
+        "affected_screens": ["POS"],
+        "user_roles": ["cashier", "owner"],
+        "parent_screen": "screen_cashier_pos",
+        "section_key": "payment"
+      }
+    },
+    "section_pos_void_refund": {
+      "id": "section_pos_void_refund",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["الإلغاء", "المرتجع", "void", "refund", "إلغاء صنف", "إلغاء في شاشة الكاشير", "مرتجع في شاشة الكاشير", "اشرحلي الإلغاء", "اشرحلي المرتجع"],
+        "en": ["void", "refund", "cancel item", "void in pos", "refund in pos", "explain void", "explain refund"]
+      },
+      "title": {
+        "ar": "قسم الإلغاء والمرتجعات",
+        "en": "Void and Refund Section"
+      },
+      "content": {
+        "ar": "قسم الإلغاء والمرتجعات في شاشة الكاشير:\n\n🎯 الغرض:\nإلغاء الأصناف أو الطلبات ومعالجة المرتجعات.\n\n📋 الفرق بين Void و Refund:\n• Void (إلغاء): قبل الدفع - لا يؤثر مالياً\n• Refund (مرتجع): بعد الدفع - يُخصم من المبيعات\n\n✅ ما يمكنك فعله:\n• إلغاء صنف من الطلب (Void Item)\n• إلغاء طلب كامل (Void Order)\n• عمل مرتجع لطلب مدفوع (Refund)\n• تحديد سبب الإلغاء/المرتجع\n\n⚠️ ملاحظات مهمة:\n• كل عملية تُسجل في Audit Log\n• المرتجع يظهر في تقرير Z\n• المرتجع يؤثر على الكاش المتوقع\n• يجب تحديد السبب دائماً\n\n💡 نصائح:\n• استخدم Void للأخطاء قبل الدفع\n• استخدم Refund بعد الدفع فقط\n• وثّق السبب بوضوح\n• راجع سجل الإلغاءات دورياً",
+        "en": "Void and Refund Section in Cashier POS:\n\n🎯 Purpose:\nCancel items or orders and process refunds.\n\n📋 Difference Between Void and Refund:\n• Void: Before payment - No financial impact\n• Refund: After payment - Deducted from sales\n\n✅ What You Can Do:\n• Void item from order\n• Void entire order\n• Refund paid order\n• Specify void/refund reason\n\n⚠️ Important Notes:\n• Every action recorded in Audit Log\n• Refund appears in Z Report\n• Refund affects expected cash\n• Must always specify reason\n\n💡 Tips:\n• Use Void for errors before payment\n• Use Refund only after payment\n• Document reason clearly\n• Review cancellation log periodically"
+      },
+      "metadata": {
+        "feature_id": "section_pos_void_refund",
+        "affected_screens": ["POS"],
+        "user_roles": ["cashier", "owner"],
+        "parent_screen": "screen_cashier_pos",
+        "section_key": "void_refund"
+      }
+    },
+    "section_pos_qr_pending": {
+      "id": "section_pos_qr_pending",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["طلبات QR المعلقة", "QR pending", "الطلبات المعلقة في الكاشير", "اشرحلي طلبات QR", "كيو آر في شاشة الكاشير"],
+        "en": ["qr pending orders", "qr orders in pos", "pending qr", "explain qr pending", "qr section in pos"]
+      },
+      "title": {
+        "ar": "قسم طلبات QR المعلقة",
+        "en": "QR Pending Orders Section"
+      },
+      "content": {
+        "ar": "قسم طلبات QR المعلقة في شاشة الكاشير:\n\n🎯 الغرض:\nإدارة الطلبات الواردة من العملاء عبر QR.\n\n✅ ما يمكنك فعله:\n• عرض الطلبات المعلقة من QR\n• مراجعة تفاصيل كل طلب\n• قبول الطلب ونقله للطلبات المفتوحة\n• رفض الطلب مع تحديد السبب\n\n🔄 سير العمل:\n1. العميل يمسح QR على الطاولة\n2. يختار الأصناف ويرسل الطلب\n3. الطلب يظهر هنا كـ \"معلق\"\n4. تقبل أو ترفض الطلب\n5. بعد القبول يصبح طلب عادي\n\n⚠️ ملاحظات مهمة:\n• الطلب المعلق لا يُحسب مالياً\n• يجب مراجعة الطلبات بانتظام\n• QR مرتبط بطاولة محددة\n• الرفض يُبلغ العميل\n\n💡 نصائح:\n• راجع الطلبات فور وصولها\n• تأكد من توفر الأصناف\n• استخدم الرفض للطلبات غير الواضحة",
+        "en": "QR Pending Orders Section in Cashier POS:\n\n🎯 Purpose:\nManage orders from customers via QR.\n\n✅ What You Can Do:\n• View pending QR orders\n• Review each order details\n• Accept order and move to open orders\n• Reject order with reason\n\n🔄 Workflow:\n1. Customer scans QR on table\n2. Selects items and submits order\n3. Order appears here as \"pending\"\n4. Accept or reject the order\n5. After acceptance becomes normal order\n\n⚠️ Important Notes:\n• Pending order not counted financially\n• Must review orders regularly\n• QR linked to specific table\n• Rejection notifies customer\n\n💡 Tips:\n• Review orders as they arrive\n• Verify item availability\n• Use rejection for unclear orders"
+      },
+      "metadata": {
+        "feature_id": "section_pos_qr_pending",
+        "affected_screens": ["POS", "QR"],
+        "user_roles": ["cashier", "owner"],
+        "parent_screen": "screen_cashier_pos",
+        "section_key": "qr_pending"
+      }
+    },
+    "section_tables_status": {
+      "id": "section_tables_status",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["حالة الطاولات", "ألوان الطاولات", "اشرحلي حالة الطاولات", "حالة الطاولات في شاشة الطاولات"],
+        "en": ["table status", "table colors", "explain table status", "table status in tables screen"]
+      },
+      "title": {
+        "ar": "قسم حالة الطاولات",
+        "en": "Table Status Section"
+      },
+      "content": {
+        "ar": "قسم حالة الطاولات في شاشة الطاولات:\n\n🎯 الغرض:\nمعرفة حالة كل طاولة بنظرة سريعة.\n\n🎨 دلالات الألوان:\n• أخضر: طاولة فارغة ومتاحة للعملاء الجدد\n• برتقالي: طاولة مشغولة بطلب مفتوح\n• أحمر: طاولة بطلب مفتوح منذ فترة طويلة\n• رمادي: طاولة معطلة غير متاحة\n\n✅ ما يمكنك فعله:\n• عرض حالة جميع الطاولات\n• معرفة الطاولات المتاحة بسرعة\n• تحديد الطاولات المشغولة\n• الانتقال لتفاصيل أي طاولة\n\n⚠️ ملاحظات مهمة:\n• الألوان تتحدث تلقائياً\n• الطاولات المعطلة لا تقبل طلبات\n• يمكن إعادة تفعيل الطاولة من الإعدادات\n\n💡 نصائح:\n• استخدم الألوان لإدارة الصالة\n• تابع الطاولات الحمراء فوراً\n• راجع الطاولات المعطلة دورياً",
+        "en": "Table Status Section in Tables Screen:\n\n🎯 Purpose:\nKnow each table status at a glance.\n\n🎨 Color Meanings:\n• Green: Empty table available for new customers\n• Orange: Occupied with open order\n• Red: Occupied with order for long time\n• Gray: Disabled table not available\n\n✅ What You Can Do:\n• View status of all tables\n• Quickly find available tables\n• Identify occupied tables\n• Navigate to any table details\n\n⚠️ Important Notes:\n• Colors update automatically\n• Disabled tables don't accept orders\n• Can re-enable table from settings\n\n💡 Tips:\n• Use colors to manage floor\n• Address red tables immediately\n• Review disabled tables periodically"
+      },
+      "metadata": {
+        "feature_id": "section_tables_status",
+        "affected_screens": ["Tables"],
+        "user_roles": ["cashier", "owner"],
+        "parent_screen": "screen_tables",
+        "section_key": "table_status"
+      }
+    },
+    "section_tables_merge": {
+      "id": "section_tables_merge",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["دمج الطلبات", "دمج طاولات", "اشرحلي دمج الطلبات", "دمج في شاشة الطاولات", "merge orders"],
+        "en": ["merge orders", "merge tables", "explain merge", "merge in tables screen", "combine orders"]
+      },
+      "title": {
+        "ar": "قسم دمج الطلبات",
+        "en": "Merge Orders Section"
+      },
+      "content": {
+        "ar": "قسم دمج الطلبات في شاشة الطاولات:\n\n🎯 الغرض:\nجمع طلبات طاولتين في طلب واحد.\n\n✅ ما يمكنك فعله:\n• اختيار الطاولة الأولى (المصدر)\n• اختيار الطاولة الثانية (الهدف)\n• دمج جميع الأصناف في طلب واحد\n• إغلاق الطاولة المصدر تلقائياً\n\n📋 آلية الدمج:\n1. اختر طاولة مشغولة\n2. اضغط \"دمج\"\n3. اختر الطاولة الهدف\n4. تأكيد الدمج\n5. الأصناف تنتقل للطاولة الهدف\n\n⚠️ ملاحظات مهمة:\n• يُحتفظ بالطلب الأقدم\n• الدمج يُسجل في Audit Log\n• لا يمكن التراجع عن الدمج\n• الطلبات المعلقة لا تُدمج\n\n💡 نصائح:\n• تأكد من موافقة العميل\n• ادمج قبل الدفع فقط\n• استخدمه لتوحيد حسابات مجموعة",
+        "en": "Merge Orders Section in Tables Screen:\n\n🎯 Purpose:\nCombine orders from two tables into one.\n\n✅ What You Can Do:\n• Select first table (source)\n• Select second table (target)\n• Merge all items into one order\n• Source table closes automatically\n\n📋 Merge Process:\n1. Select occupied table\n2. Click \"Merge\"\n3. Select target table\n4. Confirm merge\n5. Items move to target table\n\n⚠️ Important Notes:\n• Older order is preserved\n• Merge recorded in Audit Log\n• Cannot undo merge\n• Held orders cannot be merged\n\n💡 Tips:\n• Ensure customer agreement\n• Only merge before payment\n• Use to unify group bills"
+      },
+      "metadata": {
+        "feature_id": "section_tables_merge",
+        "affected_screens": ["Tables"],
+        "user_roles": ["cashier", "owner"],
+        "parent_screen": "screen_tables",
+        "section_key": "merge"
+      }
+    },
+    "section_tables_transfer": {
+      "id": "section_tables_transfer",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["نقل الطلبات", "نقل طاولة", "اشرحلي نقل الطلبات", "نقل في شاشة الطاولات", "تحويل طلب"],
+        "en": ["transfer orders", "move table", "explain transfer", "transfer in tables screen", "move order"]
+      },
+      "title": {
+        "ar": "قسم نقل الطلبات",
+        "en": "Transfer Orders Section"
+      },
+      "content": {
+        "ar": "قسم نقل الطلبات في شاشة الطاولات:\n\n🎯 الغرض:\nتحريك طلب من طاولة لأخرى.\n\n✅ ما يمكنك فعله:\n• اختيار الطاولة الحالية\n• اختيار الطاولة الجديدة\n• نقل الطلب كاملاً\n• إفراغ الطاولة الأصلية\n\n📋 آلية النقل:\n1. اختر الطاولة المشغولة\n2. اضغط \"نقل\"\n3. اختر طاولة فارغة\n4. تأكيد النقل\n5. الطلب ينتقل للطاولة الجديدة\n\n⚠️ ملاحظات مهمة:\n• الطاولة الهدف يجب أن تكون فارغة\n• النقل يُسجل في Audit Log\n• الطلب يحتفظ بكل تفاصيله\n• لا يؤثر على المبالغ\n\n💡 نصائح:\n• استخدمه عند تغيير العميل للطاولة\n• تأكد من الطاولة الجديدة\n• أبلغ الخدمة بالتغيير",
+        "en": "Transfer Orders Section in Tables Screen:\n\n🎯 Purpose:\nMove an order from one table to another.\n\n✅ What You Can Do:\n• Select current table\n• Select new table\n• Transfer entire order\n• Empty original table\n\n📋 Transfer Process:\n1. Select occupied table\n2. Click \"Transfer\"\n3. Select empty table\n4. Confirm transfer\n5. Order moves to new table\n\n⚠️ Important Notes:\n• Target table must be empty\n• Transfer recorded in Audit Log\n• Order keeps all details\n• Doesn't affect amounts\n\n💡 Tips:\n• Use when customer changes table\n• Verify new table\n• Inform service of change"
+      },
+      "metadata": {
+        "feature_id": "section_tables_transfer",
+        "affected_screens": ["Tables"],
+        "user_roles": ["cashier", "owner"],
+        "parent_screen": "screen_tables",
+        "section_key": "transfer"
+      }
+    },
+    "section_inventory_items": {
+      "id": "section_inventory_items",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["أصناف المخزون", "مواد المخزون", "اشرحلي الأصناف في المخزون", "الأصناف في شاشة المخزون", "قائمة المواد"],
+        "en": ["inventory items", "stock items", "explain inventory items", "items in inventory screen", "materials list"]
+      },
+      "title": {
+        "ar": "قسم أصناف المخزون",
+        "en": "Inventory Items Section"
+      },
+      "content": {
+        "ar": "قسم أصناف المخزون في شاشة المخزون:\n\n🎯 الغرض:\nإدارة قائمة المواد الخام والمنتجات.\n\n✅ ما يمكنك فعله:\n• إضافة مادة جديدة\n• تحديد وحدة القياس الأساسية\n• تعيين الحد الأدنى للتنبيه\n• تعديل بيانات المادة\n• تفعيل أو إيقاف مادة\n\n📋 معلومات المادة:\n• اسم المادة\n• الوحدة الأساسية (كيلو، جرام، لتر، قطعة)\n• الحد الأدنى (للتنبيه)\n• نقطة إعادة الطلب\n• الفئة (اختياري)\n\n⚠️ ملاحظات مهمة:\n• الوحدة الأساسية لا تتغير بعد الإنشاء\n• المواد المعطلة لا تظهر في العمليات\n• الحد الأدنى يُفعّل تنبيهات النقص\n\n💡 نصائح:\n• استخدم أسماء واضحة للمواد\n• حدد الحدود الدنيا بدقة\n• صنّف المواد لسهولة البحث",
+        "en": "Inventory Items Section in Inventory Screen:\n\n🎯 Purpose:\nManage list of raw materials and products.\n\n✅ What You Can Do:\n• Add new material\n• Set base unit of measure\n• Set minimum level for alerts\n• Edit material details\n• Enable or disable material\n\n📋 Material Information:\n• Material name\n• Base unit (kg, gram, liter, piece)\n• Minimum level (for alerts)\n• Reorder point\n• Category (optional)\n\n⚠️ Important Notes:\n• Base unit cannot change after creation\n• Disabled materials don't appear in operations\n• Minimum level triggers low stock alerts\n\n💡 Tips:\n• Use clear material names\n• Set accurate minimum levels\n• Categorize materials for easy search"
+      },
+      "metadata": {
+        "feature_id": "section_inventory_items",
+        "affected_screens": ["Inventory"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_inventory",
+        "section_key": "items"
+      }
+    },
+    "section_inventory_recipes": {
+      "id": "section_inventory_recipes",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["الوصفات", "وصفات المخزون", "اشرحلي الوصفات", "الوصفات في شاشة المخزون", "ربط الأصناف بالمخزون"],
+        "en": ["recipes", "inventory recipes", "explain recipes", "recipes in inventory screen", "link items to inventory"]
+      },
+      "title": {
+        "ar": "قسم الوصفات",
+        "en": "Recipes Section"
+      },
+      "content": {
+        "ar": "قسم الوصفات في شاشة المخزون:\n\n🎯 الغرض:\nربط أصناف القائمة بمواد المخزون للخصم التلقائي.\n\n✅ ما يمكنك فعله:\n• إنشاء وصفة لصنف من القائمة\n• إضافة مواد المخزون المستخدمة\n• تحديد الكمية لكل مادة\n• تعديل الوصفات الحالية\n• حذف وصفة\n\n📋 مثال على وصفة:\nصنف: برجر لحم\nالمواد:\n• لحم مفروم: 150 جرام\n• خبز برجر: 1 قطعة\n• جبن: 30 جرام\n• صلصة: 20 مل\n\n⚠️ ملاحظات مهمة:\n• الوصفة ضرورية للخصم التلقائي\n• أصناف بدون وصفة لا تؤثر على المخزون\n• الكميات تُخصم عند الدفع فقط\n\n💡 نصائح:\n• أنشئ وصفات لجميع الأصناف\n• تأكد من دقة الكميات\n• حدّث الوصفات عند تغيير المقادير",
+        "en": "Recipes Section in Inventory Screen:\n\n🎯 Purpose:\nLink menu items to inventory materials for auto-deduction.\n\n✅ What You Can Do:\n• Create recipe for menu item\n• Add inventory materials used\n• Specify quantity for each material\n• Edit existing recipes\n• Delete recipe\n\n📋 Recipe Example:\nItem: Beef Burger\nMaterials:\n• Ground beef: 150 grams\n• Burger bun: 1 piece\n• Cheese: 30 grams\n• Sauce: 20 ml\n\n⚠️ Important Notes:\n• Recipe essential for auto-deduction\n• Items without recipe don't affect inventory\n• Quantities deducted only on payment\n\n💡 Tips:\n• Create recipes for all items\n• Ensure quantity accuracy\n• Update recipes when ingredients change"
+      },
+      "metadata": {
+        "feature_id": "section_inventory_recipes",
+        "affected_screens": ["Inventory", "Menu"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_inventory",
+        "section_key": "recipes"
+      }
+    },
+    "section_inventory_movements": {
+      "id": "section_inventory_movements",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["حركات المخزون", "عمليات المخزون", "اشرحلي حركات المخزون", "الحركات في شاشة المخزون", "استلام وهدر ونقل"],
+        "en": ["inventory movements", "stock movements", "explain movements", "movements in inventory screen", "receive waste transfer"]
+      },
+      "title": {
+        "ar": "قسم حركات المخزون",
+        "en": "Inventory Movements Section"
+      },
+      "content": {
+        "ar": "قسم حركات المخزون في شاشة المخزون:\n\n🎯 الغرض:\nتسجيل جميع العمليات على المخزون.\n\n📋 أنواع الحركات:\n• استلام (Purchase Receipt): إضافة مشتريات\n• هدر (Waste): تسجيل التالف والمفقود\n• نقل (Transfer): بين الفروع\n• تعديل (Adjustment): تصحيح يدوي\n• خصم وصفات (Recipe Deduction): تلقائي عند البيع\n\n✅ ما يمكنك فعله:\n• تسجيل استلام مشتريات\n• تسجيل هدر مع السبب\n• نقل مواد لفرع آخر\n• تعديل الكمية يدوياً\n• عرض سجل جميع الحركات\n\n⚠️ ملاحظات مهمة:\n• كل حركة تُسجل بالتاريخ والمستخدم\n• الحركات لا يمكن حذفها (للتدقيق)\n• الهدر يُخصم من الرصيد\n• النقل يحتاج تأكيد من الفرع المستلم\n\n💡 نصائح:\n• سجل المشتريات فور الاستلام\n• وثّق أسباب الهدر\n• راجع الحركات دورياً",
+        "en": "Inventory Movements Section in Inventory Screen:\n\n🎯 Purpose:\nRecord all inventory operations.\n\n📋 Movement Types:\n• Purchase Receipt: Add purchases\n• Waste: Record damaged/lost\n• Transfer: Between branches\n• Adjustment: Manual correction\n• Recipe Deduction: Auto on sales\n\n✅ What You Can Do:\n• Record purchase receipts\n• Record waste with reason\n• Transfer materials to another branch\n• Manually adjust quantity\n• View all movement history\n\n⚠️ Important Notes:\n• Each movement recorded with date and user\n• Movements cannot be deleted (for audit)\n• Waste deducted from balance\n• Transfer needs receiving branch confirmation\n\n💡 Tips:\n• Record purchases immediately\n• Document waste reasons\n• Review movements periodically"
+      },
+      "metadata": {
+        "feature_id": "section_inventory_movements",
+        "affected_screens": ["Inventory"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_inventory",
+        "section_key": "movements"
+      }
+    },
+    "section_inventory_stock_count": {
+      "id": "section_inventory_stock_count",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["الجرد", "جرد المخزون", "اشرحلي الجرد", "الجرد في شاشة المخزون", "مطابقة المخزون", "stock count"],
+        "en": ["stock count", "inventory count", "explain stock count", "count in inventory screen", "physical count"]
+      },
+      "title": {
+        "ar": "قسم الجرد",
+        "en": "Stock Count Section"
+      },
+      "content": {
+        "ar": "قسم الجرد في شاشة المخزون:\n\n🎯 الغرض:\nمطابقة الكميات الفعلية مع النظام.\n\n✅ ما يمكنك فعله:\n• بدء جرد جديد\n• إدخال الكميات الفعلية لكل مادة\n• مقارنة الفعلي بالنظري\n• اعتماد الجرد وتحديث الأرصدة\n• عرض الفروقات (Variance)\n\n📋 خطوات الجرد:\n1. إنشاء جرد جديد\n2. إدخال الكميات المعدودة فعلياً\n3. مراجعة الفروقات\n4. اعتماد الجرد\n5. تحديث الأرصدة تلقائياً\n\n⚠️ ملاحظات مهمة:\n• الجرد المعتمد يُحدّث الأرصدة\n• الفروقات تُسجل للتحليل\n• يُنصح بالجرد دورياً (أسبوعي/شهري)\n• الجرد يحتاج اعتماد المالك\n\n💡 نصائح:\n• أجرِ الجرد في وقت هادئ\n• عُد كل مادة بدقة\n• حلل أسباب الفروقات",
+        "en": "Stock Count Section in Inventory Screen:\n\n🎯 Purpose:\nMatch actual quantities with system.\n\n✅ What You Can Do:\n• Start new stock count\n• Enter actual quantities for each material\n• Compare actual vs theoretical\n• Approve count and update balances\n• View variances\n\n📋 Stock Count Steps:\n1. Create new count\n2. Enter actually counted quantities\n3. Review variances\n4. Approve count\n5. Balances update automatically\n\n⚠️ Important Notes:\n• Approved count updates balances\n• Variances recorded for analysis\n• Recommended periodic count (weekly/monthly)\n• Count needs owner approval\n\n💡 Tips:\n• Conduct count during quiet time\n• Count each material accurately\n• Analyze variance causes"
+      },
+      "metadata": {
+        "feature_id": "section_inventory_stock_count",
+        "affected_screens": ["Inventory"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_inventory",
+        "section_key": "stock_count"
+      }
+    },
+    "section_inventory_alerts": {
+      "id": "section_inventory_alerts",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["تنبيهات المخزون", "تنبيهات النقص", "اشرحلي التنبيهات", "التنبيهات في شاشة المخزون", "مواد ناقصة"],
+        "en": ["inventory alerts", "low stock alerts", "explain alerts", "alerts in inventory screen", "low materials"]
+      },
+      "title": {
+        "ar": "قسم تنبيهات المخزون",
+        "en": "Inventory Alerts Section"
+      },
+      "content": {
+        "ar": "قسم تنبيهات المخزون في شاشة المخزون:\n\n🎯 الغرض:\nمتابعة المواد الناقصة والتي تحتاج إعادة طلب.\n\n📋 أنواع التنبيهات:\n• تحت الحد الأدنى: المادة وصلت للحد الأدنى\n• نفاد: المادة نفدت تماماً\n• تباين عالي: فرق كبير بين الفعلي والنظري\n\n✅ ما يمكنك فعله:\n• عرض جميع التنبيهات النشطة\n• الانتقال لتفاصيل المادة\n• تسجيل استلام لتعويض النقص\n• تصفية التنبيهات حسب النوع\n\n⚠️ ملاحظات مهمة:\n• التنبيهات تعتمد على الحد الأدنى المحدد\n• يجب ضبط الحدود بدقة\n• النفاد قد يوقف بيع بعض الأصناف\n\n💡 نصائح:\n• راجع التنبيهات يومياً\n• اطلب المواد قبل النفاد\n• حدّث الحدود الدنيا حسب الاستهلاك",
+        "en": "Inventory Alerts Section in Inventory Screen:\n\n🎯 Purpose:\nTrack low stock materials that need reordering.\n\n📋 Alert Types:\n• Below Minimum: Material reached minimum level\n• Out of Stock: Material completely depleted\n• High Variance: Large difference between actual and theoretical\n\n✅ What You Can Do:\n• View all active alerts\n• Navigate to material details\n• Record receipt to replenish\n• Filter alerts by type\n\n⚠️ Important Notes:\n• Alerts based on set minimum levels\n• Must set accurate thresholds\n• Depletion may stop selling some items\n\n💡 Tips:\n• Review alerts daily\n• Order materials before depletion\n• Update minimums based on consumption"
+      },
+      "metadata": {
+        "feature_id": "section_inventory_alerts",
+        "affected_screens": ["Inventory"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_inventory",
+        "section_key": "alerts"
+      }
+    },
+    "section_reports_z_report": {
+      "id": "section_reports_z_report",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["تقرير Z", "تقرير زد", "Z Report في شاشة التقارير", "اشرحلي Z Report في التقارير", "تقرير الوردية في التقارير"],
+        "en": ["z report", "z report in reports", "explain z report section", "shift report in reports"]
+      },
+      "title": {
+        "ar": "قسم تقرير Z في التقارير",
+        "en": "Z Report Section in Reports"
+      },
+      "content": {
+        "ar": "قسم تقرير Z في شاشة التقارير:\n\n🎯 الغرض:\nعرض ملخصات الورديات المغلقة.\n\n📋 محتويات التقرير:\n• إجمالي المبيعات (Gross Sales)\n• تفصيل حسب طريقة الدفع\n• إجمالي الخصومات\n• إجمالي المرتجعات\n• صافي المبيعات (Net Sales)\n• عدد الطلبات المكتملة\n• فرق الكاش (إن وجد)\n\n✅ ما يمكنك فعله:\n• عرض تقارير Z لأي فترة\n• فلترة حسب الكاشير أو الفرع\n• مقارنة ورديات مختلفة\n• طباعة أو تصدير التقرير\n\n⚠️ ملاحظات مهمة:\n• التقرير يُنشأ عند إغلاق الوردية\n• المرتجعات تُخصم من الإجمالي\n• فرق الكاش يظهر إذا وُجد اختلاف\n\n💡 نصائح:\n• راجع تقارير Z يومياً\n• تابع فروقات الكاش فوراً\n• قارن أداء الكاشيرات",
+        "en": "Z Report Section in Reports Screen:\n\n🎯 Purpose:\nView closed shift summaries.\n\n📋 Report Contents:\n• Gross Sales total\n• Breakdown by payment method\n• Total discounts\n• Total refunds\n• Net Sales\n• Completed orders count\n• Cash difference (if any)\n\n✅ What You Can Do:\n• View Z Reports for any period\n• Filter by cashier or branch\n• Compare different shifts\n• Print or export report\n\n⚠️ Important Notes:\n• Report generated when closing shift\n• Refunds deducted from total\n• Cash difference shows if discrepancy exists\n\n💡 Tips:\n• Review Z Reports daily\n• Address cash differences immediately\n• Compare cashier performance"
+      },
+      "metadata": {
+        "feature_id": "section_reports_z_report",
+        "affected_screens": ["Reports"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_reports",
+        "section_key": "z_report"
+      }
+    },
+    "section_reports_sales": {
+      "id": "section_reports_sales",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["تقرير المبيعات", "المبيعات في شاشة التقارير", "اشرحلي تقرير المبيعات", "sales report"],
+        "en": ["sales report", "sales in reports", "explain sales report", "revenue report"]
+      },
+      "title": {
+        "ar": "قسم تقرير المبيعات",
+        "en": "Sales Report Section"
+      },
+      "content": {
+        "ar": "قسم تقرير المبيعات في شاشة التقارير:\n\n🎯 الغرض:\nتحليل أداء المبيعات للفترة المحددة.\n\n📋 محتويات التقرير:\n• إجمالي المبيعات\n• عدد الطلبات\n• متوسط قيمة الطلب\n• الأصناف الأكثر مبيعاً\n• الأصناف الأقل مبيعاً\n• تحليل حسب الفترة الزمنية\n\n✅ ما يمكنك فعله:\n• تحديد نطاق التاريخ\n• فلترة حسب الفرع\n• عرض رسوم بيانية\n• مقارنة فترات مختلفة\n• تصدير البيانات\n\n⚠️ ملاحظات مهمة:\n• يعتمد على الطلبات المدفوعة فقط\n• الطلبات الملغاة لا تظهر\n• المرتجعات تؤثر على الإجمالي\n\n💡 نصائح:\n• راجع المبيعات أسبوعياً\n• حدد ساعات الذروة\n• تابع الأصناف الضعيفة",
+        "en": "Sales Report Section in Reports Screen:\n\n🎯 Purpose:\nAnalyze sales performance for selected period.\n\n📋 Report Contents:\n• Total sales\n• Order count\n• Average order value\n• Best selling items\n• Worst selling items\n• Time period analysis\n\n✅ What You Can Do:\n• Set date range\n• Filter by branch\n• View charts\n• Compare different periods\n• Export data\n\n⚠️ Important Notes:\n• Based on paid orders only\n• Cancelled orders don't appear\n• Refunds affect total\n\n💡 Tips:\n• Review sales weekly\n• Identify peak hours\n• Track weak items"
+      },
+      "metadata": {
+        "feature_id": "section_reports_sales",
+        "affected_screens": ["Reports"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_reports",
+        "section_key": "sales"
+      }
+    },
+    "section_reports_refunds": {
+      "id": "section_reports_refunds",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["تقرير المرتجعات", "المرتجعات في شاشة التقارير", "اشرحلي تقرير المرتجعات", "refund report"],
+        "en": ["refund report", "refunds in reports", "explain refund report", "returns report"]
+      },
+      "title": {
+        "ar": "قسم تقرير المرتجعات",
+        "en": "Refund Report Section"
+      },
+      "content": {
+        "ar": "قسم تقرير المرتجعات في شاشة التقارير:\n\n🎯 الغرض:\nمتابعة جميع عمليات الإرجاع وأسبابها.\n\n📋 محتويات التقرير:\n• إجمالي المرتجعات\n• عدد عمليات الإرجاع\n• أسباب الإرجاع\n• الكاشير المسؤول\n• تفاصيل كل مرتجع\n\n✅ ما يمكنك فعله:\n• عرض جميع المرتجعات للفترة\n• فلترة حسب السبب\n• فلترة حسب الكاشير\n• تحليل أنماط الإرجاع\n• تصدير التقرير\n\n⚠️ ملاحظات مهمة:\n• المرتجعات تُخصم من المبيعات\n• كل مرتجع مسجل بسببه\n• المرتجعات الكثيرة تحتاج مراجعة\n\n💡 نصائح:\n• راجع أسباب الإرجاع\n• تابع الأنماط المتكررة\n• درّب الموظفين لتقليل الأخطاء",
+        "en": "Refund Report Section in Reports Screen:\n\n🎯 Purpose:\nTrack all return operations and reasons.\n\n📋 Report Contents:\n• Total refunds\n• Refund operations count\n• Refund reasons\n• Responsible cashier\n• Each refund details\n\n✅ What You Can Do:\n• View all refunds for period\n• Filter by reason\n• Filter by cashier\n• Analyze return patterns\n• Export report\n\n⚠️ Important Notes:\n• Refunds deducted from sales\n• Each refund recorded with reason\n• Many refunds need review\n\n💡 Tips:\n• Review refund reasons\n• Track recurring patterns\n• Train staff to reduce errors"
+      },
+      "metadata": {
+        "feature_id": "section_reports_refunds",
+        "affected_screens": ["Reports"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_reports",
+        "section_key": "refunds"
+      }
+    },
+    "section_reports_inventory": {
+      "id": "section_reports_inventory",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["تقرير المخزون", "المخزون في شاشة التقارير", "اشرحلي تقرير المخزون", "inventory summary report"],
+        "en": ["inventory report", "inventory in reports", "explain inventory report", "stock report in reports"]
+      },
+      "title": {
+        "ar": "قسم تقرير المخزون",
+        "en": "Inventory Report Section"
+      },
+      "content": {
+        "ar": "قسم تقرير المخزون في شاشة التقارير:\n\n🎯 الغرض:\nتحليل حركة المخزون والفروقات.\n\n📋 محتويات التقرير:\n• رصيد البداية والنهاية\n• الحركات الداخلة (مشتريات، نقل)\n• الحركات الخارجة (مبيعات، هدر)\n• الفروقات (Variance)\n• المواد الناقصة\n\n✅ ما يمكنك فعله:\n• عرض ملخص المخزون للفترة\n• تحليل الفروقات\n• تحديد المواد ذات التباين العالي\n• مقارنة فترات مختلفة\n• تصدير البيانات\n\n⚠️ ملاحظات مهمة:\n• يعتمد على الوصفات للخصم\n• الفروقات تشير لمشاكل محتملة\n• يحتاج جرد دوري للدقة\n\n💡 نصائح:\n• راجع التباين أسبوعياً\n• حلل أسباب الفروقات\n• قارن مع فترات سابقة",
+        "en": "Inventory Report Section in Reports Screen:\n\n🎯 Purpose:\nAnalyze inventory movement and variances.\n\n📋 Report Contents:\n• Opening and closing balance\n• Incoming movements (purchases, transfers)\n• Outgoing movements (sales, waste)\n• Variances\n• Low stock materials\n\n✅ What You Can Do:\n• View inventory summary for period\n• Analyze variances\n• Identify high variance materials\n• Compare different periods\n• Export data\n\n⚠️ Important Notes:\n• Depends on recipes for deduction\n• Variances indicate potential issues\n• Needs periodic count for accuracy\n\n💡 Tips:\n• Review variance weekly\n• Analyze variance causes\n• Compare with previous periods"
+      },
+      "metadata": {
+        "feature_id": "section_reports_inventory",
+        "affected_screens": ["Reports", "Inventory"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_reports",
+        "section_key": "inventory"
+      }
+    },
+    "section_reports_shifts": {
+      "id": "section_reports_shifts",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["تقرير الورديات", "الورديات في شاشة التقارير", "اشرحلي تقرير الورديات", "shift reports"],
+        "en": ["shift reports", "shifts in reports", "explain shift reports", "cashier shifts"]
+      },
+      "title": {
+        "ar": "قسم تقرير الورديات",
+        "en": "Shift Reports Section"
+      },
+      "content": {
+        "ar": "قسم تقرير الورديات في شاشة التقارير:\n\n🎯 الغرض:\nمتابعة جميع الورديات وأدائها.\n\n📋 محتويات التقرير:\n• قائمة الورديات للفترة\n• وقت الفتح والإغلاق\n• الكاشير المسؤول\n• إجمالي المبيعات لكل وردية\n• فرق الكاش\n• حركات الصندوق\n\n✅ ما يمكنك فعله:\n• عرض جميع الورديات\n• فلترة حسب الكاشير\n• فلترة حسب الفرع\n• عرض تفاصيل كل وردية\n• مقارنة أداء الكاشيرات\n\n⚠️ ملاحظات مهمة:\n• الورديات المفتوحة لا تظهر\n• فرق الكاش يُسجل للمتابعة\n• كل وردية لها تقرير Z\n\n💡 نصائح:\n• راجع الورديات يومياً\n• تابع فروقات الكاش\n• قيّم أداء كل كاشير",
+        "en": "Shift Reports Section in Reports Screen:\n\n🎯 Purpose:\nTrack all shifts and their performance.\n\n📋 Report Contents:\n• Shifts list for period\n• Open and close times\n• Responsible cashier\n• Total sales per shift\n• Cash difference\n• Drawer movements\n\n✅ What You Can Do:\n• View all shifts\n• Filter by cashier\n• Filter by branch\n• View each shift details\n• Compare cashier performance\n\n⚠️ Important Notes:\n• Open shifts don't appear\n• Cash difference recorded for tracking\n• Each shift has Z Report\n\n💡 Tips:\n• Review shifts daily\n• Track cash differences\n• Evaluate each cashier"
+      },
+      "metadata": {
+        "feature_id": "section_reports_shifts",
+        "affected_screens": ["Reports"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_reports",
+        "section_key": "shifts"
+      }
+    },
+    "section_settings_tax": {
+      "id": "section_settings_tax",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["الضريبة", "إعدادات الضريبة", "اشرحلي الضريبة", "الضريبة في شاشة الإعدادات", "ضبط الضريبة"],
+        "en": ["tax", "tax settings", "explain tax", "tax in settings screen", "configure tax"]
+      },
+      "title": {
+        "ar": "قسم إعدادات الضريبة",
+        "en": "Tax Settings Section"
+      },
+      "content": {
+        "ar": "قسم إعدادات الضريبة في شاشة الإعدادات:\n\n🎯 الغرض:\nضبط نسبة الضريبة وطريقة حسابها.\n\n✅ ما يمكنك فعله:\n• تحديد نسبة الضريبة (%)\n• اختيار هل الأسعار شاملة للضريبة\n• تفعيل أو إيقاف رسوم الخدمة\n• تحديد نسبة رسوم الخدمة\n\n📋 طرق حساب الضريبة:\n• أسعار شاملة: الضريبة مضمنة في السعر\n• أسعار غير شاملة: الضريبة تُضاف على السعر\n\n⚠️ ملاحظات مهمة:\n• التغييرات تُطبق على الطلبات الجديدة\n• الطلبات القديمة لا تتأثر\n• الضريبة تظهر في الفاتورة والتقارير\n\n💡 نصائح:\n• تأكد من النسبة الصحيحة حسب البلد\n• وضّح للعملاء إذا كانت الأسعار شاملة\n• راجع الإعدادات عند تغيير القوانين",
+        "en": "Tax Settings Section in Settings Screen:\n\n🎯 Purpose:\nConfigure tax rate and calculation method.\n\n✅ What You Can Do:\n• Set tax rate (%)\n• Choose if prices include tax\n• Enable or disable service charge\n• Set service charge percentage\n\n📋 Tax Calculation Methods:\n• Prices inclusive: Tax included in price\n• Prices exclusive: Tax added to price\n\n⚠️ Important Notes:\n• Changes apply to new orders\n• Old orders not affected\n• Tax shows in receipt and reports\n\n💡 Tips:\n• Verify correct rate for your country\n• Clarify to customers if prices inclusive\n• Review settings when laws change"
+      },
+      "metadata": {
+        "feature_id": "section_settings_tax",
+        "affected_screens": ["Settings"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_settings",
+        "section_key": "tax"
+      }
+    },
+    "section_settings_payment_methods": {
+      "id": "section_settings_payment_methods",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["طرق الدفع", "إعدادات طرق الدفع", "اشرحلي طرق الدفع", "طرق الدفع في الإعدادات", "تفعيل الدفع"],
+        "en": ["payment methods", "payment settings", "explain payment methods", "payment in settings", "enable payment"]
+      },
+      "title": {
+        "ar": "قسم إعدادات طرق الدفع",
+        "en": "Payment Methods Settings Section"
+      },
+      "content": {
+        "ar": "قسم إعدادات طرق الدفع في شاشة الإعدادات:\n\n🎯 الغرض:\nتحديد طرق الدفع المتاحة للكاشير.\n\n📋 طرق الدفع المتوفرة:\n• نقد (Cash)\n• فيزا (Visa)\n• ماستركارد (Mastercard)\n• محفظة إلكترونية (Wallet)\n\n✅ ما يمكنك فعله:\n• تفعيل أو إيقاف أي طريقة دفع\n• الإعدادات تُطبق على كل الفروع\n• تحديد الطريقة الافتراضية\n\n⚠️ ملاحظات مهمة:\n• يجب تفعيل طريقة واحدة على الأقل\n• التغييرات تظهر فوراً للكاشير\n• طريقة الدفع تظهر في التقارير\n\n💡 نصائح:\n• فعّل الطرق المستخدمة فعلياً\n• أوقف الطرق غير المتاحة\n• تأكد من توفر أجهزة البطاقات",
+        "en": "Payment Methods Settings Section in Settings Screen:\n\n🎯 Purpose:\nDefine available payment methods for cashier.\n\n📋 Available Payment Methods:\n• Cash\n• Visa\n• Mastercard\n• Electronic Wallet\n\n✅ What You Can Do:\n• Enable or disable any payment method\n• Settings apply to all branches\n• Set default method\n\n⚠️ Important Notes:\n• Must enable at least one method\n• Changes appear immediately for cashier\n• Payment method shows in reports\n\n💡 Tips:\n• Enable actually used methods\n• Disable unavailable methods\n• Ensure card terminals available"
+      },
+      "metadata": {
+        "feature_id": "section_settings_payment_methods",
+        "affected_screens": ["Settings"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_settings",
+        "section_key": "payment_methods"
+      }
+    },
+    "section_settings_features": {
+      "id": "section_settings_features",
+      "intent": ["section_help", "explain_section"],
+      "keywords": {
+        "ar": ["تفعيل الميزات", "إيقاف الميزات", "اشرحلي تفعيل الميزات", "الميزات في الإعدادات", "تفعيل المخزون", "تفعيل KDS"],
+        "en": ["enable features", "disable features", "explain features toggle", "features in settings", "enable inventory", "enable kds"]
+      },
+      "title": {
+        "ar": "قسم تفعيل/إيقاف الميزات",
+        "en": "Features Toggle Section"
+      },
+      "content": {
+        "ar": "قسم تفعيل/إيقاف الميزات في شاشة الإعدادات:\n\n🎯 الغرض:\nالتحكم في الميزات المتقدمة للنظام.\n\n📋 الميزات القابلة للتفعيل:\n• المخزون (Inventory): تتبع المواد والوصفات\n• شاشة المطبخ (KDS): عرض الطلبات للطباخين\n• الخصومات (Discounts): تطبيق خصومات على الطلبات\n• التقريب (Rounding): تقريب المبالغ\n\n✅ ما يمكنك فعله:\n• تفعيل أو إيقاف أي ميزة\n• الإعدادات تُطبق فوراً\n• بعض الميزات تحتاج إعداد إضافي\n\n⚠️ ملاحظات مهمة:\n• إيقاف الميزة لا يحذف البيانات\n• تفعيل المخزون يحتاج إنشاء المواد\n• تفعيل KDS يحتاج حساب Kitchen\n\n💡 نصائح:\n• فعّل ما تحتاجه فقط\n• ابدأ بالميزات الأساسية\n• أضف ميزات تدريجياً",
+        "en": "Features Toggle Section in Settings Screen:\n\n🎯 Purpose:\nControl advanced system features.\n\n📋 Toggleable Features:\n• Inventory: Track materials and recipes\n• Kitchen Display (KDS): Show orders to kitchen staff\n• Discounts: Apply discounts to orders\n• Rounding: Round amounts\n\n✅ What You Can Do:\n• Enable or disable any feature\n• Settings apply immediately\n• Some features need additional setup\n\n⚠️ Important Notes:\n• Disabling feature doesn't delete data\n• Enabling inventory needs creating materials\n• Enabling KDS needs Kitchen account\n\n💡 Tips:\n• Enable only what you need\n• Start with basic features\n• Add features gradually"
+      },
+      "metadata": {
+        "feature_id": "section_settings_features",
+        "affected_screens": ["Settings"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_settings",
+        "section_key": "features"
+      }
     }
   }
 }

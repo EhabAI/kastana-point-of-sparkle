@@ -74,16 +74,65 @@ IMPORTANT RULES:
 - If user asks for "مثال" / "example", intent is "example"
 - If user wants to learn the system step by step, intent is "training"
 
-CRITICAL - SECTION-LEVEL HELP:
-- If user asks about a SPECIFIC SECTION inside a screen (e.g., "الفروع في شاشة صاحب المطعم", "المخزون داخل شاشة صاحب المطعم", "اشرحلي الفروع", "القائمة في لوحة التحكم", "التقارير في شاشة المالك", "الإعدادات في شاشة صاحب المطعم"), intent is "section_help"
-- Owner Dashboard sections include: الفروع (branches), الإدارة/الموظفين (staff), القائمة/المنيو (menu), التقارير (reports), المخزون (inventory), الإعدادات (settings)
-- For section_help, match the specific section entry (e.g., section_owner_branches, section_owner_staff) NOT the parent screen entry (screen_owner_dashboard)
-- Examples of section_help queries:
-  * "اشرحلي الفروع في شاشة صاحب المطعم" → match section_owner_branches
-  * "كيف أستخدم التقارير في لوحة التحكم" → match section_owner_reports
-  * "اشرحلي المخزون داخل شاشة صاحب المطعم" → match section_owner_inventory
-  * "الإدارة في شاشة المالك" → match section_owner_staff
-- ONLY use screen entry (screen_owner_dashboard) if user asks about the ENTIRE screen without mentioning a specific section
+CRITICAL - SECTION-LEVEL HELP (applies to ALL screens):
+- If user asks about a SPECIFIC SECTION inside a screen, intent is "section_help"
+- Match the specific section entry, NOT the parent screen entry
+
+SCREEN SECTIONS MAPPING:
+
+1. Owner Dashboard (شاشة صاحب المطعم / لوحة التحكم):
+   - الفروع / branches → section_owner_branches
+   - الإدارة / الموظفين / staff → section_owner_staff
+   - القائمة / المنيو / menu → section_owner_menu
+   - التقارير / reports → section_owner_reports
+   - المخزون / inventory → section_owner_inventory
+   - الإعدادات / settings → section_owner_settings
+
+2. Cashier POS (شاشة الكاشير / شاشة نقطة البيع):
+   - طلب جديد / new order → section_pos_new_order
+   - الطلبات المفتوحة / open orders → section_pos_open_orders
+   - الطاولات في الكاشير / tables in pos → section_pos_tables
+   - المفضلة / favorites → section_pos_favorites
+   - الدفع / payment / checkout → section_pos_payment
+   - الإلغاء / المرتجع / void / refund → section_pos_void_refund
+   - طلبات QR / QR pending → section_pos_qr_pending
+
+3. Tables Screen (شاشة الطاولات):
+   - حالة الطاولات / table status / ألوان → section_tables_status
+   - دمج الطلبات / merge → section_tables_merge
+   - نقل الطلبات / transfer / move → section_tables_transfer
+
+4. Inventory Screen (شاشة المخزون):
+   - أصناف المخزون / مواد / items → section_inventory_items
+   - الوصفات / recipes → section_inventory_recipes
+   - حركات المخزون / movements → section_inventory_movements
+   - الجرد / stock count → section_inventory_stock_count
+   - تنبيهات المخزون / alerts / نقص → section_inventory_alerts
+
+5. Reports Screen (شاشة التقارير):
+   - تقرير Z / Z report في التقارير → section_reports_z_report
+   - تقرير المبيعات / sales report → section_reports_sales
+   - تقرير المرتجعات / refund report → section_reports_refunds
+   - تقرير المخزون في التقارير / inventory report → section_reports_inventory
+   - تقرير الورديات / shift reports → section_reports_shifts
+
+6. Settings Screen (شاشة الإعدادات):
+   - الضريبة / tax → section_settings_tax
+   - طرق الدفع / payment methods → section_settings_payment_methods
+   - تفعيل الميزات / features toggle → section_settings_features
+
+SECTION DETECTION EXAMPLES:
+- "اشرحلي الفروع في شاشة صاحب المطعم" → section_owner_branches
+- "اشرحلي الدفع في شاشة الكاشير" → section_pos_payment
+- "كيف أستخدم Z Report في شاشة التقارير" → section_reports_z_report
+- "اشرحلي الجرد في شاشة المخزون" → section_inventory_stock_count
+- "الضريبة في الإعدادات" → section_settings_tax
+- "دمج الطلبات في شاشة الطاولات" → section_tables_merge
+
+SCREEN OVERVIEW (use ONLY when NO section mentioned):
+- "اشرحلي شاشة الكاشير" → screen_cashier_pos (full screen overview)
+- "اشرحلي شاشة المخزون" → screen_inventory (full screen overview)
+- "اشرحلي شاشة التقارير" → screen_reports (full screen overview)
 
 Knowledge Base Entries:
 ${knowledgeSummary}
