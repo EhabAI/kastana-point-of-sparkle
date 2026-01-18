@@ -1675,4 +1675,13 @@ export default {
   daily_summary_net_revenue: "صافي الإيرادات",
   daily_summary_zero_revenue_explanation: "لم يتم تسجيل إيرادات صافية اليوم بسبب استرداد جميع المدفوعات.",
   daily_summary_unspecified: "غير محدد",
+  
+  // Username / Display Name
+  display_name: "اسم المستخدم",
+  display_name_placeholder: "أدخل اسم المستخدم",
+  username_min_2: "اسم المستخدم يجب أن يكون حرفين على الأقل",
+  username_min_2_hint: "حرفين على الأقل",
+  username_updated: "تم تحديث اسم المستخدم بنجاح",
+  edit_display_name: "تعديل اسم المستخدم",
+  not_authenticated: "غير مسجل الدخول",
 } as const;

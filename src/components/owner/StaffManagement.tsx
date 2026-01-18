@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +33,7 @@ import { useKitchenStaff, useAddKitchenStaff, useUpdateKitchenStaffStatus } from
 import { useBranches } from "@/hooks/useBranches";
 import { useResetCashierPassword } from "@/hooks/useResetCashierPassword";
 import { useKDSEnabled } from "@/hooks/useKDSEnabled";
-import { Users, Loader2, UserPlus, Building2, KeyRound, ChefHat } from "lucide-react";
+import { Users, Loader2, UserPlus, Building2, KeyRound, ChefHat, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -52,17 +54,24 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
   const resetPassword = useResetCashierPassword();
   const { toast } = useToast();
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState("cashiers");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [createType, setCreateType] = useState<"cashier" | "kitchen">("cashier");
-  const [newStaff, setNewStaff] = useState({ email: "", password: "", branchId: "" });
+  const [newStaff, setNewStaff] = useState({ email: "", password: "", branchId: "", username: "" });
   
   // Password reset state
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [confirmResetOpen, setConfirmResetOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<{ id: string; email: string } | null>(null);
   const [newPassword, setNewPassword] = useState("");
+  
+  // Edit username state
+  const [editUsernameDialogOpen, setEditUsernameDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<{ userId: string; username: string; email: string } | null>(null);
+  const [editUsername, setEditUsername] = useState("");
+  const [updatingUsername, setUpdatingUsername] = useState(false);
 
   const isLoading = cashiersLoading || kitchenLoading;
   const totalStaff = cashiers.length + kitchenStaff.length;
@@ -76,11 +85,16 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
 
   const openCreateDialog = (type: "cashier" | "kitchen") => {
     setCreateType(type);
-    setNewStaff({ email: "", password: "", branchId: "" });
+    setNewStaff({ email: "", password: "", branchId: "", username: "" });
     setCreateDialogOpen(true);
   };
 
   const handleCreateStaff = async () => {
+    const trimmedUsername = newStaff.username.trim();
+    if (!trimmedUsername || trimmedUsername.length < 2) {
+      toast({ title: t("username_min_2"), variant: "destructive" });
+      return;
+    }
     if (!newStaff.email.trim()) {
       toast({ title: t("error_validation_failed"), variant: "destructive" });
       return;
@@ -101,6 +115,7 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
           password: newStaff.password,
           restaurantId,
           branchId: newStaff.branchId,
+          username: newStaff.username.trim(),
         });
       } else {
         await addKitchenStaff.mutateAsync({
@@ -108,10 +123,11 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
           password: newStaff.password,
           restaurantId,
           branchId: newStaff.branchId,
+          username: newStaff.username.trim(),
         });
       }
 
-      setNewStaff({ email: "", password: "", branchId: "" });
+      setNewStaff({ email: "", password: "", branchId: "", username: "" });
       setCreateDialogOpen(false);
     } catch {
       toast({ title: t("error_unexpected"), variant: "destructive" });
@@ -148,6 +164,56 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
       setNewPassword("");
     } catch {
       toast({ title: t("error_unexpected"), variant: "destructive" });
+    }
+  };
+
+  const openEditUsernameDialog = (userId: string, currentUsername: string, email: string) => {
+    setEditingUser({ userId, username: currentUsername, email });
+    setEditUsername(currentUsername);
+    setEditUsernameDialogOpen(true);
+  };
+
+  const handleUpdateUsername = async () => {
+    if (!editingUser) return;
+    const trimmed = editUsername.trim();
+    if (!trimmed || trimmed.length < 2) {
+      toast({ title: t("username_min_2"), variant: "destructive" });
+      return;
+    }
+
+    setUpdatingUsername(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+
+      if (!accessToken) {
+        toast({ title: t("not_authenticated"), variant: "destructive" });
+        setUpdatingUsername(false);
+        return;
+      }
+
+      const { error } = await supabase.functions.invoke('update-display-name', {
+        body: {
+          user_id: editingUser.userId,
+          new_username: trimmed,
+          restaurant_id: restaurantId,
+        },
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      if (error) throw error;
+
+      toast({ title: t("username_updated") });
+      setEditUsernameDialogOpen(false);
+      setEditingUser(null);
+      setEditUsername("");
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['cashiers', restaurantId] });
+      queryClient.invalidateQueries({ queryKey: ['kitchen-staff', restaurantId] });
+    } catch (err: any) {
+      toast({ title: t("error_unexpected"), description: err.message, variant: "destructive" });
+    } finally {
+      setUpdatingUsername(false);
     }
   };
 
@@ -212,9 +278,9 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>{t("display_name")}</TableHead>
                       <TableHead>{t("email")}</TableHead>
                       <TableHead>{t("branch")}</TableHead>
-                      <TableHead>{t("created")}</TableHead>
                       <TableHead>{t("actions")}</TableHead>
                       <TableHead className="text-right">{t("status")}</TableHead>
                     </TableRow>
@@ -222,24 +288,33 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
                   <TableBody>
                     {cashiers.map((cashier) => (
                       <TableRow key={cashier.id} className="hover-row">
-                        <TableCell className="font-medium">{cashier.email || t("no_email")}</TableCell>
+                        <TableCell className="font-medium">{cashier.username || cashier.email || t("no_email")}</TableCell>
+                        <TableCell className="text-muted-foreground text-sm">{cashier.email || t("no_email")}</TableCell>
                         <TableCell>
                           <span className="flex items-center gap-1 text-sm text-muted-foreground">
                             <Building2 className="h-3 w-3" />
                             {getBranchName(cashier.branch_id)}
                           </span>
                         </TableCell>
-                        <TableCell>{new Date(cashier.created_at).toLocaleDateString()}</TableCell>
                         <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openResetDialog(cashier.user_id, cashier.email || "")}
-                            title={t("reset_password")}
-                          >
-                            <KeyRound className="h-4 w-4 ltr:mr-1 rtl:ml-1" />
-                            {t("reset_password")}
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openEditUsernameDialog(cashier.user_id, cashier.username || "", cashier.email || "")}
+                              title={t("edit_display_name")}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openResetDialog(cashier.user_id, cashier.email || "")}
+                              title={t("reset_password")}
+                            >
+                              <KeyRound className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-3">
@@ -352,6 +427,17 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
+              <Label htmlFor="staff-username">{t("display_name")} *</Label>
+              <Input
+                id="staff-username"
+                type="text"
+                value={newStaff.username}
+                onChange={(e) => setNewStaff({ ...newStaff, username: e.target.value })}
+                placeholder={t("display_name_placeholder")}
+              />
+              <p className="text-xs text-muted-foreground">{t("username_min_2_hint")}</p>
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="staff-email">{t("email")}</Label>
               <Input
                 id="staff-email"
@@ -459,6 +545,46 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Username Dialog */}
+      <Dialog open={editUsernameDialogOpen} onOpenChange={(open) => {
+        setEditUsernameDialogOpen(open);
+        if (!open) {
+          setEditingUser(null);
+          setEditUsername("");
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("edit_display_name")}</DialogTitle>
+            <DialogDescription>
+              {editingUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-username">{t("display_name")}</Label>
+              <Input
+                id="edit-username"
+                type="text"
+                value={editUsername}
+                onChange={(e) => setEditUsername(e.target.value)}
+                placeholder={t("display_name_placeholder")}
+              />
+              <p className="text-xs text-muted-foreground">{t("username_min_2_hint")}</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditUsernameDialogOpen(false)}>
+              {t("cancel")}
+            </Button>
+            <Button onClick={handleUpdateUsername} disabled={updatingUsername || editUsername.trim().length < 2}>
+              {updatingUsername ? <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" /> : null}
+              {t("save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

@@ -77,12 +77,14 @@ Deno.serve(async (req) => {
       role?: string
       restaurant_id?: string
       branch_id?: string
+      username?: string
     }
     const email = body?.email?.trim()
     const password = body?.password
     const requestedRole = body?.role || 'cashier'
     const restaurantId = body?.restaurant_id
     const branchId = body?.branch_id
+    const username = body?.username?.trim()
 
     if (!email || !password) {
       return errorResponse('unexpected', 'Please provide an email and password.', 400)
@@ -234,11 +236,20 @@ Deno.serve(async (req) => {
     // Step 6: Insert profile record (trigger should also create it, but this ensures it exists)
     const { error: profileInsertErr } = await supabaseAdmin
       .from('profiles')
-      .insert({ id: newUserId, email })
+      .insert({ id: newUserId, email, username: username || email })
 
     if (profileInsertErr) {
       console.error('Profile insert failed (non-fatal):', profileInsertErr.message)
-      // Non-fatal - trigger should have created it
+      // Non-fatal - trigger should have created it, try to update username if exists
+      if (username) {
+        const { error: updateErr } = await supabaseAdmin
+          .from('profiles')
+          .update({ username })
+          .eq('id', newUserId)
+        if (updateErr) {
+          console.error('Profile update failed:', updateErr.message)
+        }
+      }
     }
 
     console.log(`User created successfully: ${newUserId} with role ${requestedRole}`)
