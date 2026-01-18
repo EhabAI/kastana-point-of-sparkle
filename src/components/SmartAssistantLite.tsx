@@ -1020,15 +1020,7 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
             isRTL ? "right-6" : "left-6"
           )}
         >
-          <div className="relative">
-            <Bot className="h-6 w-6" />
-            {hasAnyAlerts && (
-              <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-destructive" />
-              </span>
-            )}
-          </div>
+          <Bot className="h-6 w-6" />
         </Button>
       </SheetTrigger>
       
@@ -1114,11 +1106,6 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                 </TooltipProvider>
               )}
               
-              {hasAnyAlerts && (
-                <Badge variant="destructive" className="text-xs ml-1">
-                  {totalAlertCount}
-                </Badge>
-              )}
             </div>
           </div>
         </SheetHeader>
@@ -1127,13 +1114,6 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
         {isKDSMode ? (
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-3">
-              {/* Context Section - KDS mode (no dismiss in KDS) */}
-              {showCurrentGuidance ? (
-                <ContextSection hint={contextHint} language={language} onDismiss={handleDismissGuidance} />
-              ) : (
-                <ShowGuidanceButton language={language} onClick={handleShowGuidance} />
-              )}
-              
               {/* Alerts Only - Compact */}
               {hasAlerts ? (
                 <div className="space-y-2">
@@ -1163,14 +1143,6 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
           </ScrollArea>
         ) : (
           <>
-            {/* Context Hint Section - Dismissible */}
-            <div className="p-4 border-b">
-              {showCurrentGuidance ? (
-                <ContextSection hint={contextHint} language={language} onDismiss={handleDismissGuidance} />
-              ) : (
-                <ShowGuidanceButton language={language} onClick={handleShowGuidance} />
-              )}
-            </div>
 
             {/* Help Content - Direct without tabs */}
             <div className="flex-1 flex flex-col min-h-0">
