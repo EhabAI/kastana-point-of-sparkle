@@ -10,6 +10,7 @@ export interface Cashier {
   branch_id: string | null;
   created_at: string;
   email?: string;
+  username?: string;
   is_active: boolean;
 }
 
@@ -34,18 +35,19 @@ export function useCashiers(restaurantId: string | undefined) {
       const userIds = roles.map(r => r.user_id);
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, email')
+        .select('id, email, username')
         .in('id', userIds);
 
       if (profilesError) throw profilesError;
 
-      // Map emails to cashiers
-      const emailMap = new Map(profiles?.map(p => [p.id, p.email]) || []);
+      // Map emails and usernames to cashiers
+      const profileMap = new Map(profiles?.map(p => [p.id, { email: p.email, username: p.username }]) || []);
 
       return roles.map(row => ({
         ...row,
         branch_id: row.branch_id || null,
-        email: emailMap.get(row.user_id) || undefined,
+        email: profileMap.get(row.user_id)?.email || undefined,
+        username: profileMap.get(row.user_id)?.username || undefined,
         is_active: row.is_active ?? true,
       })) as Cashier[];
     },
@@ -62,12 +64,14 @@ export function useAddCashier() {
       email, 
       password, 
       restaurantId,
-      branchId 
+      branchId,
+      username
     }: { 
       email: string; 
       password: string; 
       restaurantId: string;
       branchId: string;
+      username: string;
     }) => {
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       const accessToken = sessionData?.session?.access_token;
@@ -82,7 +86,8 @@ export function useAddCashier() {
           password,
           role: 'cashier',
           restaurant_id: restaurantId,
-          branch_id: branchId
+          branch_id: branchId,
+          username
         },
         headers: {
           Authorization: `Bearer ${accessToken}`,

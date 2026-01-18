@@ -1670,4 +1670,13 @@ export default {
   daily_summary_net_revenue: "Net Revenue",
   daily_summary_zero_revenue_explanation: "No net revenue recorded today because all payments were refunded.",
   daily_summary_unspecified: "Unspecified",
+  
+  // Username / Display Name
+  display_name: "Display Name",
+  display_name_placeholder: "Enter display name",
+  username_min_2: "Display name must be at least 2 characters",
+  username_min_2_hint: "Minimum 2 characters",
+  username_updated: "Display name updated successfully",
+  edit_display_name: "Edit Display Name",
+  not_authenticated: "Not authenticated",
 } as const;
