@@ -1143,10 +1143,12 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
     } as ChatMessage]);
 
     try {
-      // Use AI to understand intent and get response from Knowledge Base with context
+      // PRODUCTION: Use AI with full context for screen-locked, role-aware responses
       const responseContent = await processQuery(text, language, {
         displayName: profileUsername || undefined,
-        screenContext: state.screenContext
+        screenContext: state.screenContext,
+        userRole: role || undefined,
+        // Feature visibility is determined from restaurant settings - passed via context
       });
       
       // Replace thinking message with actual response

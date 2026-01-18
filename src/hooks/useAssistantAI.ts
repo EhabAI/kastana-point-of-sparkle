@@ -9,8 +9,15 @@ import {
 import { 
   matchUIElement, 
   formatUIElementResponse,
+  getScreenUIElements,
   type UIElementMatch 
 } from "@/lib/assistantUIResolver";
+import { 
+  isTopicAllowedOnScreen,
+  buildSafeFallbackResponse,
+  getScreenName,
+  type FeatureVisibility
+} from "@/lib/assistantScreenLock";
 import type { ScreenContext } from "@/lib/smartAssistantContext";
 
 interface IntentResult {
@@ -29,6 +36,8 @@ interface ConversationMessage {
 interface FallbackContext {
   displayName?: string;
   screenContext?: string;
+  userRole?: string;
+  featureVisibility?: FeatureVisibility;
 }
 
 interface UseAssistantAIReturn {
@@ -41,8 +50,13 @@ interface UseAssistantAIReturn {
 
 /**
  * Hook to integrate AI intent understanding with the Knowledge Base
- * Uses OpenAI via Lovable AI to understand user intent, 
- * then retrieves responses strictly from the Knowledge Base
+ * 
+ * PRODUCTION RULES ENFORCED:
+ * 1. SCREEN LOCK - Only respond about current screen features
+ * 2. UI KEYWORD OVERRIDE - Direct UI matches bypass AI
+ * 3. SAFE FALLBACK - Never ask to clarify, explain primary element
+ * 4. ROLE & FEATURE AWARENESS - Respect disabled features
+ * 5. AI BOUNDARY - AI only phrases responses, doesn't decide actions
  */
 export function useAssistantAI(): UseAssistantAIReturn {
   const [isLoading, setIsLoading] = useState(false);
@@ -97,25 +111,39 @@ export function useAssistantAI(): UseAssistantAIReturn {
       }
       // ===== END UI-FIRST RESOLUTION =====
       
+      // ===== SCREEN-LOCK ENFORCEMENT =====
+      // PRODUCTION RULE 1: Only respond about current screen features
+      const screenContext = fallbackContext?.screenContext as ScreenContext | undefined;
+      
       // No UI match found - proceed with AI intent classification
       // Get all knowledge entry summaries for the AI
+      // IMPORTANT: Filter by screen context to enforce screen-lock
       const topics = getAllTopics(language);
-      const knowledgeEntries = topics.map(t => {
-        const entry = getEntryById(t.id);
-        return {
-          id: t.id,
-          title: t.title,
-          keywords: entry ? [...entry.keywords.ar, ...entry.keywords.en] : [],
-        };
-      });
+      const knowledgeEntries = topics
+        .filter(t => {
+          // If we have screen context, filter topics to current screen only
+          if (screenContext) {
+            return isTopicAllowedOnScreen(t.id, screenContext);
+          }
+          return true;
+        })
+        .map(t => {
+          const entry = getEntryById(t.id);
+          return {
+            id: t.id,
+            title: t.title,
+            keywords: entry ? [...entry.keywords.ar, ...entry.keywords.en] : [],
+          };
+        });
 
-      // Call the edge function
+      // Call the edge function with screen context for locked responses
       const { data, error: fnError } = await supabase.functions.invoke("assistant-intent", {
         body: {
           userQuery: query,
           language,
           knowledgeEntries,
           conversationHistory: conversationHistoryRef.current.slice(-4), // Last 2 exchanges
+          screenContext: screenContext, // Pass screen context for AI awareness
         },
       });
 
@@ -127,7 +155,7 @@ export function useAssistantAI(): UseAssistantAIReturn {
       // Handle rate limit or payment errors
       if (data?.error) {
         setError(data.error);
-        // Fall back to contextual response
+        // PRODUCTION RULE 3: Safe fallback - don't ask to clarify
         return getFallbackResponse(language, fallbackContext);
       }
 
@@ -140,6 +168,22 @@ export function useAssistantAI(): UseAssistantAIReturn {
         intentResult.matchedEntryIds = [lastMatchedEntryRef.current];
         intentResult.depth = "detailed";
       }
+
+      // ===== SCREEN-LOCK VALIDATION =====
+      // PRODUCTION RULE 1: Validate matched entries are allowed on current screen
+      if (screenContext && intentResult.matchedEntryIds.length > 0) {
+        const allowedEntries = intentResult.matchedEntryIds.filter(id => 
+          isTopicAllowedOnScreen(id, screenContext)
+        );
+        
+        // If all entries were filtered out, return screen-locked fallback
+        if (allowedEntries.length === 0) {
+          return buildSafeFallbackResponse(screenContext, language, fallbackContext?.displayName);
+        }
+        
+        intentResult.matchedEntryIds = allowedEntries;
+      }
+      // ===== END SCREEN-LOCK VALIDATION =====
 
       // Generate response from Knowledge Base
       const response = generateResponseFromKnowledge(

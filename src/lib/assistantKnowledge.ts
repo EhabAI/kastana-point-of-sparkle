@@ -1,9 +1,15 @@
 // Kastana POS Assistant Knowledge Loader
 // Reads from static assistant_knowledge.json
 // Enhanced with role/screen filtering for Smart Guided Assistant
+// PRODUCTION RULES: Screen-locked, role-aware, feature-filtered
 
 import knowledgeData from "@/data/assistant_knowledge.json";
 import type { AssistantIntent } from "@/lib/assistantScopeGuard";
+import { 
+  buildSafeFallbackResponse, 
+  type FeatureVisibility 
+} from "@/lib/assistantScreenLock";
+import type { ScreenContext } from "@/lib/smartAssistantContext";
 
 export interface KnowledgeEntry {
   id: string;
@@ -300,13 +306,15 @@ export function getKnowledgeContent(
 
 /**
  * Get contextual fallback response when no match is found
- * Uses screen context and display name to provide helpful guidance
+ * PRODUCTION RULE 3: Safe fallback - explain most important element on current screen
+ * NEVER ask user to clarify or rephrase
  */
 export function getFallbackResponse(
   language: "ar" | "en",
   options?: {
     displayName?: string;
     screenContext?: string;
+    featureVisibility?: FeatureVisibility;
   }
 ): string {
   // If no context provided, return generic fallback
@@ -316,6 +324,24 @@ export function getFallbackResponse(
 
   const { displayName, screenContext } = options;
   
+  // PRODUCTION: Use screen-locked safe fallback
+  // This explains the current screen's most important element
+  return buildSafeFallbackResponse(
+    screenContext as ScreenContext,
+    language,
+    displayName
+  );
+}
+
+/**
+ * Legacy screen-specific contextual fallbacks (kept for reference)
+ * @deprecated Use buildSafeFallbackResponse from assistantScreenLock.ts instead
+ */
+function getLegacyContextualFallback(
+  screenContext: string,
+  displayName: string | undefined,
+  language: "ar" | "en"
+): string | null {
   // Screen-specific contextual fallbacks
   const contextualFallbacks: Record<string, { ar: string; en: string; suggestions: { ar: string[]; en: string[] } }> = {
     pos_main: {
