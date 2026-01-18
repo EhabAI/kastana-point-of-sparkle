@@ -411,6 +411,174 @@
         "affected_screens": ["POS", "Settings"],
         "user_roles": ["cashier", "owner"]
       }
+    },
+    "screen_owner_dashboard": {
+      "id": "screen_owner_dashboard",
+      "intent": ["screen_explanation", "explain_screen", "owner_screen"],
+      "keywords": {
+        "ar": ["شاشة صاحب المطعم", "شاشة المالك", "لوحة التحكم", "داشبورد", "شاشة الادمن", "شاشة الإدارة", "اشرحلي شاشة صاحب المطعم", "شاشة Owner"],
+        "en": ["owner dashboard", "owner screen", "admin dashboard", "management screen", "explain owner screen"]
+      },
+      "title": {
+        "ar": "شاشة صاحب المطعم (Owner Dashboard)",
+        "en": "Owner Dashboard Screen"
+      },
+      "content": {
+        "ar": "شاشة صاحب المطعم (Owner Dashboard):\n\n🎯 هدف الشاشة:\nلوحة التحكم الرئيسية لمالك المطعم لمتابعة الأداء وإدارة جميع جوانب العمل.\n\n📋 الأقسام الرئيسية:\n• ملخص اليوم: إجمالي المبيعات، عدد الطلبات، متوسط قيمة الطلب\n• التقارير: تقارير مالية وتشغيلية مفصلة\n• إدارة القائمة: تعديل الأصناف والأسعار والفئات\n• إدارة الموظفين: إضافة كاشيرات وطباخين\n• إدارة الفروع: إضافة وتعديل الفروع\n• إدارة الطاولات: إضافة وتعديل الطاولات\n• المخزون: متابعة المواد والوصفات\n• الإعدادات: إعدادات الضرائب والخصومات وطرق الدفع\n\n✅ ماذا يستطيع المستخدم فعله:\n• مراجعة أداء المبيعات اليومية والأسبوعية\n• تعديل الأسعار وإضافة أصناف جديدة\n• متابعة أداء الكاشيرات وفروقات الكاش\n• تفعيل/إيقاف المخزون وشاشة المطبخ KDS\n• عرض سجلات التدقيق Audit Logs\n\n⚠️ ملاحظات مهمة:\n• هذه الشاشة للمالك فقط (صلاحية Owner)\n• التغييرات في القائمة تظهر فوراً للكاشير\n• يجب مراجعة التقارير بانتظام لمتابعة الأداء",
+        "en": "Owner Dashboard Screen:\n\n🎯 Purpose:\nMain control panel for restaurant owner to monitor performance and manage all business aspects.\n\n📋 Main Sections:\n• Today Summary: Total sales, order count, average order value\n• Reports: Detailed financial and operational reports\n• Menu Management: Edit items, prices, and categories\n• Staff Management: Add cashiers and kitchen staff\n• Branch Management: Add and edit branches\n• Table Management: Add and edit tables\n• Inventory: Monitor materials and recipes\n• Settings: Tax, discount, and payment method settings\n\n✅ What You Can Do:\n• Review daily and weekly sales performance\n• Modify prices and add new menu items\n• Monitor cashier performance and cash differences\n• Enable/disable inventory and KDS\n• View audit logs\n\n⚠️ Important Notes:\n• This screen is for owners only (Owner role)\n• Menu changes appear immediately for cashiers\n• Review reports regularly to monitor performance"
+      },
+      "metadata": {
+        "feature_id": "screen_owner_dashboard",
+        "affected_screens": ["Owner", "Admin", "Dashboard"],
+        "user_roles": ["owner"]
+      }
+    },
+    "screen_cashier_pos": {
+      "id": "screen_cashier_pos",
+      "intent": ["screen_explanation", "explain_screen", "cashier_screen", "pos_screen"],
+      "keywords": {
+        "ar": ["شاشة الكاشيير", "شاشة الكاشير", "شاشة نقطة البيع", "شاشة POS", "اشرحلي شاشة الكاشير", "شاشة البيع", "شاشة المحاسب"],
+        "en": ["cashier screen", "pos screen", "point of sale screen", "explain cashier screen", "sales screen"]
+      },
+      "title": {
+        "ar": "شاشة الكاشيير (POS)",
+        "en": "Cashier POS Screen"
+      },
+      "content": {
+        "ar": "شاشة الكاشيير (POS):\n\n🎯 هدف الشاشة:\nشاشة نقطة البيع الرئيسية لاستقبال الطلبات وإتمام عمليات الدفع.\n\n📋 الأقسام الرئيسية:\n• القائمة: عرض الفئات والأصناف المتاحة\n• الطلب الحالي: الأصناف المضافة والإجمالي\n• الطاولات: عرض الطاولات وحالتها (تبويب منفصل)\n• المفضلة: الأصناف الأكثر طلباً للوصول السريع\n• الطلبات المفتوحة: قائمة الطلبات قيد التنفيذ\n\n✅ ماذا يستطيع المستخدم فعله:\n• فتح طلب جديد (سفري أو صالة)\n• إضافة أصناف للطلب مع ملاحظات\n• تطبيق خصم على الطلب\n• إتمام الدفع (نقد أو بطاقة)\n• تعليق الطلب واستئنافه لاحقاً\n• إلغاء صنف أو طلب كامل (Void)\n• عمل مرتجع للطلبات المدفوعة (Refund)\n• نقل طلب بين الطاولات\n• دمج طلبات على طاولة واحدة\n\n⚠️ ملاحظات مهمة:\n• يجب فتح وردية قبل استقبال الطلبات\n• الطلبات لا تظهر في التقارير إلا بعد الدفع\n• المرتجعات تؤثر على تقرير Z والكاش المتوقع",
+        "en": "Cashier POS Screen:\n\n🎯 Purpose:\nMain point of sale screen for receiving orders and completing payments.\n\n📋 Main Sections:\n• Menu: Display categories and available items\n• Current Order: Added items and total\n• Tables: View tables and their status (separate tab)\n• Favorites: Most ordered items for quick access\n• Open Orders: List of orders in progress\n\n✅ What You Can Do:\n• Open new order (takeaway or dine-in)\n• Add items to order with notes\n• Apply discount to order\n• Complete payment (cash or card)\n• Hold order and resume later\n• Void item or full order\n• Refund paid orders\n• Transfer order between tables\n• Merge orders to one table\n\n⚠️ Important Notes:\n• Must open shift before taking orders\n• Orders don't appear in reports until paid\n• Refunds affect Z Report and expected cash"
+      },
+      "metadata": {
+        "feature_id": "screen_cashier_pos",
+        "affected_screens": ["POS", "Cashier"],
+        "user_roles": ["cashier", "owner"]
+      }
+    },
+    "screen_tables": {
+      "id": "screen_tables",
+      "intent": ["screen_explanation", "explain_screen", "tables_screen"],
+      "keywords": {
+        "ar": ["شاشة الطاولات", "شاشة الصالة", "اشرحلي شاشة الطاولات", "إدارة الطاولات", "شاشة الجلوس"],
+        "en": ["tables screen", "seating screen", "explain tables screen", "table management screen", "dine-in screen"]
+      },
+      "title": {
+        "ar": "شاشة الطاولات",
+        "en": "Tables Screen"
+      },
+      "content": {
+        "ar": "شاشة الطاولات:\n\n🎯 هدف الشاشة:\nعرض وإدارة طاولات المطعم وحالة الطلبات عليها.\n\n📋 الأقسام الرئيسية:\n• شبكة الطاولات: عرض جميع الطاولات بألوان تدل على حالتها\n• تفاصيل الطاولة: عند الضغط على طاولة مشغولة\n\n🎨 دلالات الألوان:\n• أخضر: طاولة فارغة ومتاحة\n• برتقالي/أحمر: طاولة مشغولة بطلب مفتوح\n• رمادي: طاولة غير مفعلة\n\n✅ ماذا يستطيع المستخدم فعله:\n• فتح طلب جديد على طاولة فارغة\n• عرض تفاصيل الطلب الحالي على طاولة مشغولة\n• نقل طلب من طاولة لأخرى\n• دمج طلبات من طاولتين مختلفتين\n• إتمام الدفع مباشرة من الطاولة\n\n⚠️ ملاحظات مهمة:\n• الطاولات تُعرف من إعدادات المالك\n• النقل والدمج يُسجل في سجل التدقيق\n• الطاولات المعلقة تظهر بلون مختلف",
+        "en": "Tables Screen:\n\n🎯 Purpose:\nView and manage restaurant tables and their order status.\n\n📋 Main Sections:\n• Table Grid: Display all tables with status colors\n• Table Details: When clicking an occupied table\n\n🎨 Color Meanings:\n• Green: Empty and available table\n• Orange/Red: Occupied with open order\n• Gray: Disabled table\n\n✅ What You Can Do:\n• Open new order on empty table\n• View current order details on occupied table\n• Transfer order from one table to another\n• Merge orders from two different tables\n• Complete payment directly from table\n\n⚠️ Important Notes:\n• Tables are defined in owner settings\n• Transfers and merges are recorded in audit log\n• Held tables appear in different color"
+      },
+      "metadata": {
+        "feature_id": "screen_tables",
+        "affected_screens": ["Tables", "POS"],
+        "user_roles": ["cashier", "owner"]
+      }
+    },
+    "screen_inventory": {
+      "id": "screen_inventory",
+      "intent": ["screen_explanation", "explain_screen", "inventory_screen"],
+      "keywords": {
+        "ar": ["شاشة المخزون", "شاشة المخازن", "اشرحلي شاشة المخزون", "إدارة المخزون", "شاشة الجرد"],
+        "en": ["inventory screen", "stock screen", "explain inventory screen", "warehouse screen", "stock management screen"]
+      },
+      "title": {
+        "ar": "شاشة المخزون",
+        "en": "Inventory Screen"
+      },
+      "content": {
+        "ar": "شاشة المخزون:\n\n🎯 هدف الشاشة:\nإدارة المواد الخام ومتابعة الكميات والحركات.\n\n📋 الأقسام الرئيسية:\n• قائمة المواد: جميع مواد المخزون مع الكميات الحالية\n• العمليات: استلام، هدر، نقل، تعديل\n• التقارير: تقارير حركة المخزون والفروقات\n• الوصفات: ربط الأصناف بمواد المخزون\n• الوحدات: تعريف وحدات القياس والتحويلات\n\n✅ ماذا يستطيع المستخدم فعله:\n• إضافة مواد جديدة للمخزون\n• استلام مشتريات وتسجيل الكميات\n• تسجيل الهدر بأسبابه\n• نقل مواد بين الفروع\n• إجراء جرد ومقارنة الفعلي بالنظري\n• إنشاء وصفات للأصناف\n• تعديل الكميات يدوياً\n\n⚠️ ملاحظات مهمة:\n• المخزون يُفعل من إعدادات المالك\n• الخصم التلقائي يعتمد على الوصفات\n• الأصناف بدون وصفة لا تؤثر على المخزون\n• الفروقات تظهر في تقرير التباين Variance",
+        "en": "Inventory Screen:\n\n🎯 Purpose:\nManage raw materials and track quantities and movements.\n\n📋 Main Sections:\n• Materials List: All inventory items with current quantities\n• Operations: Receive, waste, transfer, adjust\n• Reports: Inventory movement and variance reports\n• Recipes: Link menu items to inventory materials\n• Units: Define measurement units and conversions\n\n✅ What You Can Do:\n• Add new inventory materials\n• Receive purchases and record quantities\n• Record waste with reasons\n• Transfer materials between branches\n• Conduct stock count and compare actual vs theoretical\n• Create recipes for menu items\n• Manually adjust quantities\n\n⚠️ Important Notes:\n• Inventory is enabled in owner settings\n• Auto-deduction depends on recipes\n• Items without recipes don't affect inventory\n• Variances appear in variance report"
+      },
+      "metadata": {
+        "feature_id": "screen_inventory",
+        "affected_screens": ["Inventory", "Settings"],
+        "user_roles": ["owner"]
+      }
+    },
+    "screen_reports": {
+      "id": "screen_reports",
+      "intent": ["screen_explanation", "explain_screen", "reports_screen"],
+      "keywords": {
+        "ar": ["شاشة التقارير", "اشرحلي شاشة التقارير", "تقارير النظام", "شاشة الإحصائيات"],
+        "en": ["reports screen", "explain reports screen", "analytics screen", "statistics screen"]
+      },
+      "title": {
+        "ar": "شاشة التقارير",
+        "en": "Reports Screen"
+      },
+      "content": {
+        "ar": "شاشة التقارير:\n\n🎯 هدف الشاشة:\nعرض تقارير مفصلة عن أداء المطعم المالي والتشغيلي.\n\n📋 أنواع التقارير:\n• تقرير المبيعات: إجمالي المبيعات حسب الفترة\n• تقرير الأصناف: الأكثر والأقل مبيعاً\n• تقرير الموظفين: أداء الكاشيرات وفروقات الكاش\n• تقرير الورديات: ملخص كل وردية (Z Report)\n• تقرير المخزون: حركات المخزون والتباين\n• تقرير المرتجعات: جميع المرتجعات وأسبابها\n• تقرير الفروع: مقارنة أداء الفروع\n\n✅ ماذا يستطيع المستخدم فعله:\n• فلترة التقارير حسب التاريخ\n• فلترة حسب الفرع أو الكاشير\n• تصدير التقارير\n• مقارنة فترات مختلفة\n• عرض تفاصيل الطلبات\n\n⚠️ ملاحظات مهمة:\n• التقارير تعتمد على الطلبات المدفوعة فقط\n• الطلبات المفتوحة أو الملغاة لا تظهر\n• المرتجعات تظهر كبند منفصل وتُخصم من الإجمالي",
+        "en": "Reports Screen:\n\n🎯 Purpose:\nDisplay detailed reports on restaurant financial and operational performance.\n\n📋 Report Types:\n• Sales Report: Total sales by period\n• Items Report: Best and worst sellers\n• Staff Report: Cashier performance and cash differences\n• Shift Report: Each shift summary (Z Report)\n• Inventory Report: Stock movements and variance\n• Refunds Report: All refunds and reasons\n• Branch Report: Compare branch performance\n\n✅ What You Can Do:\n• Filter reports by date\n• Filter by branch or cashier\n• Export reports\n• Compare different periods\n• View order details\n\n⚠️ Important Notes:\n• Reports based on paid orders only\n• Open or cancelled orders don't appear\n• Refunds shown separately and deducted from total"
+      },
+      "metadata": {
+        "feature_id": "screen_reports",
+        "affected_screens": ["Reports", "Owner"],
+        "user_roles": ["owner"]
+      }
+    },
+    "screen_qr_orders": {
+      "id": "screen_qr_orders",
+      "intent": ["screen_explanation", "explain_screen", "qr_screen"],
+      "keywords": {
+        "ar": ["شاشة طلبات QR", "شاشة كيو آر", "طلبات الكود", "اشرحلي شاشة QR", "طلبات الباركود", "شاشة الطلبات الذاتية"],
+        "en": ["qr orders screen", "qr code orders", "explain qr screen", "self-order screen", "barcode orders screen"]
+      },
+      "title": {
+        "ar": "شاشة طلبات QR",
+        "en": "QR Orders Screen"
+      },
+      "content": {
+        "ar": "شاشة طلبات QR:\n\n🎯 هدف الشاشة:\nإدارة الطلبات التي يرسلها العملاء عبر مسح رمز QR من الطاولة.\n\n📋 الأقسام الرئيسية:\n• الطلبات المعلقة: طلبات QR بانتظار قبول الكاشير\n• تفاصيل الطلب: الأصناف والملاحظات والإجمالي\n\n🔄 آلية العمل:\n1. العميل يمسح رمز QR على الطاولة\n2. يختار الأصناف من القائمة على جواله\n3. يرسل الطلب للنظام\n4. يظهر الطلب للكاشير كـ \"معلق\"\n5. الكاشير يقبل أو يرفض الطلب\n\n✅ ماذا يستطيع المستخدم فعله:\n• مراجعة طلبات QR المعلقة\n• قبول الطلب ونقله للطلبات المفتوحة\n• رفض الطلب مع إبداء السبب\n• تعديل الطلب بعد القبول\n\n⚠️ ملاحظات مهمة:\n• الطلب لا يُحسب مالياً حتى يُقبل ويُدفع\n• رمز QR مرتبط بطاولة محددة\n• يجب مراجعة الطلبات المعلقة بانتظام",
+        "en": "QR Orders Screen:\n\n🎯 Purpose:\nManage orders sent by customers via scanning QR code from the table.\n\n📋 Main Sections:\n• Pending Orders: QR orders awaiting cashier approval\n• Order Details: Items, notes, and total\n\n🔄 How It Works:\n1. Customer scans QR code on table\n2. Selects items from menu on their phone\n3. Submits order to system\n4. Order appears to cashier as \"pending\"\n5. Cashier accepts or rejects the order\n\n✅ What You Can Do:\n• Review pending QR orders\n• Accept order and move to open orders\n• Reject order with reason\n• Modify order after acceptance\n\n⚠️ Important Notes:\n• Order not counted financially until accepted and paid\n• QR code is linked to specific table\n• Must review pending orders regularly"
+      },
+      "metadata": {
+        "feature_id": "screen_qr_orders",
+        "affected_screens": ["POS", "QR"],
+        "user_roles": ["cashier", "owner"]
+      }
+    },
+    "screen_settings": {
+      "id": "screen_settings",
+      "intent": ["screen_explanation", "explain_screen", "settings_screen"],
+      "keywords": {
+        "ar": ["شاشة الإعدادات", "اشرحلي شاشة الإعدادات", "إعدادات النظام", "شاشة التهيئة", "الضبط"],
+        "en": ["settings screen", "explain settings screen", "system settings", "configuration screen"]
+      },
+      "title": {
+        "ar": "شاشة الإعدادات",
+        "en": "Settings Screen"
+      },
+      "content": {
+        "ar": "شاشة الإعدادات:\n\n🎯 هدف الشاشة:\nتهيئة إعدادات النظام العامة والميزات المتقدمة.\n\n📋 الأقسام الرئيسية:\n• إعدادات عامة: اسم المطعم، الشعار، العملة\n• الضرائب: نسبة الضريبة، هل الأسعار شاملة\n• الخصومات: تفعيل الخصومات وتحديد الحد الأقصى\n• طرق الدفع: تفعيل/إيقاف (نقد، فيزا، ماستركارد)\n• المخزون: تفعيل/إيقاف نظام المخزون\n• شاشة المطبخ KDS: تفعيل/إيقاف\n• رسوم الخدمة: نسبة رسوم الخدمة\n\n✅ ماذا يستطيع المستخدم فعله:\n• تغيير إعدادات الضرائب والخدمة\n• تفعيل أو إيقاف الميزات (مخزون، KDS، خصومات)\n• تحديد طرق الدفع المتاحة\n• تعديل الحد الأقصى للخصم\n• رفع شعار المطعم\n\n⚠️ ملاحظات مهمة:\n• التغييرات تُطبق فوراً على جميع الكاشيرات\n• تفعيل المخزون يتطلب إعداد المواد والوصفات\n• تفعيل KDS يتطلب إنشاء حساب بدور Kitchen\n• بعض الإعدادات تؤثر على التقارير والحسابات",
+        "en": "Settings Screen:\n\n🎯 Purpose:\nConfigure general system settings and advanced features.\n\n📋 Main Sections:\n• General Settings: Restaurant name, logo, currency\n• Taxes: Tax rate, prices include tax\n• Discounts: Enable discounts and set maximum\n• Payment Methods: Enable/disable (cash, visa, mastercard)\n• Inventory: Enable/disable inventory system\n• Kitchen Display KDS: Enable/disable\n• Service Charge: Service charge percentage\n\n✅ What You Can Do:\n• Change tax and service settings\n• Enable or disable features (inventory, KDS, discounts)\n• Set available payment methods\n• Modify maximum discount limit\n• Upload restaurant logo\n\n⚠️ Important Notes:\n• Changes apply immediately to all cashiers\n• Enabling inventory requires setting up materials and recipes\n• Enabling KDS requires creating account with Kitchen role\n• Some settings affect reports and calculations"
+      },
+      "metadata": {
+        "feature_id": "screen_settings",
+        "affected_screens": ["Settings", "Owner"],
+        "user_roles": ["owner"]
+      }
+    },
+    "screen_kds": {
+      "id": "screen_kds",
+      "intent": ["screen_explanation", "explain_screen", "kitchen_screen"],
+      "keywords": {
+        "ar": ["شاشة المطبخ", "شاشة الطباخ", "اشرحلي شاشة المطبخ", "شاشة KDS", "شاشة التحضير"],
+        "en": ["kitchen screen", "kds screen", "explain kitchen screen", "cooking screen", "preparation screen"]
+      },
+      "title": {
+        "ar": "شاشة المطبخ (KDS)",
+        "en": "Kitchen Display Screen (KDS)"
+      },
+      "content": {
+        "ar": "شاشة المطبخ (KDS):\n\n🎯 هدف الشاشة:\nعرض الطلبات للطباخين ومتابعة حالة التحضير.\n\n📋 الأقسام الرئيسية:\n• الطلبات الجديدة: طلبات وصلت من الكاشير\n• قيد التحضير: طلبات بدأ العمل عليها\n• جاهزة: طلبات منتهية وجاهزة للتقديم\n\n🔄 حالات الطلب:\n• NEW (جديد): طلب وصل للمطبخ\n• IN_PROGRESS (قيد التحضير): بدأ التحضير\n• READY (جاهز): انتهى التحضير\n\n✅ ماذا يستطيع المستخدم فعله:\n• عرض تفاصيل كل طلب (الأصناف والملاحظات)\n• تغيير حالة الطلب بالضغط عليه\n• متابعة وقت التحضير لكل طلب\n• رؤية الطلبات المتأخرة بتنبيه خاص\n\n⚠️ ملاحظات مهمة:\n• KDS يُفعل من إعدادات المالك\n• يتطلب حساب مستخدم بدور Kitchen\n• الطلبات تظهر فور إضافة الأصناف من الكاشير\n• وقت التحضير يُحسب ويظهر في التقارير",
+        "en": "Kitchen Display Screen (KDS):\n\n🎯 Purpose:\nDisplay orders for kitchen staff and track preparation status.\n\n📋 Main Sections:\n• New Orders: Orders arrived from cashier\n• In Progress: Orders being prepared\n• Ready: Completed orders ready to serve\n\n🔄 Order States:\n• NEW: Order arrived at kitchen\n• IN_PROGRESS: Preparation started\n• READY: Preparation complete\n\n✅ What You Can Do:\n• View each order details (items and notes)\n• Change order status by clicking\n• Track preparation time for each order\n• See delayed orders with special alert\n\n⚠️ Important Notes:\n• KDS is enabled in owner settings\n• Requires user account with Kitchen role\n• Orders appear as soon as items added by cashier\n• Preparation time is calculated and shown in reports"
+      },
+      "metadata": {
+        "feature_id": "screen_kds",
+        "affected_screens": ["KDS", "Kitchen"],
+        "user_roles": ["kitchen", "owner"]
+      }
     }
   }
 }
