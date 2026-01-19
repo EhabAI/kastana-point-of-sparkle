@@ -103,18 +103,15 @@ export function EnhancedConfidenceScore({ restaurantId }: EnhancedConfidenceScor
                 <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="max-w-[220px]">
-                <p className="text-xs font-medium mb-1">{t("based_on_today")}</p>
-                <p className="text-xs text-muted-foreground">
-                  {getExplanatoryText()}
+                <p className="text-xs whitespace-pre-line">
+                  {language === "ar" 
+                    ? "يعكس استقرار العمليات\nبناءً على النشاط الأخير." 
+                    : "Reflects overall operational stability\nbased on recent activity."}
                 </p>
                 {insightsData.insights.length > 0 && (
-                  <ul className="text-xs text-muted-foreground mt-1 space-y-0.5">
-                    {insightsData.insights.slice(0, 3).map((insight, idx) => (
-                      <li key={idx}>
-                        • {language === "ar" ? "ملاحظة" : "Note"} {idx + 1}
-                      </li>
-                    ))}
-                  </ul>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {getExplanatoryText()}
+                  </p>
                 )}
               </TooltipContent>
             </Tooltip>

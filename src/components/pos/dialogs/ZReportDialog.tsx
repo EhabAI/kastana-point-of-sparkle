@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import type { ZReportData } from "@/hooks/pos/useZReport";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatJOD } from "@/lib/utils";
+import { ExplainTooltip } from "@/components/ui/explain-tooltip";
 
 interface ZReportDialogProps {
   open: boolean;
@@ -29,7 +30,7 @@ export function ZReportDialog({
   currency,
   isLoading,
 }: ZReportDialogProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const handlePrint = () => {
     window.print();
@@ -105,12 +106,18 @@ export function ZReportDialog({
                 <span>{formatJOD(report.grossServiceCharge)} {currency}</span>
               </div>
               <div className="flex justify-between">
-                <span>{t("tax")}</span>
+                <span className="flex items-center gap-1">
+                  {t("tax")}
+                  <ExplainTooltip explainKey="tax" language={language} />
+                </span>
                 <span>{formatJOD(report.grossTax)} {currency}</span>
               </div>
               <Separator className="my-2" />
               <div className="flex justify-between font-bold">
-                <span>{t("gross_total")}</span>
+                <span className="flex items-center gap-1">
+                  {t("gross_total")}
+                  <ExplainTooltip explainKey="z_report_total" language={language} />
+                </span>
                 <span>{formatJOD(report.grossSales)} {currency}</span>
               </div>
             </div>

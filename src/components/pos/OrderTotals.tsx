@@ -2,7 +2,7 @@ import { Separator } from "@/components/ui/separator";
 import { formatJOD, getCurrencySymbol } from "@/lib/utils";
 import { calculateOrderTotals } from "@/lib/orderCalculations";
 import { useLanguage } from "@/contexts/LanguageContext";
-
+import { ExplainTooltip } from "@/components/ui/explain-tooltip";
 interface OrderTotalsProps {
   subtotal: number;
   discountType?: string | null;
@@ -62,7 +62,10 @@ export function OrderTotals({
 
       {hasDiscount && (
         <div className="flex justify-between text-green-600">
-          <span>{t("discount")} ({discountLabel})</span>
+          <span className="flex items-center gap-1">
+            {t("discount")} ({discountLabel})
+            <ExplainTooltip explainKey="discount" language={language} />
+          </span>
           <span>-{formatJOD(discountAmount)} {localizedCurrency}</span>
         </div>
       )}
@@ -75,7 +78,10 @@ export function OrderTotals({
       )}
 
       <div className="flex justify-between">
-        <span className="text-muted-foreground">{t("tax")} ({(taxRate * 100).toFixed(0)}%)</span>
+        <span className="text-muted-foreground flex items-center gap-1">
+          {t("tax")} ({(taxRate * 100).toFixed(0)}%)
+          <ExplainTooltip explainKey="tax" language={language} />
+        </span>
         <span>{formatJOD(taxAmount)} {localizedCurrency}</span>
       </div>
 
@@ -83,7 +89,10 @@ export function OrderTotals({
       <Separator />
 
       <div className="flex justify-between items-center text-lg font-bold">
-        <span>{t("total")}</span>
+        <span className="flex items-center gap-1">
+          {t("total")}
+          <ExplainTooltip explainKey="order_total" language={language} />
+        </span>
         <span className="text-primary ltr:ml-2 rtl:mr-2">{formatJOD(total)} {localizedCurrency}</span>
       </div>
 

@@ -12,6 +12,7 @@ import { ReportSection } from "./ReportSection";
 import { DrillDownDialog, DrillDownColumn } from "./DrillDownDialog";
 import { exportToCSV, printReport } from "./utils/reportUtils";
 import { FinancialReportsSkeleton } from "./ReportSkeletons";
+import { ExplainTooltip } from "@/components/ui/explain-tooltip";
 
 interface FinancialReportsProps {
   dateRange: DateRange;
@@ -311,19 +312,31 @@ export function FinancialReports({ dateRange }: FinancialReportsProps) {
         <ReportSection title={t("daily_sales_report")}>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="p-4 bg-muted/30 rounded-lg">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("gross_sales")}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                {t("gross_sales")}
+                <ExplainTooltip explainKey="gross_sales" language={language} />
+              </p>
               <p className="text-xl font-bold text-foreground tabular-nums mt-1">{formatJOD(data?.grossSales || 0)} <span className="text-sm font-normal text-muted-foreground">{currencySymbol}</span></p>
             </div>
             <div className="p-4 bg-muted/30 rounded-lg">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("discount")}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                {t("discount")}
+                <ExplainTooltip explainKey="discount" language={language} />
+              </p>
               <p className="text-xl font-bold text-amber-600 dark:text-amber-400 tabular-nums mt-1">-{formatJOD(data?.totalDiscounts || 0)} <span className="text-sm font-normal">{currencySymbol}</span></p>
             </div>
             <div className="p-4 bg-muted/30 rounded-lg">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("net_sales")}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                {t("net_sales")}
+                <ExplainTooltip explainKey="net_sales" language={language} />
+              </p>
               <p className="text-xl font-bold text-foreground tabular-nums mt-1">{formatJOD(data?.netSales || 0)} <span className="text-sm font-normal text-muted-foreground">{currencySymbol}</span></p>
             </div>
             <div className="p-4 bg-muted/30 rounded-lg">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("tax")}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                {t("tax")}
+                <ExplainTooltip explainKey="tax" language={language} />
+              </p>
               <p className="text-xl font-bold text-foreground tabular-nums mt-1">{formatJOD(data?.totalTax || 0)} <span className="text-sm font-normal text-muted-foreground">{currencySymbol}</span></p>
             </div>
             {(data?.totalServiceCharge || 0) > 0 && (
@@ -333,7 +346,10 @@ export function FinancialReports({ dateRange }: FinancialReportsProps) {
               </div>
             )}
             <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
-              <p className="text-xs text-primary uppercase tracking-wide font-medium">{t("final_total")}</p>
+              <p className="text-xs text-primary uppercase tracking-wide font-medium flex items-center gap-1">
+                {t("final_total")}
+                <ExplainTooltip explainKey="z_report_total" language={language} />
+              </p>
               <p className="text-2xl font-black text-foreground tabular-nums mt-1">{formatJOD(data?.finalTotal || 0)} <span className="text-sm font-normal text-muted-foreground">{currencySymbol}</span></p>
             </div>
           </div>
