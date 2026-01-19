@@ -1,6 +1,7 @@
 /**
  * Smart End-of-Day Summary Component
  * Displays a concise daily summary for restaurant owners
+ * Now includes operational notes from the Smart Insights system
  */
 
 import { useQuery } from "@tanstack/react-query";
@@ -8,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useOwnerRestaurant } from "@/hooks/useRestaurants";
 import { useInventoryEnabled } from "@/hooks/useInventoryEnabled";
+import { useOperationalInsights } from "@/hooks/useOperationalInsights";
 import { startOfDay, endOfDay, subDays, format } from "date-fns";
 import { formatJOD } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +25,8 @@ import {
   Target,
   DollarSign,
   ShoppingBag,
-  RefreshCw
+  RefreshCw,
+  FileText
 } from "lucide-react";
 
 interface SmartEndOfDaySummaryProps {
@@ -34,6 +37,7 @@ interface SmartEndOfDaySummaryProps {
 export function SmartEndOfDaySummary({ restaurantId, currency = "JOD" }: SmartEndOfDaySummaryProps) {
   const { t, language } = useLanguage();
   const { isEnabled: inventoryEnabled } = useInventoryEnabled();
+  const { data: insightsData } = useOperationalInsights(restaurantId);
   
   const today = new Date();
   const yesterday = subDays(today, 1);
@@ -258,7 +262,69 @@ export function SmartEndOfDaySummary({ restaurantId, currency = "JOD" }: SmartEn
             </span>
           </div>
         )}
+        
+        {/* Operational Notes Section */}
+        {insightsData && insightsData.operationalNotes.length > 0 && (
+          <div className="border-t pt-3 mt-3">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-muted-foreground">
+                {language === "ar" ? "ملاحظات تشغيلية" : "Operational Notes"}
+              </span>
+            </div>
+            <ul className="space-y-1">
+              {insightsData.operationalNotes.slice(0, 3).map((note, idx) => (
+                <li key={idx} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                  <span className="text-amber-500 mt-0.5">•</span>
+                  <span>{language === "ar" ? getArabicNote(note) : note}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        
+        {/* Stable operations message when no insights */}
+        {insightsData && insightsData.operationalNotes.length === 0 && !insightsData.isNewRestaurant && (
+          <div className="border-t pt-3 mt-3">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span className="text-xs text-muted-foreground">
+                {language === "ar" 
+                  ? "لا توجد ملاحظات تشغيلية اليوم. العمليات مستقرة."
+                  : "No operational notes were recorded today. Operations were stable."
+                }
+              </span>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
+}
+
+// Helper function to translate operational notes to Arabic
+function getArabicNote(englishNote: string): string {
+  const translations: Record<string, string> = {
+    "Order cancellations after payment are higher than recent activity.": 
+      "إلغاءات الطلبات بعد الدفع أعلى من النشاط الأخير.",
+    "Order cancellations after payment have continued over recent days.": 
+      "استمرت إلغاءات الطلبات بعد الدفع خلال الأيام الأخيرة.",
+    "Discount usage is higher compared to recent activity.": 
+      "استخدام الخصومات أعلى مقارنة بالنشاط الأخير.",
+    "Elevated discount usage has continued over recent days.": 
+      "استمر ارتفاع استخدام الخصومات خلال الأيام الأخيرة.",
+    "Multiple inventory adjustments on the same items today.": 
+      "تسويات مخزون متعددة على نفس الأصناف اليوم.",
+    "Repeated inventory adjustments have continued over recent days.": 
+      "استمرت تسويات المخزون المتكررة خلال الأيام الأخيرة.",
+    "A shift has been open longer than typical duration.": 
+      "وردية مفتوحة لفترة أطول من المعتاد.",
+    "Extended shift durations have continued over recent days.": 
+      "استمرت فترات الورديات الممتدة خلال الأيام الأخيرة.",
+    "No sales recorded during operating hours today.": 
+      "لا توجد مبيعات مسجلة خلال ساعات العمل اليوم.",
+    "Low sales activity has continued over recent days.": 
+      "استمر انخفاض نشاط المبيعات خلال الأيام الأخيرة.",
+  };
+  return translations[englishNote] || englishNote;
 }

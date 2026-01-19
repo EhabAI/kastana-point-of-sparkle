@@ -75,6 +75,7 @@ import { DailySummaryCard } from "@/components/owner/DailySummaryCard";
 import { CashDifferencesCard } from "@/components/owner/CashDifferencesCard";
 import { SuggestedNextAction } from "@/components/owner/SuggestedNextAction";
 import { MistakePatternDetector } from "@/components/owner/MistakePatternDetector";
+import { OperationalInsightsCard } from "@/components/owner/OperationalInsightsCard";
 
 
 import { InventoryRiskCard } from "@/components/owner/InventoryRiskCard";
@@ -242,6 +243,7 @@ export default function OwnerAdmin() {
                 </div>
               </div>
             )}
+            {role === "owner" && <OperationalInsightsCard restaurantId={restaurant.id} />}
             {role === "owner" && <MistakePatternDetector restaurantId={restaurant.id} />}
             {role === "owner" && <NotificationsAlerts />}
             {role === "owner" && <RefundVoidInsights />}

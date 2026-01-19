@@ -5,10 +5,10 @@ import { startOfDay, endOfDay, format, differenceInMinutes } from "date-fns";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatJOD } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Info, Gauge, CheckCircle, AlertCircle, AlertTriangle, HelpCircle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Info, HelpCircle } from "lucide-react";
+import { EnhancedConfidenceScore } from "./EnhancedConfidenceScore";
 
-type ConfidenceLevel = "excellent" | "good" | "needs_attention";
+
 interface DashboardOverviewProps {
   restaurantId: string;
   tableCount: number;
@@ -348,161 +348,8 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
           <div className="hidden md:block w-[2px] self-stretch bg-border/80 mx-3" />
         </div>
 
-        {/* Operational Score */}
-        <OperationalScoreMetric restaurantId={restaurantId} />
-      </div>
-    </div>
-  );
-}
-
-// Inline operational score component
-function OperationalScoreMetric({ restaurantId }: { restaurantId: string }) {
-  const { t, language } = useLanguage();
-
-  const today = new Date();
-  const todayStart = startOfDay(today).toISOString();
-  const todayEnd = endOfDay(today).toISOString();
-
-  const { data: score } = useQuery({
-    queryKey: ["system-confidence", restaurantId, todayStart],
-    queryFn: async () => {
-      const { data: orders } = await supabase
-        .from("orders")
-        .select("id, status, cancelled_reason")
-        .eq("restaurant_id", restaurantId)
-        .gte("created_at", todayStart)
-        .lt("created_at", todayEnd);
-
-      const { data: voidedItems } = await supabase
-        .from("order_items")
-        .select("id")
-        .eq("restaurant_id", restaurantId)
-        .eq("voided", true)
-        .gte("created_at", todayStart)
-        .lt("created_at", todayEnd);
-
-      const { data: refunds } = await supabase
-        .from("refunds")
-        .select("id")
-        .eq("restaurant_id", restaurantId)
-        .gte("created_at", todayStart)
-        .lt("created_at", todayEnd);
-
-      const { data: openShifts } = await supabase
-        .from("shifts")
-        .select("id, opened_at")
-        .eq("restaurant_id", restaurantId)
-        .eq("status", "open");
-
-      const totalOrders = orders?.length || 0;
-      const cancelledOrders = orders?.filter((o) => o.status === "cancelled")?.length || 0;
-      const voidCount = voidedItems?.length || 0;
-      const refundCount = refunds?.length || 0;
-
-      const longShifts =
-        openShifts?.filter((s) => {
-          const hoursOpen = (Date.now() - new Date(s.opened_at).getTime()) / (1000 * 60 * 60);
-          return hoursOpen > 10;
-        })?.length || 0;
-
-      let scoreValue = 100;
-
-      if (totalOrders > 0) {
-        const cancellationRate = (cancelledOrders / totalOrders) * 100;
-        if (cancellationRate > 10) scoreValue -= 15;
-        else if (cancellationRate > 5) scoreValue -= 8;
-      }
-
-      if (voidCount > 10) scoreValue -= 15;
-      else if (voidCount > 5) scoreValue -= 8;
-      else if (voidCount > 2) scoreValue -= 3;
-
-      if (refundCount > 5) scoreValue -= 10;
-      else if (refundCount > 2) scoreValue -= 5;
-
-      if (longShifts > 0) scoreValue -= 10;
-
-      const currentHour = new Date().getHours();
-      if (totalOrders === 0 && currentHour >= 12) {
-        scoreValue -= 20;
-      }
-
-      scoreValue = Math.max(0, Math.min(100, scoreValue));
-
-      let level: ConfidenceLevel;
-      if (scoreValue >= 80) level = "excellent";
-      else if (scoreValue >= 60) level = "good";
-      else level = "needs_attention";
-
-      return {
-        score: scoreValue,
-        level,
-        factors: { totalOrders, cancelledOrders, voidCount, refundCount, longShifts },
-      };
-    },
-    enabled: !!restaurantId,
-    refetchInterval: 5 * 60 * 1000,
-  });
-
-  if (!score) return null;
-
-  const levelConfig: Record<ConfidenceLevel, { icon: typeof CheckCircle; color: string }> = {
-    excellent: { icon: CheckCircle, color: "text-green-600" },
-    good: { icon: AlertCircle, color: "text-blue-600" },
-    needs_attention: { icon: AlertTriangle, color: "text-amber-600" },
-  };
-
-  const levelLabels: Record<ConfidenceLevel, { ar: string; en: string }> = {
-    excellent: { ar: "ممتاز", en: "Excellent" },
-    good: { ar: "جيد", en: "Good" },
-    needs_attention: { ar: "يحتاج انتباه", en: "Needs Attention" },
-  };
-
-  const config = levelConfig[score.level];
-  const Icon = config.icon;
-
-  return (
-    <div className="flex items-center">
-      <div className="flex flex-col px-4 min-h-[52px]">
-        <span className="text-[9px] uppercase tracking-widest text-foreground/50 font-medium mb-1">
-          {t("operational_score")}
-        </span>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5">
-            <Gauge className={`h-4 w-4 ${config.color}`} />
-            <span className={`text-xl font-bold tabular-nums tracking-tight leading-none ${config.color}`}>
-              {score.score}%
-            </span>
-          </div>
-          <Badge variant="outline" className={`${config.color} border-current text-xs px-2 py-0.5`}>
-            <Icon className="h-3 w-3 mr-1" />
-            {levelLabels[score.level][language]}
-          </Badge>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-[200px]">
-                <p className="text-xs font-medium mb-1">{t("based_on_today")}</p>
-                <ul className="text-xs text-muted-foreground space-y-0.5">
-                  <li>
-                    • {t("orders")}: {score.factors.totalOrders}
-                  </li>
-                  <li>
-                    • {language === "ar" ? "ملغي" : "Cancelled"}: {score.factors.cancelledOrders}
-                  </li>
-                  <li>
-                    • {language === "ar" ? "إلغاءات" : "Voids"}: {score.factors.voidCount}
-                  </li>
-                  <li>
-                    • {language === "ar" ? "استردادات" : "Refunds"}: {score.factors.refundCount}
-                  </li>
-                </ul>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
+        {/* Operational Score - Using Enhanced Version with Insights */}
+        <EnhancedConfidenceScore restaurantId={restaurantId} />
       </div>
     </div>
   );
