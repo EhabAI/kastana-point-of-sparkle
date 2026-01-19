@@ -26,6 +26,11 @@ import {
   type V2SystemContext,
   type V2SoftIntent,
 } from "@/lib/assistantV2Context";
+import {
+  getDirectAnswer,
+  isExplanationQuestion,
+  shouldSkipScreenContext,
+} from "@/lib/assistantIntentFirstResponse";
 import type { ScreenContext } from "@/lib/smartAssistantContext";
 
 interface IntentResult {
@@ -118,8 +123,31 @@ export function useAssistantAI(): UseAssistantAIReturn {
     setLastSoftIntent(softIntent);
     
     try {
+      // ===== NEW: INTENT-FIRST RESPONSE (HIGHEST PRIORITY) =====
+      // Rule 1: If user is asking an explanation question, answer DIRECTLY
+      // No greetings, no screen descriptions, no daily summaries
+      if (isExplanationQuestion(query)) {
+        const directAnswer = getDirectAnswer(query, language);
+        
+        if (directAnswer) {
+          setIsLoading(false);
+          
+          // Update conversation history
+          conversationHistoryRef.current.push({ role: "user", content: query });
+          conversationHistoryRef.current.push({ role: "assistant", content: directAnswer });
+          
+          // Keep only last 6 messages
+          if (conversationHistoryRef.current.length > 6) {
+            conversationHistoryRef.current = conversationHistoryRef.current.slice(-6);
+          }
+          
+          return directAnswer;
+        }
+      }
+      // ===== END INTENT-FIRST RESPONSE =====
+      
       // ===== V2 UI-FIRST INTENT RESOLUTION (Rule 4) =====
-      // Priority 1: Exact UI keyword match on current screen
+      // Priority 2: Exact UI keyword match on current screen
       // This has HIGHER priority than AI intent classification
       if (screenContext) {
         const uiMatch = matchUIElement(query, screenContext, language);
@@ -135,8 +163,8 @@ export function useAssistantAI(): UseAssistantAIReturn {
             
             let response = formatUIElementResponse(uiMatch, language);
             
-            // V2: Add smart suggestions
-            if (v2Context) {
+            // V2: Add smart suggestions (but NO screen over-contextualization)
+            if (v2Context && !shouldSkipScreenContext(query)) {
               response = formatV2Response(response, v2Context, true);
             }
             
@@ -237,8 +265,9 @@ export function useAssistantAI(): UseAssistantAIReturn {
         fallbackContext
       );
       
-      // V2: Add smart suggestions to response
-      if (v2Context) {
+      // V2: Add smart suggestions ONLY if not an explanation question
+      // Rule 3: No over-contextualization for direct questions
+      if (v2Context && !shouldSkipScreenContext(query)) {
         response = formatV2Response(response, v2Context, true);
       }
 
