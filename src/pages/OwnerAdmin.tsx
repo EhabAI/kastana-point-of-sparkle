@@ -76,6 +76,7 @@ import { CashDifferencesCard } from "@/components/owner/CashDifferencesCard";
 import { SuggestedNextAction } from "@/components/owner/SuggestedNextAction";
 import { MistakePatternDetector } from "@/components/owner/MistakePatternDetector";
 import { OperationalInsightsCard } from "@/components/owner/OperationalInsightsCard";
+import { WhatChangedCard } from "@/components/owner/WhatChangedCard";
 
 
 import { InventoryRiskCard } from "@/components/owner/InventoryRiskCard";
@@ -229,8 +230,9 @@ export default function OwnerAdmin() {
                 {/* Main dashboard grid: Daily Summary left, Cash + Inventory stacked right */}
                 <div className="grid gap-3 grid-cols-1 lg:grid-cols-2">
                   <DailySummaryCard restaurantId={restaurant.id} currency={currency} />
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-2">
                     <CashDifferencesCard restaurantId={restaurant.id} currency={currency} compact />
+                    <WhatChangedCard restaurantId={restaurant.id} />
                     <InventoryRiskCard 
                       restaurantId={restaurant.id} 
                       inventoryEnabled={inventoryEnabled}
