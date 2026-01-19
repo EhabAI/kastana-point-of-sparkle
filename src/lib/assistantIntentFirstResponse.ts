@@ -308,6 +308,82 @@ export const TOPIC_DEFINITIONS: Record<string, {
       wherToFind: "Reports → Costing Report",
       whatYouCanDo: "Compare COGS to revenue to evaluate profitability."
     }
+  },
+  
+  // === SMART DASHBOARD INSIGHTS ===
+  what_changed_yesterday: {
+    ar: {
+      definition: "بطاقة تعرض ملخصاً سريعاً للتغييرات التشغيلية المهمة بين اليوم والأمس.",
+      whyItMatters: "تساعدك على التأكد من استقرار العمليات دون الحاجة لمراجعة التقارير.",
+      wherToFind: "لوحة التحكم الرئيسية",
+      whatYouCanDo: "عدم وجود تغييرات يعني استقرار العمليات - هذا أمر إيجابي."
+    },
+    en: {
+      definition: "A card showing a quick summary of important operational changes between today and yesterday.",
+      whyItMatters: "Helps you confirm operational stability without reviewing reports.",
+      wherToFind: "Main Dashboard",
+      whatYouCanDo: "No changes means stable operations - this is positive."
+    }
+  },
+  
+  system_confidence_score: {
+    ar: {
+      definition: "مؤشر يعكس مستوى الاستقرار التشغيلي الإجمالي بناءً على أنماط النشاط الأخيرة.",
+      whyItMatters: "يمنحك نظرة سريعة على صحة النظام دون قراءة تقارير مفصلة.",
+      wherToFind: "لوحة التحكم الرئيسية",
+      whatYouCanDo: "الدرجة الأعلى تعني استقرار أكبر، وتتغير تدريجياً مع الوقت."
+    },
+    en: {
+      definition: "A metric reflecting overall operational stability based on recent activity patterns.",
+      whyItMatters: "Gives you a quick view of system health without reading detailed reports.",
+      wherToFind: "Main Dashboard",
+      whatYouCanDo: "Higher score means more stability, changes gradually over time."
+    }
+  },
+  
+  operational_notes: {
+    ar: {
+      definition: "ملاحظات هادئة حول أنماط تشغيلية متكررة أو غير معتادة.",
+      whyItMatters: "تساعدك على ملاحظة الاتجاهات بهدوء دون مقاطعة سير العمل.",
+      wherToFind: "لوحة التحكم الرئيسية وملخص نهاية اليوم",
+      whatYouCanDo: "لا تتطلب إجراء فوري - مجرد معلومات للاطلاع."
+    },
+    en: {
+      definition: "Calm observations about repeated or unusual operational patterns.",
+      whyItMatters: "Helps you notice trends quietly without interrupting workflow.",
+      wherToFind: "Main Dashboard and End-of-Day Summary",
+      whatYouCanDo: "No immediate action required - just informational awareness."
+    }
+  },
+  
+  rush_hour_awareness: {
+    ar: {
+      definition: "ملاحظة تشغيلية تظهر عندما يكون حجم النشاط أعلى من النمط المعتاد للمطعم.",
+      whyItMatters: "تبقيك على دراية بالضغط التشغيلي قبل أن يتحول إلى تأخيرات.",
+      wherToFind: "لوحة التحكم الرئيسية",
+      whatYouCanDo: "هذه ملاحظة إعلامية - تختفي تلقائياً عند انخفاض الضغط."
+    },
+    en: {
+      definition: "An operational note that appears when activity level is higher than the restaurant's usual pattern.",
+      whyItMatters: "Keeps you aware of operational pressure before it turns into delays.",
+      wherToFind: "Main Dashboard",
+      whatYouCanDo: "This is informational - auto-dismisses when pressure decreases."
+    }
+  },
+  
+  inventory_risk: {
+    ar: {
+      definition: "بطاقة تُبرز الأصناف التي قد تحتاج مراجعة في الإعداد، مثل المنتجات بدون وصفات.",
+      whyItMatters: "تدعم دقة المخزون على المدى الطويل.",
+      wherToFind: "لوحة التحكم الرئيسية",
+      whatYouCanDo: "معلومات لتحسين الإعداد - لا تمنع العمليات ولا تتطلب إجراء فوري."
+    },
+    en: {
+      definition: "A card highlighting items that may need setup review, such as products without recipes.",
+      whyItMatters: "Supports long-term inventory accuracy improvement.",
+      wherToFind: "Main Dashboard",
+      whatYouCanDo: "Informational for setup improvement - does not block operations or require immediate action."
+    }
   }
 };
 
@@ -402,6 +478,36 @@ export const KEYWORD_TO_TOPIC: Record<string, string> = {
   "cogs": "cogs",
   "تكلفة": "cogs",
   "cost": "cogs",
+  
+  // Smart Dashboard Insights
+  "ما الذي تغير": "what_changed_yesterday",
+  "تغيرات": "what_changed_yesterday",
+  "أمس": "what_changed_yesterday",
+  "what changed": "what_changed_yesterday",
+  "yesterday": "what_changed_yesterday",
+  "changes": "what_changed_yesterday",
+  
+  "درجة الثقة": "system_confidence_score",
+  "مؤشر الاستقرار": "system_confidence_score",
+  "ثقة النظام": "system_confidence_score",
+  "confidence score": "system_confidence_score",
+  "stability score": "system_confidence_score",
+  "system health": "system_confidence_score",
+  
+  "ملاحظات تشغيلية": "operational_notes",
+  "ملاحظة تشغيلية": "operational_notes",
+  "operational notes": "operational_notes",
+  "operational note": "operational_notes",
+  
+  "ضغط تشغيلي": "rush_hour_awareness",
+  "rush hour": "rush_hour_awareness",
+  "high load": "rush_hour_awareness",
+  "وتيرة عالية": "rush_hour_awareness",
+  
+  "مخاطر المخزون": "inventory_risk",
+  "inventory risk": "inventory_risk",
+  "بدون وصفة": "inventory_risk",
+  "without recipe": "inventory_risk",
 };
 
 /**

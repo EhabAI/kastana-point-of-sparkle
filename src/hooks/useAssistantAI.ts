@@ -23,6 +23,8 @@ import {
   formatV2Response,
   classifySoftIntent,
   shouldHideFeature,
+  isVagueContextualQuestion,
+  getPrimaryDashboardInsight,
   type V2SystemContext,
   type V2SoftIntent,
 } from "@/lib/assistantV2Context";
@@ -145,6 +147,30 @@ export function useAssistantAI(): UseAssistantAIReturn {
         }
       }
       // ===== END INTENT-FIRST RESPONSE =====
+      
+      // ===== VAGUE CONTEXTUAL QUESTION HANDLING =====
+      // Priority 1.5: Handle short/vague questions by inferring from visible dashboard cards
+      if (screenContext === "owner_dashboard" && v2Context && isVagueContextualQuestion(query)) {
+        const primaryInsight = getPrimaryDashboardInsight(v2Context.visible_ui_elements, language);
+        
+        if (primaryInsight) {
+          setIsLoading(false);
+          
+          const response = primaryInsight.response[language];
+          
+          // Update conversation history
+          conversationHistoryRef.current.push({ role: "user", content: query });
+          conversationHistoryRef.current.push({ role: "assistant", content: response });
+          
+          // Keep only last 6 messages
+          if (conversationHistoryRef.current.length > 6) {
+            conversationHistoryRef.current = conversationHistoryRef.current.slice(-6);
+          }
+          
+          return response;
+        }
+      }
+      // ===== END VAGUE CONTEXTUAL QUESTION HANDLING =====
       
       // ===== V2 UI-FIRST INTENT RESOLUTION (Rule 4) =====
       // Priority 2: Exact UI keyword match on current screen
