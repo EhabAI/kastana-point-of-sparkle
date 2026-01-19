@@ -1,5 +1,6 @@
 // Kastana POS Assistant Response Formatter
-// Rules: Arabic primary, English terms OK, structured output with detail levels
+// INTENT-FIRST: Answer the exact question, no over-contextualization
+// Standard structure: Definition → Why it matters → Where to find → What you can do
 
 export type DetailLevel = "short" | "detailed" | "training";
 
@@ -10,12 +11,56 @@ export interface FormattedResponse {
   examples?: string[];
 }
 
+// NEW: Standard answer structure for explanatory questions
+export interface StandardAnswerResponse {
+  definition: string;      // Clear 1-2 sentence definition
+  whyItMatters?: string;   // Business/operational value
+  whereToFind?: string;    // Menu path in system
+  whatYouCanDo?: string;   // Actions/outcomes
+}
+
 // Line limits per detail level
 const LINE_LIMITS: Record<DetailLevel, number> = {
   short: 6,
   detailed: 14,
   training: 24,
 };
+
+/**
+ * NEW: Format a standard answer following the INTENT-FIRST structure:
+ * 1) Clear definition (always first)
+ * 2) Why it matters
+ * 3) Where to find it
+ * 4) What you can do
+ * 
+ * NO greetings, NO screen descriptions, NO daily summaries
+ */
+export function formatStandardAnswer(
+  response: StandardAnswerResponse,
+  language: "ar" | "en"
+): string {
+  const parts: string[] = [];
+  
+  // 1) Definition - always first and required
+  parts.push(response.definition);
+  
+  // 2) Why it matters
+  if (response.whyItMatters) {
+    parts.push(response.whyItMatters);
+  }
+  
+  // 3) Where to find it
+  if (response.whereToFind) {
+    parts.push(`📍 ${response.whereToFind}`);
+  }
+  
+  // 4) What you can do
+  if (response.whatYouCanDo) {
+    parts.push(`✅ ${response.whatYouCanDo}`);
+  }
+  
+  return parts.join("\n\n");
+}
 
 /**
  * Format a response following the strict structure:
