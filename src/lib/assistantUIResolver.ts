@@ -180,6 +180,54 @@ const SCREEN_UI_ELEMENTS: Record<string, Array<{
         ar: "بطاقات تعرض إحصائيات وتحليلات سريعة عن أداء المطعم.",
         en: "Cards showing quick statistics and analytics about restaurant performance."
       }
+    },
+    {
+      id: "what_changed_yesterday",
+      phrases: {
+        ar: ["ما الذي تغير", "تغيرات", "منذ أمس", "أمس", "تغيير", "جديد"],
+        en: ["what changed", "changes", "yesterday", "new", "different"]
+      },
+      name: { ar: "ما الذي تغيّر منذ أمس", en: "What Changed Since Yesterday" },
+      description: {
+        ar: "ملخص سريع للتغييرات التشغيلية المهمة بين اليوم والأمس.\n\nإذا لم تظهر تغييرات، فهذا يعني استقرار العمليات.\nهذه البطاقة معلوماتية فقط وليست تنبيهاً.",
+        en: "Quick summary of important operational changes between today and yesterday.\n\nIf no changes appear, it means stable operations.\nThis card is informational only, not an alert."
+      }
+    },
+    {
+      id: "system_confidence_score",
+      phrases: {
+        ar: ["درجة الثقة", "مؤشر الاستقرار", "ثقة النظام", "الاستقرار", "الثقة", "مستقر"],
+        en: ["confidence score", "stability", "system health", "confidence", "stable"]
+      },
+      name: { ar: "درجة ثقة النظام", en: "System Confidence Score" },
+      description: {
+        ar: "يعكس مستوى الاستقرار التشغيلي الإجمالي بناءً على أنماط النشاط الأخيرة.\n\nالدرجة الأعلى تعني استقرار أكبر.\nليست مرتبطة بالأرباح أو المبيعات.",
+        en: "Reflects overall operational stability based on recent activity patterns.\n\nHigher score means more stability.\nNot related to profit or sales volume."
+      }
+    },
+    {
+      id: "operational_notes",
+      phrases: {
+        ar: ["ملاحظات تشغيلية", "ملاحظة", "ملاحظات", "تنبيه", "الضغط التشغيلي", "ضغط", "الحمل"],
+        en: ["operational notes", "notes", "observation", "load", "pressure", "rush hour"]
+      },
+      name: { ar: "ملاحظات تشغيلية", en: "Operational Notes" },
+      description: {
+        ar: "ملاحظات هادئة حول أنماط تشغيلية متكررة أو غير معتادة.\n\nتظهر فقط بعد تكرار السلوك.\nلا تشير إلى أخطاء ولا تتطلب إجراء فوري.",
+        en: "Calm observations about repeated or unusual operational patterns.\n\nAppear only after repeated behavior.\nDo not indicate errors and require no immediate action."
+      }
+    },
+    {
+      id: "inventory_risk_card",
+      phrases: {
+        ar: ["مخاطر المخزون", "بدون وصفة", "إعداد المخزون"],
+        en: ["inventory risk", "without recipe", "setup review"]
+      },
+      name: { ar: "مخاطر المخزون", en: "Inventory Risk" },
+      description: {
+        ar: "يُبرز الأصناف التي قد تحتاج مراجعة في الإعداد، مثل المنتجات بدون وصفات مرتبطة.\n\nمعلومات لدعم دقة المخزون على المدى الطويل.\nلا تمنع العمليات ولا تتطلب إجراء فوري.",
+        en: "Highlights items that may need setup review, such as products without linked recipes.\n\nInformational to support long-term inventory accuracy.\nDoes not block operations and requires no immediate action."
+      }
     }
   ],
   pos_main: [

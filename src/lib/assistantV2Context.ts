@@ -116,18 +116,23 @@ export function classifySoftIntent(query: string, language: "ar" | "en"): V2Soft
   
   // Explanation indicators
   const explanationPatterns = language === "ar"
-    ? ["ايش", "ما هو", "ما هي", "اشرح", "شرح", "يعني", "وش", "كيف يعمل", "ما معنى"]
+    ? ["ايش", "ما هو", "ما هي", "اشرح", "شرح", "يعني", "وش", "كيف يعمل", "ما معنى", "شو هذا", "شو يعني"]
     : ["what is", "what are", "explain", "how does", "what does", "meaning of"];
   
   // Clarification indicators
   const clarificationPatterns = language === "ar"
-    ? ["اكثر", "أكثر", "بالتفصيل", "تفصيل", "وضح", "توضيح", "ليش", "لماذا", "سبب"]
+    ? ["اكثر", "أكثر", "بالتفصيل", "تفصيل", "وضح", "توضيح", "ليش", "لماذا", "سبب", "ليش ظهر", "ليش مكتوب"]
     : ["more", "detail", "clarify", "why", "reason", "because"];
+  
+  // Concern indicators (user worried)
+  const concernPatterns = language === "ar"
+    ? ["مشكلة", "هل في", "لازم", "قلق", "خطأ", "غلط", "عادي"]
+    : ["problem", "should i", "worry", "wrong", "error", "normal", "okay"];
   
   // Analysis indicators
   const analysisPatterns = language === "ar"
-    ? ["ليش صفر", "ليش منخفض", "سبب", "مشكلة", "غلط", "خطأ", "فرق", "الحالة"]
-    : ["why zero", "why low", "cause", "problem", "wrong", "error", "difference", "status"];
+    ? ["ليش صفر", "ليش منخفض", "الحالة", "علاقة", "علاقته"]
+    : ["why zero", "why low", "status", "relation", "related"];
   
   // Practical advice indicators
   const advicePatterns = language === "ar"
@@ -137,8 +142,79 @@ export function classifySoftIntent(query: string, language: "ar" | "en"): V2Soft
   // Check patterns in order of specificity
   if (advicePatterns.some(p => q.includes(p))) return "practical_advice";
   if (analysisPatterns.some(p => q.includes(p))) return "light_analysis";
+  if (concernPatterns.some(p => q.includes(p))) return "clarification"; // Treat concerns as clarification
   if (clarificationPatterns.some(p => q.includes(p))) return "clarification";
   return "explanation";
+}
+
+/**
+ * Check if query is a vague contextual question that needs inference
+ * V2 Rule: Infer context from visible cards for short queries
+ */
+export function isVagueContextualQuestion(query: string): boolean {
+  const shortVaguePatterns = [
+    // Arabic
+    "ليش", "ليش؟", "شو هذا", "شو هذا؟", "يعني؟", "يعني ايش", 
+    "ما هذا", "ما هذا؟", "شو يعني", "هل في مشكلة", "لازم اعمل شي",
+    // English
+    "why", "why?", "what is this", "what's this", "what does this mean",
+    "should i worry", "is there a problem", "what should i do"
+  ];
+  
+  const normalizedQuery = query.toLowerCase().trim();
+  return shortVaguePatterns.some(p => normalizedQuery === p || normalizedQuery.includes(p));
+}
+
+/**
+ * Get the most prominent dashboard insight to explain for vague questions
+ * Priority: Operational Notes > What Changed > Confidence Score > Inventory Risk
+ */
+export function getPrimaryDashboardInsight(
+  visibleElements: string[],
+  language: "ar" | "en"
+): { elementId: string; response: { ar: string; en: string } } | null {
+  // Priority order for dashboard insights
+  const insightPriority = [
+    {
+      id: "operational_notes",
+      response: {
+        ar: "هذه ملاحظات تشغيلية هادئة حول أنماط متكررة أو غير معتادة.\n\nتظهر فقط بعد تكرار السلوك، ولا تشير إلى أخطاء.\nلا تتطلب أي إجراء فوري - مجرد معلومات للاطلاع.",
+        en: "These are calm operational notes about repeated or unusual patterns.\n\nThey appear only after repeated behavior and don't indicate errors.\nNo immediate action required - just informational awareness."
+      }
+    },
+    {
+      id: "what_changed_yesterday",
+      response: {
+        ar: "هذه البطاقة تعرض ملخصاً للتغييرات التشغيلية المهمة بين اليوم والأمس.\n\nإذا لم تظهر تغييرات، فهذا يعني استقرار العمليات - وهو أمر إيجابي.\nهذه معلومات فقط، وليست تنبيهاً.",
+        en: "This card shows a summary of important operational changes between today and yesterday.\n\nIf no changes appear, it means stable operations - which is positive.\nThis is informational only, not an alert."
+      }
+    },
+    {
+      id: "system_confidence_score",
+      response: {
+        ar: "درجة ثقة النظام تعكس مستوى الاستقرار التشغيلي الإجمالي.\n\nالدرجة الأعلى تعني استقرار أكبر، وتتغير تدريجياً.\nليست مرتبطة بالأرباح أو حجم المبيعات.",
+        en: "System Confidence Score reflects overall operational stability.\n\nHigher score means more stability, and it changes gradually.\nNot related to profit or sales volume."
+      }
+    },
+    {
+      id: "inventory_risk_card",
+      response: {
+        ar: "هذه البطاقة تُبرز الأصناف التي قد تحتاج مراجعة في الإعداد.\n\nمعلومات لدعم دقة المخزون على المدى الطويل.\nلا تمنع العمليات ولا تتطلب إجراء فوري.",
+        en: "This card highlights items that may need setup review.\n\nInformational to support long-term inventory accuracy.\nDoes not block operations and requires no immediate action."
+      }
+    }
+  ];
+  
+  for (const insight of insightPriority) {
+    if (visibleElements.includes(insight.id)) {
+      return {
+        elementId: insight.id,
+        response: insight.response
+      };
+    }
+  }
+  
+  return null;
 }
 
 /**
@@ -154,16 +230,29 @@ export function generateSmartSuggestions(
   // Screen-specific suggestions based on visible elements
   switch (context.screen_id) {
     case "owner_dashboard":
+      // Prioritize new smart dashboard insights
+      if (elements.includes("what_changed_yesterday")) {
+        suggestions.push({
+          text: { ar: "فهم التغييرات الأخيرة", en: "Understand recent changes" },
+          elementId: "what_changed_yesterday"
+        });
+      }
+      if (elements.includes("system_confidence_score")) {
+        suggestions.push({
+          text: { ar: "فهم درجة الاستقرار", en: "Understand stability score" },
+          elementId: "system_confidence_score"
+        });
+      }
+      if (elements.includes("operational_notes")) {
+        suggestions.push({
+          text: { ar: "فهم الملاحظات التشغيلية", en: "Understand operational notes" },
+          elementId: "operational_notes"
+        });
+      }
       if (elements.includes("today_summary")) {
         suggestions.push({
           text: { ar: "مراجعة ملخص اليوم", en: "Review today's summary" },
           elementId: "today_summary"
-        });
-      }
-      if (elements.includes("operational_score")) {
-        suggestions.push({
-          text: { ar: "فهم درجة التشغيل", en: "Understand operational score" },
-          elementId: "operational_score"
         });
       }
       break;
