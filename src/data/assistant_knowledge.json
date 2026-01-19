@@ -1247,6 +1247,111 @@
         "parent_screen": "screen_settings",
         "section_key": "features"
       }
+    },
+    "what_changed_yesterday": {
+      "id": "what_changed_yesterday",
+      "intent": ["explain_feature", "what_is_this", "dashboard_insight"],
+      "keywords": {
+        "ar": ["ما الذي تغير", "تغيرات", "منذ أمس", "تغييرات", "ما الجديد", "ماذا تغير", "بالأمس"],
+        "en": ["what changed", "changes", "yesterday", "since yesterday", "what's new", "daily changes"]
+      },
+      "title": {
+        "ar": "ما الذي تغيّر منذ أمس",
+        "en": "What Changed Since Yesterday"
+      },
+      "content": {
+        "ar": "بطاقة 'ما الذي تغيّر منذ أمس':\n\nهذه البطاقة تعرض ملخصاً سريعاً للتغييرات التشغيلية المهمة بين اليوم والأمس.\n\n🎯 الغرض:\nمساعدتك على التأكد من استقرار العمليات دون الحاجة لمراجعة التقارير.\n\n📋 ما تعرضه:\n• التغييرات التشغيلية المهمة (إن وجدت)\n• تأكيد الاستقرار إذا لم تحدث تغييرات\n\n✅ ملاحظات:\n• هذه البطاقة معلوماتية فقط\n• عدم وجود تغييرات يعني استقرار العمليات\n• ليست تنبيهاً أو تحذيراً",
+        "en": "What Changed Since Yesterday Card:\n\nThis card shows a quick summary of important operational changes between today and yesterday.\n\n🎯 Purpose:\nHelps you confirm operational stability without reviewing reports.\n\n📋 What it shows:\n• Important operational changes (if any)\n• Stability confirmation if no changes\n\n✅ Notes:\n• This card is informational only\n• No changes means stable operations\n• Not an alert or warning"
+      },
+      "metadata": {
+        "feature_id": "what_changed_yesterday",
+        "affected_screens": ["Dashboard"],
+        "user_roles": ["owner"]
+      }
+    },
+    "operational_notes": {
+      "id": "operational_notes",
+      "intent": ["explain_feature", "what_is_this", "dashboard_insight", "operational_note"],
+      "keywords": {
+        "ar": ["ملاحظة تشغيلية", "ملاحظات تشغيلية", "تنبيه تشغيلي", "انتباه", "يحتاج انتباه", "ملاحظة متكررة"],
+        "en": ["operational note", "operational notes", "operational insight", "attention", "needs attention", "repeated note"]
+      },
+      "title": {
+        "ar": "الملاحظات التشغيلية",
+        "en": "Operational Notes"
+      },
+      "content": {
+        "ar": "الملاحظات التشغيلية:\n\nهذه ملاحظات هادئة حول أنماط تشغيلية متكررة أو غير معتادة.\n\n🎯 الغرض:\nمساعدتك على ملاحظة الاتجاهات بهدوء دون مقاطعة سير العمل.\n\n📋 خصائص الملاحظات:\n• تظهر فقط عند تكرار السلوك\n• لا تشير أبداً إلى أخطاء أو مشاكل\n• لا تتطلب إجراءً فورياً\n\n✅ ملاحظات:\n• الملاحظات داعمة وليست انتقادية\n• تختفي تلقائياً عند تحسن السلوك\n• معلوماتية بحتة",
+        "en": "Operational Notes:\n\nThese are calm observations about repeated or unusual operational patterns.\n\n🎯 Purpose:\nHelps you notice trends quietly without interrupting workflows.\n\n📋 Note Characteristics:\n• Appear only after repeated behavior\n• Never indicate errors or faults\n• No immediate action required\n\n✅ Notes:\n• Supportive, not critical\n• Auto-dismiss when behavior improves\n• Purely informational"
+      },
+      "metadata": {
+        "feature_id": "operational_notes",
+        "affected_screens": ["Dashboard"],
+        "user_roles": ["owner"]
+      }
+    },
+    "system_confidence_score": {
+      "id": "system_confidence_score",
+      "intent": ["explain_feature", "what_is_this", "dashboard_insight", "confidence_score"],
+      "keywords": {
+        "ar": ["درجة الثقة", "نسبة الاستقرار", "مؤشر التشغيل", "درجة التشغيل", "استقرار النظام", "مستقر", "يحتاج مراجعة"],
+        "en": ["confidence score", "stability score", "operational score", "system health", "stable", "needs review", "operational stability"]
+      },
+      "title": {
+        "ar": "درجة استقرار التشغيل",
+        "en": "System Confidence Score"
+      },
+      "content": {
+        "ar": "درجة استقرار التشغيل:\n\nتعكس هذه الدرجة مستوى الاستقرار التشغيلي العام بناءً على النشاط الأخير.\n\n🎯 الغرض:\nإعطاؤك نظرة سريعة على صحة النظام دون قراءة تقارير مفصلة.\n\n📋 كيف تعمل:\n• درجة أعلى = عمليات أكثر استقراراً\n• تتغير تدريجياً وليس فجأة\n• لا علاقة لها بالأرباح أو حجم المبيعات\n\n📊 مستويات الدرجة:\n• 80-100: مستقر\n• 60-79: يحتاج انتباه\n• أقل من 60: يحتاج مراجعة\n\n✅ ملاحظات:\n• تركز على الاستقرار وليس الأداء\n• معلوماتية ومساعدة",
+        "en": "System Confidence Score:\n\nThis score reflects overall operational stability based on recent activity.\n\n🎯 Purpose:\nGives you a quick sense of system health without reading detailed reports.\n\n📋 How it works:\n• Higher score = more stable operations\n• Changes gradually, not suddenly\n• Not related to profit or sales volume\n\n📊 Score Levels:\n• 80-100: Stable\n• 60-79: Needs Attention\n• Below 60: Requires Review\n\n✅ Notes:\n• Focuses on stability, not performance\n• Informational and supportive"
+      },
+      "metadata": {
+        "feature_id": "system_confidence_score",
+        "affected_screens": ["Dashboard"],
+        "user_roles": ["owner"]
+      }
+    },
+    "inventory_risk_card": {
+      "id": "inventory_risk_card",
+      "intent": ["explain_feature", "what_is_this", "dashboard_insight", "inventory_risk"],
+      "keywords": {
+        "ar": ["مخاطر المخزون", "أصناف بدون وصفة", "إعداد المخزون", "تحسين المخزون", "صنف بدون وصفة"],
+        "en": ["inventory risk", "items without recipe", "inventory setup", "inventory improvement", "no recipe", "missing recipe"]
+      },
+      "title": {
+        "ar": "مخاطر المخزون",
+        "en": "Inventory Risk"
+      },
+      "content": {
+        "ar": "بطاقة مخاطر المخزون:\n\nتعرض هذه البطاقة الأصناف التي قد تحتاج مراجعة في إعدادات المخزون.\n\n🎯 الغرض:\nدعم تحسين دقة المخزون على المدى الطويل.\n\n📋 ما تعرضه:\n• عدد الأصناف بدون وصفات مرتبطة\n• معلومات للتحسين التدريجي\n\n✅ ملاحظات:\n• معلوماتية فقط\n• لا تمنع أي عمليات\n• لا تتطلب إجراءً فورياً\n• تركز على التحسين وليس الإلحاح",
+        "en": "Inventory Risk Card:\n\nThis card shows items that may need setup review in inventory settings.\n\n🎯 Purpose:\nSupports long-term inventory accuracy improvement.\n\n📋 What it shows:\n• Count of items without linked recipes\n• Information for gradual improvement\n\n✅ Notes:\n• Informational only\n• Does not block operations\n• No immediate action required\n• Focuses on improvement, not urgency"
+      },
+      "metadata": {
+        "feature_id": "inventory_risk_card",
+        "affected_screens": ["Dashboard"],
+        "user_roles": ["owner"]
+      }
+    },
+    "daily_summary": {
+      "id": "daily_summary",
+      "intent": ["explain_feature", "what_is_this", "dashboard_insight", "end_of_day"],
+      "keywords": {
+        "ar": ["ملخص اليوم", "ملخص يومي", "نهاية اليوم", "تقرير يومي", "ملخص ذكي"],
+        "en": ["daily summary", "end of day", "smart summary", "day summary", "daily report"]
+      },
+      "title": {
+        "ar": "الملخص اليومي الذكي",
+        "en": "Smart Daily Summary"
+      },
+      "content": {
+        "ar": "الملخص اليومي الذكي:\n\nيحول الملاحظات التشغيلية إلى ملخص نصي سهل القراءة.\n\n🎯 الغرض:\nتقديم نظرة عامة سريعة على اليوم التشغيلي.\n\n📋 ما يتضمنه:\n• أهم الملاحظات التشغيلية (3 كحد أقصى)\n• تأكيد الاستقرار إذا لم توجد ملاحظات\n\n📍 أماكن الظهور:\n• لوحة تحكم المالك\n• قسم الملخص في تقرير Z\n\n✅ ملاحظات:\n• موجز وواضح\n• لا يكرر نفس الملاحظة\n• داعم ومعلوماتي",
+        "en": "Smart Daily Summary:\n\nTransforms operational notes into an easy-to-read text summary.\n\n🎯 Purpose:\nProvides a quick overview of the operational day.\n\n📋 What it includes:\n• Top operational notes (max 3)\n• Stability confirmation if no notes\n\n📍 Where it appears:\n• Owner Dashboard\n• Z Report summary section\n\n✅ Notes:\n• Concise and clear\n• No repeated wording\n• Supportive and informational"
+      },
+      "metadata": {
+        "feature_id": "daily_summary",
+        "affected_screens": ["Dashboard", "Z Report"],
+        "user_roles": ["owner"]
+      }
     }
   }
 }
