@@ -22,7 +22,7 @@ export function InventoryRiskCard({
   onNegativeStockClick,
   onWithoutRecipeClick,
 }: InventoryRiskCardProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { selectedBranch } = useBranchContextSafe();
 
   const { data, isLoading } = useQuery({
@@ -128,9 +128,9 @@ export function InventoryRiskCard({
 
   if (isLoading) {
     return (
-      <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/50 border h-full">
-        <CardContent className="p-4">
-          <Skeleton className="h-24 w-full" />
+      <Card className="bg-amber-50/50 dark:bg-amber-950/10 border-amber-100 dark:border-amber-900/30">
+        <CardContent className="p-2.5">
+          <Skeleton className="h-14 w-full" />
         </CardContent>
       </Card>
     );
@@ -143,14 +143,16 @@ export function InventoryRiskCard({
     return null;
   }
 
+  const totalItems = lowStockCount + nearReorderCount + negativeStockCount + withoutRecipeCount;
+
   const rows = [
     {
       icon: AlertTriangle,
       label: t("inv_low_stock"),
       tooltip: t("inv_low_stock_desc"),
       count: lowStockCount,
-      color: "text-red-600",
-      bgColor: "bg-red-100 dark:bg-red-900/30",
+      color: "text-amber-600/80",
+      bgColor: "bg-amber-100/50 dark:bg-amber-900/20",
       onClick: onLowStockClick,
     },
     {
@@ -158,8 +160,8 @@ export function InventoryRiskCard({
       label: t("inv_near_reorder"),
       tooltip: t("inv_near_reorder_tooltip"),
       count: nearReorderCount,
-      color: "text-amber-600",
-      bgColor: "bg-amber-100 dark:bg-amber-900/30",
+      color: "text-amber-500/70",
+      bgColor: "bg-amber-100/40 dark:bg-amber-900/15",
       onClick: onLowStockClick,
     },
     {
@@ -167,8 +169,8 @@ export function InventoryRiskCard({
       label: t("inv_negative_stock"),
       tooltip: t("inv_negative_stock_tooltip"),
       count: negativeStockCount,
-      color: "text-red-600",
-      bgColor: "bg-red-100 dark:bg-red-900/30",
+      color: "text-amber-600/80",
+      bgColor: "bg-amber-100/50 dark:bg-amber-900/20",
       onClick: onNegativeStockClick,
     },
     {
@@ -176,38 +178,29 @@ export function InventoryRiskCard({
       label: t("inv_items_without_recipe"),
       tooltip: t("inv_items_without_recipe_tooltip"),
       count: withoutRecipeCount,
-      color: "text-orange-600",
-      bgColor: "bg-orange-100 dark:bg-orange-900/30",
+      color: "text-amber-500/70",
+      bgColor: "bg-amber-100/40 dark:bg-amber-900/15",
       onClick: onWithoutRecipeClick,
     },
   ].filter((row) => row.count > 0);
 
   return (
-    <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/50 border h-full">
-      <CardHeader className="pb-2 pt-4 px-4">
+    <Card className="bg-amber-50/50 dark:bg-amber-950/10 border-amber-100 dark:border-amber-900/30">
+      <CardHeader className="pb-1 pt-2.5 px-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30">
-              <Package className="h-4 w-4 text-amber-600" />
-            </div>
-            <CardTitle className="text-sm font-semibold text-foreground">
+          <div className="flex items-center gap-1.5">
+            <Package className="h-3.5 w-3.5 text-amber-500/70" />
+            <CardTitle className="text-xs font-medium text-amber-700/80 dark:text-amber-400/80">
               {t("inventory_risk_title")}
             </CardTitle>
           </div>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <HelpCircle className="h-4 w-4 text-muted-foreground/50 cursor-help" />
-              </TooltipTrigger>
-              <TooltipContent side="top" className="max-w-[250px]">
-                <p className="text-xs">{t("inventory_risk_tooltip")}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <span className="text-xs text-amber-600/60 font-normal">
+            {totalItems} {language === "ar" ? "صنف" : "items"}
+          </span>
         </div>
       </CardHeader>
-      <CardContent className="px-4 pb-4 pt-0">
-        <div className="space-y-2">
+      <CardContent className="px-3 pb-2.5 pt-0">
+        <div className="space-y-0.5">
           <TooltipProvider>
             {rows.map((row, index) => {
               const Icon = row.icon;
@@ -217,19 +210,17 @@ export function InventoryRiskCard({
                     <button
                       onClick={row.onClick}
                       disabled={!row.onClick}
-                      className={`w-full flex items-center justify-between py-2 px-2 rounded-md transition-colors ${
+                      className={`w-full flex items-center justify-between py-1 px-1.5 rounded transition-colors ${
                         row.onClick
-                          ? "hover:bg-amber-100 dark:hover:bg-amber-900/40 cursor-pointer"
+                          ? "hover:bg-amber-100/50 dark:hover:bg-amber-900/20 cursor-pointer"
                           : "cursor-default"
                       }`}
                     >
-                      <div className="flex items-center gap-2">
-                        <div className={`p-1 rounded ${row.bgColor}`}>
-                          <Icon className={`h-3.5 w-3.5 ${row.color}`} />
-                        </div>
-                        <span className="text-sm text-foreground/80">{row.label}</span>
+                      <div className="flex items-center gap-1.5">
+                        <Icon className={`h-3 w-3 ${row.color}`} />
+                        <span className="text-xs text-foreground/60">{row.label}</span>
                       </div>
-                      <span className={`text-sm font-bold tabular-nums ${row.color}`}>
+                      <span className={`text-xs font-medium tabular-nums ${row.color}`}>
                         {row.count}
                       </span>
                     </button>
