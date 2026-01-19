@@ -15,7 +15,8 @@ export type InsightType =
   | "excessive_discounts"
   | "repeated_inventory_adjustments"
   | "long_open_shifts"
-  | "no_sales_during_hours";
+  | "no_sales_during_hours"
+  | "high_operational_load";
 
 export type InsightSeverity = "first" | "repeated";
 
@@ -36,6 +37,8 @@ export interface BaselineData {
   avgInventoryAdjustments: number;
   avgShiftDurationHours: number;
   avgOrdersPerDay: number;
+  avgOrdersPerHour: number;
+  avgOpenOrdersSimultaneous: number;
   activeDaysCount: number;
 }
 
@@ -60,7 +63,13 @@ const INSIGHT_DEDUCTIONS: Record<InsightType, { first: number; repeated: number 
   repeated_inventory_adjustments: { first: 5, repeated: 10 },
   long_open_shifts: { first: 5, repeated: 10 },
   no_sales_during_hours: { first: 10, repeated: 15 },
+  high_operational_load: { first: 5, repeated: 8 },
 };
+
+// High operational load detection thresholds
+const LOAD_SPIKE_THRESHOLD_PERCENT = 80; // 80% increase over baseline
+const MIN_ORDERS_FOR_LOAD_DETECTION = 5; // Minimum orders to trigger
+const SUSTAINED_LOAD_MINUTES = 30; // Load must be sustained for 30 mins
 
 // ==================== ANTI-NOISE STORAGE ====================
 
@@ -286,6 +295,41 @@ export function useOperationalInsights(restaurantId: string | undefined) {
         }
       }
       
+      // Rule 6: High operational load (Rush Hour Awareness)
+      // Detect when order volume or open orders exceed baseline significantly
+      if (todayData.hasOpenShift && baseline.avgOrdersPerHour > 0) {
+        const currentOrdersPerHour = todayData.ordersLastHour;
+        const orderRateDeviation = ((currentOrdersPerHour - baseline.avgOrdersPerHour) / baseline.avgOrdersPerHour) * 100;
+        
+        const openOrdersDeviation = baseline.avgOpenOrdersSimultaneous > 0
+          ? ((todayData.openOrdersCount - baseline.avgOpenOrdersSimultaneous) / baseline.avgOpenOrdersSimultaneous) * 100
+          : 0;
+        
+        // Trigger if sustained high load: order rate OR open orders significantly higher
+        // Must have minimum orders to avoid false positives
+        const isHighLoad = (
+          (orderRateDeviation >= LOAD_SPIKE_THRESHOLD_PERCENT && currentOrdersPerHour >= MIN_ORDERS_FOR_LOAD_DETECTION) ||
+          (openOrdersDeviation >= LOAD_SPIKE_THRESHOLD_PERCENT && todayData.openOrdersCount >= 5)
+        );
+        
+        if (isHighLoad) {
+          if (!wasShownToday("high_operational_load")) {
+            const severity = updateInsightTracking("high_operational_load", true);
+            const deviationPercent = Math.max(orderRateDeviation, openOrdersDeviation);
+            insights.push({
+              id: `highload_${format(today, "yyyyMMdd")}`,
+              type: "high_operational_load",
+              severity,
+              detectedAt: new Date().toISOString(),
+              consecutiveDays: getConsecutiveDays("high_operational_load"),
+              currentValue: currentOrdersPerHour,
+              baselineValue: baseline.avgOrdersPerHour,
+              deviationPercent,
+            });
+          }
+        }
+      }
+      
       // =============== STEP 4: Calculate Confidence Score ===============
       let confidenceScore = 100;
       for (const insight of insights) {
@@ -369,6 +413,8 @@ async function calculateBaseline(restaurantId: string, today: Date): Promise<Bas
       avgInventoryAdjustments: 0,
       avgShiftDurationHours: 8,
       avgOrdersPerDay: 0,
+      avgOrdersPerHour: 0,
+      avgOpenOrdersSimultaneous: 2,
       activeDaysCount: 0,
     };
   }
@@ -402,12 +448,21 @@ async function calculateBaseline(restaurantId: string, today: Date): Promise<Bas
   
   const avgOrdersPerDay = paidOrders.length / activeDaysCount;
   
+  // Calculate orders per hour (assume ~10 operating hours per day)
+  const operatingHoursPerDay = 10;
+  const avgOrdersPerHour = avgOrdersPerDay / operatingHoursPerDay;
+  
+  // Estimate average simultaneous open orders (typically 2-5 for normal load)
+  const avgOpenOrdersSimultaneous = Math.max(2, Math.ceil(avgOrdersPerHour / 4));
+  
   return {
     avgCancellationsAfterPayment,
     avgDiscountRate,
     avgInventoryAdjustments,
     avgShiftDurationHours,
     avgOrdersPerDay,
+    avgOrdersPerHour,
+    avgOpenOrdersSimultaneous,
     activeDaysCount,
   };
 }
@@ -423,6 +478,10 @@ interface TodayData {
   repeatedInventoryAdjustments: number;
   maxShiftHours: number;
   hasOpenShift: boolean;
+  // High load detection
+  ordersLastHour: number;
+  openOrdersCount: number;
+  operatingHours: number;
 }
 
 async function getTodayData(
@@ -430,10 +489,13 @@ async function getTodayData(
   todayStart: string, 
   todayEnd: string
 ): Promise<TodayData> {
-  // Today's orders
+  const now = new Date();
+  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000).toISOString();
+  
+  // Today's orders (with created_at for time-based analysis)
   const { data: todayOrders } = await supabase
     .from("orders")
-    .select("id, total, status, discount_value")
+    .select("id, total, status, discount_value, created_at")
     .eq("restaurant_id", restaurantId)
     .gte("created_at", todayStart)
     .lt("created_at", todayEnd);
@@ -462,6 +524,13 @@ async function getTodayData(
     .eq("restaurant_id", restaurantId)
     .eq("status", "open");
   
+  // Open orders (currently active)
+  const { data: openOrders } = await supabase
+    .from("orders")
+    .select("id")
+    .eq("restaurant_id", restaurantId)
+    .in("status", ["open", "new", "preparing"]);
+  
   const paidOrders = todayOrders?.filter(o => o.status === "paid") || [];
   const totalRevenue = paidOrders.reduce((sum, o) => sum + Number(o.total), 0);
   const totalDiscounts = paidOrders.reduce((sum, o) => sum + (Number(o.discount_value) || 0), 0);
@@ -476,10 +545,17 @@ async function getTodayData(
   
   // Max shift hours
   let maxShiftHours = 0;
+  let operatingHours = 0;
   openShifts?.forEach(shift => {
     const hours = differenceInHours(new Date(), new Date(shift.opened_at));
     if (hours > maxShiftHours) maxShiftHours = hours;
+    operatingHours = Math.max(operatingHours, hours);
   });
+  
+  // Orders in last hour (for load detection)
+  const ordersLastHour = paidOrders.filter(o => 
+    new Date(o.created_at) >= new Date(oneHourAgo)
+  ).length;
   
   return {
     cancellationsAfterPayment: todayRefunds?.length || 0,
@@ -490,6 +566,9 @@ async function getTodayData(
     repeatedInventoryAdjustments,
     maxShiftHours,
     hasOpenShift: (openShifts?.length || 0) > 0,
+    ordersLastHour,
+    openOrdersCount: openOrders?.length || 0,
+    operatingHours,
   };
 }
 
@@ -532,6 +611,10 @@ function getInsightNote(insight: OperationalInsight): string {
       first: "No sales recorded during operating hours today.",
       repeated: "Low sales activity has continued over recent days.",
     },
+    high_operational_load: {
+      first: "Order volume is higher than the usual pattern.",
+      repeated: "Higher operational pace has continued today.",
+    },
   };
   
   return isRepeated 
@@ -561,5 +644,9 @@ export const INSIGHT_LABELS: Record<InsightType, { ar: string; en: string }> = {
   no_sales_during_hours: {
     ar: "لا توجد مبيعات خلال ساعات العمل",
     en: "No sales during operating hours",
+  },
+  high_operational_load: {
+    ar: "وتيرة الطلبات أعلى من النمط المعتاد",
+    en: "Order pace is higher than the usual pattern",
   },
 };

@@ -1352,6 +1352,28 @@
         "affected_screens": ["Dashboard", "Z Report"],
         "user_roles": ["owner"]
       }
+    },
+    "rush_hour_awareness": {
+      "id": "rush_hour_awareness",
+      "intent": ["explain_feature", "what_is_this", "dashboard_insight", "operational_note", "high_load"],
+      "keywords": {
+        "ar": ["ضغط تشغيلي", "وتيرة عالية", "ضغط الطلبات", "طلبات كثيرة", "ساعة الذروة", "ضغط العمل", "نشاط مرتفع"],
+        "en": ["high load", "rush hour", "operational load", "busy", "high volume", "order pace", "operational pressure"]
+      },
+      "title": {
+        "ar": "ملاحظة الضغط التشغيلي",
+        "en": "Rush Hour Awareness"
+      },
+      "content": {
+        "ar": "ملاحظة الضغط التشغيلي:\n\nهذه الملاحظة تظهر عندما يكون حجم النشاط أعلى من النمط المعتاد للمطعم.\n\n🎯 الغرض:\nمساعدتك على البقاء على دراية بالضغط التشغيلي قبل أن يتحول إلى تأخيرات.\n\n📋 ما تعنيه:\n• وتيرة الطلبات أعلى من المعتاد\n• هذه ملاحظة إعلامية وليست تحذيراً\n• تختفي تلقائياً عند انخفاض الضغط\n\n✅ ملاحظات:\n• لا تشير إلى مشكلة أو خطأ\n• لا تتطلب أي إجراء فوري\n• مبنية على مقارنة مع نشاط المطعم الطبيعي\n• داعمة ومعلوماتية فقط",
+        "en": "Rush Hour Awareness:\n\nThis note appears when activity level is higher than the restaurant's usual pattern.\n\n🎯 Purpose:\nHelps you stay aware of operational pressure before it turns into delays.\n\n📋 What it means:\n• Order pace is higher than usual\n• This is an informational note, not a warning\n• Auto-dismisses when pressure decreases\n\n✅ Notes:\n• Does not indicate a problem or error\n• No immediate action required\n• Based on comparison to restaurant's normal activity\n• Supportive and informational only"
+      },
+      "metadata": {
+        "feature_id": "rush_hour_awareness",
+        "affected_screens": ["Dashboard", "Z Report"],
+        "user_roles": ["owner"],
+        "related_features": ["system_confidence_score", "operational_notes", "daily_summary"]
+      }
     }
   }
 }
