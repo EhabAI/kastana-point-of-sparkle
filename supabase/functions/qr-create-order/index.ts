@@ -16,17 +16,28 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.89.0";
  * 
  * Monetary Calculation:
  * - subtotal = sum of (item_price * quantity) for all items
- * - tax = 0 (QR orders have no tax initially - applied on confirmation)
+ * - tax_amount = 0 (QR orders have no tax initially - applied on confirmation)
  * - total = subtotal (tax applied by cashier)
+ * 
+ * Database Schema (orders table):
+ * - subtotal, tax_rate, tax_amount, service_charge, total
+ * - source: 'pos' | 'qr'
+ * - status: 'open' | 'pending' | 'paid' | 'cancelled' | 'voided'
+ * - NO order_type column exists
+ * 
+ * Database Schema (order_items table):
+ * - order_id, restaurant_id, menu_item_id, name, price, quantity, notes
+ * - voided, void_reason, cogs, profit
+ * - NO modifiers or modifiers_total columns exist
  * 
  * Flow:
  * 1. Validate payload (ignore client totals)
  * 2. Lookup table and branch
  * 3. Validate menu items exist and are available
- * 4. Calculate subtotal/tax/total SERVER-SIDE
+ * 4. Calculate subtotal/tax_amount/total SERVER-SIDE
  * 5. Insert order with status='pending', source='qr'
  * 6. Insert order items (rollback order if fails)
- * 7. Log to audit_logs
+ * 7. Log to audit_logs (skip if no user_id available)
  * 8. Return order_id and order_number
  */
 
@@ -40,7 +51,6 @@ interface OrderItemPayload {
   menu_item_id: string;
   quantity: number;
   notes?: string | null;
-  modifiers?: Array<{ id: string; name: string; price: number }> | null;
   // Client may send these - we IGNORE them
   price?: number;
   total?: number;
@@ -51,7 +61,6 @@ interface RequestBody {
   branch_id?: string | null;
   table_code?: string | null;
   table_id?: string | null;
-  order_type?: "DINE_IN" | "TAKEAWAY";
   items: OrderItemPayload[];
   order_notes?: string | null;
   customer_phone?: string | null;
@@ -60,6 +69,13 @@ interface RequestBody {
   subtotal?: number;
   tax?: number;
   total?: number;
+}
+
+/**
+ * Round to JOD standard (3 decimal places for line items)
+ */
+function roundJOD(value: number): number {
+  return Math.round(value * 1000) / 1000;
 }
 
 serve(async (req) => {
@@ -93,7 +109,6 @@ serve(async (req) => {
       branch_id: providedBranchId,
       table_code,
       table_id: providedTableId,
-      order_type = "DINE_IN",
       items,
       order_notes,
       customer_phone,
@@ -116,10 +131,10 @@ serve(async (req) => {
       );
     }
 
-    // Must have either table_code or table_id for dine-in
-    if (order_type === "DINE_IN" && !table_code && !providedTableId) {
+    // Must have either table_code or table_id for QR orders
+    if (!table_code && !providedTableId) {
       return new Response(
-        JSON.stringify({ error: "table_code or table_id required for dine-in orders" }),
+        JSON.stringify({ error: "table_code or table_id required for QR orders" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -328,17 +343,14 @@ serve(async (req) => {
     
     // SERVER-CALCULATED values only
     let serverSubtotal = 0;
-    const serverTax = 0; // Tax applied by cashier on confirmation
     
+    // Build order items data (ONLY columns that exist in order_items table)
     const orderItemsToInsert: Array<{
       menu_item_id: string;
       name: string;
       price: number;
       quantity: number;
       notes: string | null;
-      modifiers: string | null;
-      modifiers_total: number;
-      line_total: number;
     }> = [];
 
     for (const item of items) {
@@ -346,29 +358,10 @@ serve(async (req) => {
       if (!menuItem) continue;
 
       // Use SERVER price only - ignore any client-provided price
-      const serverPrice = menuItem.price;
-
-      // Calculate modifiers total (validate each modifier)
-      let modifiersTotal = 0;
-      let validatedModifiers: Array<{ id: string; name: string; price: number }> | null = null;
-      
-      if (item.modifiers && Array.isArray(item.modifiers)) {
-        validatedModifiers = [];
-        for (const mod of item.modifiers) {
-          // TODO: In production, validate modifier prices against DB
-          // For now, accept client modifier prices but cap them
-          const modPrice = typeof mod.price === "number" ? Math.min(Math.max(mod.price, 0), 100) : 0;
-          modifiersTotal += modPrice;
-          validatedModifiers.push({
-            id: mod.id || "",
-            name: mod.name || "",
-            price: modPrice,
-          });
-        }
-      }
+      const serverPrice = roundJOD(menuItem.price);
 
       // Calculate line total using SERVER prices
-      const lineTotal = (serverPrice + modifiersTotal) * item.quantity;
+      const lineTotal = roundJOD(serverPrice * item.quantity);
       serverSubtotal += lineTotal;
 
       orderItemsToInsert.push({
@@ -377,43 +370,57 @@ serve(async (req) => {
         price: serverPrice, // SERVER price
         quantity: item.quantity,
         notes: item.notes?.trim().slice(0, 500) || null,
-        modifiers: validatedModifiers ? JSON.stringify(validatedModifiers) : null,
-        modifiers_total: modifiersTotal,
-        line_total: lineTotal,
       });
     }
 
-    // Final server-calculated total
-    const serverTotal = serverSubtotal + serverTax;
+    // Round final subtotal
+    serverSubtotal = roundJOD(serverSubtotal);
+
+    // QR orders: tax_amount = 0, service_charge = 0 (applied by cashier on confirmation)
+    const serverTaxAmount = 0;
+    const serverServiceCharge = 0;
+    const serverTotal = roundJOD(serverSubtotal + serverTaxAmount + serverServiceCharge);
 
     // ═══════════════════════════════════════════════════════════════════
-    // 6. TRANSACTION: INSERT ORDER
+    // 6. TRANSACTION: INSERT ORDER (using correct schema columns)
     // ═══════════════════════════════════════════════════════════════════
+    // orders table columns: 
+    // id, restaurant_id, shift_id, order_number, status, subtotal,
+    // discount_type, discount_value, tax_rate, tax_amount, service_charge, total,
+    // notes, cancelled_reason, invoice_uuid, created_at, updated_at,
+    // branch_id, order_notes, table_id, customer_phone, source
+    
     const orderPayload = {
       restaurant_id,
       branch_id,
       table_id,
-      status: "pending",
-      source: "qr",
-      order_type: order_type === "TAKEAWAY" ? "takeaway" : "dine_in",
+      status: "pending",         // QR orders start as pending
+      source: "qr",              // Mark as QR order
       subtotal: serverSubtotal,  // SERVER-CALCULATED
-      tax: serverTax,            // SERVER-CALCULATED (0 for QR)
+      tax_rate: 0,               // Default, will be applied on confirmation
+      tax_amount: serverTaxAmount, // 0 for QR orders initially
+      service_charge: serverServiceCharge, // 0 for QR orders initially
       total: serverTotal,        // SERVER-CALCULATED
       order_notes: order_notes?.trim().slice(0, 1000) || null,
       customer_phone: customer_phone?.trim() || null,
-      shift_id: null, // Will be set when cashier confirms
+      shift_id: null,            // Will be set when cashier confirms
     };
+
+    console.log("Inserting order with payload:", JSON.stringify(orderPayload));
 
     const { data: orderData, error: orderError } = await supabase
       .from("orders")
       .insert(orderPayload)
-      .select("id, order_number, status, created_at, subtotal, tax, total")
+      .select("id, order_number, status, created_at, subtotal, tax_amount, total")
       .single();
 
     if (orderError || !orderData) {
-      console.error("Order insert error:", orderError?.message);
+      console.error("Order insert error:", orderError?.message, orderError?.details, orderError?.hint);
       return new Response(
-        JSON.stringify({ error: "Failed to create order" }),
+        JSON.stringify({ 
+          error: "Failed to create order",
+          details: orderError?.message || "Unknown error"
+        }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -421,9 +428,15 @@ serve(async (req) => {
     // Track for rollback
     createdOrderId = orderData.id;
 
+    console.log(`Order created: ${orderData.id} (order #${orderData.order_number})`);
+
     // ═══════════════════════════════════════════════════════════════════
     // 7. TRANSACTION: INSERT ORDER ITEMS (ROLLBACK IF FAILS)
     // ═══════════════════════════════════════════════════════════════════
+    // order_items table columns:
+    // id, order_id, restaurant_id, menu_item_id, name, price, quantity, notes,
+    // voided, void_reason, created_at, cogs, profit
+    
     const orderItemsWithOrderId = orderItemsToInsert.map((item) => ({
       order_id: orderData.id,
       restaurant_id,
@@ -432,16 +445,17 @@ serve(async (req) => {
       price: item.price,
       quantity: item.quantity,
       notes: item.notes,
-      modifiers: item.modifiers,
-      modifiers_total: item.modifiers_total,
+      // voided defaults to false, cogs/profit default to 0
     }));
+
+    console.log("Inserting order items:", JSON.stringify(orderItemsWithOrderId));
 
     const { error: itemsInsertError } = await supabase
       .from("order_items")
       .insert(orderItemsWithOrderId);
 
     if (itemsInsertError) {
-      console.error("Order items insert error:", itemsInsertError.message);
+      console.error("Order items insert error:", itemsInsertError.message, itemsInsertError.details);
       
       // ═══════════════════════════════════════════════════════════════════
       // ROLLBACK: Delete the order - no partial data allowed
@@ -453,61 +467,30 @@ serve(async (req) => {
       
       if (rollbackError) {
         console.error("CRITICAL: Rollback failed:", rollbackError.message);
-        // Log critical failure for manual cleanup
-        await supabase.from("audit_logs").insert({
-          user_id: null,
-          restaurant_id,
-          entity_type: "order",
-          entity_id: orderData.id,
-          action: "QR_ORDER_ROLLBACK_FAILED",
-          details: {
-            order_number: orderData.order_number,
-            error: itemsInsertError.message,
-            rollback_error: rollbackError.message,
-          },
-        });
+        // Cannot insert audit log since user_id is required and not nullable
       }
       
       createdOrderId = null; // Rolled back
       
       return new Response(
-        JSON.stringify({ error: "Failed to add order items" }),
+        JSON.stringify({ 
+          error: "Failed to add order items",
+          details: itemsInsertError.message
+        }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // 8. AUDIT LOG (action: QR_ORDER_CREATED - UPPER_SNAKE_CASE)
-    // ═══════════════════════════════════════════════════════════════════
-    const { error: auditError } = await supabase
-      .from("audit_logs")
-      .insert({
-        user_id: null, // Anonymous user
-        restaurant_id,
-        entity_type: "order",
-        entity_id: orderData.id,
-        action: "QR_ORDER_CREATED", // UPPER_SNAKE_CASE
-        details: {
-          order_number: orderData.order_number,
-          source: "qr",
-          table_id,
-          table_code: table_code || null,
-          branch_id,
-          item_count: orderItemsToInsert.length,
-          subtotal: serverSubtotal,
-          tax: serverTax,
-          total: serverTotal,
-          customer_phone: customer_phone ? "[MASKED]" : null,
-          created_at: orderData.created_at,
-        },
-      });
+    console.log(`Order items inserted for order ${orderData.id}`);
 
-    if (auditError) {
-      // Log but don't fail - audit is secondary
-      console.error("Audit log insert failed:", auditError.message);
-    }
-
-    console.log(`QR Order #${orderData.order_number} created | subtotal=${serverSubtotal} tax=${serverTax} total=${serverTotal}`);
+    // ═══════════════════════════════════════════════════════════════════
+    // 8. SKIP AUDIT LOG (user_id is required and NOT NULLABLE)
+    // ═══════════════════════════════════════════════════════════════════
+    // The audit_logs table has user_id as NOT NULL, so we cannot insert
+    // for anonymous QR orders. Logging is done via console for debugging.
+    // Audit will be captured when cashier confirms the order (with their user_id).
+    
+    console.log(`[AUDIT] QR_ORDER_CREATED | order_id=${orderData.id} order_number=${orderData.order_number} restaurant_id=${restaurant_id} branch_id=${branch_id} table_id=${table_id} table_code=${table_code} items=${orderItemsToInsert.length} subtotal=${serverSubtotal} total=${serverTotal}`);
 
     // ═══════════════════════════════════════════════════════════════════
     // 9. SUCCESS RESPONSE
@@ -519,7 +502,7 @@ serve(async (req) => {
         order_number: orderData.order_number,
         status: orderData.status,
         subtotal: serverSubtotal,
-        tax: serverTax,
+        tax_amount: serverTaxAmount,
         total: serverTotal,
       }),
       { status: 201, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -530,12 +513,16 @@ serve(async (req) => {
     
     // Attempt cleanup if order was created but something else failed
     if (createdOrderId) {
-      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
-      
-      await supabase.from("orders").delete().eq("id", createdOrderId);
-      console.log(`Cleanup: Deleted partial order ${createdOrderId}`);
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        
+        await supabase.from("orders").delete().eq("id", createdOrderId);
+        console.log(`Cleanup: Deleted partial order ${createdOrderId}`);
+      } catch (cleanupError) {
+        console.error("Cleanup failed:", cleanupError);
+      }
     }
     
     return new Response(

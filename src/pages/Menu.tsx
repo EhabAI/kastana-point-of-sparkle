@@ -689,14 +689,33 @@ export default function Menu() {
 
       if (fnError) {
         console.error("QR order edge function error:", fnError);
-        setError(t("menu_order_error"));
+        // Differentiate between network errors and function errors
+        const errorMessage = fnError.message?.includes("FunctionsHttpError")
+          ? (language === "ar" ? "فشل إرسال الطلب - يرجى المحاولة مرة أخرى" : "Failed to submit order - please try again")
+          : t("menu_order_error");
+        setError(errorMessage);
         setOrderLoading(false);
         return;
       }
 
       if (data?.error) {
         console.error("QR order error:", data.error);
-        setError(data.error);
+        // Handle specific error codes from edge function
+        let userFriendlyError = data.error;
+        if (data.code === "RESTAURANT_INACTIVE") {
+          userFriendlyError = language === "ar" 
+            ? "المطعم غير متاح حالياً" 
+            : "Restaurant is currently unavailable";
+        } else if (data.error?.includes("Table not found")) {
+          userFriendlyError = language === "ar"
+            ? "الطاولة غير موجودة - يرجى مسح رمز QR صالح"
+            : "Table not found - please scan a valid QR code";
+        } else if (data.error?.includes("unavailable")) {
+          userFriendlyError = language === "ar"
+            ? "بعض الأصناف غير متوفرة حالياً"
+            : "Some items are currently unavailable";
+        }
+        setError(userFriendlyError);
         setOrderLoading(false);
         return;
       }
@@ -714,7 +733,10 @@ export default function Menu() {
       }, 3000);
     } catch (err) {
       console.error("Order error:", err);
-      setError(t("menu_order_error"));
+      // Generic network/unexpected error
+      setError(language === "ar" 
+        ? "حدث خطأ غير متوقع - يرجى المحاولة مرة أخرى" 
+        : "An unexpected error occurred - please try again");
     } finally {
       setOrderLoading(false);
     }
