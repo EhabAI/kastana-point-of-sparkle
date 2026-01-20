@@ -6,7 +6,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { Badge } from "@/components/ui/badge";
 import { Clock, CreditCard, PlayCircle, X, AlertTriangle, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -144,7 +144,7 @@ export function TableOrdersDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[350px]">
+        <div className="max-h-[55vh] overflow-y-scroll pr-1 scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent">
           <div className="space-y-2 pr-2">
             {orders.map((order) => {
               const activeItems = order.order_items.filter((i) => !i.voided);
@@ -225,7 +225,7 @@ export function TableOrdersDialog({
               );
             })}
           </div>
-        </ScrollArea>
+        </div>
 
         {/* Actions */}
         <div className="flex gap-2 pt-2 border-t">
