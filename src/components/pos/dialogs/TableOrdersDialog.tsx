@@ -259,17 +259,6 @@ export function TableOrdersDialog({
 
         {/* Actions */}
         <div className="flex flex-wrap gap-2 pt-2 border-t">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 min-w-[60px] text-xs px-2 py-1 h-8"
-            onClick={() => onOpenChange(false)}
-            disabled={isLoading}
-          >
-            <X className="h-3 w-3 mr-1" />
-            {t("close")}
-          </Button>
-
           {onVoidOrder && (
             <Button
               variant="destructive"
