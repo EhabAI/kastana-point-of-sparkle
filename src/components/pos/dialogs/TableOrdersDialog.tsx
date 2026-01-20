@@ -261,42 +261,46 @@ export function TableOrdersDialog({
         <div className="flex flex-wrap gap-2 pt-2 border-t">
           <Button
             variant="outline"
-            className="flex-1 min-w-[80px]"
+            size="sm"
+            className="flex-1 min-w-[70px]"
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
           >
-            <X className="h-4 w-4 mr-1" />
+            <X className="h-3.5 w-3.5 mr-1" />
             {t("close")}
           </Button>
 
           {onVoidOrder && (
             <Button
               variant="destructive"
-              className="flex-1 min-w-[80px]"
+              size="sm"
+              className="flex-1 min-w-[70px]"
               onClick={handleVoidClick}
               disabled={isLoading || !selectedOrderId || !canVoidSelectedOrder}
             >
-              <Ban className="h-4 w-4 mr-1" />
+              <Ban className="h-3.5 w-3.5 mr-1" />
               {t("void_order")}
             </Button>
           )}
 
           <Button
             variant="outline"
-            className="flex-1 min-w-[80px]"
+            size="sm"
+            className="flex-1 min-w-[70px]"
             onClick={handleResumeClick}
             disabled={isLoading || !selectedOrderId}
           >
-            <PlayCircle className="h-4 w-4 mr-1" />
+            <PlayCircle className="h-3.5 w-3.5 mr-1" />
             {t("resume_add_items")}
           </Button>
           
           <Button
-            className="flex-1 min-w-[80px]"
+            size="sm"
+            className="flex-1 min-w-[70px]"
             onClick={handlePayClick}
             disabled={isLoading || !selectedOrderId || selectedOrder?.status !== "open" || isSelectedOrderEmpty}
           >
-            <CreditCard className="h-4 w-4 mr-1" />
+            <CreditCard className="h-3.5 w-3.5 mr-1" />
             {t("pay_close")}
           </Button>
         </div>
