@@ -1250,6 +1250,7 @@ export default function POS() {
       });
       
       setVoidOrderDialogOpen(false);
+      setTableOrdersDialogOpen(false); // Close table orders dialog after successful void
       toast.success(t("order_voided"));
     } catch (error: unknown) {
       // Use user-friendly Arabic message instead of raw error

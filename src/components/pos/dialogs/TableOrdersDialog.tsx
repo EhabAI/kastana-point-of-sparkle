@@ -147,8 +147,8 @@ export function TableOrdersDialog({
 
   const handleVoidClick = () => {
     if (selectedOrderId && onVoidOrder) {
+      // Don't close dialog here - let the parent handle it after void is complete
       onVoidOrder(selectedOrderId);
-      onOpenChange(false);
     }
   };
 
