@@ -1434,11 +1434,12 @@ export default function POS() {
 
       if (confirmedOrder.table_id) {
         // Order has a table - fetch active orders for that table
+        // Include "new" status - QR orders are confirmed as "new" for KDS
         const tableOrders = await supabase
           .from("orders")
           .select("id, order_number, status, total, subtotal, created_at, notes, order_notes, table_id, order_items(id, name, quantity, price, notes, voided)")
           .eq("table_id", confirmedOrder.table_id)
-          .in("status", ["open", "confirmed", "held"])
+          .in("status", ["new", "open", "confirmed", "held"])
           .order("created_at", { ascending: false });
         
         const activeOrders = tableOrders.data || [];
