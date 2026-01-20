@@ -125,7 +125,7 @@ export function QRPendingOrders({
           {sortedOrders.map((order) => {
             const isExpanded = expandedOrderId === order.id;
             const tableAssigned = !!order.table_id;
-            const tableDisplay = order.restaurant_tables?.table_code || order.restaurant_tables?.table_name || null;
+            const tableDisplay = order.restaurant_tables?.table_name || order.restaurant_tables?.table_code || null;
             const itemCount = order.order_items.reduce((sum, item) => sum + item.quantity, 0);
 
             return (
