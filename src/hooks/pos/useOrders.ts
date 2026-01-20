@@ -1,12 +1,29 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export function useCurrentOrder(shiftId: string | undefined) {
+export function useCurrentOrder(shiftId: string | undefined, orderId?: string | null) {
   return useQuery({
-    queryKey: ["current-order", shiftId],
+    // IMPORTANT: include orderId in cache key so selecting a specific order can't be overwritten
+    queryKey: ["current-order", shiftId, orderId ?? null],
     queryFn: async () => {
       if (!shiftId) return null;
 
+      // When an explicit orderId is provided, ALWAYS fetch that exact order.
+      // This prevents "latest open order" behavior from hijacking the UI when multiple OPEN orders exist.
+      if (orderId) {
+        const { data, error } = await supabase
+          .from("orders")
+          .select("*, order_items(*, order_item_modifiers(*))")
+          .eq("shift_id", shiftId)
+          .eq("id", orderId)
+          .eq("status", "open")
+          .maybeSingle();
+
+        if (error) throw error;
+        return data;
+      }
+
+      // Fallback (legacy): most recent OPEN order for the shift
       const { data, error } = await supabase
         .from("orders")
         .select("*, order_items(*, order_item_modifiers(*))")
