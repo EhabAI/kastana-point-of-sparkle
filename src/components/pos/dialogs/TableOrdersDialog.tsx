@@ -109,60 +109,45 @@ export function TableOrdersDialog({
     });
   }, [orders]);
 
-  // CRITICAL: Auto-select first order ONLY when dialog opens fresh (selectedOrderId is null)
-  // Do NOT re-select when orders array changes during an open dialog
-  useEffect(() => {
-    if (open && sortedOrders.length > 0 && selectedOrderId === null) {
-      // Dialog just opened with no selection - select first order
-      setSelectedOrderId(sortedOrders[0].id);
-    }
-  }, [open, sortedOrders, selectedOrderId]);
-
-  // Validate selection: if selectedOrderId no longer exists in orders, reset to first
-  useEffect(() => {
-    if (open && selectedOrderId && sortedOrders.length > 0) {
-      const exists = sortedOrders.some(o => o.id === selectedOrderId);
-      if (!exists) {
-        // Selected order was removed (e.g., voided) - select first remaining
-        setSelectedOrderId(sortedOrders[0].id);
-      }
-    }
-  }, [open, sortedOrders, selectedOrderId]);
-
-  // Reset selection when dialog closes - ensures fresh state on reopen
+  // STATE SAFETY (MANDATORY): reset selection on open/close.
+  // - No auto-select when multiple orders exist.
+  // - If exactly 1 order exists, auto-select by ID (not index for action logic).
   useEffect(() => {
     if (!open) {
       setSelectedOrderId(null);
-    }
-  }, [open]);
-
-  // CRITICAL: Always resolve selected order by ID, never by array index
-  const selectedOrder = sortedOrders.find((o) => o.id === selectedOrderId);
-  const showDirectActions = orders.length === 1;
-
-  // CRITICAL FIX: All handlers must verify the order exists before acting
-  // This prevents race conditions where selectedOrderId might be stale
-  const handleResumeClick = () => {
-    if (!selectedOrderId) return;
-    // Verify the order still exists in the current orders array
-    const order = sortedOrders.find(o => o.id === selectedOrderId);
-    if (!order) {
-      console.warn('[TableOrdersDialog] Resume: Order not found in current list', selectedOrderId);
       return;
     }
-    console.log('[TableOrdersDialog] Resume order:', order.id, 'number:', order.order_number);
-    onResumeOrder(order.id); // Use order.id from verified object, not raw selectedOrderId
+
+    if (sortedOrders.length === 1) {
+      setSelectedOrderId(sortedOrders[0].id);
+    } else {
+      setSelectedOrderId(null);
+    }
+  }, [open, sortedOrders.length]);
+
+  // CRITICAL: Always resolve selected order by ID from the ORIGINAL orders array (never by sorted position)
+  const selectedOrder = orders.find((o) => o.id === selectedOrderId);
+  const showDirectActions = orders.length === 1;
+
+  // CRITICAL: All handlers MUST resolve by ID from `orders` (NOT sortedOrders, NOT index)
+  const handleResumeClick = () => {
+    if (!selectedOrderId) return;
+    const order = orders.find((o) => o.id === selectedOrderId);
+    if (!order) {
+      console.warn("[TableOrdersDialog] Resume: Order not found", selectedOrderId);
+      return;
+    }
+    onResumeOrder(order.id);
     onOpenChange(false);
   };
 
   const handlePayClick = () => {
     if (!selectedOrderId) return;
-    const order = sortedOrders.find(o => o.id === selectedOrderId);
+    const order = orders.find((o) => o.id === selectedOrderId);
     if (!order) {
-      console.warn('[TableOrdersDialog] Pay: Order not found in current list', selectedOrderId);
+      console.warn("[TableOrdersDialog] Pay: Order not found", selectedOrderId);
       return;
     }
-    console.log('[TableOrdersDialog] Pay order:', order.id, 'number:', order.order_number);
     onPayOrder(order.id);
     onOpenChange(false);
   };
@@ -176,12 +161,11 @@ export function TableOrdersDialog({
 
   const handleVoidClick = () => {
     if (!selectedOrderId || !onVoidOrder) return;
-    const order = sortedOrders.find(o => o.id === selectedOrderId);
+    const order = orders.find((o) => o.id === selectedOrderId);
     if (!order) {
-      console.warn('[TableOrdersDialog] Void: Order not found in current list', selectedOrderId);
+      console.warn("[TableOrdersDialog] Void: Order not found", selectedOrderId);
       return;
     }
-    console.log('[TableOrdersDialog] Void order:', order.id, 'number:', order.order_number);
     // Don't close dialog here - let the parent handle it after void is complete
     onVoidOrder(order.id);
   };

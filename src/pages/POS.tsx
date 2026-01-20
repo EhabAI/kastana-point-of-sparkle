@@ -130,8 +130,14 @@ export default function POS() {
   const { data: categories = [] } = useCashierCategories();
   const { data: heldOrders = [] } = useHeldOrders(currentShift?.id);
   const { data: recentOrders = [] } = useRecentOrders(currentShift?.id);
-  const { data: currentOrder, refetch: refetchOrder } = useCurrentOrder(currentShift?.id);
+
+  // CRITICAL: POS can have multiple OPEN orders at the same time.
+  // Track an explicit activeOrderId so "resume/pay/void" always targets the selected order.id.
+  const [activeOrderId, setActiveOrderId] = useState<string | null>(null);
+  const { data: currentOrder, refetch: refetchOrder } = useCurrentOrder(currentShift?.id, activeOrderId);
+
   const { data: zReportData, isLoading: zReportLoading, refetch: zReportRefetch } = useZReport(currentShift?.id);
+
   const { data: inventoryMovements, isLoading: inventoryMovementsLoading } = useShiftInventoryMovements(
     currentShift?.id,
     restaurant?.id,
@@ -1646,8 +1652,11 @@ export default function POS() {
   // Handler for resuming order from table orders dialog
   const handleResumeTableOrder = async (orderId: string) => {
     try {
+      // SINGLE SOURCE OF TRUTH: persist the explicit order.id we intend to open
+      setActiveOrderId(orderId);
       await resumeOrderMutation.mutateAsync(orderId);
       setActiveTab("new-order");
+      await refetchOrder();
       toast.success(t("order_loaded"));
     } catch (error) {
       toast.error(t("failed_load_order"));
@@ -1657,14 +1666,14 @@ export default function POS() {
   // Handler for canceling empty orders from table orders dialog
   const handleCancelEmptyTableOrder = async (orderId: string) => {
     try {
-      await cancelOrderMutation.mutateAsync({ 
-        orderId, 
-        reason: t("empty_order_cancelled") 
+      await cancelOrderMutation.mutateAsync({
+        orderId,
+        reason: t("empty_order_cancelled"),
       });
-      
+
       // Update the selectedTableForOrders to remove the cancelled order
       if (selectedTableForOrders) {
-        const remainingOrders = selectedTableForOrders.orders.filter(o => o.id !== orderId);
+        const remainingOrders = selectedTableForOrders.orders.filter((o) => o.id !== orderId);
         if (remainingOrders.length === 0) {
           setTableOrdersDialogOpen(false);
           setSelectedTableForOrders(null);
@@ -1675,7 +1684,7 @@ export default function POS() {
           });
         }
       }
-      
+
       toast.success(t("empty_order_cancelled"));
     } catch (error) {
       toast.error(t("failed_cancel_order"));
@@ -1686,6 +1695,7 @@ export default function POS() {
   const handleVoidTableOrder = async (orderId: string) => {
     // Resume the order first to load it, then open void dialog
     try {
+      setActiveOrderId(orderId);
       await resumeOrderMutation.mutateAsync(orderId);
       setActiveTab("new-order");
       await refetchOrder();
@@ -1700,9 +1710,10 @@ export default function POS() {
   const handlePayTableOrder = async (orderId: string) => {
     // First resume the order to load it
     try {
+      setActiveOrderId(orderId);
       await resumeOrderMutation.mutateAsync(orderId);
       setActiveTab("new-order");
-      // Fetch fresh order data before opening payment dialog (no setTimeout race condition)
+      // Fetch fresh order data before opening payment dialog
       await refetchOrder();
       setPaymentDialogOpen(true);
     } catch (error) {
