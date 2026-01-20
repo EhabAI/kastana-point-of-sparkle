@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { usePOSSound } from "@/hooks/pos/usePOSSound";
 
 interface QRPendingOrdersProps {
   orders: PendingOrder[];
@@ -66,11 +67,28 @@ export function QRPendingOrders({
   isLoading,
 }: QRPendingOrdersProps) {
   const { t } = useLanguage();
+  const { playOnceForOrder } = usePOSSound();
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [reasonError, setReasonError] = useState(false);
+  const initialLoadRef = useRef(true);
+
+  // Play sound for new orders (skip initial load to avoid sound on page refresh)
+  useEffect(() => {
+    if (initialLoadRef.current) {
+      // Mark all current orders as "seen" on initial load
+      orders.forEach(order => playOnceForOrder(order.id));
+      initialLoadRef.current = false;
+      return;
+    }
+    
+    // Play sound for any new orders
+    orders.forEach(order => {
+      playOnceForOrder(order.id);
+    });
+  }, [orders, playOnceForOrder]);
 
   const handleRejectClick = (orderId: string) => {
     setSelectedOrderId(orderId);

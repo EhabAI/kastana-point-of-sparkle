@@ -8,6 +8,7 @@ export * from "./usePayments";
 export * from "./useRefunds";
 export * from "./useRestaurantSettings";
 export * from "./useAuditLog";
+export * from "./usePOSSound";
 export * from "./useZReport";
 export * from "./useCashierMenu";
 export * from "./useBranchTables";
