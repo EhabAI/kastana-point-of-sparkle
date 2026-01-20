@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 import { Badge } from "@/components/ui/badge";
-import { Clock, CreditCard, PlayCircle, X, AlertTriangle, Trash2, Ban } from "lucide-react";
+import { Clock, CreditCard, PlayCircle, X, AlertTriangle, Trash2, Ban, Users } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useState, useEffect, useMemo } from "react";
 import { cn, formatJOD } from "@/lib/utils";
@@ -44,6 +44,7 @@ interface TableOrdersDialogProps {
   currency: string;
   onResumeOrder: (orderId: string) => void;
   onPayOrder: (orderId: string) => void;
+  onPayTable?: () => void; // New: group pay all orders
   onVoidOrder?: (orderId: string) => void;
   onCancelEmptyOrder?: (orderId: string) => void;
   isLoading?: boolean;
@@ -57,6 +58,7 @@ export function TableOrdersDialog({
   currency,
   onResumeOrder,
   onPayOrder,
+  onPayTable,
   onVoidOrder,
   onCancelEmptyOrder,
   isLoading,
@@ -285,15 +287,28 @@ export function TableOrdersDialog({
             {t("resume_add_items")}
           </Button>
           
-          <Button
-            size="sm"
-            className="flex-1 min-w-[60px] text-xs px-2 py-1 h-8"
-            onClick={handlePayClick}
-            disabled={isLoading || !selectedOrderId || selectedOrder?.status !== "open" || isSelectedOrderEmpty}
-          >
-            <CreditCard className="h-3 w-3 mr-1" />
-            {t("pay_close")}
-          </Button>
+          {/* Single order: individual pay. Multiple orders: show Pay Table instead */}
+          {orders.length === 1 ? (
+            <Button
+              size="sm"
+              className="flex-1 min-w-[60px] text-xs px-2 py-1 h-8"
+              onClick={handlePayClick}
+              disabled={isLoading || !selectedOrderId || selectedOrder?.status !== "open" || isSelectedOrderEmpty}
+            >
+              <CreditCard className="h-3 w-3 mr-1" />
+              {t("pay_close")}
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              className="flex-1 min-w-[80px] text-xs px-2 py-1 h-8 bg-primary"
+              onClick={() => onPayTable?.()}
+              disabled={isLoading || orders.length === 0}
+            >
+              <Users className="h-3 w-3 mr-1" />
+              {t("pay_table")} ({orders.length})
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

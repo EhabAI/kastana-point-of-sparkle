@@ -19,3 +19,4 @@ export * from "./useCashierPaymentMethods";
 export * from "./useModifiers";
 export * from "./useInventoryDeduction";
 export * from "./useToggleFavorite";
+export * from "./useTableCheckout";
