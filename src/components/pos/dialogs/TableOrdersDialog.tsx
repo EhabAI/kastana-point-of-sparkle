@@ -64,6 +64,8 @@ export function TableOrdersDialog({
   isLoading,
 }: TableOrdersDialogProps) {
   const { t } = useLanguage();
+  // CRITICAL FIX: Selection state must be managed carefully to avoid race conditions
+  // The selectedOrderId MUST always reference a valid order.id, not an array index
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   const getStatusLabel = (status: string): string => {
@@ -90,8 +92,8 @@ export function TableOrdersDialog({
     }
   };
 
-  // Sort orders first, then use sorted array for auto-selection
-  // This ensures consistent behavior between display and selection
+  // Sort orders for display - this is purely for rendering order
+  // Selection is ALWAYS by order.id, never by array position
   const sortedOrders = useMemo(() => {
     const statusPriority: Record<string, number> = {
       new: 1,
@@ -107,52 +109,81 @@ export function TableOrdersDialog({
     });
   }, [orders]);
 
-  // Auto-select first order (from sorted list) when dialog opens or when orders change
+  // CRITICAL: Auto-select first order ONLY when dialog opens fresh (selectedOrderId is null)
+  // Do NOT re-select when orders array changes during an open dialog
   useEffect(() => {
-    if (open && sortedOrders.length > 0) {
-      // If current selection is no longer valid, select first order from sorted list
-      const currentSelectionValid = selectedOrderId && sortedOrders.some(o => o.id === selectedOrderId);
-      if (!currentSelectionValid) {
+    if (open && sortedOrders.length > 0 && selectedOrderId === null) {
+      // Dialog just opened with no selection - select first order
+      setSelectedOrderId(sortedOrders[0].id);
+    }
+  }, [open, sortedOrders, selectedOrderId]);
+
+  // Validate selection: if selectedOrderId no longer exists in orders, reset to first
+  useEffect(() => {
+    if (open && selectedOrderId && sortedOrders.length > 0) {
+      const exists = sortedOrders.some(o => o.id === selectedOrderId);
+      if (!exists) {
+        // Selected order was removed (e.g., voided) - select first remaining
         setSelectedOrderId(sortedOrders[0].id);
       }
     }
   }, [open, sortedOrders, selectedOrderId]);
 
-  // Reset selection when dialog closes
+  // Reset selection when dialog closes - ensures fresh state on reopen
   useEffect(() => {
     if (!open) {
       setSelectedOrderId(null);
     }
   }, [open]);
 
+  // CRITICAL: Always resolve selected order by ID, never by array index
   const selectedOrder = sortedOrders.find((o) => o.id === selectedOrderId);
   const showDirectActions = orders.length === 1;
 
+  // CRITICAL FIX: All handlers must verify the order exists before acting
+  // This prevents race conditions where selectedOrderId might be stale
   const handleResumeClick = () => {
-    if (selectedOrderId) {
-      onResumeOrder(selectedOrderId);
-      onOpenChange(false);
+    if (!selectedOrderId) return;
+    // Verify the order still exists in the current orders array
+    const order = sortedOrders.find(o => o.id === selectedOrderId);
+    if (!order) {
+      console.warn('[TableOrdersDialog] Resume: Order not found in current list', selectedOrderId);
+      return;
     }
+    console.log('[TableOrdersDialog] Resume order:', order.id, 'number:', order.order_number);
+    onResumeOrder(order.id); // Use order.id from verified object, not raw selectedOrderId
+    onOpenChange(false);
   };
 
   const handlePayClick = () => {
-    if (selectedOrderId) {
-      onPayOrder(selectedOrderId);
-      onOpenChange(false);
+    if (!selectedOrderId) return;
+    const order = sortedOrders.find(o => o.id === selectedOrderId);
+    if (!order) {
+      console.warn('[TableOrdersDialog] Pay: Order not found in current list', selectedOrderId);
+      return;
     }
+    console.log('[TableOrdersDialog] Pay order:', order.id, 'number:', order.order_number);
+    onPayOrder(order.id);
+    onOpenChange(false);
   };
 
   const handleCancelEmptyClick = (orderId: string) => {
     if (onCancelEmptyOrder) {
+      console.log('[TableOrdersDialog] Cancel empty order:', orderId);
       onCancelEmptyOrder(orderId);
     }
   };
 
   const handleVoidClick = () => {
-    if (selectedOrderId && onVoidOrder) {
-      // Don't close dialog here - let the parent handle it after void is complete
-      onVoidOrder(selectedOrderId);
+    if (!selectedOrderId || !onVoidOrder) return;
+    const order = sortedOrders.find(o => o.id === selectedOrderId);
+    if (!order) {
+      console.warn('[TableOrdersDialog] Void: Order not found in current list', selectedOrderId);
+      return;
     }
+    console.log('[TableOrdersDialog] Void order:', order.id, 'number:', order.order_number);
+    // Don't close dialog here - let the parent handle it after void is complete
+    onVoidOrder(order.id);
   };
 
   // Check if selected order is empty
@@ -190,7 +221,10 @@ export function TableOrdersDialog({
                 <button
                   key={order.id}
                   type="button"
-                  onClick={() => setSelectedOrderId(order.id)}
+                  onClick={() => {
+                    console.log('[TableOrdersDialog] Selected order:', order.id, 'number:', order.order_number);
+                    setSelectedOrderId(order.id);
+                  }}
                   disabled={isLoading}
                   className={cn(
                     "w-full p-4 border rounded-lg text-left transition-all",
