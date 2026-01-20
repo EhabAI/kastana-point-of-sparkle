@@ -163,6 +163,7 @@ export function useCompletePayment() {
       queryClient.invalidateQueries({ queryKey: ["recent-orders"] });
       queryClient.invalidateQueries({ queryKey: ["open-orders"] });
       queryClient.invalidateQueries({ queryKey: ["branch-tables"] });
+      queryClient.invalidateQueries({ queryKey: ["kds-orders"] }); // Takeaway orders go to kitchen after payment
     },
   });
 }

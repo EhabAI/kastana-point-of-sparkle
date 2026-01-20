@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
     // Step 2: Fetch order and validate status (atomic lock simulation)
     const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
-      .select("id, status, total, restaurant_id")
+      .select("id, status, total, restaurant_id, table_id")
       .eq("id", orderId)
       .single();
 
@@ -200,10 +200,18 @@ Deno.serve(async (req) => {
     console.log("[complete-payment] Payment validation passed:", { paymentTotal, orderTotal, allCash });
 
     // Step 7: ATOMIC OPERATION - Check status again and update in one go
-    // First update order to 'paid' - this serves as our lock
+    // MARKET-GRADE KITCHEN WORKFLOW:
+    // - DINE-IN (has table_id): Already in kitchen, set to "paid"
+    // - TAKEAWAY (no table_id): Set to "new" so it appears in KDS NOW (kitchen prepares after payment)
+    const isDineIn = !!order.table_id;
+    const newStatus = isDineIn ? "paid" : "new";
+    
+    console.log(`[complete-payment] Order type: ${isDineIn ? 'DINE-IN' : 'TAKEAWAY'}, setting status to: ${newStatus}`);
+    
+    // First update order status - this serves as our lock
     const { data: updatedOrder, error: updateError } = await supabaseAdmin
       .from("orders")
-      .update({ status: "paid" })
+      .update({ status: newStatus })
       .eq("id", orderId)
       .eq("status", "open")  // Critical: only update if still open
       .select()
