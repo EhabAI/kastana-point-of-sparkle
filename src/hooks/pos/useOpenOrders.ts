@@ -34,7 +34,7 @@ export function useOpenOrders(branchId: string | undefined) {
         .from("orders")
         .select("id, order_number, status, total, subtotal, created_at, notes, order_notes, table_id, order_items(id, name, quantity, price, notes, voided)")
         .eq("branch_id", branchId)
-        .in("status", ["new", "open"])
+        .in("status", ["new", "open", "held"])
         .order("created_at", { ascending: false });
 
       if (error) throw error;
