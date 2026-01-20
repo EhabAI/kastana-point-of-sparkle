@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Check, X, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
+import { Clock, Check, X, ChevronDown, ChevronUp, AlertCircle, MessageSquare } from "lucide-react";
 import { cn, formatJOD } from "@/lib/utils";
 import type { PendingOrder } from "@/hooks/pos/usePendingOrders";
 import {
@@ -170,11 +170,20 @@ export function QRPendingOrders({
                   {isExpanded && (
                     <div className="pb-3 space-y-1">
                       {order.order_items.map((item) => (
-                        <div key={item.id} className="flex justify-between text-sm py-1 border-b last:border-0">
-                          <span>{item.quantity}× {item.name}</span>
-                          <span className="text-muted-foreground">
-                            {formatJOD(item.price * item.quantity)} {currency}
-                          </span>
+                        <div key={item.id} className="py-1 border-b last:border-0">
+                          <div className="flex justify-between text-sm">
+                            <span>{item.quantity}× {item.name}</span>
+                            <span className="text-muted-foreground">
+                              {formatJOD(item.price * item.quantity)} {currency}
+                            </span>
+                          </div>
+                          {/* Item-level notes */}
+                          {item.notes && (
+                            <div className="flex items-start gap-1.5 mt-1 text-xs text-muted-foreground bg-muted/40 rounded px-2 py-1">
+                              <MessageSquare className="h-3 w-3 mt-0.5 shrink-0" />
+                              <span className="line-clamp-2">{item.notes}</span>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
