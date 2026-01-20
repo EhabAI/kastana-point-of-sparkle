@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
 export type KDSOrderStatus = "new" | "in_progress" | "ready";
@@ -21,7 +21,8 @@ export interface KDSOrder {
   table_id: string | null;
   table_name?: string;
   created_at: string;
-  order_notes: string | null;
+  notes: string | null;        // Legacy notes field
+  order_notes: string | null;  // New order notes field
   items: KDSOrderItem[];
 }
 
@@ -75,6 +76,7 @@ export function useKDSOrders(
           status,
           table_id,
           created_at,
+          notes,
           order_notes,
           restaurant_tables(table_name),
           order_items(id, name, quantity, notes, voided)
@@ -146,6 +148,7 @@ export function useKDSOrders(
           table_id: order.table_id,
           table_name: order.restaurant_tables?.table_name,
           created_at: order.created_at,
+          notes: order.notes,
           order_notes: order.order_notes,
           items: (order.order_items || []).filter((item: any) => !item.voided),
         })) as KDSOrder[];
