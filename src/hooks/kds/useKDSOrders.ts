@@ -80,8 +80,10 @@ export function useKDSOrders(
           order_items(id, name, quantity, notes, voided)
         `)
         .eq("restaurant_id", restaurantId)
-        // Only active kitchen statuses - explicitly exclude paid/completed/cancelled/void/closed
-        .in("status", ["new", "in_progress", "ready"])
+        // Include all statuses that may be visible in KDS based on order type
+        // Dine-in (has table_id): visible when OPEN, in_progress, ready
+        // Takeaway (no table_id): visible when PAID, in_progress, ready
+        .in("status", ["open", "paid", "new", "in_progress", "ready"])
         // Time window: only recent orders (today or last 12 hours)
         .gte("created_at", timeWindowStart.toISOString())
         .order("created_at", { ascending: true });
@@ -100,16 +102,40 @@ export function useKDSOrders(
         throw new Error("Failed to load orders");
       }
 
-      // Filter and map orders
+      // Filter orders based on business rules:
+      // - DINE-IN (has table_id): visible when status = "open", "in_progress", "ready"
+      // - TAKEAWAY (no table_id): visible when status = "paid", "in_progress", "ready"
+      // - Always exclude: cancelled, closed, void
       const filteredOrders = (data || [])
-        // Exclude pending/unconfirmed QR orders (only include accepted QR orders or POS orders)
         .filter((order: any) => {
-          // POS orders are always included
-          if (order.source === "pos") return true;
-          // QR orders only if they're in active kitchen statuses (already accepted into kitchen flow)
-          // Status 'new', 'in_progress', 'ready' means they've been accepted
-          if (order.source === "qr" && ["new", "in_progress", "ready"].includes(order.status)) return true;
-          // Exclude any other sources or pending QR orders
+          const isDineIn = !!order.table_id;
+          const status = order.status;
+
+          // Exclude cancelled/closed orders
+          if (status === "cancelled" || status === "closed" || status === "void") {
+            return false;
+          }
+
+          // Kitchen workflow statuses (always visible regardless of order type)
+          if (status === "in_progress" || status === "ready") {
+            return true;
+          }
+
+          // DINE-IN: visible when status = "open" (sent to kitchen before payment)
+          if (isDineIn && status === "open") {
+            return true;
+          }
+
+          // TAKEAWAY: visible when status = "paid" (sent to kitchen after payment)
+          if (!isDineIn && status === "paid") {
+            return true;
+          }
+
+          // Also include "new" status for backwards compatibility (legacy orders)
+          if (status === "new") {
+            return true;
+          }
+
           return false;
         })
         .map((order: any) => ({
