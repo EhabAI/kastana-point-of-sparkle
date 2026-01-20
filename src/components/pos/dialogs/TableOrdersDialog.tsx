@@ -88,14 +88,16 @@ export function TableOrdersDialog({
     }
   };
 
-  // Auto-select if only one order
+  // Auto-select first order when dialog opens or when orders change
   useEffect(() => {
-    if (orders.length === 1) {
-      setSelectedOrderId(orders[0].id);
-    } else {
-      setSelectedOrderId(null);
+    if (open && orders.length > 0) {
+      // If current selection is no longer valid, select first order
+      const currentSelectionValid = selectedOrderId && orders.some(o => o.id === selectedOrderId);
+      if (!currentSelectionValid) {
+        setSelectedOrderId(orders[0].id);
+      }
     }
-  }, [orders, open]);
+  }, [open, orders, selectedOrderId]);
 
   // Reset selection when dialog closes
   useEffect(() => {
