@@ -120,7 +120,11 @@ export function KDSLayout({ restaurantId, branchId }: KDSLayoutProps) {
   });
 
   const { newOrders, inProgressOrders, readyOrders, hasAnyOrders } = useMemo(() => {
-    const newOrd = visibleOrders.filter((o) => o.status === "new");
+    // KDS visibility mapping (display-only):
+    // - Dine-in enters kitchen queue at status = "open"
+    // - Takeaway enters kitchen queue at status = "paid"
+    // Both are displayed in the "new" column.
+    const newOrd = visibleOrders.filter((o) => o.status === "new" || o.status === "open" || o.status === "paid");
     const inProgressOrd = visibleOrders.filter((o) => o.status === "in_progress");
     const readyOrd = visibleOrders.filter((o) => o.status === "ready");
     return {
