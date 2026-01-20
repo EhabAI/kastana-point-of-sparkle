@@ -274,11 +274,11 @@ export function TableOrdersDialog({
             <Button
               variant="destructive"
               size="sm"
-              className="flex-1 min-w-[70px]"
+              className="flex-1 min-w-[60px] text-xs px-2 py-1 h-8"
               onClick={handleVoidClick}
               disabled={isLoading || !selectedOrderId || !canVoidSelectedOrder}
             >
-              <Ban className="h-3.5 w-3.5 mr-1" />
+              <Ban className="h-3 w-3 mr-1" />
               {t("void_order")}
             </Button>
           )}
@@ -296,11 +296,11 @@ export function TableOrdersDialog({
           
           <Button
             size="sm"
-            className="flex-1 min-w-[70px]"
+            className="flex-1 min-w-[60px] text-xs px-2 py-1 h-8"
             onClick={handlePayClick}
             disabled={isLoading || !selectedOrderId || selectedOrder?.status !== "open" || isSelectedOrderEmpty}
           >
-            <CreditCard className="h-3.5 w-3.5 mr-1" />
+            <CreditCard className="h-3 w-3 mr-1" />
             {t("pay_close")}
           </Button>
         </div>
