@@ -31,7 +31,7 @@ export function useBranchTables(branchId: string | undefined) {
         .from("orders")
         .select("id, table_id")
         .eq("branch_id", branchId)
-        .in("status", ["new", "open"])
+        .in("status", ["new", "open", "held"])
         .not("table_id", "is", null);
 
       if (ordersError) throw ordersError;
