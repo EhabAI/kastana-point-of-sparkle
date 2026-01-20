@@ -45,6 +45,7 @@ import {
   useAddOrderItemModifiers,
   useTransferOrderItem,
   useBranchOpenShift,
+  useTableCheckout,
 } from "@/hooks/pos";
 import type { SelectedModifier } from "@/hooks/pos/useModifiers";
 import { useCreateRefund } from "@/hooks/pos/useRefunds";
@@ -97,6 +98,7 @@ import {
   TransferItemDialog,
   ConfirmNewOrderDialog,
   TableOrdersDialog,
+  TableCheckoutDialog,
   InventoryWarningsDialog,
   InventorySummaryDialog,
 } from "@/components/pos/dialogs";

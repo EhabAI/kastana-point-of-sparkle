@@ -21,5 +21,6 @@ export * from "./ReopenOrderDialog";
 export * from "./TransferItemDialog";
 export * from "./ConfirmNewOrderDialog";
 export * from "./TableOrdersDialog";
+export * from "./TableCheckoutDialog";
 export * from "./InventoryWarningsDialog";
 export * from "./InventorySummaryDialog";
