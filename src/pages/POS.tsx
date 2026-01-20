@@ -2045,25 +2045,6 @@ export default function POS() {
 
               {/* Menu Items */}
               <div className="flex-1 bg-muted/30 flex flex-col">
-                {/* Draft order banner */}
-                {draftOrder && !currentOrder && (
-                  <div className="p-2 bg-amber-100 dark:bg-amber-900/30 border-b border-amber-300 dark:border-amber-700 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-amber-800 dark:text-amber-200">
-                      <AlertCircle className="h-4 w-4" />
-                      <span>
-                        {draftOrder.orderType === "dine-in" 
-                          ? `${t("draft_order_for_table")} – ${t("will_create_on_first_item")}`
-                          : `${t("draft_takeaway_order")} – ${t("will_create_on_first_item")}`}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => setDraftOrder(null)}
-                      className="text-xs text-amber-600 dark:text-amber-400 hover:underline"
-                    >
-                      {t("discard")}
-                    </button>
-                  </div>
-                )}
                 {/* B1: Search Input */}
                 <div className="p-2 border-b bg-card">
                   <input
