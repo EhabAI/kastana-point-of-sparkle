@@ -270,6 +270,10 @@ export default function POS() {
     orders: typeof openOrders;
   } | null>(null);
 
+  // Table checkout dialog state (group pay)
+  const [tableCheckoutDialogOpen, setTableCheckoutDialogOpen] = useState(false);
+  const tableCheckoutMutation = useTableCheckout();
+
   // Draft order state (create-on-first-item pattern)
   const [draftOrder, setDraftOrder] = useState<{
     orderType: "dine-in" | "takeaway";
@@ -1706,6 +1710,52 @@ export default function POS() {
     }
   };
 
+  // Handler for table checkout (group pay) - pays all orders at once
+  const handlePayTable = () => {
+    if (!selectedTableForOrders || selectedTableForOrders.orders.length === 0) return;
+    setTableCheckoutDialogOpen(true);
+  };
+
+  // Handler for confirming table checkout payment
+  const handleTableCheckoutConfirm = async (payments: { method: string; amount: number }[]) => {
+    if (!selectedTableForOrders || !restaurant) return;
+    
+    const orderIds = selectedTableForOrders.orders.map(o => o.id);
+    const combinedTotal = selectedTableForOrders.orders.reduce((sum, o) => sum + Number(o.total), 0);
+    
+    try {
+      await tableCheckoutMutation.mutateAsync({
+        orderIds,
+        payments,
+        tableId: selectedTableForOrders.id,
+      });
+      
+      // Audit log for table checkout
+      auditLogMutation.mutate({
+        entityType: "order",
+        entityId: selectedTableForOrders.id,
+        action: "TABLE_CHECKOUT",
+        details: {
+          table_name: selectedTableForOrders.name,
+          order_count: orderIds.length,
+          order_numbers: selectedTableForOrders.orders.map(o => o.order_number),
+          combined_total: combinedTotal,
+          payments: payments.map(p => ({ method: p.method, amount: p.amount })),
+        },
+      });
+      
+      setTableCheckoutDialogOpen(false);
+      setTableOrdersDialogOpen(false);
+      setSelectedTableForOrders(null);
+      toast.success(t("table_checkout_success"));
+    } catch (error) {
+      console.error("[handleTableCheckoutConfirm] Error:", error);
+      const errorMessage = getCashierErrorMessage(error, t);
+      toast.error(errorMessage);
+      throw error;
+    }
+  };
+
   const handleStartMerge = (tableId: string) => {
     // Cancel move mode if active
     if (moveMode?.active) {
@@ -2496,21 +2546,40 @@ export default function POS() {
       />
 
       {selectedTableForOrders && (
-        <TableOrdersDialog
-          open={tableOrdersDialogOpen}
-          onOpenChange={(open) => {
-            setTableOrdersDialogOpen(open);
-            if (!open) setSelectedTableForOrders(null);
-          }}
-          tableName={selectedTableForOrders.name}
-          orders={selectedTableForOrders.orders}
-          currency={currency}
-          onResumeOrder={handleResumeTableOrder}
-          onPayOrder={handlePayTableOrder}
-          onVoidOrder={handleVoidTableOrder}
-          onCancelEmptyOrder={handleCancelEmptyTableOrder}
-          isLoading={resumeOrderMutation.isPending || cancelOrderMutation.isPending || voidOrderMutation.isPending}
-        />
+        <>
+          <TableOrdersDialog
+            open={tableOrdersDialogOpen}
+            onOpenChange={(open) => {
+              setTableOrdersDialogOpen(open);
+              if (!open) setSelectedTableForOrders(null);
+            }}
+            tableName={selectedTableForOrders.name}
+            orders={selectedTableForOrders.orders}
+            currency={currency}
+            onResumeOrder={handleResumeTableOrder}
+            onPayOrder={handlePayTableOrder}
+            onPayTable={handlePayTable}
+            onVoidOrder={handleVoidTableOrder}
+            onCancelEmptyOrder={handleCancelEmptyTableOrder}
+            isLoading={resumeOrderMutation.isPending || cancelOrderMutation.isPending || voidOrderMutation.isPending}
+          />
+
+          <TableCheckoutDialog
+            open={tableCheckoutDialogOpen}
+            onOpenChange={setTableCheckoutDialogOpen}
+            tableName={selectedTableForOrders.name}
+            orders={selectedTableForOrders.orders.map(o => ({
+              id: o.id,
+              order_number: o.order_number,
+              total: o.total,
+              itemCount: o.order_items?.filter(i => !i.voided).length || 0,
+            }))}
+            currency={currency}
+            onConfirm={handleTableCheckoutConfirm}
+            isLoading={tableCheckoutMutation.isPending}
+            paymentMethods={paymentMethods}
+          />
+        </>
       )}
 
       {/* Inventory Warnings Dialog */}

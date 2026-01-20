@@ -242,10 +242,11 @@ export function TableCheckoutDialog({
 
   const cashDenominations = [1, 5, 10, 20, 50];
 
-  const keypadInitialValue =
+  const keypadInitialValue = String(
     keypadState.target === "draft"
       ? draftPayment.amount
-      : committedPayments[keypadState.index]?.amount || "";
+      : (committedPayments[keypadState.index]?.amount || "")
+  );
 
   return (
     <Dialog
@@ -529,7 +530,7 @@ export function TableCheckoutDialog({
           open={keypadState.open}
           onOpenChange={(open) => setKeypadState((s) => ({ ...s, open }))}
           onConfirm={handleKeypadConfirm}
-          initialValue={keypadInitialValue}
+          initialValue={String(keypadInitialValue)}
           allowDecimals
           currency={currency}
           title={t("enter_amount")}

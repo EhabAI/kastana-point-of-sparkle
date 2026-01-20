@@ -90,28 +90,8 @@ export function TableOrdersDialog({
     }
   };
 
-  // Auto-select first order when dialog opens or when orders change
-  useEffect(() => {
-    if (open && orders.length > 0) {
-      // If current selection is no longer valid, select first order
-      const currentSelectionValid = selectedOrderId && orders.some(o => o.id === selectedOrderId);
-      if (!currentSelectionValid) {
-        setSelectedOrderId(orders[0].id);
-      }
-    }
-  }, [open, orders, selectedOrderId]);
-
-  // Reset selection when dialog closes
-  useEffect(() => {
-    if (!open) {
-      setSelectedOrderId(null);
-    }
-  }, [open]);
-
-  const selectedOrder = orders.find((o) => o.id === selectedOrderId);
-  const showDirectActions = orders.length === 1;
-
-  // Sort orders: NEW first, then OPEN, within same status sort by created_at ASC (FIFO)
+  // Sort orders first, then use sorted array for auto-selection
+  // This ensures consistent behavior between display and selection
   const sortedOrders = useMemo(() => {
     const statusPriority: Record<string, number> = {
       new: 1,
@@ -126,6 +106,27 @@ export function TableOrdersDialog({
       return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
     });
   }, [orders]);
+
+  // Auto-select first order (from sorted list) when dialog opens or when orders change
+  useEffect(() => {
+    if (open && sortedOrders.length > 0) {
+      // If current selection is no longer valid, select first order from sorted list
+      const currentSelectionValid = selectedOrderId && sortedOrders.some(o => o.id === selectedOrderId);
+      if (!currentSelectionValid) {
+        setSelectedOrderId(sortedOrders[0].id);
+      }
+    }
+  }, [open, sortedOrders, selectedOrderId]);
+
+  // Reset selection when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setSelectedOrderId(null);
+    }
+  }, [open]);
+
+  const selectedOrder = sortedOrders.find((o) => o.id === selectedOrderId);
+  const showDirectActions = orders.length === 1;
 
   const handleResumeClick = () => {
     if (selectedOrderId) {
