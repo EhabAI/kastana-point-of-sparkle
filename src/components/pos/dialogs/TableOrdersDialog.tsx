@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 import { Badge } from "@/components/ui/badge";
-import { Clock, CreditCard, PlayCircle, X, AlertTriangle, Trash2 } from "lucide-react";
+import { Clock, CreditCard, PlayCircle, X, AlertTriangle, Trash2, Ban } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useState, useEffect, useMemo } from "react";
 import { cn, formatJOD } from "@/lib/utils";
@@ -44,6 +44,7 @@ interface TableOrdersDialogProps {
   currency: string;
   onResumeOrder: (orderId: string) => void;
   onPayOrder: (orderId: string) => void;
+  onVoidOrder?: (orderId: string) => void;
   onCancelEmptyOrder?: (orderId: string) => void;
   isLoading?: boolean;
 }
@@ -56,6 +57,7 @@ export function TableOrdersDialog({
   currency,
   onResumeOrder,
   onPayOrder,
+  onVoidOrder,
   onCancelEmptyOrder,
   isLoading,
 }: TableOrdersDialogProps) {
@@ -141,9 +143,21 @@ export function TableOrdersDialog({
     }
   };
 
+  const handleVoidClick = () => {
+    if (selectedOrderId && onVoidOrder) {
+      onVoidOrder(selectedOrderId);
+      onOpenChange(false);
+    }
+  };
+
   // Check if selected order is empty
   const isSelectedOrderEmpty = selectedOrder && 
     selectedOrder.order_items.filter((i) => !i.voided).length === 0;
+  
+  // Can void only open orders that are not empty
+  const canVoidSelectedOrder = selectedOrder && 
+    selectedOrder.status === "open" && 
+    !isSelectedOrderEmpty;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -244,60 +258,47 @@ export function TableOrdersDialog({
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2 pt-2 border-t">
+        <div className="flex flex-wrap gap-2 pt-2 border-t">
           <Button
             variant="outline"
-            className="flex-1"
+            className="flex-1 min-w-[80px]"
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
           >
             <X className="h-4 w-4 mr-1" />
-            {t("cancel")}
+            {t("close")}
           </Button>
 
-          {showDirectActions ? (
-            // Direct actions for single order
-            <>
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={handleResumeClick}
-                disabled={isLoading || !selectedOrderId}
-              >
-                <PlayCircle className="h-4 w-4 mr-1" />
-                {t("resume_add_items")}
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={handlePayClick}
-                disabled={isLoading || !selectedOrderId || selectedOrder?.status !== "open" || isSelectedOrderEmpty}
-              >
-                <CreditCard className="h-4 w-4 mr-1" />
-                {t("pay_close")}
-              </Button>
-            </>
-          ) : (
-            // Selection required for multiple orders
-            <>
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={handleResumeClick}
-                disabled={isLoading || !selectedOrderId}
-              >
-                <PlayCircle className="h-4 w-4 mr-1" />
-                {t("resume_add_items")}
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={handlePayClick}
-                disabled={isLoading || !selectedOrderId || selectedOrder?.status !== "open" || isSelectedOrderEmpty}
-              >
-                <CreditCard className="h-4 w-4 mr-1" />
-                {t("pay_close")}
-              </Button>
-            </>
+          {onVoidOrder && (
+            <Button
+              variant="destructive"
+              className="flex-1 min-w-[80px]"
+              onClick={handleVoidClick}
+              disabled={isLoading || !selectedOrderId || !canVoidSelectedOrder}
+            >
+              <Ban className="h-4 w-4 mr-1" />
+              {t("void_order")}
+            </Button>
           )}
+
+          <Button
+            variant="outline"
+            className="flex-1 min-w-[80px]"
+            onClick={handleResumeClick}
+            disabled={isLoading || !selectedOrderId}
+          >
+            <PlayCircle className="h-4 w-4 mr-1" />
+            {t("resume_add_items")}
+          </Button>
+          
+          <Button
+            className="flex-1 min-w-[80px]"
+            onClick={handlePayClick}
+            disabled={isLoading || !selectedOrderId || selectedOrder?.status !== "open" || isSelectedOrderEmpty}
+          >
+            <CreditCard className="h-4 w-4 mr-1" />
+            {t("pay_close")}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
