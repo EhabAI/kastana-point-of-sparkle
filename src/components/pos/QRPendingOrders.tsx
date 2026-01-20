@@ -95,10 +95,6 @@ export function QRPendingOrders({
     }
   };
 
-  const hasTable = (order: PendingOrder): boolean => {
-    return !!order.table_id;
-  };
-
   // Sort by oldest first (already sorted by API, but ensure)
   const sortedOrders = [...orders].sort(
     (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
@@ -128,7 +124,8 @@ export function QRPendingOrders({
         <div className="p-4 space-y-3">
           {sortedOrders.map((order) => {
             const isExpanded = expandedOrderId === order.id;
-            const tableAssigned = hasTable(order);
+            const tableAssigned = !!order.table_id;
+            const tableDisplay = order.restaurant_tables?.table_code || order.restaurant_tables?.table_name || null;
             const itemCount = order.order_items.reduce((sum, item) => sum + item.quantity, 0);
 
             return (
@@ -143,7 +140,7 @@ export function QRPendingOrders({
                         {itemCount} {t("qr_items")}
                       </Badge>
                       <Badge variant={tableAssigned ? "secondary" : "outline"} className="text-xs">
-                        {tableAssigned ? t("qr_table") : t("takeaway")}
+                        {tableAssigned ? `${t("qr_table")} ${tableDisplay}` : t("takeaway")}
                       </Badge>
                     </div>
                     {/* Live timer */}

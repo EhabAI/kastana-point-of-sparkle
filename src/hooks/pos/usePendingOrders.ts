@@ -9,6 +9,10 @@ export interface PendingOrder {
   created_at: string;
   notes: string | null;
   table_id: string | null;
+  restaurant_tables: {
+    table_code: string;
+    table_name: string;
+  } | null;
   order_items: {
     id: string;
     name: string;
@@ -26,7 +30,7 @@ export function usePendingOrders(branchId: string | undefined) {
 
       const { data, error } = await supabase
         .from("orders")
-        .select("id, order_number, status, total, created_at, notes, table_id, order_items(id, name, quantity, price, notes)")
+        .select("id, order_number, status, total, created_at, notes, table_id, restaurant_tables(table_code, table_name), order_items(id, name, quantity, price, notes)")
         .eq("branch_id", branchId)
         .eq("status", "pending")
         .order("created_at", { ascending: true });
