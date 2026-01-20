@@ -1439,7 +1439,7 @@ export default function POS() {
           .from("orders")
           .select("id, order_number, status, total, subtotal, created_at, notes, order_notes, table_id, order_items(id, name, quantity, price, notes, voided)")
           .eq("table_id", confirmedOrder.table_id)
-          .in("status", ["new", "open", "confirmed", "held"])
+          .in("status", ["new", "open"])
           .order("created_at", { ascending: false });
         
         const activeOrders = tableOrders.data || [];
