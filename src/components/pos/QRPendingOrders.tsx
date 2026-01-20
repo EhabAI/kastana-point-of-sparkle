@@ -140,7 +140,7 @@ export function QRPendingOrders({
                         {itemCount} {t("qr_items")}
                       </Badge>
                       <Badge variant={tableAssigned ? "secondary" : "outline"} className="text-xs">
-                        {tableAssigned ? `${t("qr_table")} ${tableDisplay}` : t("takeaway")}
+                        {tableAssigned ? `${t("qr_table")} ${tableDisplay || ''}`.trim() : t("takeaway")}
                       </Badge>
                     </div>
                     {/* Live timer */}
