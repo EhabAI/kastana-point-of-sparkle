@@ -1433,7 +1433,7 @@ export default function POS() {
       }
 
       if (confirmedOrder.table_id) {
-        // Order has a table - switch to Tables tab and open TableOrdersDialog
+        // Order has a table - fetch active orders for that table
         const tableOrders = await supabase
           .from("orders")
           .select("id, order_number, status, total, subtotal, created_at, notes, order_notes, table_id, order_items(id, name, quantity, price, notes, voided)")
@@ -1441,16 +1441,32 @@ export default function POS() {
           .in("status", ["open", "confirmed", "held"])
           .order("created_at", { ascending: false });
         
-        const table = tables.find(t => t.id === confirmedOrder.table_id);
+        const activeOrders = tableOrders.data || [];
         
-        setActiveTab("tables");
-        setSelectedTableForOrders({
-          id: confirmedOrder.table_id,
-          name: table?.table_name || t("unknown"),
-          orders: (tableOrders.data || []) as typeof openOrders,
-        });
-        setTableOrdersDialogOpen(true);
-        toast.success(t("order_confirmed"));
+        if (activeOrders.length === 1) {
+          // Only one active order - open it directly
+          setActiveTab("tables");
+          try {
+            await resumeOrderMutation.mutateAsync(activeOrders[0].id);
+            setActiveTab("new-order");
+            toast.success(t("order_confirmed"));
+          } catch (resumeError) {
+            console.error("Failed to resume confirmed order:", resumeError);
+            toast.success(t("order_confirmed"));
+          }
+        } else {
+          // Multiple active orders - show selection dialog
+          const table = tables.find(t => t.id === confirmedOrder.table_id);
+          
+          setActiveTab("tables");
+          setSelectedTableForOrders({
+            id: confirmedOrder.table_id,
+            name: table?.table_name || t("unknown"),
+            orders: activeOrders as typeof openOrders,
+          });
+          setTableOrdersDialogOpen(true);
+          toast.success(t("order_confirmed"));
+        }
       } else {
         // Order has no table - switch to Open Orders tab and auto-resume
         setActiveTab("open-orders");
