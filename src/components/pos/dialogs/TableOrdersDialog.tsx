@@ -262,11 +262,11 @@ export function TableOrdersDialog({
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 min-w-[70px]"
+            className="flex-1 min-w-[60px] text-xs px-2 py-1 h-8"
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
           >
-            <X className="h-3.5 w-3.5 mr-1" />
+            <X className="h-3 w-3 mr-1" />
             {t("close")}
           </Button>
 
