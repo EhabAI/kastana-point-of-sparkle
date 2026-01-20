@@ -1675,6 +1675,20 @@ export default function POS() {
     }
   };
 
+  // Handler for voiding order from table orders dialog
+  const handleVoidTableOrder = async (orderId: string) => {
+    // Resume the order first to load it, then open void dialog
+    try {
+      await resumeOrderMutation.mutateAsync(orderId);
+      setActiveTab("new-order");
+      await refetchOrder();
+      // Open void dialog for this order
+      setVoidOrderDialogOpen(true);
+    } catch (error) {
+      toast.error(t("failed_load_order"));
+    }
+  };
+
   // Handler for paying order from table orders dialog
   const handlePayTableOrder = async (orderId: string) => {
     // First resume the order to load it
@@ -2490,8 +2504,9 @@ export default function POS() {
           currency={currency}
           onResumeOrder={handleResumeTableOrder}
           onPayOrder={handlePayTableOrder}
+          onVoidOrder={handleVoidTableOrder}
           onCancelEmptyOrder={handleCancelEmptyTableOrder}
-          isLoading={resumeOrderMutation.isPending || cancelOrderMutation.isPending}
+          isLoading={resumeOrderMutation.isPending || cancelOrderMutation.isPending || voidOrderMutation.isPending}
         />
       )}
 
