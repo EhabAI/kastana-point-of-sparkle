@@ -390,6 +390,9 @@ serve(async (req) => {
     // notes, cancelled_reason, invoice_uuid, created_at, updated_at,
     // branch_id, order_notes, table_id, customer_phone, source
     
+    // Sanitize order notes once - will be written to BOTH columns for compatibility
+    const sanitizedOrderNotes = order_notes?.trim().slice(0, 1000) || null;
+    
     const orderPayload = {
       restaurant_id,
       branch_id,
@@ -401,7 +404,11 @@ serve(async (req) => {
       tax_amount: serverTaxAmount, // 0 for QR orders initially
       service_charge: serverServiceCharge, // 0 for QR orders initially
       total: serverTotal,        // SERVER-CALCULATED
-      order_notes: order_notes?.trim().slice(0, 1000) || null,
+      // CRITICAL: Write to BOTH notes columns for POS compatibility
+      // - `notes`: Read by POS screens (usePendingOrders, order details, reports)
+      // - `order_notes`: Legacy/alternate column
+      notes: sanitizedOrderNotes,
+      order_notes: sanitizedOrderNotes,
       customer_phone: customer_phone?.trim() || null,
       shift_id: null,            // Will be set when cashier confirms
     };
