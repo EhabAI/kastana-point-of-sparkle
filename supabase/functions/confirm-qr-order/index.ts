@@ -202,7 +202,7 @@ serve(async (req) => {
     // ═══════════════════════════════════════════════════════════════════
     const { data: order, error: orderFetchError } = await supabase
       .from("orders")
-      .select("id, status, source, branch_id, restaurant_id, order_number")
+      .select("id, status, source, branch_id, restaurant_id, order_number, table_id")
       .eq("id", orderId)
       .maybeSingle();
 
@@ -291,11 +291,18 @@ serve(async (req) => {
     // ═══════════════════════════════════════════════════════════════════
     // 8. ATOMIC UPDATE: Confirm order with WHERE status = 'pending'
     // ═══════════════════════════════════════════════════════════════════
-    // Set status to "new" so order appears on KDS immediately
+    // MARKET-GRADE KITCHEN WORKFLOW:
+    // - DINE-IN (has table_id): Set status to "new" → appears in KDS immediately
+    // - TAKEAWAY (no table_id): Set status to "open" → kitchen sees it only AFTER payment
+    const isDineIn = !!order.table_id;
+    const newStatus = isDineIn ? "new" : "open";
+    
+    console.log(`[confirm-qr-order] Order type: ${isDineIn ? 'DINE-IN' : 'TAKEAWAY'}, setting status to: ${newStatus}`);
+    
     const { data: updatedOrder, error: updateError } = await supabase
       .from("orders")
       .update({
-        status: "new",
+        status: newStatus,
         shift_id: openShift.id,
         updated_at: new Date().toISOString(),
       })
@@ -337,11 +344,13 @@ serve(async (req) => {
         action: "QR_ORDER_CONFIRMED", // UPPER_SNAKE_CASE
         details: {
           source: "qr",
+          order_type: isDineIn ? "dine_in" : "takeaway",
           order_number: order.order_number,
           shift_id: openShift.id,
           branch_id: userBranchId,
           previous_status: "pending",
-          new_status: "new", // Sends to KDS
+          new_status: newStatus, // Dine-in: "new" (KDS), Takeaway: "open" (payment first)
+          sent_to_kitchen: isDineIn, // Only dine-in goes to kitchen immediately
           confirmed_at: new Date().toISOString(),
         },
       });
