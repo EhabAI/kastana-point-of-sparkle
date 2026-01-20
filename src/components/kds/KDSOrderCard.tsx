@@ -27,51 +27,29 @@ function formatElapsedTime(minutes: number): string {
 
 /**
  * Get timer badge color based on elapsed time
- * - < 5min: green (on track)
- * - 5-10min: yellow (approaching)
- * - > 10min: red (delayed)
+ * - < 10min: green (on track)
+ * - 10-20min: yellow (warning)
+ * - > 20min: red (danger)
  */
 function getTimerColor(minutes: number): string {
-  if (minutes < 5) return "text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30";
-  if (minutes <= 10) return "text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30";
+  if (minutes < 10) return "text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30";
+  if (minutes <= 20) return "text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30";
   return "text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30";
 }
 
 /**
  * Get card border/highlight based on delay status
  * - < 10min: normal
- * - 10-15min: warning (amber border)
- * - > 15min: delayed (red border with pulse)
+ * - 10-20min: warning (amber border)
+ * - > 20min: delayed (red border with pulse)
  */
 function getDelayClass(minutes: number, status: string): string {
   // Ready orders don't need delay highlighting
   if (status === "ready") return "";
   
   if (minutes < 10) return "";
-  if (minutes <= 15) return "ring-2 ring-amber-400/70 dark:ring-amber-500/50";
+  if (minutes <= 20) return "ring-2 ring-amber-400/70 dark:ring-amber-500/50";
   return "ring-2 ring-red-500/80 dark:ring-red-400/60 animate-pulse";
-}
-
-function getSourceIcon(source: string) {
-  switch (source) {
-    case "qr":
-      return <QrCode className="h-3.5 w-3.5" />;
-    case "takeaway":
-      return <ShoppingBag className="h-3.5 w-3.5" />;
-    default:
-      return <Utensils className="h-3.5 w-3.5" />;
-  }
-}
-
-function getSourceLabel(source: string, t: (key: string) => string): string {
-  switch (source) {
-    case "qr":
-      return "QR";
-    case "takeaway":
-      return t("takeaway");
-    default:
-      return t("dine_in");
-  }
 }
 
 // Max height for items list before scrolling kicks in
@@ -127,11 +105,16 @@ export function KDSOrderCard({ order, onUpdateStatus, isUpdating }: KDSOrderCard
   const timerColorClass = getTimerColor(elapsedMinutes);
   const delayClass = getDelayClass(elapsedMinutes, order.status);
   const isReady = order.status === "ready";
-  const isNew = order.status === "new";
+  // New orders include: "new", "open" (dine-in), "paid" (takeaway)
+  const isNewOrder = order.status === "new" || order.status === "open" || order.status === "paid";
+  const isDineIn = !!order.table_id;
 
   // Calculate if we need scrolling (more than ~4 items typically)
   const needsScroll = order.items.length > 4;
   const currentMaxHeight = isExpanded ? ITEMS_EXPANDED_HEIGHT : ITEMS_MAX_HEIGHT;
+
+  // Combine order notes from both fields
+  const combinedNotes = [order.notes, order.order_notes].filter(Boolean).join(" | ");
 
   return (
     <Card 
@@ -150,7 +133,7 @@ export function KDSOrderCard({ order, onUpdateStatus, isUpdating }: KDSOrderCard
         <div className="flex items-center justify-between">
           <CardTitle className={cn(
             "font-bold",
-            isNew ? "text-xl" : "text-lg"
+            isNewOrder ? "text-xl" : "text-lg"
           )}>
             #{order.order_number}
           </CardTitle>
@@ -161,19 +144,52 @@ export function KDSOrderCard({ order, onUpdateStatus, isUpdating }: KDSOrderCard
         </div>
         
         <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant="secondary" className="text-xs">
-            {getSourceIcon(order.source)}
-            <span className="ml-1">{getSourceLabel(order.source, t)}</span>
+          {/* Order Type Badge - Prominent display */}
+          <Badge 
+            variant={isDineIn ? "default" : "secondary"} 
+            className={cn(
+              "text-xs font-semibold",
+              isDineIn 
+                ? "bg-blue-600 hover:bg-blue-700 text-white" 
+                : "bg-orange-500 hover:bg-orange-600 text-white"
+            )}
+          >
+            {isDineIn ? (
+              <>
+                <Utensils className="h-3 w-3 mr-1" />
+                {t("dine_in")}
+              </>
+            ) : (
+              <>
+                <ShoppingBag className="h-3 w-3 mr-1" />
+                {t("takeaway")}
+              </>
+            )}
           </Badge>
           {order.table_name && (
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-xs font-medium">
               {order.table_name}
+            </Badge>
+          )}
+          {order.source === "qr" && (
+            <Badge variant="outline" className="text-xs">
+              <QrCode className="h-3 w-3 mr-1" />
+              QR
             </Badge>
           )}
         </div>
       </CardHeader>
 
       <CardContent className="space-y-3">
+        {/* Order-Level Notes - Prominent Display at Top */}
+        {combinedNotes && (
+          <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-md p-2.5">
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+              📝 {combinedNotes}
+            </p>
+          </div>
+        )}
+
         {/* Scrollable Items List with max-height */}
         <div 
           className={cn(
@@ -188,10 +204,10 @@ export function KDSOrderCard({ order, onUpdateStatus, isUpdating }: KDSOrderCard
                 <div key={item.id} className="flex items-start gap-2">
                   {/* Quantity Badge - Enhanced for NEW orders */}
                   <Badge 
-                    variant={isNew ? "default" : "secondary"}
+                    variant={isNewOrder ? "default" : "secondary"}
                     className={cn(
                       "min-w-[28px] justify-center font-bold shrink-0",
-                      isNew ? "text-sm h-6" : "text-xs h-5"
+                      isNewOrder ? "text-sm h-6" : "text-xs h-5"
                     )}
                   >
                     x{item.quantity}
@@ -200,18 +216,18 @@ export function KDSOrderCard({ order, onUpdateStatus, isUpdating }: KDSOrderCard
                     {/* Item Name - Enhanced for NEW orders */}
                     <span className={cn(
                       "block leading-tight",
-                      isNew 
+                      isNewOrder 
                         ? "text-base font-semibold text-foreground" 
                         : "text-sm font-medium",
                       isExpanded && "text-base"
                     )}>
                       {item.name}
                     </span>
-                    {/* Notes - Visually distinct */}
+                    {/* Item-Level Notes - Smaller, under item */}
                     {item.notes && (
                       <p className={cn(
                         "mt-0.5 italic",
-                        isNew 
+                        isNewOrder 
                           ? "text-sm text-amber-600 dark:text-amber-400" 
                           : "text-xs text-muted-foreground"
                       )}>
@@ -232,15 +248,9 @@ export function KDSOrderCard({ order, onUpdateStatus, isUpdating }: KDSOrderCard
           </div>
         )}
 
-        {/* Order Notes */}
-        {order.order_notes && (
-          <div className="bg-muted/50 rounded p-2 text-xs text-muted-foreground">
-            <strong>{t("notes")}:</strong> {order.order_notes}
-          </div>
-        )}
-
         {/* Actions - No confirmation dialogs, instant action */}
-        {order.status === "new" && (
+        {/* Show "Start Cooking" for new orders (status: new, open for dine-in, paid for takeaway) */}
+        {isNewOrder && (
           <Button
             className="w-full"
             size="sm"
