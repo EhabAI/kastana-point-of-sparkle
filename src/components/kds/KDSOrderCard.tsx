@@ -113,8 +113,16 @@ export function KDSOrderCard({ order, onUpdateStatus, isUpdating }: KDSOrderCard
   const needsScroll = order.items.length > 4;
   const currentMaxHeight = isExpanded ? ITEMS_EXPANDED_HEIGHT : ITEMS_MAX_HEIGHT;
 
-  // Combine order notes from both fields
-  const combinedNotes = [order.notes, order.order_notes].filter(Boolean).join(" | ");
+  // Combine order notes from both fields, filtering out metadata like "type:takeaway"
+  const filterMetadata = (note: string | null) => {
+    if (!note) return null;
+    // Filter out metadata entries like "type:takeaway", "type:dine_in"
+    if (note.startsWith("type:")) return null;
+    return note.trim();
+  };
+  const combinedNotes = [filterMetadata(order.notes), filterMetadata(order.order_notes)]
+    .filter(Boolean)
+    .join(" | ");
 
   return (
     <Card 
