@@ -14,6 +14,7 @@ export interface PendingOrder {
     name: string;
     quantity: number;
     price: number;
+    notes: string | null;
   }[];
 }
 
@@ -25,7 +26,7 @@ export function usePendingOrders(branchId: string | undefined) {
 
       const { data, error } = await supabase
         .from("orders")
-        .select("id, order_number, status, total, created_at, notes, table_id, order_items(id, name, quantity, price)")
+        .select("id, order_number, status, total, created_at, notes, table_id, order_items(id, name, quantity, price, notes)")
         .eq("branch_id", branchId)
         .eq("status", "pending")
         .order("created_at", { ascending: true });
