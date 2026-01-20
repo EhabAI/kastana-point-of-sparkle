@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, CreditCard, PlayCircle, X, AlertTriangle, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { cn, formatJOD } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -105,6 +105,22 @@ export function TableOrdersDialog({
   const selectedOrder = orders.find((o) => o.id === selectedOrderId);
   const showDirectActions = orders.length === 1;
 
+  // Sort orders: NEW first, then OPEN, within same status sort by created_at ASC (FIFO)
+  const sortedOrders = useMemo(() => {
+    const statusPriority: Record<string, number> = {
+      new: 1,
+      open: 2,
+      confirmed: 3,
+      held: 4,
+    };
+    return [...orders].sort((a, b) => {
+      const priorityA = statusPriority[a.status] ?? 99;
+      const priorityB = statusPriority[b.status] ?? 99;
+      if (priorityA !== priorityB) return priorityA - priorityB;
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    });
+  }, [orders]);
+
   const handleResumeClick = () => {
     if (selectedOrderId) {
       onResumeOrder(selectedOrderId);
@@ -146,7 +162,7 @@ export function TableOrdersDialog({
 
         <div className="max-h-[55vh] overflow-y-scroll pr-1 scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent">
           <div className="space-y-2 pr-2">
-            {orders.map((order) => {
+            {sortedOrders.map((order) => {
               const activeItems = order.order_items.filter((i) => !i.voided);
               const isSelected = selectedOrderId === order.id;
               const isEmpty = activeItems.length === 0;
