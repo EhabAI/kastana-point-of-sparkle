@@ -19,6 +19,7 @@ export function useAddOrderItem() {
       quantity = 1,
       notes,
       kdsEnabled = false,
+      isDineIn = false,
     }: {
       orderId: string;
       restaurantId: string;
@@ -26,6 +27,7 @@ export function useAddOrderItem() {
       quantity?: number;
       notes?: string;
       kdsEnabled?: boolean;
+      isDineIn?: boolean; // true if order has table_id (dine-in)
     }) => {
       const { data, error } = await supabase
         .from("order_items")
@@ -43,9 +45,10 @@ export function useAddOrderItem() {
 
       if (error) throw error;
 
-      // Auto-send to kitchen if KDS is enabled
-      // Update order status from "open" to "new" so it appears on KDS
-      if (kdsEnabled) {
+      // MARKET-GRADE KITCHEN WORKFLOW:
+      // - DINE-IN (isDineIn=true): Send to kitchen immediately (status → "new")
+      // - TAKEAWAY (isDineIn=false): Keep as "open", kitchen sees after payment
+      if (kdsEnabled && isDineIn) {
         await supabase
           .from("orders")
           .update({ status: "new" })
