@@ -201,19 +201,33 @@ Deno.serve(async (req) => {
 
     // Step 7: ATOMIC OPERATION - Check status again and update in one go
     // MARKET-GRADE KITCHEN WORKFLOW:
-    // - DINE-IN (has table_id): Already in kitchen, set to "paid"
-    // - TAKEAWAY (no table_id): Set to "new" so it appears in KDS NOW (kitchen prepares after payment)
+    // - DINE-IN (has table_id): Already in kitchen (status="new"), set to "paid"
+    // - TAKEAWAY (no table_id): Still waiting (status="open"), set to "new" to appear in KDS
     const isDineIn = !!order.table_id;
     const newStatus = isDineIn ? "paid" : "new";
     
-    console.log(`[complete-payment] Order type: ${isDineIn ? 'DINE-IN' : 'TAKEAWAY'}, setting status to: ${newStatus}`);
+    // Valid payment statuses:
+    // - "open": Takeaway orders waiting for payment
+    // - "new": Dine-in orders already in kitchen, now being paid
+    const validPaymentStatuses = isDineIn ? ["new", "open"] : ["open"];
+    
+    console.log(`[complete-payment] Order type: ${isDineIn ? 'DINE-IN' : 'TAKEAWAY'}, current status: ${order.status}, setting status to: ${newStatus}`);
+    
+    // Verify current status is valid for payment
+    if (!validPaymentStatuses.includes(order.status)) {
+      console.error(`[complete-payment] Invalid order status for payment: ${order.status}`);
+      return new Response(
+        JSON.stringify({ error: `Order status '${order.status}' is not valid for payment.` }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     
     // First update order status - this serves as our lock
     const { data: updatedOrder, error: updateError } = await supabaseAdmin
       .from("orders")
       .update({ status: newStatus })
       .eq("id", orderId)
-      .eq("status", "open")  // Critical: only update if still open
+      .in("status", validPaymentStatuses)  // Critical: only update if in valid payment status
       .select()
       .single();
 

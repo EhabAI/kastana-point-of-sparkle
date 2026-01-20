@@ -630,12 +630,21 @@ export default function POS() {
       const finalPrice = menuItem.price + modifierTotal;
       const menuItemWithPrice = { ...menuItem, price: finalPrice };
 
+      // MARKET-GRADE KITCHEN WORKFLOW:
+      // Determine if this is a dine-in order (has table_id)
+      // - If using pendingItemAfterDraft, check draftOrder which was just used to create the order
+      // - If using currentOrder, check its table_id
+      const isDineInOrder = pendingItemAfterDraft 
+        ? !!draftOrder?.tableId || !!currentOrder?.table_id
+        : !!currentOrder?.table_id;
+
       // Add item to order
       const orderItem = await addItemMutation.mutateAsync({
         orderId: orderId,
         restaurantId: restaurant.id,
         menuItem: menuItemWithPrice,
         kdsEnabled: settings?.kds_enabled ?? false,
+        isDineIn: isDineInOrder, // Only dine-in orders go to kitchen immediately
       });
 
       // Add modifiers if any

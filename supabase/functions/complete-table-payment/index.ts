@@ -143,14 +143,18 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Validate all orders are OPEN
-    const nonOpenOrders = orders.filter(o => o.status !== "open");
-    if (nonOpenOrders.length > 0) {
-      console.error("[complete-table-payment] Non-open orders found:", nonOpenOrders.map(o => ({ id: o.id, status: o.status })));
+    // Validate all orders are in valid payment status
+    // MARKET-GRADE KITCHEN WORKFLOW:
+    // - "open": Orders not yet in kitchen (takeaway)
+    // - "new": Dine-in orders already in kitchen
+    const validPaymentStatuses = ["open", "new"];
+    const invalidOrders = orders.filter(o => !validPaymentStatuses.includes(o.status));
+    if (invalidOrders.length > 0) {
+      console.error("[complete-table-payment] Invalid status orders found:", invalidOrders.map(o => ({ id: o.id, status: o.status })));
       return new Response(
         JSON.stringify({ 
-          error: `Some orders are not open. Orders must be open for payment.`,
-          details: nonOpenOrders.map(o => ({ order_number: o.order_number, status: o.status }))
+          error: `Some orders are not open for payment.`,
+          details: invalidOrders.map(o => ({ order_number: o.order_number, status: o.status }))
         }),
         { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -287,27 +291,30 @@ Deno.serve(async (req) => {
       }
 
       // Update order status atomically
+      // Accept both "open" (takeaway) and "new" (dine-in in kitchen) statuses
       const { data: updatedOrder, error: updateError } = await supabaseAdmin
         .from("orders")
         .update({ status: "paid" })
         .eq("id", order.id)
-        .eq("status", "open")
+        .in("status", ["open", "new"])  // Valid payment statuses
         .select()
         .single();
 
       if (updateError || !updatedOrder) {
         console.error("[complete-table-payment] Failed to update order:", order.id, updateError);
         
-        // Rollback: revert previously updated orders
+        // Rollback: revert previously updated orders to their original status
         for (const prevOrder of updatedOrders) {
+          // Find original status for this order
+          const original = orders.find(o => o.id === prevOrder.id);
           await supabaseAdmin
             .from("orders")
-            .update({ status: "open" })
+            .update({ status: original?.status || "open" })
             .eq("id", prevOrder.id);
         }
         
         return new Response(
-          JSON.stringify({ error: `Order #${order.order_number} is no longer open. Table checkout aborted.` }),
+          JSON.stringify({ error: `Order #${order.order_number} is no longer open for payment. Table checkout aborted.` }),
           { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -335,12 +342,13 @@ Deno.serve(async (req) => {
       if (paymentError) {
         console.error("[complete-table-payment] Failed to insert payments, rolling back:", paymentError);
         
-        // Rollback all orders
-        for (const order of updatedOrders) {
+        // Rollback all orders to their original status
+        for (const updatedOrder of updatedOrders) {
+          const original = orders.find(o => o.id === updatedOrder.id);
           await supabaseAdmin
             .from("orders")
-            .update({ status: "open" })
-            .eq("id", order.id);
+            .update({ status: original?.status || "open" })
+            .eq("id", updatedOrder.id);
         }
 
         return new Response(
