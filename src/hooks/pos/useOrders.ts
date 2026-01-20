@@ -145,7 +145,9 @@ export function useCreateOrder() {
           branch_id: branchId || null,
           status: "open",
           tax_rate: taxRate,
-          order_notes: notes,
+          // Write to BOTH notes columns for KDS compatibility
+          notes: notes || null,
+          order_notes: notes || null,
           table_id: tableId || null,
         })
         .select()
