@@ -113,16 +113,21 @@ export function KDSOrderCard({ order, onUpdateStatus, isUpdating }: KDSOrderCard
   const needsScroll = order.items.length > 4;
   const currentMaxHeight = isExpanded ? ITEMS_EXPANDED_HEIGHT : ITEMS_MAX_HEIGHT;
 
-  // Combine order notes from both fields, filtering out metadata like "type:takeaway"
-  const filterMetadata = (note: string | null) => {
-    if (!note) return null;
-    // Filter out metadata entries like "type:takeaway", "type:dine_in"
-    if (note.startsWith("type:")) return null;
-    return note.trim();
+  // Get order notes from order_notes field (primary source), filtering out metadata
+  const getDisplayNotes = (): string | null => {
+    // Primary source: order_notes field
+    const orderNotes = order.order_notes?.trim();
+    if (orderNotes && !orderNotes.startsWith("type:")) {
+      return orderNotes;
+    }
+    // Fallback: legacy notes field
+    const legacyNotes = order.notes?.trim();
+    if (legacyNotes && !legacyNotes.startsWith("type:")) {
+      return legacyNotes;
+    }
+    return null;
   };
-  const combinedNotes = [filterMetadata(order.notes), filterMetadata(order.order_notes)]
-    .filter(Boolean)
-    .join(" | ");
+  const displayNotes = getDisplayNotes();
 
   return (
     <Card 
@@ -190,10 +195,10 @@ export function KDSOrderCard({ order, onUpdateStatus, isUpdating }: KDSOrderCard
 
       <CardContent className="space-y-3">
         {/* Order-Level Notes - Prominent Display at Top */}
-        {combinedNotes && (
+        {displayNotes && (
           <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-md p-2.5">
             <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-              📝 {combinedNotes}
+              📝 {displayNotes}
             </p>
           </div>
         )}
