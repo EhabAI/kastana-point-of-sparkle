@@ -101,6 +101,30 @@ export function useRecentOrders(shiftId: string | undefined) {
   });
 }
 
+/**
+ * Hook to find an existing active order for a table
+ * Active orders are those with status NOT IN ('cancelled', 'voided', 'paid', 'refunded')
+ */
+export async function findActiveTableOrder(tableId: string): Promise<{ id: string; order_number: number } | null> {
+  if (!tableId) return null;
+
+  const { data, error } = await supabase
+    .from("orders")
+    .select("id, order_number, status")
+    .eq("table_id", tableId)
+    .not("status", "in", '("cancelled","voided","paid","refunded")')
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Error finding active table order:", error);
+    return null;
+  }
+
+  return data;
+}
+
 export function useCreateOrder() {
   const queryClient = useQueryClient();
 
@@ -122,6 +146,24 @@ export function useCreateOrder() {
       tableId?: string | null;
       customerInfo?: { name: string; phone: string };
     }) => {
+
+      // DINE-IN TABLE REUSE LOGIC:
+      // If this is a dine-in order (has tableId), check for existing active order
+      if (tableId) {
+        const existingOrder = await findActiveTableOrder(tableId);
+        if (existingOrder) {
+          // Return the existing order - don't create a new one
+          // Fetch full order data to match the expected return type
+          const { data: fullOrder, error: fetchError } = await supabase
+            .from("orders")
+            .select("*")
+            .eq("id", existingOrder.id)
+            .single();
+          
+          if (fetchError) throw fetchError;
+          return fullOrder;
+        }
+      }
 
       // Build notes from order type and customer info (NOT table - use table_id column)
       const noteParts: string[] = [];
