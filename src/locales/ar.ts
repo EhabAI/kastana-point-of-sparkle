@@ -1695,4 +1695,38 @@ export default {
   edit_email_desc: "أدخل البريد الإلكتروني الجديد لهذا الموظف",
   email_updated: "تم تحديث البريد الإلكتروني بنجاح",
   invalid_email: "الرجاء إدخال بريد إلكتروني صالح",
+  
+  // System Admin - Subscriptions
+  sub_expiring_title: "اشتراكات على وشك الانتهاء",
+  sub_expiring_count: "اشتراكات منتهية أو قاربت",
+  sub_expiring_desc: "هذه الاشتراكات منتهية أو ستنتهي خلال 7 أيام. قم بالتجديد لاستعادة الوصول.",
+  sub_renew: "تجديد",
+  sub_add_subscription: "إضافة اشتراك",
+  sub_period: "مدة الاشتراك",
+  sub_bonus_months: "أشهر مجانية",
+  sub_bonus_months_max: "الحد الأقصى 6 أشهر",
+  sub_reason: "السبب / ملاحظات",
+  sub_reason_placeholder: "مثال: عرض ترويجي، خصم المشتركين الأوائل...",
+  sub_reason_renew_placeholder: "مثال: خصم تجديد، عميل مخلص...",
+  sub_expires_on: "ينتهي",
+  sub_expired_ago: "انتهى منذ {days} أيام",
+  sub_expires_in: "ينتهي خلال {days} أيام",
+  sub_no_subscription: "لا يوجد اشتراك",
+  sub_subscription: "الاشتراك",
+  sub_subscription_settings: "إعدادات الاشتراك",
+  sub_renew_title: "تجديد الاشتراك",
+  sub_renew_desc: "تجديد اشتراك",
+  sub_renew_start_note: "ستبدأ الفترة الجديدة من اليوم.",
+  sub_renew_button: "تجديد الاشتراك",
+  sub_create_desc: "أدخل تفاصيل المطعم الجديد مع الاشتراك.",
+  
+  // Subscription periods
+  period_monthly: "شهر واحد",
+  period_quarterly: "3 أشهر",
+  period_semi_annual: "6 أشهر",
+  period_annual: "سنة كاملة",
+  
+  // Additional common subscription texts
+  days: "أيام",
+  upload_logo: "رفع الشعار",
 } as const;

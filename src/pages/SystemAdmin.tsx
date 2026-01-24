@@ -39,7 +39,6 @@ import {
   useCreateRestaurantWithSubscription, 
   useRenewSubscription,
   useRestaurantSubscriptions,
-  PERIOD_LABELS,
   SubscriptionPeriod 
 } from "@/hooks/useRestaurantSubscriptions";
 import { Store, Users, Plus, Link, Loader2, Upload, Image, Package, ChefHat, Pencil, Key, AlertTriangle, RefreshCw, Calendar } from "lucide-react";
@@ -386,10 +385,10 @@ export default function SystemAdmin() {
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-destructive">
                 <AlertTriangle className="h-5 w-5" />
-                Expiring Subscriptions ({expiringSubscriptions.length})
+                {t('sub_expiring_count')} ({expiringSubscriptions.length})
               </CardTitle>
               <CardDescription>
-                These subscriptions are expired or expiring within 7 days. Renew to restore access.
+                {t('sub_expiring_desc')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -419,11 +418,11 @@ export default function SystemAdmin() {
                           </div>
                         )}
                         <div>
-                          <p className="font-medium">{restaurant?.name || 'Unknown Restaurant'}</p>
+                          <p className="font-medium">{restaurant?.name || t('unknown')}</p>
                           <p className="text-sm text-muted-foreground">
                             {isExpired 
-                              ? <span className="text-destructive font-medium">Expired {Math.abs(daysLeft)} days ago</span>
-                              : <span className="text-amber-600 font-medium">Expires in {daysLeft} days</span>
+                              ? <span className="text-destructive font-medium">{t('sub_expired_ago').replace('{days}', String(Math.abs(daysLeft)))}</span>
+                              : <span className="text-amber-600 font-medium">{t('sub_expires_in').replace('{days}', String(daysLeft))}</span>
                             }
                             {' · '}
                             {format(endDate, 'MMM d, yyyy')}
@@ -435,7 +434,7 @@ export default function SystemAdmin() {
                         onClick={() => openRenewDialog(sub.restaurant_id, restaurant?.name || 'Restaurant')}
                       >
                         <RefreshCw className="h-4 w-4 mr-1" />
-                        Renew
+                        {t('sub_renew')}
                       </Button>
                     </div>
                   );
@@ -464,21 +463,21 @@ export default function SystemAdmin() {
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>Create Restaurant</DialogTitle>
-                <DialogDescription>Enter the details for the new restaurant with subscription.</DialogDescription>
+                <DialogTitle>{t('create')} {t('restaurant_name')}</DialogTitle>
+                <DialogDescription>{t('sub_create_desc')}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
                 <div className="space-y-2">
-                  <Label htmlFor="restaurant-name">Restaurant Name</Label>
+                  <Label htmlFor="restaurant-name">{t('restaurant_name')}</Label>
                   <Input
                     id="restaurant-name"
                     value={restaurantName}
                     onChange={(e) => setRestaurantName(e.target.value)}
-                    placeholder="Enter restaurant name"
+                    placeholder={t('restaurant_name')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Restaurant Logo (optional)</Label>
+                  <Label>{t('upload_logo')} ({t('optional')})</Label>
                   <input
                     type="file"
                     accept="image/*"
@@ -494,7 +493,7 @@ export default function SystemAdmin() {
                         size="sm"
                         onClick={() => { setLogoFile(null); setLogoPreview(null); }}
                       >
-                        Remove
+                        {t('remove')}
                       </Button>
                     </div>
                   ) : (
@@ -504,7 +503,7 @@ export default function SystemAdmin() {
                       className="w-full"
                     >
                       <Upload className="h-4 w-4 mr-2" />
-                      Upload Logo
+                      {t('upload_logo')}
                     </Button>
                   )}
                 </div>
@@ -513,25 +512,26 @@ export default function SystemAdmin() {
                 <div className="pt-4 border-t space-y-4">
                   <h4 className="font-medium text-sm flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
-                    Subscription Settings
+                    {t('sub_subscription_settings')}
                   </h4>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="subscription-period">Subscription Period</Label>
+                    <Label htmlFor="subscription-period">{t('sub_period')}</Label>
                     <Select value={subscriptionPeriod} onValueChange={(v) => setSubscriptionPeriod(v as SubscriptionPeriod)}>
                       <SelectTrigger id="subscription-period">
-                        <SelectValue placeholder="Select period" />
+                        <SelectValue placeholder={t('sub_period')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.entries(PERIOD_LABELS).map(([key, label]) => (
-                          <SelectItem key={key} value={key}>{label}</SelectItem>
-                        ))}
+                        <SelectItem value="MONTHLY">{t('period_monthly')}</SelectItem>
+                        <SelectItem value="QUARTERLY">{t('period_quarterly')}</SelectItem>
+                        <SelectItem value="SEMI_ANNUAL">{t('period_semi_annual')}</SelectItem>
+                        <SelectItem value="ANNUAL">{t('period_annual')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="bonus-months">Bonus Months (Free)</Label>
+                    <Label htmlFor="bonus-months">{t('sub_bonus_months')}</Label>
                     <Input
                       id="bonus-months"
                       type="number"
@@ -540,16 +540,16 @@ export default function SystemAdmin() {
                       value={bonusMonths}
                       onChange={(e) => setBonusMonths(Math.min(Math.max(0, parseInt(e.target.value) || 0), 6))}
                     />
-                    <p className="text-xs text-muted-foreground">Maximum 6 bonus months</p>
+                    <p className="text-xs text-muted-foreground">{t('sub_bonus_months_max')}</p>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="subscription-reason">Reason / Notes (optional)</Label>
+                    <Label htmlFor="subscription-reason">{t('sub_reason')} ({t('optional')})</Label>
                     <Textarea
                       id="subscription-reason"
                       value={subscriptionReason}
                       onChange={(e) => setSubscriptionReason(e.target.value)}
-                      placeholder="e.g., Promotional offer, Early adopter discount..."
+                      placeholder={t('sub_reason_placeholder')}
                       rows={2}
                     />
                   </div>
@@ -564,11 +564,11 @@ export default function SystemAdmin() {
                   setBonusMonths(0);
                   setSubscriptionReason("");
                 }}>
-                  Cancel
+                  {t('cancel')}
                 </Button>
                 <Button onClick={handleCreateRestaurant} disabled={createRestaurantWithSub.isPending || uploadingLogo}>
                   {(createRestaurantWithSub.isPending || uploadingLogo) ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Create
+                  {t('create')}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -881,11 +881,11 @@ export default function SystemAdmin() {
                       {/* Subscription Info Row */}
                       <div className="flex items-center justify-between gap-3 pt-2 border-t border-border/50">
                         <div className="flex items-center gap-3">
-                          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Subscription</span>
+                          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('sub_subscription')}</span>
                           {subscription ? (
                             <div className="flex items-center gap-2">
                               <Badge variant={isExpired ? "destructive" : isExpiringSoon ? "outline" : "secondary"} className="text-xs">
-                                {PERIOD_LABELS[subscription.period as SubscriptionPeriod]}
+                                {t(`period_${subscription.period.toLowerCase()}` as any)}
                                 {subscription.bonus_months > 0 && ` +${subscription.bonus_months}mo`}
                               </Badge>
                               <span className={`text-sm ${
@@ -894,13 +894,13 @@ export default function SystemAdmin() {
                                 'text-muted-foreground'
                               }`}>
                                 {isExpired 
-                                  ? `Expired ${Math.abs(daysLeft!)} days ago`
-                                  : `Expires ${format(subscriptionEndDate!, 'MMM d, yyyy')} (${daysLeft} days)`
+                                  ? t('sub_expired_ago').replace('{days}', String(Math.abs(daysLeft!)))
+                                  : `${t('sub_expires_on')} ${format(subscriptionEndDate!, 'MMM d, yyyy')} (${daysLeft} ${t('days')})`
                                 }
                               </span>
                             </div>
                           ) : (
-                            <Badge variant="destructive" className="text-xs">NO SUBSCRIPTION</Badge>
+                            <Badge variant="destructive" className="text-xs">{t('sub_no_subscription')}</Badge>
                           )}
                         </div>
                         <Button 
@@ -909,7 +909,7 @@ export default function SystemAdmin() {
                           onClick={() => openRenewDialog(restaurant.id, restaurant.name)}
                         >
                           <RefreshCw className="h-4 w-4 mr-1" />
-                          {!subscription ? 'Add Subscription' : 'Renew'}
+                          {!subscription ? t('sub_add_subscription') : t('sub_renew')}
                         </Button>
                       </div>
                     </div>
@@ -1261,28 +1261,29 @@ export default function SystemAdmin() {
         }}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Renew Subscription</DialogTitle>
+              <DialogTitle>{t('sub_renew_title')}</DialogTitle>
               <DialogDescription>
-                Renew subscription for <strong>{renewTarget?.name}</strong>. The new period will start from today.
+                {t('sub_renew_desc')} <strong>{renewTarget?.name}</strong>. {t('sub_renew_start_note')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="renew-period">Subscription Period</Label>
+                <Label htmlFor="renew-period">{t('sub_period')}</Label>
                 <Select value={renewPeriod} onValueChange={(v) => setRenewPeriod(v as SubscriptionPeriod)}>
                   <SelectTrigger id="renew-period">
-                    <SelectValue placeholder="Select period" />
+                    <SelectValue placeholder={t('sub_period')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(PERIOD_LABELS).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>{label}</SelectItem>
-                    ))}
+                    <SelectItem value="MONTHLY">{t('period_monthly')}</SelectItem>
+                    <SelectItem value="QUARTERLY">{t('period_quarterly')}</SelectItem>
+                    <SelectItem value="SEMI_ANNUAL">{t('period_semi_annual')}</SelectItem>
+                    <SelectItem value="ANNUAL">{t('period_annual')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="renew-bonus-months">Bonus Months (Free)</Label>
+                <Label htmlFor="renew-bonus-months">{t('sub_bonus_months')}</Label>
                 <Input
                   id="renew-bonus-months"
                   type="number"
@@ -1291,16 +1292,16 @@ export default function SystemAdmin() {
                   value={renewBonusMonths}
                   onChange={(e) => setRenewBonusMonths(Math.min(Math.max(0, parseInt(e.target.value) || 0), 6))}
                 />
-                <p className="text-xs text-muted-foreground">Maximum 6 bonus months</p>
+                <p className="text-xs text-muted-foreground">{t('sub_bonus_months_max')}</p>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="renew-reason">Reason / Notes (optional)</Label>
+                <Label htmlFor="renew-reason">{t('sub_reason')} ({t('optional')})</Label>
                 <Textarea
                   id="renew-reason"
                   value={renewReason}
                   onChange={(e) => setRenewReason(e.target.value)}
-                  placeholder="e.g., Renewal discount, Loyal customer..."
+                  placeholder={t('sub_reason_renew_placeholder')}
                   rows={2}
                 />
               </div>
@@ -1313,11 +1314,11 @@ export default function SystemAdmin() {
                 setRenewBonusMonths(0);
                 setRenewReason("");
               }}>
-                Cancel
+                {t('cancel')}
               </Button>
               <Button onClick={handleRenewSubscription} disabled={renewSubscription.isPending}>
                 {renewSubscription.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                Renew Subscription
+                {t('sub_renew_button')}
               </Button>
             </DialogFooter>
           </DialogContent>

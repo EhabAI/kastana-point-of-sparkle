@@ -1690,4 +1690,38 @@ export default {
   edit_email_desc: "Enter the new email address for this staff member",
   email_updated: "Email updated successfully",
   invalid_email: "Please enter a valid email address",
+  
+  // System Admin - Subscriptions
+  sub_expiring_title: "Expiring Subscriptions",
+  sub_expiring_count: "Expiring Subscriptions",
+  sub_expiring_desc: "These subscriptions are expired or expiring within 7 days. Renew to restore access.",
+  sub_renew: "Renew",
+  sub_add_subscription: "Add Subscription",
+  sub_period: "Subscription Period",
+  sub_bonus_months: "Bonus Months (Free)",
+  sub_bonus_months_max: "Maximum 6 bonus months",
+  sub_reason: "Reason / Notes",
+  sub_reason_placeholder: "e.g., Promotional offer, Early adopter discount...",
+  sub_reason_renew_placeholder: "e.g., Renewal discount, Loyal customer...",
+  sub_expires_on: "Expires",
+  sub_expired_ago: "Expired {days} days ago",
+  sub_expires_in: "Expires in {days} days",
+  sub_no_subscription: "NO SUBSCRIPTION",
+  sub_subscription: "Subscription",
+  sub_subscription_settings: "Subscription Settings",
+  sub_renew_title: "Renew Subscription",
+  sub_renew_desc: "Renew subscription for",
+  sub_renew_start_note: "The new period will start from today.",
+  sub_renew_button: "Renew Subscription",
+  sub_create_desc: "Enter the details for the new restaurant with subscription.",
+  
+  // Subscription periods
+  period_monthly: "1 Month",
+  period_quarterly: "3 Months",
+  period_semi_annual: "6 Months",
+  period_annual: "12 Months",
+  
+  // Additional common subscription texts
+  days: "days",
+  upload_logo: "Upload Logo",
 } as const;
