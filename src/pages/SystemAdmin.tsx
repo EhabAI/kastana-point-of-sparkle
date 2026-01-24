@@ -829,22 +829,22 @@ export default function SystemAdmin() {
 
                       {/* Bottom row: Add-ons/Modules Section */}
                       <div className="flex items-center gap-3 pt-2 border-t border-border/50">
-                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('sa_addons')}</span>
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide whitespace-nowrap">{t('sa_addons')}</span>
                         
                         {/* Inventory Module */}
                         <div 
-                          className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md transition-colors ${
+                          className={`flex items-center gap-2.5 px-3 py-2 rounded-md transition-colors min-w-[140px] ${
                             inventoryEnabled 
                               ? 'bg-blue-50 dark:bg-blue-950/40' 
                               : 'bg-muted/30'
                           }`}
                         >
-                          <Package className={`h-4 w-4 ${inventoryEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                          <div className="flex flex-col gap-0">
-                            <span className={`text-xs font-medium leading-tight ${inventoryEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
+                          <Package className={`h-4 w-4 shrink-0 ${inventoryEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                          <div className="flex flex-col gap-0.5 min-w-0">
+                            <span className={`text-xs font-medium leading-tight whitespace-nowrap ${inventoryEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
                               {t('sa_addon_inventory')}
                             </span>
-                            <span className={`text-[10px] leading-tight ${
+                            <span className={`text-[10px] leading-tight whitespace-nowrap ${
                               inventoryEnabled 
                                 ? 'text-green-600 dark:text-green-400 font-medium' 
                                 : 'text-muted-foreground'
@@ -856,24 +856,24 @@ export default function SystemAdmin() {
                             checked={inventoryEnabled}
                             onCheckedChange={() => handleInventoryToggle(restaurant.id, restaurant.name, inventoryEnabled)}
                             disabled={toggleInventory.isPending}
-                            className="h-4 w-7 data-[state=checked]:bg-blue-600"
+                            className="h-4 w-7 shrink-0 data-[state=checked]:bg-blue-600"
                           />
                         </div>
 
                         {/* KDS Module */}
                         <div 
-                          className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md transition-colors ${
+                          className={`flex items-center gap-2.5 px-3 py-2 rounded-md transition-colors min-w-[130px] ${
                             kdsEnabled 
                               ? 'bg-blue-50 dark:bg-blue-950/40' 
                               : 'bg-muted/30'
                           }`}
                         >
-                          <ChefHat className={`h-4 w-4 ${kdsEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                          <div className="flex flex-col gap-0">
-                            <span className={`text-xs font-medium leading-tight ${kdsEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
+                          <ChefHat className={`h-4 w-4 shrink-0 ${kdsEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                          <div className="flex flex-col gap-0.5 min-w-0">
+                            <span className={`text-xs font-medium leading-tight whitespace-nowrap ${kdsEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
                               {t('sa_addon_kds')}
                             </span>
-                            <span className={`text-[10px] leading-tight ${
+                            <span className={`text-[10px] leading-tight whitespace-nowrap ${
                               kdsEnabled 
                                 ? 'text-green-600 dark:text-green-400 font-medium' 
                                 : 'text-muted-foreground'
@@ -885,7 +885,7 @@ export default function SystemAdmin() {
                             checked={kdsEnabled}
                             onCheckedChange={() => handleKDSToggle(restaurant.id, restaurant.name, kdsEnabled)}
                             disabled={toggleKDS.isPending}
-                            className="h-4 w-7 data-[state=checked]:bg-blue-600"
+                            className="h-4 w-7 shrink-0 data-[state=checked]:bg-blue-600"
                           />
                         </div>
                       </div>
@@ -896,9 +896,15 @@ export default function SystemAdmin() {
                           <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('sub_subscription')}</span>
                           {subscription ? (
                             <div className="flex items-center gap-2">
-                              <Badge variant={isExpired ? "destructive" : isExpiringSoon ? "outline" : "secondary"} className="text-xs">
+                              <Badge variant={isExpired ? "destructive" : isExpiringSoon ? "outline" : "secondary"} className="text-xs whitespace-nowrap">
                                 {t(`period_${subscription.period.toLowerCase()}` as any)}
-                                {subscription.bonus_months > 0 && ` +${subscription.bonus_months}mo`}
+                                {subscription.bonus_months > 0 && (
+                                  <span className="ms-1">
+                                    + {subscription.bonus_months === 1 
+                                      ? t('sub_free_month') 
+                                      : t('sub_free_months').replace('{{count}}', String(subscription.bonus_months))}
+                                  </span>
+                                )}
                               </Badge>
                               <span className={`text-sm ${
                                 isExpired ? 'text-destructive font-medium' : 
