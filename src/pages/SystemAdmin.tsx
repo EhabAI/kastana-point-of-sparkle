@@ -91,12 +91,13 @@ export default function SystemAdmin() {
   const [bonusMonths, setBonusMonths] = useState(0);
   const [subscriptionReason, setSubscriptionReason] = useState("");
   
-  // Renew subscription dialog states
-  const [renewDialogOpen, setRenewDialogOpen] = useState(false);
-  const [renewTarget, setRenewTarget] = useState<{id: string; name: string} | null>(null);
-  const [renewPeriod, setRenewPeriod] = useState<SubscriptionPeriod>("MONTHLY");
-  const [renewBonusMonths, setRenewBonusMonths] = useState(0);
-  const [renewReason, setRenewReason] = useState("");
+  // Manage subscription dialog states
+  const [manageDialogOpen, setManageDialogOpen] = useState(false);
+  const [manageTarget, setManageTarget] = useState<{id: string; name: string} | null>(null);
+  const [managePeriod, setManagePeriod] = useState<SubscriptionPeriod>("MONTHLY");
+  const [manageBonusMonths, setManageBonusMonths] = useState(0);
+  const [manageStartDate, setManageStartDate] = useState<Date>(new Date());
+  const [manageReason, setManageReason] = useState("");
   
   // Edit restaurant name states
   const [editNameDialogOpen, setEditNameDialogOpen] = useState(false);
@@ -209,33 +210,36 @@ export default function SystemAdmin() {
     }
   };
   
-  const handleRenewSubscription = async () => {
-    if (!renewTarget) return;
+  const handleManageSubscription = async () => {
+    if (!manageTarget) return;
     
     try {
       await renewSubscription.mutateAsync({
-        restaurantId: renewTarget.id,
-        period: renewPeriod,
-        bonusMonths: renewBonusMonths,
-        reason: renewReason || undefined,
+        restaurantId: manageTarget.id,
+        period: managePeriod,
+        bonusMonths: manageBonusMonths,
+        reason: manageReason || undefined,
       });
       
-      setRenewDialogOpen(false);
-      setRenewTarget(null);
-      setRenewPeriod("MONTHLY");
-      setRenewBonusMonths(0);
-      setRenewReason("");
+      setManageDialogOpen(false);
+      setManageTarget(null);
+      setManagePeriod("MONTHLY");
+      setManageBonusMonths(0);
+      setManageStartDate(new Date());
+      setManageReason("");
     } catch (error) {
       // Error already handled by hook
     }
   };
 
-  const openRenewDialog = (restaurantId: string, restaurantName: string) => {
-    setRenewTarget({ id: restaurantId, name: restaurantName });
-    setRenewPeriod("MONTHLY");
-    setRenewBonusMonths(0);
-    setRenewReason("");
-    setRenewDialogOpen(true);
+  const openManageDialog = (restaurantId: string, restaurantName: string) => {
+    const existingSub = getSubscription(restaurantId);
+    setManageTarget({ id: restaurantId, name: restaurantName });
+    setManagePeriod(existingSub?.period || "MONTHLY");
+    setManageBonusMonths(existingSub?.bonus_months || 0);
+    setManageStartDate(new Date()); // Start from today
+    setManageReason("");
+    setManageDialogOpen(true);
   };
   
   // Helper to get subscription for a restaurant
@@ -431,10 +435,10 @@ export default function SystemAdmin() {
                       </div>
                       <Button 
                         size="sm" 
-                        onClick={() => openRenewDialog(sub.restaurant_id, restaurant?.name || 'Restaurant')}
+                        onClick={() => openManageDialog(sub.restaurant_id, restaurant?.name || 'Restaurant')}
                       >
-                        <RefreshCw className="h-4 w-4 mr-1" />
-                        {t('sub_renew')}
+                        <Pencil className="h-4 w-4 me-1" />
+                        {t('sub_manage')}
                       </Button>
                     </div>
                   );
@@ -931,11 +935,11 @@ export default function SystemAdmin() {
                         </div>
                         <Button 
                           size="sm" 
-                          variant={isExpired || !subscription ? "default" : isExpiringSoon ? "outline" : "ghost"}
-                          onClick={() => openRenewDialog(restaurant.id, restaurant.name)}
+                          variant="outline"
+                          onClick={() => openManageDialog(restaurant.id, restaurant.name)}
                         >
-                          <RefreshCw className="h-4 w-4 mr-1" />
-                          {!subscription ? t('sub_add_subscription') : t('sub_renew')}
+                          <Pencil className="h-4 w-4 me-1" />
+                          {t('sub_manage')}
                         </Button>
                       </div>
                     </div>
@@ -1275,28 +1279,29 @@ export default function SystemAdmin() {
           </DialogContent>
         </Dialog>
 
-        {/* Renew Subscription Dialog */}
-        <Dialog open={renewDialogOpen} onOpenChange={(open) => {
-          setRenewDialogOpen(open);
+        {/* Manage Subscription Dialog */}
+        <Dialog open={manageDialogOpen} onOpenChange={(open) => {
+          setManageDialogOpen(open);
           if (!open) {
-            setRenewTarget(null);
-            setRenewPeriod("MONTHLY");
-            setRenewBonusMonths(0);
-            setRenewReason("");
+            setManageTarget(null);
+            setManagePeriod("MONTHLY");
+            setManageBonusMonths(0);
+            setManageStartDate(new Date());
+            setManageReason("");
           }
         }}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{t('sub_renew_title')}</DialogTitle>
+              <DialogTitle>{t('sub_manage_title')}</DialogTitle>
               <DialogDescription>
-                {t('sub_renew_desc')} <strong>{renewTarget?.name}</strong>. {t('sub_renew_start_note')}
+                {t('sub_manage_desc')} <strong>{manageTarget?.name}</strong>
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="renew-period">{t('sub_period')}</Label>
-                <Select value={renewPeriod} onValueChange={(v) => setRenewPeriod(v as SubscriptionPeriod)}>
-                  <SelectTrigger id="renew-period">
+                <Label htmlFor="manage-period">{t('sub_period')}</Label>
+                <Select value={managePeriod} onValueChange={(v) => setManagePeriod(v as SubscriptionPeriod)}>
+                  <SelectTrigger id="manage-period">
                     <SelectValue placeholder={t('sub_period')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -1309,24 +1314,34 @@ export default function SystemAdmin() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="renew-bonus-months">{t('sub_bonus_months')}</Label>
+                <Label htmlFor="manage-bonus-months">{t('sub_bonus_months')}</Label>
                 <Input
-                  id="renew-bonus-months"
+                  id="manage-bonus-months"
                   type="number"
                   min={0}
                   max={6}
-                  value={renewBonusMonths}
-                  onChange={(e) => setRenewBonusMonths(Math.min(Math.max(0, parseInt(e.target.value) || 0), 6))}
+                  value={manageBonusMonths}
+                  onChange={(e) => setManageBonusMonths(Math.min(Math.max(0, parseInt(e.target.value) || 0), 6))}
                 />
                 <p className="text-xs text-muted-foreground">{t('sub_bonus_months_max')}</p>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="renew-reason">{t('sub_reason')} ({t('optional')})</Label>
+                <Label>{t('sub_start_date')}</Label>
+                <div className="flex items-center gap-2 p-3 rounded-md border bg-muted/50">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{format(manageStartDate, 'PPP')}</span>
+                  <span className="text-xs text-muted-foreground ms-auto">({t('sub_renew_start_note').replace('The new period will start from today.', '').replace('ستبدأ الفترة الجديدة من اليوم.', '') || t('sub_renew_start_note')})</span>
+                </div>
+                <p className="text-xs text-muted-foreground">{t('sub_renew_start_note')}</p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="manage-reason">{t('sub_reason')} ({t('optional')})</Label>
                 <Textarea
-                  id="renew-reason"
-                  value={renewReason}
-                  onChange={(e) => setRenewReason(e.target.value)}
+                  id="manage-reason"
+                  value={manageReason}
+                  onChange={(e) => setManageReason(e.target.value)}
                   placeholder={t('sub_reason_renew_placeholder')}
                   rows={2}
                 />
@@ -1334,17 +1349,18 @@ export default function SystemAdmin() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => {
-                setRenewDialogOpen(false);
-                setRenewTarget(null);
-                setRenewPeriod("MONTHLY");
-                setRenewBonusMonths(0);
-                setRenewReason("");
+                setManageDialogOpen(false);
+                setManageTarget(null);
+                setManagePeriod("MONTHLY");
+                setManageBonusMonths(0);
+                setManageStartDate(new Date());
+                setManageReason("");
               }}>
                 {t('cancel')}
               </Button>
-              <Button onClick={handleRenewSubscription} disabled={renewSubscription.isPending}>
+              <Button onClick={handleManageSubscription} disabled={renewSubscription.isPending}>
                 {renewSubscription.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                {t('sub_renew_button')}
+                {t('sub_save_changes')}
               </Button>
             </DialogFooter>
           </DialogContent>
