@@ -1784,4 +1784,8 @@ export default {
   // Stats
   sa_total_restaurants: "Total Restaurants",
   sa_total_owners: "Total Owners",
+  
+  // Add-on state labels
+  sa_addon_enabled: "Enabled",
+  sa_addon_disabled: "Disabled",
 } as const;

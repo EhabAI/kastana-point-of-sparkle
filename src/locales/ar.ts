@@ -1789,4 +1789,8 @@ export default {
   // Stats
   sa_total_restaurants: "إجمالي المطاعم",
   sa_total_owners: "إجمالي الملاك",
+  
+  // Add-on state labels
+  sa_addon_enabled: "مفعّل",
+  sa_addon_disabled: "غير مفعّل",
 } as const;
