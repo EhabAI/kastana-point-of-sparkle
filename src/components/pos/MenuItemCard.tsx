@@ -57,9 +57,10 @@ export function MenuItemCard({
       onClick={() => onSelect(item)}
       disabled={!item.is_available}
       className={cn(
-        "relative flex flex-col items-center justify-center p-4 rounded-lg border transition-all text-center min-h-[100px]",
+        "relative flex flex-col items-center justify-center p-4 rounded-lg border text-center min-h-[100px]",
+        "transition-all duration-200 ease-out",
         item.is_available
-          ? "hover:border-primary hover:shadow-md bg-card"
+          ? "hover:border-primary hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5 bg-card active:scale-[0.98]"
           : "opacity-50 cursor-not-allowed bg-muted",
         // Offer items: subtle background tint and border highlight
         isOffer && item.is_available && "bg-destructive/5 border-destructive/40",
