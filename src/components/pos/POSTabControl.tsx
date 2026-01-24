@@ -63,7 +63,7 @@ export function POSTabControl({
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
           className={cn(
-            "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md text-sm font-medium transition-all min-h-[44px] relative",
+            "flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-all min-h-[36px] relative",
             activeTab === tab.id
               ? "bg-background text-foreground shadow-md border-b-2 border-primary"
               : "text-muted-foreground/70 hover:text-foreground hover:bg-background/40",
