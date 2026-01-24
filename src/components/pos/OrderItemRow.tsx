@@ -163,10 +163,6 @@ export function OrderItemRow({
             Note: {item.notes}
           </p>
         )}
-
-        <div className="text-xs text-muted-foreground">
-          {formatJOD(Number(item.price))} × {item.quantity}
-        </div>
       </div>
 
       <NumericKeypad
