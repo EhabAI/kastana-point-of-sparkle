@@ -61,6 +61,7 @@ interface OrderPanelProps {
   shiftOpen: boolean;
   hasRefund?: boolean;
   hasTable?: boolean;
+  tableName?: string;
   // Send to Kitchen props
   kdsEnabled?: boolean;
   onSendToKitchen?: () => void;
@@ -114,6 +115,7 @@ export function OrderPanel({
   shiftOpen,
   hasRefund = false,
   hasTable = false,
+  tableName,
   kdsEnabled = false,
   onSendToKitchen,
   isSendingToKitchen = false,
@@ -139,13 +141,16 @@ export function OrderPanel({
     <Card className={cn("h-full flex flex-col", orderBg)}>
       <CardHeader className="py-2 px-3">
         <div className="flex items-center justify-between gap-2">
-          {/* Left: Title + Item Count in parentheses */}
+          {/* Left: Title + Item Count + Order Number */}
           <div className="flex items-center gap-1 min-w-0">
             <span className="text-sm font-semibold truncate">{t("current_order")}</span>
             <span className="text-sm text-muted-foreground">({totalItemsCount})</span>
+            {orderNumber && (
+              <span className="text-xs text-muted-foreground">#{orderNumber}</span>
+            )}
           </div>
           
-          {/* Right: Status + Order Type + New Order Button */}
+          {/* Right: Status + Order Type + Table (for dine-in) + New Order Button */}
           <div className="flex items-center gap-1.5 shrink-0">
             {orderStatus && STATUS_CONFIG[orderStatus] && (
               <Badge 
@@ -157,6 +162,10 @@ export function OrderPanel({
               >
                 {STATUS_CONFIG[orderStatus].label} · {orderType === "DINE-IN" ? t("dine_in") : t("takeaway")}
               </Badge>
+            )}
+            {/* Table name for dine-in */}
+            {hasTable && tableName && (
+              <span className="text-[10px] text-muted-foreground">({tableName})</span>
             )}
             {/* Inline Order Indicators */}
             <OrderBadges
