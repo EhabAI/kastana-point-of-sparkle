@@ -1290,18 +1290,19 @@ export default function SystemAdmin() {
             setManageReason("");
           }
         }}>
-          <DialogContent>
-            <DialogHeader>
+          <DialogContent className="max-h-[80vh] flex flex-col p-0">
+            <DialogHeader className="px-5 pt-5 pb-3 flex-shrink-0">
               <DialogTitle>{t('sub_manage_title')}</DialogTitle>
               <DialogDescription>
                 {t('sub_manage_desc')} <strong>{manageTarget?.name}</strong>
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="manage-period">{t('sub_period')}</Label>
+            <div className="flex-1 overflow-y-auto px-5 space-y-3 min-h-0">
+              {/* Subscription Period */}
+              <div className="space-y-1.5">
+                <Label htmlFor="manage-period" className="text-sm">{t('sub_period')}</Label>
                 <Select value={managePeriod} onValueChange={(v) => setManagePeriod(v as SubscriptionPeriod)}>
-                  <SelectTrigger id="manage-period">
+                  <SelectTrigger id="manage-period" className="h-9">
                     <SelectValue placeholder={t('sub_period')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -1313,8 +1314,9 @@ export default function SystemAdmin() {
                 </Select>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="manage-bonus-months">{t('sub_bonus_months')}</Label>
+              {/* Bonus Months */}
+              <div className="space-y-1.5">
+                <Label htmlFor="manage-bonus-months" className="text-sm">{t('sub_bonus_months')}</Label>
                 <Input
                   id="manage-bonus-months"
                   type="number"
@@ -1322,33 +1324,41 @@ export default function SystemAdmin() {
                   max={6}
                   value={manageBonusMonths}
                   onChange={(e) => setManageBonusMonths(Math.min(Math.max(0, parseInt(e.target.value) || 0), 6))}
+                  className="h-9"
                 />
-                <p className="text-xs text-muted-foreground">{t('sub_bonus_months_max')}</p>
+                <p className="text-[11px] text-muted-foreground">{t('sub_bonus_months_max')}</p>
               </div>
               
-              <div className="space-y-2">
-                <Label>{t('sub_start_date')}</Label>
-                <div className="flex items-center gap-2 p-3 rounded-md border bg-muted/50">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
+              {/* Start Date */}
+              <div className="space-y-1.5">
+                <Label className="text-sm">{t('sub_start_date')}</Label>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/50">
+                  <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
                   <span className="text-sm">{format(manageStartDate, 'PPP')}</span>
-                  <span className="text-xs text-muted-foreground ms-auto">({t('sub_renew_start_note').replace('The new period will start from today.', '').replace('ستبدأ الفترة الجديدة من اليوم.', '') || t('sub_renew_start_note')})</span>
                 </div>
-                <p className="text-xs text-muted-foreground">{t('sub_renew_start_note')}</p>
+                <p className="text-[11px] text-muted-foreground">{t('sub_renew_start_note')}</p>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="manage-reason">{t('sub_reason')} ({t('optional')})</Label>
+              {/* Notes Section - Emphasized */}
+              <div className="space-y-1.5 pt-2 border-t border-border/50">
+                <Label htmlFor="manage-reason" className="text-sm flex items-center gap-1.5">
+                  📝 {t('sub_note_label')}
+                </Label>
                 <Textarea
                   id="manage-reason"
                   value={manageReason}
                   onChange={(e) => setManageReason(e.target.value)}
                   placeholder={t('sub_reason_renew_placeholder')}
-                  rows={2}
+                  rows={3}
+                  className="resize-none"
                 />
+                <p className="text-[11px] text-muted-foreground">
+                  {t('sub_note_helper')}
+                </p>
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => {
+            <DialogFooter className="px-5 py-4 flex-shrink-0 border-t">
+              <Button variant="outline" size="sm" onClick={() => {
                 setManageDialogOpen(false);
                 setManageTarget(null);
                 setManagePeriod("MONTHLY");
@@ -1358,7 +1368,7 @@ export default function SystemAdmin() {
               }}>
                 {t('cancel')}
               </Button>
-              <Button onClick={handleManageSubscription} disabled={renewSubscription.isPending}>
+              <Button size="sm" onClick={handleManageSubscription} disabled={renewSubscription.isPending}>
                 {renewSubscription.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 {t('sub_save_changes')}
               </Button>

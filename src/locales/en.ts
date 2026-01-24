@@ -1718,6 +1718,8 @@ export default {
   sub_manage_desc: "Update subscription settings for",
   sub_save_changes: "Save Changes",
   sub_start_date: "Start Date",
+  sub_note_label: "Note (Optional)",
+  sub_note_helper: "This note is for internal documentation only and is not visible to the restaurant owner.",
   sub_create_desc: "Enter the details for the new restaurant with subscription.",
   
   // Subscription periods
