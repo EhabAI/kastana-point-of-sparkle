@@ -650,6 +650,7 @@ export default {
   // Payment methods
   payment_methods: "Payment Methods",
   payment_methods_desc: "Configure accepted payment methods for each branch",
+  configure_payment_methods_per_branch: "Configure payment methods for each branch",
   cash: "Cash",
   accept_cash_payments: "Accept cash payments",
   visa: "Visa/Master",
