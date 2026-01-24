@@ -43,16 +43,19 @@ export default function KDS() {
   const sessionLoading = isOwner ? false : kitchenSessionLoading;
   
   // SECURITY: Check if KDS add-on is enabled
-  const { data: kdsEnabled, isLoading: kdsLoading } = useKDSEnabled(restaurantId);
+  const { data: kdsEnabled, isLoading: kdsLoading, isFetched: kdsFetched } = useKDSEnabled(restaurantId);
   
   // SECURITY: Check if restaurant is active
-  const { data: isRestaurantActive, isLoading: restaurantActiveLoading } = useRestaurantActiveStatus(restaurantId);
+  const { data: isRestaurantActive, isLoading: restaurantActiveLoading, isFetched: restaurantActiveFetched } = useRestaurantActiveStatus(restaurantId);
   
   const auditLog = useKDSAuditLog();
 
   // SECURITY: Log access violations
   useEffect(() => {
-    if (authLoading || sessionLoading || kdsLoading || restaurantActiveLoading) return;
+    // Wait for all data to be loaded before logging
+    const isSettingsLoading = authLoading || sessionLoading || kdsLoading || restaurantActiveLoading;
+    const isDataReady = kdsFetched && restaurantActiveFetched;
+    if (isSettingsLoading || !isDataReady) return;
     
     // Log denied role access attempt
     if (isDeniedRole && restaurantId) {
@@ -104,6 +107,8 @@ export default function KDS() {
     sessionLoading,
     kdsLoading,
     restaurantActiveLoading,
+    kdsFetched,
+    restaurantActiveFetched,
     kdsEnabled, 
     isRestaurantActive,
     restaurantId, 
@@ -113,8 +118,14 @@ export default function KDS() {
     auditLog
   ]);
 
-  // Show loading state
-  if (authLoading || sessionLoading || kdsLoading || restaurantActiveLoading) {
+  // Determine if we're still in a loading state
+  // IMPORTANT: Must wait for all data to be fetched before evaluating feature flags
+  const isSettingsLoading = authLoading || sessionLoading || kdsLoading || restaurantActiveLoading;
+  const isWaitingForData = !isSettingsLoading && restaurantId && (!kdsFetched || !restaurantActiveFetched);
+  const isLoading = isSettingsLoading || isWaitingForData;
+
+  // Show loading state - MUST render before any feature flag checks
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
