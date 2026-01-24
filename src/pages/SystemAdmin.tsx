@@ -761,9 +761,9 @@ export default function SystemAdmin() {
 
                         {/* Status Section */}
                         <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-3">
                             {/* Status Badge - non-interactive display */}
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
                               restaurant.is_active 
                                 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
                                 : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
@@ -828,21 +828,30 @@ export default function SystemAdmin() {
                       </div>
 
                       {/* Bottom row: Add-ons/Modules Section */}
-                      <div className="flex items-center gap-2.5 pt-2 border-t border-border/50">
+                      <div className="flex items-center gap-3 pt-2 border-t border-border/50">
                         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('sa_addons')}</span>
                         
-                        {/* Inventory Module - compact */}
+                        {/* Inventory Module */}
                         <div 
-                          className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors ${
+                          className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md transition-colors ${
                             inventoryEnabled 
                               ? 'bg-blue-50 dark:bg-blue-950/40' 
-                              : 'bg-muted/40'
+                              : 'bg-muted/30'
                           }`}
                         >
-                          <Package className={`h-3.5 w-3.5 ${inventoryEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                          <span className={`text-xs ${inventoryEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
-                            {t('sa_addon_inventory')}
-                          </span>
+                          <Package className={`h-4 w-4 ${inventoryEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                          <div className="flex flex-col gap-0">
+                            <span className={`text-xs font-medium leading-tight ${inventoryEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
+                              {t('sa_addon_inventory')}
+                            </span>
+                            <span className={`text-[10px] leading-tight ${
+                              inventoryEnabled 
+                                ? 'text-green-600 dark:text-green-400 font-medium' 
+                                : 'text-muted-foreground'
+                            }`}>
+                              {inventoryEnabled ? t('sa_addon_enabled') : t('sa_addon_disabled')}
+                            </span>
+                          </div>
                           <Switch
                             checked={inventoryEnabled}
                             onCheckedChange={() => handleInventoryToggle(restaurant.id, restaurant.name, inventoryEnabled)}
@@ -851,18 +860,27 @@ export default function SystemAdmin() {
                           />
                         </div>
 
-                        {/* KDS Module - compact */}
+                        {/* KDS Module */}
                         <div 
-                          className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors ${
+                          className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md transition-colors ${
                             kdsEnabled 
                               ? 'bg-blue-50 dark:bg-blue-950/40' 
-                              : 'bg-muted/40'
+                              : 'bg-muted/30'
                           }`}
                         >
-                          <ChefHat className={`h-3.5 w-3.5 ${kdsEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                          <span className={`text-xs ${kdsEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
-                            {t('sa_addon_kds')}
-                          </span>
+                          <ChefHat className={`h-4 w-4 ${kdsEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                          <div className="flex flex-col gap-0">
+                            <span className={`text-xs font-medium leading-tight ${kdsEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
+                              {t('sa_addon_kds')}
+                            </span>
+                            <span className={`text-[10px] leading-tight ${
+                              kdsEnabled 
+                                ? 'text-green-600 dark:text-green-400 font-medium' 
+                                : 'text-muted-foreground'
+                            }`}>
+                              {kdsEnabled ? t('sa_addon_enabled') : t('sa_addon_disabled')}
+                            </span>
+                          </div>
                           <Switch
                             checked={kdsEnabled}
                             onCheckedChange={() => handleKDSToggle(restaurant.id, restaurant.name, kdsEnabled)}
