@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
 
     // Parse request body
     const body = await req.json();
-    const { restaurant_id, period, bonus_months = 0, reason } = body;
+    const { restaurant_id, period, bonus_months = 0, reason, notes } = body;
 
     // Validate required fields
     if (!restaurant_id || typeof restaurant_id !== "string") {
@@ -115,6 +115,7 @@ Deno.serve(async (req) => {
           bonus_months: bonusMonthsNum,
           end_date: endDateValue.toISOString(),
           status: "ACTIVE",
+          notes: notes || null,
           updated_at: new Date().toISOString(),
         })
         .eq("restaurant_id", restaurant_id)
@@ -140,6 +141,7 @@ Deno.serve(async (req) => {
           bonus_months: bonusMonthsNum,
           end_date: endDateValue.toISOString(),
           status: "ACTIVE",
+          notes: notes || null,
         })
         .select()
         .single();

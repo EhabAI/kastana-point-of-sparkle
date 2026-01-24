@@ -1467,6 +1467,7 @@ export type Database = {
         Row: {
           bonus_months: number
           end_date: string
+          notes: string | null
           period: string
           restaurant_id: string
           start_date: string
@@ -1476,6 +1477,7 @@ export type Database = {
         Insert: {
           bonus_months?: number
           end_date: string
+          notes?: string | null
           period: string
           restaurant_id: string
           start_date?: string
@@ -1485,6 +1487,7 @@ export type Database = {
         Update: {
           bonus_months?: number
           end_date?: string
+          notes?: string | null
           period?: string
           restaurant_id?: string
           start_date?: string

@@ -219,6 +219,7 @@ export default function SystemAdmin() {
         period: managePeriod,
         bonusMonths: manageBonusMonths,
         reason: manageReason || undefined,
+        notes: manageReason || undefined,
       });
       
       setManageDialogOpen(false);
@@ -238,7 +239,7 @@ export default function SystemAdmin() {
     setManagePeriod(existingSub?.period || "MONTHLY");
     setManageBonusMonths(existingSub?.bonus_months || 0);
     setManageStartDate(new Date()); // Start from today
-    setManageReason("");
+    setManageReason(existingSub?.notes || "");
     setManageDialogOpen(true);
   };
   
