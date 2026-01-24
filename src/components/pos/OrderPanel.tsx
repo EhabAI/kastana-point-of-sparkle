@@ -230,7 +230,7 @@ export function OrderPanel({
         </ScrollArea>
       </CardContent>
 
-      <CardFooter className="flex-col p-4 border-t space-y-4">
+      <CardFooter className="flex-col p-3 pt-2 border-t space-y-2">
         <OrderTotals
           subtotal={subtotal}
           discountType={discountType}
@@ -242,15 +242,15 @@ export function OrderPanel({
           currency={currency}
         />
 
-        <div className="w-full grid grid-cols-2 gap-2">
+        <div className="w-full grid grid-cols-2 gap-1.5">
           <Button
             variant="outline"
             size="sm"
             onClick={onApplyDiscount}
             disabled={!hasItems || !isOpen}
-            className="text-muted-foreground hover:text-foreground"
+            className="h-8 text-xs text-muted-foreground hover:text-foreground"
           >
-            <Percent className="h-4 w-4 mr-1.5" />
+            <Percent className="h-3.5 w-3.5 mr-1" />
             {t("discount")}
           </Button>
           <Button
@@ -258,9 +258,9 @@ export function OrderPanel({
             size="sm"
             onClick={onHoldOrder}
             disabled={!hasItems || !isOpen}
-            className="text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-900/30"
+            className="h-8 text-xs text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-900/30"
           >
-            <Pause className="h-4 w-4 mr-1.5" />
+            <Pause className="h-3.5 w-3.5 mr-1" />
             {t("hold")}
           </Button>
         </div>
@@ -270,35 +270,35 @@ export function OrderPanel({
           size="sm"
           onClick={onVoidOrder}
           disabled={!hasItems || !isOpen}
-          className="w-full text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+          className="w-full h-8 text-xs text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
         >
-          <Ban className="h-4 w-4 mr-1.5" />
+          <Ban className="h-3.5 w-3.5 mr-1" />
           {t("void")}
         </Button>
 
-        {/* Send to Kitchen Button - ALWAYS visible when order has items */}
+        {/* Send to Kitchen Button - compact, secondary style */}
         {onSendToKitchen && hasItems && isOpen && (
           <Button
-            size="lg"
             variant="outline"
+            size="sm"
             onClick={onSendToKitchen}
             disabled={isSendingToKitchen || !hasPendingKitchenItems}
             className={cn(
-              "w-full border-primary text-primary shadow-md",
+              "w-full h-10 text-sm border-primary text-primary",
               hasPendingKitchenItems 
-                ? "bg-primary/10 hover:bg-primary/20" 
+                ? "bg-primary/5 hover:bg-primary/10" 
                 : "bg-muted/50 opacity-60 cursor-not-allowed"
             )}
           >
             {isSendingToKitchen ? (
-              <span className="h-4 w-4 ltr:mr-2 rtl:ml-2 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <span className="h-3.5 w-3.5 ltr:mr-1.5 rtl:ml-1.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             ) : (
-              <ChefHat className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+              <ChefHat className="h-3.5 w-3.5 ltr:mr-1.5 rtl:ml-1.5" />
             )}
             {hasPendingKitchenItems ? (
-              <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1">
                 <span>{t("send_to_kitchen")}</span>
-                <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
                   {pendingKitchenItems.length}
                 </Badge>
               </span>
@@ -308,19 +308,19 @@ export function OrderPanel({
           </Button>
         )}
 
-        {/* Pay Button - always visible at bottom */}
+        {/* Pay Button - primary action, slightly reduced padding */}
         <Button
-          size="lg"
+          size="default"
           className={cn(
-            "w-full shadow-md transition-all duration-200",
+            "w-full h-11 text-sm font-medium shadow-sm transition-all duration-200",
             hasItems && total > 0 && isOpen
-              ? "shadow-lg shadow-primary/25 ring-2 ring-primary/20 hover:shadow-xl hover:shadow-primary/30"
+              ? "shadow-md shadow-primary/20 ring-1 ring-primary/20 hover:shadow-lg hover:shadow-primary/25"
               : "opacity-70"
           )}
           onClick={onPay}
           disabled={!hasItems || total <= 0 || !isOpen}
         >
-          <CreditCard className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+          <CreditCard className="h-4 w-4 ltr:mr-1.5 rtl:ml-1.5" />
           <span className="flex items-center gap-1.5">
             <span>{t("pay")}</span>
             <span className="font-semibold">{formatJOD(total)} {localizedCurrency}</span>
