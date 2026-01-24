@@ -10,6 +10,7 @@ export interface RestaurantSubscription {
   end_date: string;
   status: 'ACTIVE' | 'EXPIRED';
   updated_at: string;
+  notes: string | null;
 }
 
 export type SubscriptionPeriod = 'MONTHLY' | 'QUARTERLY' | 'SEMI_ANNUAL' | 'ANNUAL';
@@ -120,11 +121,13 @@ export function useRenewSubscription() {
       period,
       bonusMonths = 0,
       reason,
+      notes,
     }: {
       restaurantId: string;
       period: SubscriptionPeriod;
       bonusMonths?: number;
       reason?: string;
+      notes?: string;
     }) => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) throw new Error('Not authenticated');
@@ -135,6 +138,7 @@ export function useRenewSubscription() {
           period,
           bonus_months: bonusMonths,
           reason: reason || null,
+          notes: notes || null,
         },
       });
 
