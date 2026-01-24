@@ -1,6 +1,7 @@
 import { Star } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MenuItemCard } from "./MenuItemCard";
+import { useMemo } from "react";
 
 interface MenuItem {
   id: string;
@@ -19,6 +20,7 @@ interface FavoritesGridProps {
   onSelectItem: (item: MenuItem) => void;
   onToggleFavorite?: (itemId: string, isFavorite: boolean) => void;
   isLoading?: boolean;
+  orderItemIds?: string[];
 }
 
 export function FavoritesGrid({
@@ -27,7 +29,11 @@ export function FavoritesGrid({
   onSelectItem,
   onToggleFavorite,
   isLoading,
+  orderItemIds = [],
 }: FavoritesGridProps) {
+  // Create a Set for O(1) lookup of items in order
+  const orderItemIdSet = useMemo(() => new Set(orderItemIds), [orderItemIds]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -60,6 +66,7 @@ export function FavoritesGrid({
             currency={currency}
             onSelect={onSelectItem}
             onToggleFavorite={onToggleFavorite}
+            isInOrder={orderItemIdSet.has(item.id)}
           />
         ))}
       </div>

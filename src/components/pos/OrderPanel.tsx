@@ -257,7 +257,13 @@ export function OrderPanel({
           </Button>
           <Button
             size="lg"
-            className="shadow-md"
+            className={cn(
+              "shadow-md transition-all duration-200",
+              // Enhanced visual when total > 0 and order is open
+              hasItems && total > 0 && isOpen
+                ? "shadow-lg shadow-primary/25 ring-2 ring-primary/20 hover:shadow-xl hover:shadow-primary/30"
+                : "opacity-70"
+            )}
             onClick={onPay}
             disabled={!hasItems || total <= 0 || !isOpen}
           >
