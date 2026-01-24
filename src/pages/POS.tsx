@@ -366,6 +366,12 @@ export default function POS() {
 
   // Calculate order totals - MUST be before keyboard shortcuts useEffect
   const orderItems = currentOrder?.order_items?.filter((item: { voided: boolean }) => !item.voided) || [];
+  
+  // Extract menu_item_ids from order items for highlighting in menu grid
+  const orderItemIds = useMemo(() => 
+    orderItems.map((item: { menu_item_id?: string | null }) => item.menu_item_id).filter(Boolean) as string[],
+    [orderItems]
+  );
 
   // B2: Keyboard shortcuts - MUST be before any early returns
   useEffect(() => {
@@ -2064,6 +2070,7 @@ export default function POS() {
                     onToggleFavorite={(itemId, isFavorite) => toggleFavoriteMutation.mutate({ itemId, isFavorite })}
                     isLoading={isSearchActive ? allItemsLoading : itemsLoading}
                     showCategoryName={isSearchActive}
+                    orderItemIds={orderItemIds}
                   />
                 </div>
               </div>
@@ -2112,6 +2119,7 @@ export default function POS() {
                   onSelectItem={handleSelectItem}
                   onToggleFavorite={(itemId, isFavorite) => toggleFavoriteMutation.mutate({ itemId, isFavorite })}
                   isLoading={favoritesLoading}
+                  orderItemIds={orderItemIds}
                 />
               </div>
 

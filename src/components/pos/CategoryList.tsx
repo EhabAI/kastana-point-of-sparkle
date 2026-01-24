@@ -23,20 +23,27 @@ export function CategoryList({
   return (
     <ScrollArea className="h-full">
       <div className="p-2 space-y-1">
-        {categories.map((category) => (
-          <button
-            key={category.id}
-            onClick={() => onSelectCategory(category.id)}
-            className={cn(
-              "w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors",
-              selectedCategoryId === category.id
-                ? "bg-primary text-primary-foreground"
-                : "hover:bg-muted"
-            )}
-          >
-            {category.name}
-          </button>
-        ))}
+        {categories.map((category) => {
+          const isSelected = selectedCategoryId === category.id;
+          return (
+            <button
+              key={category.id}
+              onClick={() => onSelectCategory(category.id)}
+              className={cn(
+                "relative w-full text-left px-4 py-3 rounded-lg text-sm transition-all",
+                isSelected
+                  ? "bg-primary text-primary-foreground font-bold shadow-sm"
+                  : "font-medium hover:bg-muted text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {/* Active indicator line */}
+              {isSelected && (
+                <span className="absolute inset-y-1 ltr:left-0 rtl:right-0 w-1 bg-primary-foreground/40 rounded-full" />
+              )}
+              {category.name}
+            </button>
+          );
+        })}
         {categories.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-4">
             {t("no_categories_found")}

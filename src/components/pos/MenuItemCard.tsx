@@ -1,5 +1,12 @@
-import { Star } from "lucide-react";
+import { Star, Check } from "lucide-react";
 import { cn, formatJOD } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MenuItem {
   id: string;
@@ -19,6 +26,7 @@ interface MenuItemCardProps {
   onSelect: (item: MenuItem) => void;
   onToggleFavorite?: (itemId: string, isFavorite: boolean) => void;
   showCategoryName?: boolean;
+  isInOrder?: boolean;
 }
 
 export function MenuItemCard({ 
@@ -26,8 +34,11 @@ export function MenuItemCard({
   currency, 
   onSelect, 
   onToggleFavorite,
-  showCategoryName = false 
+  showCategoryName = false,
+  isInOrder = false
 }: MenuItemCardProps) {
+  const { language } = useLanguage();
+  
   // Detect offer/deal (via is_offer, promo_price, or name keywords)
   const hasPromo = item.promo_price != null && item.promo_price > 0;
   const nameHasOfferKeyword = /happy|deal|offer|عروض/i.test(item.name);
@@ -41,7 +52,7 @@ export function MenuItemCard({
     }
   };
 
-  return (
+  const cardContent = (
     <button
       onClick={() => onSelect(item)}
       disabled={!item.is_available}
@@ -51,9 +62,17 @@ export function MenuItemCard({
           ? "hover:border-primary hover:shadow-md bg-card"
           : "opacity-50 cursor-not-allowed bg-muted",
         // Offer items: subtle background tint and border highlight
-        isOffer && item.is_available && "bg-destructive/5 border-destructive/40"
+        isOffer && item.is_available && "bg-destructive/5 border-destructive/40",
+        // Items already in order: subtle primary border and background
+        isInOrder && item.is_available && !isOffer && "border-primary/50 bg-primary/5 ring-1 ring-primary/20"
       )}
     >
+      {/* In-order indicator - top-left checkmark */}
+      {isInOrder && item.is_available && (
+        <span className="absolute top-1.5 left-1.5 p-0.5 rounded-full bg-primary/10">
+          <Check className="h-3 w-3 text-primary" />
+        </span>
+      )}
       {/* Star favorite toggle - top-right corner */}
       {onToggleFavorite && item.is_available && (
         <span
@@ -72,9 +91,12 @@ export function MenuItemCard({
           />
         </span>
       )}
-      {/* Red dot indicator for offers - top-left corner */}
+      {/* Red dot indicator for offers - adjusted position when in-order */}
       {isOffer && item.is_available && (
-        <span className="absolute top-2 left-2 w-2.5 h-2.5 rounded-full bg-destructive" />
+        <span className={cn(
+          "absolute top-2 w-2.5 h-2.5 rounded-full bg-destructive",
+          isInOrder ? "left-7" : "left-2"
+        )} />
       )}
       <span className="font-medium text-sm mb-1 line-clamp-2">{item.name}</span>
       {showCategoryName && item.category_name && (
@@ -87,4 +109,25 @@ export function MenuItemCard({
       </span>
     </button>
   );
+
+  // Wrap offer items with tooltip
+  if (isOffer && item.is_available) {
+    return (
+      <TooltipProvider delayDuration={300}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {cardContent}
+          </TooltipTrigger>
+          <TooltipContent 
+            side="top" 
+            className="bg-destructive text-destructive-foreground text-xs font-medium"
+          >
+            {item.promo_label || (language === "ar" ? "عرض خاص" : "Special Offer")}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
+  return cardContent;
 }

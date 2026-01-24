@@ -1,5 +1,6 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MenuItemCard } from "./MenuItemCard";
+import { useMemo } from "react";
 
 interface MenuItem {
   id: string;
@@ -20,6 +21,7 @@ interface MenuItemGridProps {
   onToggleFavorite?: (itemId: string, isFavorite: boolean) => void;
   isLoading?: boolean;
   showCategoryName?: boolean;
+  orderItemIds?: string[];
 }
 
 export function MenuItemGrid({
@@ -29,7 +31,11 @@ export function MenuItemGrid({
   onToggleFavorite,
   isLoading,
   showCategoryName = false,
+  orderItemIds = [],
 }: MenuItemGridProps) {
+  // Create a Set for O(1) lookup of items in order
+  const orderItemIdSet = useMemo(() => new Set(orderItemIds), [orderItemIds]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -57,6 +63,7 @@ export function MenuItemGrid({
             onSelect={onSelectItem}
             onToggleFavorite={onToggleFavorite}
             showCategoryName={showCategoryName}
+            isInOrder={orderItemIdSet.has(item.id)}
           />
         ))}
       </div>
