@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { MessageCircle, X, Send, Bot, Lightbulb, GraduationCap } from "lucide-react";
+import { MessageCircle, X, Send, Bot, Lightbulb, Brain, GraduationCap, HelpCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Sheet,
   SheetContent,
@@ -67,12 +68,13 @@ import {
 } from "@/lib/assistantInventoryGuard";
 import { AIAssistantAlert } from "@/components/AIAssistantAlert";
 import { AIAssistantTrainingCard } from "@/components/AIAssistantTrainingCard";
-import { AIAssistantTrainingList } from "@/components/AIAssistantTrainingList";
+import { TrainerCoachTab, TrainerCurriculumTab, TrainerExplainTab } from "@/components/trainer";
 import { useRestaurantInventoryStatus } from "@/hooks/useInventoryModuleToggle";
 import { useOwnerRestaurant } from "@/hooks/useRestaurants";
 import { useCashierRestaurant } from "@/hooks/pos/useCashierRestaurant";
+import { useTrainer } from "@/contexts/TrainerContext";
 
-type ViewMode = "chat" | "training";
+type ViewMode = "chat" | "coach" | "training" | "explain";
 
 interface Message {
   id: string;
@@ -323,6 +325,16 @@ export function AIAssistantBubble() {
   };
 
   /**
+   * Handle starting a training module from tabs
+   */
+  const { beginTraining } = useTrainer();
+  
+  const handleStartTraining = (moduleId: string) => {
+    beginTraining(moduleId);
+    setOpen(false); // Close assistant to show training overlay
+  };
+
+  /**
    * Record user error for trigger tracking
    * Call this from parent components when errors occur
    */
@@ -390,32 +402,57 @@ export function AIAssistantBubble() {
         side={isRTL ? "right" : "left"}
         className="w-full sm:w-[400px] flex flex-col p-0"
       >
-        <SheetHeader className="p-4 border-b bg-primary text-primary-foreground">
-          <div className="flex items-center justify-between">
-            <SheetTitle className="text-primary-foreground flex items-center gap-2">
-              <Bot className="h-5 w-5" />
-              {systemLang === "ar" ? "مساعد Kastana الذكي" : "Kastana AI Assistant"}
-            </SheetTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/10"
-              onClick={() => setViewMode(viewMode === "chat" ? "training" : "chat")}
-            >
-              <GraduationCap className="h-4 w-4" />
-            </Button>
-          </div>
+        <SheetHeader className="p-3 border-b bg-primary text-primary-foreground">
+          <SheetTitle className="text-primary-foreground flex items-center gap-2 text-sm">
+            <Bot className="h-4 w-4" />
+            {systemLang === "ar" ? "مساعد Kastana" : "Kastana Assistant"}
+          </SheetTitle>
         </SheetHeader>
 
-        {/* Training List View */}
-        {viewMode === "training" ? (
-          <AIAssistantTrainingList
-            language={systemLang}
-            onSelectCard={handleSelectTrainingCard}
-            onClose={() => setViewMode("chat")}
-          />
-        ) : (
-          <>
+        {/* Tab Navigation */}
+        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)} className="flex flex-col flex-1 overflow-hidden">
+          <TabsList className="w-full rounded-none border-b bg-muted/30 p-1 h-auto">
+            <TabsTrigger value="coach" className="flex-1 text-xs gap-1.5 py-2">
+              <Brain className="h-3.5 w-3.5" />
+              {systemLang === "ar" ? "المدرب" : "Coach"}
+            </TabsTrigger>
+            <TabsTrigger value="training" className="flex-1 text-xs gap-1.5 py-2">
+              <GraduationCap className="h-3.5 w-3.5" />
+              {systemLang === "ar" ? "التدريب" : "Training"}
+            </TabsTrigger>
+            <TabsTrigger value="explain" className="flex-1 text-xs gap-1.5 py-2">
+              <HelpCircle className="h-3.5 w-3.5" />
+              {systemLang === "ar" ? "اشرح" : "Explain"}
+            </TabsTrigger>
+            <TabsTrigger value="chat" className="flex-1 text-xs gap-1.5 py-2">
+              <MessageCircle className="h-3.5 w-3.5" />
+              {systemLang === "ar" ? "محادثة" : "Chat"}
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Coach Tab */}
+          <TabsContent value="coach" className="flex-1 m-0 overflow-hidden">
+            <TrainerCoachTab 
+              language={systemLang} 
+              onStartTraining={handleStartTraining}
+            />
+          </TabsContent>
+
+          {/* Training Tab */}
+          <TabsContent value="training" className="flex-1 m-0 overflow-hidden">
+            <TrainerCurriculumTab 
+              language={systemLang} 
+              onStartTraining={handleStartTraining}
+            />
+          </TabsContent>
+
+          {/* Explain Tab */}
+          <TabsContent value="explain" className="flex-1 m-0 overflow-hidden">
+            <TrainerExplainTab language={systemLang} />
+          </TabsContent>
+
+          {/* Chat Tab */}
+          <TabsContent value="chat" className="flex-1 m-0 flex flex-col overflow-hidden">
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-4">
                 {messages.map((message) => (
@@ -521,8 +558,8 @@ export function AIAssistantBubble() {
                 </Button>
               </div>
             </div>
-          </>
-        )}
+          </TabsContent>
+        </Tabs>
       </SheetContent>
     </Sheet>
   );

@@ -11,8 +11,10 @@ import {
   Bot, AlertCircle, AlertTriangle, Info, Lightbulb, ChevronRight, 
   HelpCircle, BookOpen, Send, User, X, Sparkles, GraduationCap, 
   MessageCircle, Target, Search, ArrowLeftRight, Maximize2, Minimize2,
-  Loader2
+  Loader2, Brain
 } from "lucide-react";
+import { TrainerCoachTab, TrainerCurriculumTab, TrainerExplainTab } from "@/components/trainer";
+import { useTrainer } from "@/contexts/TrainerContext";
 import {
   Tooltip,
   TooltipContent,
@@ -1388,44 +1390,85 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
 
             {/* Help Content - Direct without tabs */}
             <div className="flex-1 flex flex-col min-h-0">
-                  {/* Compact Navigation Bar - Chat and Browse tabs */}
+                  {/* Compact Navigation Bar - 4 tabs */}
                   <div className="border-b px-2 py-1.5">
                     <div className="flex items-center gap-0.5 bg-muted/50 rounded-md p-0.5">
                       <button
                         className={cn(
-                          "flex-1 flex items-center justify-center gap-1 py-1 px-2 rounded text-xs font-medium transition-all duration-150",
-                          showChat 
+                          "flex-1 flex items-center justify-center gap-1 py-1.5 px-1 rounded text-[11px] font-medium transition-all duration-150",
+                          activeTab === "coach" 
                             ? "bg-background text-foreground shadow-sm" 
                             : "text-muted-foreground hover:text-foreground"
                         )}
-                        onClick={() => {
-                          setShowChat(true);
-                          setContentMode("chat");
-                        }}
+                        onClick={() => setActiveTab("coach")}
                       >
-                        <MessageCircle className="h-3 w-3" />
-                        <span>{language === "ar" ? "المحادثة" : "Chat"}</span>
+                        <Brain className="h-3 w-3" />
+                        <span className="hidden sm:inline">{language === "ar" ? "المدرب" : "Coach"}</span>
                       </button>
                       <button
                         className={cn(
-                          "flex-1 flex items-center justify-center gap-1 py-1 px-2 rounded text-xs font-medium transition-all duration-150",
-                          !showChat 
+                          "flex-1 flex items-center justify-center gap-1 py-1.5 px-1 rounded text-[11px] font-medium transition-all duration-150",
+                          activeTab === "training" 
+                            ? "bg-background text-foreground shadow-sm" 
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                        onClick={() => setActiveTab("training")}
+                      >
+                        <GraduationCap className="h-3 w-3" />
+                        <span className="hidden sm:inline">{language === "ar" ? "التدريب" : "Training"}</span>
+                      </button>
+                      <button
+                        className={cn(
+                          "flex-1 flex items-center justify-center gap-1 py-1.5 px-1 rounded text-[11px] font-medium transition-all duration-150",
+                          activeTab === "explain" 
+                            ? "bg-background text-foreground shadow-sm" 
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                        onClick={() => setActiveTab("explain")}
+                      >
+                        <HelpCircle className="h-3 w-3" />
+                        <span className="hidden sm:inline">{language === "ar" ? "اشرح" : "Explain"}</span>
+                      </button>
+                      <button
+                        className={cn(
+                          "flex-1 flex items-center justify-center gap-1 py-1.5 px-1 rounded text-[11px] font-medium transition-all duration-150",
+                          activeTab === "help" 
                             ? "bg-background text-foreground shadow-sm" 
                             : "text-muted-foreground hover:text-foreground"
                         )}
                         onClick={() => {
-                          setShowChat(false);
-                          setContentMode("browse");
+                          setActiveTab("help");
+                          setShowChat(true);
                         }}
                       >
-                        <BookOpen className="h-3 w-3" />
-                        <span>{language === "ar" ? "المواضيع" : "Topics"}</span>
+                        <MessageCircle className="h-3 w-3" />
+                        <span className="hidden sm:inline">{language === "ar" ? "محادثة" : "Chat"}</span>
                       </button>
                     </div>
                   </div>
 
-                  {/* Content Area - Switches between Chat and Browse */}
-                  {showChat ? (
+                  {/* Content Area - Switches between tabs */}
+                  {activeTab === "coach" ? (
+                    <TrainerCoachTab 
+                      language={language} 
+                      onStartTraining={(moduleId) => {
+                        const { beginTraining } = useTrainer();
+                        beginTraining(moduleId);
+                        setOpen(false);
+                      }}
+                    />
+                  ) : activeTab === "training" ? (
+                    <TrainerCurriculumTab 
+                      language={language} 
+                      onStartTraining={(moduleId) => {
+                        const { beginTraining } = useTrainer();
+                        beginTraining(moduleId);
+                        setOpen(false);
+                      }}
+                    />
+                  ) : activeTab === "explain" ? (
+                    <TrainerExplainTab language={language} />
+                  ) : showChat ? (
                     <>
                       {/* Chat Messages Area */}
                       <div 
