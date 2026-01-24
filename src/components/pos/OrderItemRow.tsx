@@ -69,7 +69,7 @@ export function OrderItemRow({
     <>
       <div className="space-y-1 py-2 border-b last:border-b-0">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium flex-1">{item.name}</span>
+          <span className="text-xs font-medium flex-1">{item.name}</span>
           <span className="text-sm font-medium">
             {formatJOD(lineTotal)} {localizedCurrency}
           </span>
