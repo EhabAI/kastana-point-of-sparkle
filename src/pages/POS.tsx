@@ -2132,6 +2132,7 @@ export default function POS() {
                   onNewOrder={handleNewOrderButton}
                   shiftOpen={shiftOpen}
                   hasTable={!!currentOrder?.table_id}
+                  tableName={tables.find(t => t.id === currentOrder?.table_id)?.table_name}
                   kdsEnabled={settings?.kds_enabled}
                   onSendToKitchen={handleSendToKitchen}
                   isSendingToKitchen={sendToKitchenMutation.isPending}
@@ -2183,6 +2184,7 @@ export default function POS() {
                   onNewOrder={handleNewOrderButton}
                   shiftOpen={shiftOpen}
                   hasTable={!!currentOrder?.table_id}
+                  tableName={tables.find(t => t.id === currentOrder?.table_id)?.table_name}
                   kdsEnabled={settings?.kds_enabled}
                   onSendToKitchen={handleSendToKitchen}
                   isSendingToKitchen={sendToKitchenMutation.isPending}
