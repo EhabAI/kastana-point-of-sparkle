@@ -65,3 +65,9 @@ verify_jwt = false
 
 [functions.owner-update-staff-email]
 verify_jwt = false
+
+[functions.system-admin-create-restaurant-with-subscription]
+verify_jwt = false
+
+[functions.system-admin-renew-subscription]
+verify_jwt = false

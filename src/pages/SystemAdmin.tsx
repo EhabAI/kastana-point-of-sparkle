@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -28,17 +29,26 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useRestaurants, useCreateRestaurant, useAssignOwner, useUpdateRestaurant } from "@/hooks/useRestaurants";
+import { useRestaurants, useAssignOwner, useUpdateRestaurant } from "@/hooks/useRestaurants";
 import { useOwners, useCreateOwner } from "@/hooks/useOwners";
 import { useToggleRestaurantActive } from "@/hooks/useToggleRestaurantActive";
 import { useAllRestaurantsInventoryStatus, useToggleInventoryModule } from "@/hooks/useInventoryModuleToggle";
 import { useAllRestaurantsKDSStatus, useToggleKDSModule } from "@/hooks/useKDSModuleToggle";
-import { Store, Users, Plus, Link, Loader2, Upload, Image, Package, ChefHat, Pencil, Key } from "lucide-react";
+import { 
+  useExpiringSubscriptions, 
+  useCreateRestaurantWithSubscription, 
+  useRenewSubscription,
+  useRestaurantSubscriptions,
+  PERIOD_LABELS,
+  SubscriptionPeriod 
+} from "@/hooks/useRestaurantSubscriptions";
+import { Store, Users, Plus, Link, Loader2, Upload, Image, Package, ChefHat, Pencil, Key, AlertTriangle, RefreshCw, Calendar } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { formatJOD } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
+import { format, differenceInDays } from "date-fns";
 
 const emailSchema = z.string().email("Please enter a valid email");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -50,7 +60,10 @@ export default function SystemAdmin() {
   const { data: owners = [], isLoading: loadingOwners } = useOwners();
   const { data: inventoryStatusMap = new Map() } = useAllRestaurantsInventoryStatus();
   const { data: kdsStatusMap = new Map() } = useAllRestaurantsKDSStatus();
-  const createRestaurant = useCreateRestaurant();
+  const { data: subscriptions = [] } = useRestaurantSubscriptions();
+  const { data: expiringSubscriptions = [] } = useExpiringSubscriptions();
+  const createRestaurantWithSub = useCreateRestaurantWithSubscription();
+  const renewSubscription = useRenewSubscription();
   const updateRestaurant = useUpdateRestaurant();
   const createOwner = useCreateOwner();
   const assignOwner = useAssignOwner();
@@ -73,6 +86,18 @@ export default function SystemAdmin() {
   const [selectedOwner, setSelectedOwner] = useState("");
   const [viewingRestaurant, setViewingRestaurant] = useState<string | null>(null);
   const [editLogoRestaurantId, setEditLogoRestaurantId] = useState<string | null>(null);
+  
+  // Subscription form states (create restaurant)
+  const [subscriptionPeriod, setSubscriptionPeriod] = useState<SubscriptionPeriod>("MONTHLY");
+  const [bonusMonths, setBonusMonths] = useState(0);
+  const [subscriptionReason, setSubscriptionReason] = useState("");
+  
+  // Renew subscription dialog states
+  const [renewDialogOpen, setRenewDialogOpen] = useState(false);
+  const [renewTarget, setRenewTarget] = useState<{id: string; name: string} | null>(null);
+  const [renewPeriod, setRenewPeriod] = useState<SubscriptionPeriod>("MONTHLY");
+  const [renewBonusMonths, setRenewBonusMonths] = useState(0);
+  const [renewReason, setRenewReason] = useState("");
   
   // Edit restaurant name states
   const [editNameDialogOpen, setEditNameDialogOpen] = useState(false);
@@ -142,26 +167,91 @@ export default function SystemAdmin() {
     try {
       setUploadingLogo(true);
       
-      // First create the restaurant to get its ID
-      const newRestaurant = await createRestaurant.mutateAsync({ name: restaurantName });
-      
-      // Then upload logo if provided
-      if (logoFile && newRestaurant?.id) {
-        const logoUrl = await uploadLogo(newRestaurant.id);
-        if (logoUrl) {
-          await updateRestaurant.mutateAsync({ id: newRestaurant.id, logoUrl });
+      // Upload logo first if provided
+      let logoUrl: string | null = null;
+      if (logoFile) {
+        // Create temporary ID for logo upload
+        const tempId = crypto.randomUUID();
+        const fileExt = logoFile.name.split('.').pop();
+        const filePath = `${tempId}.${fileExt}`;
+        
+        const { error } = await supabase.storage
+          .from('restaurant-logos')
+          .upload(filePath, logoFile, { upsert: true });
+        
+        if (!error) {
+          const { data: urlData } = supabase.storage
+            .from('restaurant-logos')
+            .getPublicUrl(filePath);
+          logoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
         }
       }
+      
+      // Create restaurant with subscription via edge function
+      const result = await createRestaurantWithSub.mutateAsync({ 
+        name: restaurantName,
+        logoUrl,
+        period: subscriptionPeriod,
+        bonusMonths,
+        reason: subscriptionReason || undefined,
+      });
       
       setRestaurantName("");
       setLogoFile(null);
       setLogoPreview(null);
+      setSubscriptionPeriod("MONTHLY");
+      setBonusMonths(0);
+      setSubscriptionReason("");
       setRestaurantDialogOpen(false);
     } catch (error) {
-      toast({ title: "Error creating restaurant", variant: "destructive" });
+      // Error already handled by hook
     } finally {
       setUploadingLogo(false);
     }
+  };
+  
+  const handleRenewSubscription = async () => {
+    if (!renewTarget) return;
+    
+    try {
+      await renewSubscription.mutateAsync({
+        restaurantId: renewTarget.id,
+        period: renewPeriod,
+        bonusMonths: renewBonusMonths,
+        reason: renewReason || undefined,
+      });
+      
+      setRenewDialogOpen(false);
+      setRenewTarget(null);
+      setRenewPeriod("MONTHLY");
+      setRenewBonusMonths(0);
+      setRenewReason("");
+    } catch (error) {
+      // Error already handled by hook
+    }
+  };
+
+  const openRenewDialog = (restaurantId: string, restaurantName: string) => {
+    setRenewTarget({ id: restaurantId, name: restaurantName });
+    setRenewPeriod("MONTHLY");
+    setRenewBonusMonths(0);
+    setRenewReason("");
+    setRenewDialogOpen(true);
+  };
+  
+  // Helper to get subscription for a restaurant
+  const getSubscription = (restaurantId: string) => {
+    return subscriptions.find(s => s.restaurant_id === restaurantId);
+  };
+  
+  // Helper to check if subscription is expiring or expired
+  const isSubscriptionCritical = (restaurantId: string) => {
+    const sub = getSubscription(restaurantId);
+    if (!sub) return true; // No subscription = critical
+    const endDate = new Date(sub.end_date);
+    const now = new Date();
+    const daysLeft = differenceInDays(endDate, now);
+    return daysLeft <= 7;
   };
 
   const handleUpdateLogo = async () => {
@@ -290,6 +380,71 @@ export default function SystemAdmin() {
           <StatCard title="Total Owners" value={owners.length} icon={Users} />
         </div>
 
+        {/* Expiring Subscriptions Alert */}
+        {expiringSubscriptions.length > 0 && (
+          <Card className="border-destructive/50 bg-destructive/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="h-5 w-5" />
+                Expiring Subscriptions ({expiringSubscriptions.length})
+              </CardTitle>
+              <CardDescription>
+                These subscriptions are expired or expiring within 7 days. Renew to restore access.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3">
+                {expiringSubscriptions.map((sub) => {
+                  const restaurant = restaurants.find(r => r.id === sub.restaurant_id);
+                  const endDate = new Date(sub.end_date);
+                  const now = new Date();
+                  const daysLeft = differenceInDays(endDate, now);
+                  const isExpired = daysLeft < 0;
+                  
+                  return (
+                    <div 
+                      key={sub.restaurant_id} 
+                      className="flex items-center justify-between p-3 bg-background rounded-lg border border-destructive/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        {restaurant?.logo_url ? (
+                          <img 
+                            src={restaurant.logo_url} 
+                            alt={`${restaurant?.name} logo`}
+                            className="w-10 h-10 object-contain rounded-lg"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 bg-destructive/10 rounded-lg flex items-center justify-center">
+                            <Store className="h-5 w-5 text-destructive" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-medium">{restaurant?.name || 'Unknown Restaurant'}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {isExpired 
+                              ? <span className="text-destructive font-medium">Expired {Math.abs(daysLeft)} days ago</span>
+                              : <span className="text-amber-600 font-medium">Expires in {daysLeft} days</span>
+                            }
+                            {' · '}
+                            {format(endDate, 'MMM d, yyyy')}
+                          </p>
+                        </div>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        onClick={() => openRenewDialog(sub.restaurant_id, restaurant?.name || 'Restaurant')}
+                      >
+                        <RefreshCw className="h-4 w-4 mr-1" />
+                        Renew
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Create Restaurant */}
@@ -307,12 +462,12 @@ export default function SystemAdmin() {
                 </CardContent>
               </Card>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>Create Restaurant</DialogTitle>
-                <DialogDescription>Enter the name and logo for the new restaurant.</DialogDescription>
+                <DialogDescription>Enter the details for the new restaurant with subscription.</DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-4">
+              <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
                 <div className="space-y-2">
                   <Label htmlFor="restaurant-name">Restaurant Name</Label>
                   <Input
@@ -353,17 +508,66 @@ export default function SystemAdmin() {
                     </Button>
                   )}
                 </div>
+                
+                {/* Subscription Settings */}
+                <div className="pt-4 border-t space-y-4">
+                  <h4 className="font-medium text-sm flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Subscription Settings
+                  </h4>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="subscription-period">Subscription Period</Label>
+                    <Select value={subscriptionPeriod} onValueChange={(v) => setSubscriptionPeriod(v as SubscriptionPeriod)}>
+                      <SelectTrigger id="subscription-period">
+                        <SelectValue placeholder="Select period" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(PERIOD_LABELS).map(([key, label]) => (
+                          <SelectItem key={key} value={key}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="bonus-months">Bonus Months (Free)</Label>
+                    <Input
+                      id="bonus-months"
+                      type="number"
+                      min={0}
+                      max={6}
+                      value={bonusMonths}
+                      onChange={(e) => setBonusMonths(Math.min(Math.max(0, parseInt(e.target.value) || 0), 6))}
+                    />
+                    <p className="text-xs text-muted-foreground">Maximum 6 bonus months</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="subscription-reason">Reason / Notes (optional)</Label>
+                    <Textarea
+                      id="subscription-reason"
+                      value={subscriptionReason}
+                      onChange={(e) => setSubscriptionReason(e.target.value)}
+                      placeholder="e.g., Promotional offer, Early adopter discount..."
+                      rows={2}
+                    />
+                  </div>
+                </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => {
                   setRestaurantDialogOpen(false);
                   setLogoFile(null);
                   setLogoPreview(null);
+                  setSubscriptionPeriod("MONTHLY");
+                  setBonusMonths(0);
+                  setSubscriptionReason("");
                 }}>
                   Cancel
                 </Button>
-                <Button onClick={handleCreateRestaurant} disabled={createRestaurant.isPending || uploadingLogo}>
-                  {(createRestaurant.isPending || uploadingLogo) ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                <Button onClick={handleCreateRestaurant} disabled={createRestaurantWithSub.isPending || uploadingLogo}>
+                  {(createRestaurantWithSub.isPending || uploadingLogo) ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Create
                 </Button>
               </DialogFooter>
@@ -516,8 +720,20 @@ export default function SystemAdmin() {
                 {restaurants.map((restaurant) => {
                   const inventoryEnabled = inventoryStatusMap.get(restaurant.id) ?? false;
                   const kdsEnabled = kdsStatusMap.get(restaurant.id) ?? false;
+                  const subscription = getSubscription(restaurant.id);
+                  const subscriptionEndDate = subscription ? new Date(subscription.end_date) : null;
+                  const now = new Date();
+                  const daysLeft = subscriptionEndDate ? differenceInDays(subscriptionEndDate, now) : null;
+                  const isExpired = daysLeft !== null && daysLeft < 0;
+                  const isExpiringSoon = daysLeft !== null && daysLeft >= 0 && daysLeft <= 7;
+                  
                   return (
-                    <div key={restaurant.id} className="p-4 bg-muted/50 rounded-lg space-y-3">
+                    <div key={restaurant.id} className={`p-4 rounded-lg space-y-3 ${
+                      !subscription ? 'bg-destructive/10 border border-destructive/30' :
+                      isExpired ? 'bg-destructive/10 border border-destructive/30' :
+                      isExpiringSoon ? 'bg-amber-500/10 border border-amber-500/30' :
+                      'bg-muted/50'
+                    }`}>
                       {/* Top row: Restaurant info + Status + Actions */}
                       <div className="flex items-center justify-between">
                         {/* Restaurant Info */}
@@ -660,6 +876,41 @@ export default function SystemAdmin() {
                             className="ml-1"
                           />
                         </div>
+                      </div>
+                      
+                      {/* Subscription Info Row */}
+                      <div className="flex items-center justify-between gap-3 pt-2 border-t border-border/50">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Subscription</span>
+                          {subscription ? (
+                            <div className="flex items-center gap-2">
+                              <Badge variant={isExpired ? "destructive" : isExpiringSoon ? "outline" : "secondary"} className="text-xs">
+                                {PERIOD_LABELS[subscription.period as SubscriptionPeriod]}
+                                {subscription.bonus_months > 0 && ` +${subscription.bonus_months}mo`}
+                              </Badge>
+                              <span className={`text-sm ${
+                                isExpired ? 'text-destructive font-medium' : 
+                                isExpiringSoon ? 'text-amber-600 font-medium' : 
+                                'text-muted-foreground'
+                              }`}>
+                                {isExpired 
+                                  ? `Expired ${Math.abs(daysLeft!)} days ago`
+                                  : `Expires ${format(subscriptionEndDate!, 'MMM d, yyyy')} (${daysLeft} days)`
+                                }
+                              </span>
+                            </div>
+                          ) : (
+                            <Badge variant="destructive" className="text-xs">NO SUBSCRIPTION</Badge>
+                          )}
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant={isExpired || !subscription ? "default" : isExpiringSoon ? "outline" : "ghost"}
+                          onClick={() => openRenewDialog(restaurant.id, restaurant.name)}
+                        >
+                          <RefreshCw className="h-4 w-4 mr-1" />
+                          {!subscription ? 'Add Subscription' : 'Renew'}
+                        </Button>
                       </div>
                     </div>
                   );
@@ -993,6 +1244,80 @@ export default function SystemAdmin() {
               <Button onClick={handleUpdateLogo} disabled={!logoFile || uploadingLogo}>
                 {uploadingLogo ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Save
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Renew Subscription Dialog */}
+        <Dialog open={renewDialogOpen} onOpenChange={(open) => {
+          setRenewDialogOpen(open);
+          if (!open) {
+            setRenewTarget(null);
+            setRenewPeriod("MONTHLY");
+            setRenewBonusMonths(0);
+            setRenewReason("");
+          }
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Renew Subscription</DialogTitle>
+              <DialogDescription>
+                Renew subscription for <strong>{renewTarget?.name}</strong>. The new period will start from today.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="renew-period">Subscription Period</Label>
+                <Select value={renewPeriod} onValueChange={(v) => setRenewPeriod(v as SubscriptionPeriod)}>
+                  <SelectTrigger id="renew-period">
+                    <SelectValue placeholder="Select period" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(PERIOD_LABELS).map(([key, label]) => (
+                      <SelectItem key={key} value={key}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="renew-bonus-months">Bonus Months (Free)</Label>
+                <Input
+                  id="renew-bonus-months"
+                  type="number"
+                  min={0}
+                  max={6}
+                  value={renewBonusMonths}
+                  onChange={(e) => setRenewBonusMonths(Math.min(Math.max(0, parseInt(e.target.value) || 0), 6))}
+                />
+                <p className="text-xs text-muted-foreground">Maximum 6 bonus months</p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="renew-reason">Reason / Notes (optional)</Label>
+                <Textarea
+                  id="renew-reason"
+                  value={renewReason}
+                  onChange={(e) => setRenewReason(e.target.value)}
+                  placeholder="e.g., Renewal discount, Loyal customer..."
+                  rows={2}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setRenewDialogOpen(false);
+                setRenewTarget(null);
+                setRenewPeriod("MONTHLY");
+                setRenewBonusMonths(0);
+                setRenewReason("");
+              }}>
+                Cancel
+              </Button>
+              <Button onClick={handleRenewSubscription} disabled={renewSubscription.isPending}>
+                {renewSubscription.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Renew Subscription
               </Button>
             </DialogFooter>
           </DialogContent>
