@@ -650,6 +650,7 @@ export default {
   // Payment methods
   payment_methods: "طرق الدفع",
   payment_methods_desc: "تكوين طرق الدفع المقبولة لكل فرع",
+  configure_payment_methods_per_branch: "إعداد طرق الدفع لكل فرع",
   cash: "نقداً",
   accept_cash_payments: "قبول الدفع النقدي",
   visa: "فيزا/ماستر",
