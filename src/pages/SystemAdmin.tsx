@@ -828,23 +828,33 @@ export default function SystemAdmin() {
                       </div>
 
                       {/* Bottom row: Add-ons/Modules Section */}
-                      <div className="flex items-center gap-3 pt-2 border-t border-border/50">
-                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide whitespace-nowrap">{t('sa_addons')}</span>
+                      <div className="flex flex-wrap items-start gap-3 pt-2 border-t border-border/50">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('sa_addons')}</span>
                         
-                        {/* Inventory Module */}
+                        {/* Inventory Module - Vertical Layout */}
                         <div 
-                          className={`flex items-center gap-2.5 px-3 py-2 rounded-md transition-colors min-w-[140px] ${
+                          className={`flex flex-col gap-1.5 px-3 py-2 rounded-md transition-colors ${
                             inventoryEnabled 
                               ? 'bg-blue-50 dark:bg-blue-950/40' 
                               : 'bg-muted/30'
                           }`}
                         >
-                          <Package className={`h-4 w-4 shrink-0 ${inventoryEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                          <div className="flex flex-col gap-0.5 min-w-0">
-                            <span className={`text-xs font-medium leading-tight whitespace-nowrap ${inventoryEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
+                          {/* Line 1: Icon + Feature Name (full width) */}
+                          <div className="flex items-center gap-2">
+                            <Package className={`h-4 w-4 ${inventoryEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                            <span className={`text-xs font-semibold ${inventoryEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
                               {t('sa_addon_inventory')}
                             </span>
-                            <span className={`text-[10px] leading-tight whitespace-nowrap ${
+                          </div>
+                          {/* Line 2: Switch + State Label */}
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={inventoryEnabled}
+                              onCheckedChange={() => handleInventoryToggle(restaurant.id, restaurant.name, inventoryEnabled)}
+                              disabled={toggleInventory.isPending}
+                              className="h-4 w-7 data-[state=checked]:bg-blue-600"
+                            />
+                            <span className={`text-[11px] ${
                               inventoryEnabled 
                                 ? 'text-green-600 dark:text-green-400 font-medium' 
                                 : 'text-muted-foreground'
@@ -852,28 +862,32 @@ export default function SystemAdmin() {
                               {inventoryEnabled ? t('sa_addon_enabled') : t('sa_addon_disabled')}
                             </span>
                           </div>
-                          <Switch
-                            checked={inventoryEnabled}
-                            onCheckedChange={() => handleInventoryToggle(restaurant.id, restaurant.name, inventoryEnabled)}
-                            disabled={toggleInventory.isPending}
-                            className="h-4 w-7 shrink-0 data-[state=checked]:bg-blue-600"
-                          />
                         </div>
 
-                        {/* KDS Module */}
+                        {/* KDS Module - Vertical Layout */}
                         <div 
-                          className={`flex items-center gap-2.5 px-3 py-2 rounded-md transition-colors min-w-[130px] ${
+                          className={`flex flex-col gap-1.5 px-3 py-2 rounded-md transition-colors ${
                             kdsEnabled 
                               ? 'bg-blue-50 dark:bg-blue-950/40' 
                               : 'bg-muted/30'
                           }`}
                         >
-                          <ChefHat className={`h-4 w-4 shrink-0 ${kdsEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                          <div className="flex flex-col gap-0.5 min-w-0">
-                            <span className={`text-xs font-medium leading-tight whitespace-nowrap ${kdsEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
+                          {/* Line 1: Icon + Feature Name (full width) */}
+                          <div className="flex items-center gap-2">
+                            <ChefHat className={`h-4 w-4 ${kdsEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                            <span className={`text-xs font-semibold ${kdsEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
                               {t('sa_addon_kds')}
                             </span>
-                            <span className={`text-[10px] leading-tight whitespace-nowrap ${
+                          </div>
+                          {/* Line 2: Switch + State Label */}
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={kdsEnabled}
+                              onCheckedChange={() => handleKDSToggle(restaurant.id, restaurant.name, kdsEnabled)}
+                              disabled={toggleKDS.isPending}
+                              className="h-4 w-7 data-[state=checked]:bg-blue-600"
+                            />
+                            <span className={`text-[11px] ${
                               kdsEnabled 
                                 ? 'text-green-600 dark:text-green-400 font-medium' 
                                 : 'text-muted-foreground'
@@ -881,12 +895,6 @@ export default function SystemAdmin() {
                               {kdsEnabled ? t('sa_addon_enabled') : t('sa_addon_disabled')}
                             </span>
                           </div>
-                          <Switch
-                            checked={kdsEnabled}
-                            onCheckedChange={() => handleKDSToggle(restaurant.id, restaurant.name, kdsEnabled)}
-                            disabled={toggleKDS.isPending}
-                            className="h-4 w-7 shrink-0 data-[state=checked]:bg-blue-600"
-                          />
                         </div>
                       </div>
                       
