@@ -262,6 +262,27 @@
         "user_roles": ["kitchen", "owner"]
       }
     },
+    "send_to_kitchen": {
+      "id": "send_to_kitchen",
+      "intent": ["send_kitchen", "kitchen_button", "send_order"],
+      "keywords": {
+        "ar": ["إرسال للمطبخ", "المطبخ", "ارسال", "طلب المطبخ", "لماذا لا يظهر", "الطلب لا يظهر"],
+        "en": ["send to kitchen", "kitchen", "send order", "why order not showing", "order not appearing"]
+      },
+      "title": {
+        "ar": "إرسال الطلب للمطبخ",
+        "en": "Send to Kitchen"
+      },
+      "content": {
+        "ar": "زر إرسال للمطبخ:\n\n• يظهر الزر في شاشة الكاشير عند تفعيل شاشة المطبخ (KDS)\n• يرسل فقط العناصر الجديدة التي لم تُرسل سابقاً\n• العناصر المرسلة مسبقاً لن تُرسل مرة أخرى\n\nلماذا لا يظهر الطلب في المطبخ؟\n• يجب الضغط على زر (إرسال للمطبخ) لإرسال العناصر الجديدة\n• الإرسال لا يتم تلقائياً عند إضافة الأصناف\n\nملاحظات:\n• الدفع والإرسال للمطبخ عمليتان منفصلتان\n• يمكن إرسال أصناف جديدة عدة مرات قبل الدفع",
+        "en": "Send to Kitchen button:\n\n• Button appears in cashier screen when KDS is enabled\n• Only sends NEW items that haven't been sent before\n• Previously sent items will not be resent\n\nWhy doesn't the order appear in kitchen?\n• You must press 'Send to Kitchen' to send new items\n• Items are not automatically sent when added\n\nNotes:\n• Payment and kitchen sending are separate actions\n• You can send new items multiple times before payment"
+      },
+      "metadata": {
+        "feature_id": "send_to_kitchen",
+        "affected_screens": ["POS", "KDS"],
+        "user_roles": ["cashier", "owner"]
+      }
+    },
     "user_roles": {
       "id": "user_roles",
       "intent": ["roles", "permissions", "users"],

@@ -947,6 +947,7 @@ export type Database = {
           cogs: number | null
           created_at: string
           id: string
+          kitchen_sent_at: string | null
           menu_item_id: string | null
           name: string
           notes: string | null
@@ -962,6 +963,7 @@ export type Database = {
           cogs?: number | null
           created_at?: string
           id?: string
+          kitchen_sent_at?: string | null
           menu_item_id?: string | null
           name: string
           notes?: string | null
@@ -977,6 +979,7 @@ export type Database = {
           cogs?: number | null
           created_at?: string
           id?: string
+          kitchen_sent_at?: string | null
           menu_item_id?: string | null
           name?: string
           notes?: string | null

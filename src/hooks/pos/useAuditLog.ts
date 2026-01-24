@@ -32,7 +32,8 @@ export type AuditAction =
   | "STOCK_COUNT_CREATED"
   | "STOCK_COUNT_APPROVED"
   | "STOCK_COUNT_CANCELLED"
-  | "INVENTORY_ADJUSTMENT";
+  | "INVENTORY_ADJUSTMENT"
+  | "SEND_TO_KITCHEN";
 
 export type EntityType = "shift" | "order" | "order_item" | "payment" | "refund" | "shift_transaction" | "stock_count" | "inventory_transaction";
 

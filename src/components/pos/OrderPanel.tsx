@@ -5,9 +5,16 @@ import { Badge } from "@/components/ui/badge";
 import { OrderItemRow } from "./OrderItemRow";
 import { OrderTotals } from "./OrderTotals";
 import { OrderBadges, getOrderStatusBackground } from "./OrderBadges";
-import { Percent, CreditCard, Pause, Ban, User, Phone, Plus, Smartphone, StickyNote } from "lucide-react";
+import { Percent, CreditCard, Pause, Ban, User, Phone, Plus, Smartphone, StickyNote, ChefHat } from "lucide-react";
 import { formatJOD, cn, getCurrencySymbol } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Separator } from "@/components/ui/separator";
 
 // Status badge configuration
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
@@ -24,6 +31,7 @@ interface OrderItem {
   quantity: number;
   notes?: string | null;
   voided: boolean;
+  kitchen_sent_at?: string | null;
 }
 
 interface CustomerInfo {
@@ -60,6 +68,10 @@ interface OrderPanelProps {
   shiftOpen: boolean;
   hasRefund?: boolean;
   hasTable?: boolean;
+  // Send to Kitchen props
+  kdsEnabled?: boolean;
+  onSendToKitchen?: () => void;
+  isSendingToKitchen?: boolean;
 }
 
 // Parse customer info from order_notes
@@ -109,6 +121,9 @@ export function OrderPanel({
   shiftOpen,
   hasRefund = false,
   hasTable = false,
+  kdsEnabled = false,
+  onSendToKitchen,
+  isSendingToKitchen = false,
 }: OrderPanelProps) {
   const { t, language } = useLanguage();
   const activeItems = items.filter((item) => !item.voided);
@@ -119,6 +134,10 @@ export function OrderPanel({
   const hasDiscount = (discountValue && discountValue > 0) || false;
   const hasOrderNotes = orderNotes && !orderNotes.startsWith("customer:") && !orderNotes.startsWith("type:");
   const orderBg = getOrderStatusBackground(orderStatus, hasDiscount);
+
+  // Count pending items (not yet sent to kitchen)
+  const pendingKitchenItems = activeItems.filter((item) => !item.kitchen_sent_at);
+  const hasPendingKitchenItems = pendingKitchenItems.length > 0;
 
   return (
     <Card className={cn("h-full flex flex-col", orderBg)}>
@@ -243,6 +262,49 @@ export function OrderPanel({
             {t("hold")}
           </Button>
         </div>
+
+        {/* Send to Kitchen Button - only visible when KDS is enabled */}
+        {kdsEnabled && onSendToKitchen && (
+          <>
+            <Separator className="my-1" />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="w-full">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={onSendToKitchen}
+                      disabled={!hasItems || !isOpen || !hasPendingKitchenItems || isSendingToKitchen}
+                      className={cn(
+                        "w-full border-primary/40 transition-all duration-200",
+                        hasPendingKitchenItems && hasItems && isOpen
+                          ? "bg-primary/8 hover:bg-primary/15 text-primary hover:text-primary border-primary"
+                          : "opacity-50"
+                      )}
+                    >
+                      <ChefHat className="h-4 w-4 ltr:mr-1.5 rtl:ml-1.5" />
+                      {t("send_to_kitchen")}
+                      {hasPendingKitchenItems && (
+                        <Badge variant="secondary" className="ml-2 text-xs px-1.5 py-0 h-5">
+                          {pendingKitchenItems.length}
+                        </Badge>
+                      )}
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    {hasPendingKitchenItems
+                      ? t("send_to_kitchen_tooltip_enabled")
+                      : t("send_to_kitchen_tooltip_disabled")}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <Separator className="my-1" />
+          </>
+        )}
 
         <div className="w-full grid grid-cols-2 gap-3">
           <Button

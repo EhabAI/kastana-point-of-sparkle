@@ -79,7 +79,7 @@ export function useKDSOrders(
           notes,
           order_notes,
           restaurant_tables(table_name),
-          order_items(id, name, quantity, notes, voided)
+          order_items(id, name, quantity, notes, voided, kitchen_sent_at)
         `)
         .eq("restaurant_id", restaurantId)
         // Include all statuses that may be visible in KDS based on order type
@@ -105,8 +105,8 @@ export function useKDSOrders(
       }
 
       // Filter orders based on business rules:
-      // - DINE-IN (has table_id): visible when status = "open", "in_progress", "ready"
-      // - TAKEAWAY (no table_id): visible when status = "paid", "in_progress", "ready"
+      // - Orders must have at least one item SENT to kitchen (kitchen_sent_at is NOT NULL)
+      // - Additionally apply status filtering for visibility
       // - Always exclude: cancelled, closed, void
       const filteredOrders = (data || [])
         .filter((order: any) => {
@@ -115,6 +115,16 @@ export function useKDSOrders(
 
           // Exclude cancelled/closed orders
           if (status === "cancelled" || status === "closed" || status === "void") {
+            return false;
+          }
+
+          // Filter items to only include those sent to kitchen
+          const sentItems = (order.order_items || []).filter(
+            (item: any) => !item.voided && item.kitchen_sent_at !== null
+          );
+
+          // Order is only visible if it has at least one item sent to kitchen
+          if (sentItems.length === 0) {
             return false;
           }
 
@@ -150,7 +160,10 @@ export function useKDSOrders(
           created_at: order.created_at,
           notes: order.notes,
           order_notes: order.order_notes,
-          items: (order.order_items || []).filter((item: any) => !item.voided),
+          // Only include items that have been sent to kitchen
+          items: (order.order_items || []).filter(
+            (item: any) => !item.voided && item.kitchen_sent_at !== null
+          ),
         })) as KDSOrder[];
 
       return filteredOrders;
