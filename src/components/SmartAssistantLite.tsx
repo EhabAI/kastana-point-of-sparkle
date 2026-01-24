@@ -1280,7 +1280,8 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
         style={sheetStyle}
       >
         {/* Compact Header with Width Toggle */}
-        <SheetHeader className="px-4 py-2.5 border-b bg-gradient-to-br from-primary/10 to-primary/5">
+        {/* Added pr-12 to create visual separation from the Close (X) button which is positioned at right-4 top-4 */}
+        <SheetHeader className="px-4 pr-12 py-2.5 border-b bg-gradient-to-br from-primary/10 to-primary/5">
           <div className="flex items-center gap-2.5">
             <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
               <Bot className="h-4 w-4 text-primary" />
@@ -1290,7 +1291,8 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
                 {assistantTitle}
               </SheetTitle>
             </div>
-            <div className="flex items-center gap-1 shrink-0">
+            {/* Added mr-1 for extra breathing room from the Close button area */}
+            <div className="flex items-center gap-1 shrink-0 mr-1">
               {/* Width Toggle Button - only show in panel mode */}
               {!isKDSMode && !isFullscreen && (
                 <TooltipProvider>
