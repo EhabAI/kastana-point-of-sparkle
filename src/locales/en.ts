@@ -1713,6 +1713,11 @@ export default {
   sub_renew_desc: "Renew subscription for",
   sub_renew_start_note: "The new period will start from today.",
   sub_renew_button: "Renew Subscription",
+  sub_manage: "Manage Subscription",
+  sub_manage_title: "Manage Subscription",
+  sub_manage_desc: "Update subscription settings for",
+  sub_save_changes: "Save Changes",
+  sub_start_date: "Start Date",
   sub_create_desc: "Enter the details for the new restaurant with subscription.",
   
   // Subscription periods

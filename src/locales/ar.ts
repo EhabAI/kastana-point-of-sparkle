@@ -1718,6 +1718,11 @@ export default {
   sub_renew_desc: "تجديد اشتراك",
   sub_renew_start_note: "ستبدأ الفترة الجديدة من اليوم.",
   sub_renew_button: "تجديد الاشتراك",
+  sub_manage: "إدارة الاشتراك",
+  sub_manage_title: "إدارة الاشتراك",
+  sub_manage_desc: "تحديث إعدادات الاشتراك لـ",
+  sub_save_changes: "حفظ التعديلات",
+  sub_start_date: "تاريخ البدء",
   sub_create_desc: "أدخل تفاصيل المطعم الجديد مع الاشتراك.",
   
   // Subscription periods
