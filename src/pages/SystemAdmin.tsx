@@ -375,8 +375,8 @@ export default function SystemAdmin() {
       <div className="space-y-8 animate-fade-in">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <StatCard title="Total Restaurants" value={restaurants.length} icon={Store} />
-          <StatCard title="Total Owners" value={owners.length} icon={Users} />
+          <StatCard title={t('sa_total_restaurants')} value={restaurants.length} icon={Store} />
+          <StatCard title={t('sa_total_owners')} value={owners.length} icon={Users} />
         </div>
 
         {/* Expiring Subscriptions Alert */}
@@ -455,8 +455,8 @@ export default function SystemAdmin() {
                     <Plus className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-foreground">Create Restaurant</h3>
-                    <p className="text-sm text-muted-foreground">Add a new restaurant</p>
+                    <h3 className="font-medium text-foreground">{t('sa_create_restaurant')}</h3>
+                    <p className="text-sm text-muted-foreground">{t('sa_create_restaurant_desc')}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -583,30 +583,30 @@ export default function SystemAdmin() {
                     <Users className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-foreground">Create Owner</h3>
-                    <p className="text-sm text-muted-foreground">Add a new owner account</p>
+                    <h3 className="font-medium text-foreground">{t('sa_create_owner')}</h3>
+                    <p className="text-sm text-muted-foreground">{t('sa_create_owner_desc')}</p>
                   </div>
                 </CardContent>
               </Card>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create Owner</DialogTitle>
-                <DialogDescription>Create a new owner account with email, password, and display name.</DialogDescription>
+                <DialogTitle>{t('sa_create_owner_dialog_title')}</DialogTitle>
+                <DialogDescription>{t('sa_create_owner_dialog_desc')}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="owner-display-name">Display Name</Label>
+                  <Label htmlFor="owner-display-name">{t('sa_display_name')}</Label>
                   <Input
                     id="owner-display-name"
                     value={ownerDisplayName}
                     onChange={(e) => setOwnerDisplayName(e.target.value)}
                     placeholder="John Doe"
                   />
-                  <p className="text-xs text-muted-foreground">Minimum 2 characters</p>
+                  <p className="text-xs text-muted-foreground">{t('sa_display_name_min')}</p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="owner-email">Email</Label>
+                  <Label htmlFor="owner-email">{t('email')}</Label>
                   <Input
                     id="owner-email"
                     type="email"
@@ -616,7 +616,7 @@ export default function SystemAdmin() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="owner-password">Password</Label>
+                  <Label htmlFor="owner-password">{t('password')}</Label>
                   <Input
                     id="owner-password"
                     type="password"
@@ -631,11 +631,11 @@ export default function SystemAdmin() {
                   setOwnerDialogOpen(false);
                   setOwnerDisplayName("");
                 }}>
-                  Cancel
+                  {t('cancel')}
                 </Button>
                 <Button onClick={handleCreateOwner} disabled={createOwner.isPending || ownerDisplayName.trim().length < 2}>
                   {createOwner.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Create
+                  {t('create')}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -650,23 +650,23 @@ export default function SystemAdmin() {
                     <Link className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-foreground">Assign Owner</h3>
-                    <p className="text-sm text-muted-foreground">Link owner to restaurant</p>
+                    <h3 className="font-medium text-foreground">{t('sa_assign_owner')}</h3>
+                    <p className="text-sm text-muted-foreground">{t('sa_assign_owner_desc')}</p>
                   </div>
                 </CardContent>
               </Card>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Assign Owner to Restaurant</DialogTitle>
-                <DialogDescription>Select a restaurant and an owner to link them.</DialogDescription>
+                <DialogTitle>{t('sa_assign_dialog_title')}</DialogTitle>
+                <DialogDescription>{t('sa_assign_dialog_desc')}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label>Restaurant</Label>
+                  <Label>{t('restaurant_name')}</Label>
                   <Select value={selectedRestaurant} onValueChange={setSelectedRestaurant}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select restaurant" />
+                      <SelectValue placeholder={t('sa_select_restaurant')} />
                     </SelectTrigger>
                     <SelectContent>
                       {unassignedRestaurants.map((r) => (
@@ -678,10 +678,10 @@ export default function SystemAdmin() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Owner</Label>
+                  <Label>{t('sa_owner_label')}</Label>
                   <Select value={selectedOwner} onValueChange={setSelectedOwner}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select owner" />
+                      <SelectValue placeholder={t('sa_select_owner')} />
                     </SelectTrigger>
                     <SelectContent>
                       {owners.map((o) => (
@@ -695,11 +695,11 @@ export default function SystemAdmin() {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>
-                  Cancel
+                  {t('cancel')}
                 </Button>
                 <Button onClick={handleAssignOwner} disabled={assignOwner.isPending}>
                   {assignOwner.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Assign
+                  {t('sa_assign')}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -709,12 +709,12 @@ export default function SystemAdmin() {
         {/* Restaurants List */}
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle>Restaurants</CardTitle>
-            <CardDescription>All restaurants in the system</CardDescription>
+            <CardTitle>{t('sa_restaurants_title')}</CardTitle>
+            <CardDescription>{t('sa_restaurants_subtitle')}</CardDescription>
           </CardHeader>
           <CardContent>
             {restaurants.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">No restaurants yet. Create one to get started.</p>
+              <p className="text-muted-foreground text-center py-8">{t('sa_no_restaurants')}</p>
             ) : (
               <div className="space-y-4">
                 {restaurants.map((restaurant) => {
@@ -753,8 +753,8 @@ export default function SystemAdmin() {
                             <p className="font-medium text-foreground">{restaurant.name}</p>
                             <p className="text-sm text-muted-foreground">
                               {restaurant.owner_id 
-                                ? `Owner: ${owners.find(o => o.user_id === restaurant.owner_id)?.email || restaurant.owner_id.slice(0, 8) + '...'}`
-                                : "No owner assigned"}
+                                ? `${t('sa_owner_label')}: ${owners.find(o => o.user_id === restaurant.owner_id)?.email || restaurant.owner_id.slice(0, 8) + '...'}`
+                                : t('sa_no_owner')}
                             </p>
                           </div>
                         </div>
@@ -784,7 +784,7 @@ export default function SystemAdmin() {
                               }}
                             >
                               <Pencil className="h-4 w-4 mr-1.5" />
-                              Edit
+                              {t('edit')}
                             </Button>
                             <Button
                               variant="ghost"
@@ -796,7 +796,7 @@ export default function SystemAdmin() {
                               }}
                             >
                               <Image className="h-4 w-4 mr-1.5" />
-                              Logo
+                              {t('sa_logo')}
                             </Button>
                             {restaurant.owner_id && (
                               <Button
@@ -814,7 +814,7 @@ export default function SystemAdmin() {
                                 }}
                               >
                                 <Key className="h-4 w-4 mr-1.5" />
-                                Owner
+                                {t('sa_owner_label')}
                               </Button>
                             )}
                           </div>
@@ -823,7 +823,7 @@ export default function SystemAdmin() {
 
                       {/* Bottom row: Add-ons/Modules Section */}
                       <div className="flex items-center gap-3 pt-2 border-t border-border/50">
-                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Add-ons</span>
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('sa_addons')}</span>
                         
                         {/* Inventory Module */}
                         <div 
@@ -835,13 +835,13 @@ export default function SystemAdmin() {
                         >
                           <Package className={`h-4 w-4 ${inventoryEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
                           <span className={`text-sm ${inventoryEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
-                            Inventory Management
+                            {t('sa_addon_inventory')}
                           </span>
                           <Badge 
                             variant={inventoryEnabled ? "default" : "secondary"} 
                             className="text-[10px] px-1.5 py-0"
                           >
-                            {inventoryEnabled ? "ON" : "OFF"}
+                            {inventoryEnabled ? t('sa_status_on') : t('sa_status_off')}
                           </Badge>
                           <Switch
                             checked={inventoryEnabled}
@@ -861,13 +861,13 @@ export default function SystemAdmin() {
                         >
                           <ChefHat className={`h-4 w-4 ${kdsEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
                           <span className={`text-sm ${kdsEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
-                            Kitchen Display
+                            {t('sa_addon_kds')}
                           </span>
                           <Badge 
                             variant={kdsEnabled ? "default" : "secondary"} 
                             className="text-[10px] px-1.5 py-0"
                           >
-                            {kdsEnabled ? "ON" : "OFF"}
+                            {kdsEnabled ? t('sa_status_on') : t('sa_status_off')}
                           </Badge>
                           <Switch
                             checked={kdsEnabled}
@@ -924,16 +924,16 @@ export default function SystemAdmin() {
         <AlertDialog open={deactivateDialogOpen} onOpenChange={setDeactivateDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Deactivate Restaurant?</AlertDialogTitle>
+              <AlertDialogTitle>{t('sa_deactivate_title')}</AlertDialogTitle>
               <AlertDialogDescription>
-                This will block POS, QR orders, and staff access immediately for <strong>{restaurantToDeactivate?.name}</strong>.
-                All owners and cashiers will be signed out and unable to access the system.
+                {t('sa_deactivate_desc')} <strong>{restaurantToDeactivate?.name}</strong>.
+                {' '}{t('sa_deactivate_note')}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
               <AlertDialogAction onClick={confirmDeactivate} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                Deactivate
+                {t('sa_deactivate')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -944,17 +944,17 @@ export default function SystemAdmin() {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
-                {inventoryToggleTarget?.currentEnabled ? "Disable Inventory Module?" : "Enable Inventory Module?"}
+                {inventoryToggleTarget?.currentEnabled ? t('sa_disable_inventory_title') : t('sa_enable_inventory_title')}
               </AlertDialogTitle>
               <AlertDialogDescription>
                 {inventoryToggleTarget?.currentEnabled 
-                  ? <>This will disable all Inventory features for <strong>{inventoryToggleTarget?.name}</strong>. Stock tracking, recipes, and COGS calculations will stop working.</>
-                  : <>This will activate Inventory features for <strong>{inventoryToggleTarget?.name}</strong>. Stock tracking, recipes, and COGS calculations will be enabled.</>
+                  ? <>{t('sa_disable_inventory_desc')} <strong>{inventoryToggleTarget?.name}</strong>. {t('sa_disable_inventory_note')}</>
+                  : <>{t('sa_enable_inventory_desc')} <strong>{inventoryToggleTarget?.name}</strong>. {t('sa_enable_inventory_note')}</>
                 }
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
               <AlertDialogAction 
                 onClick={confirmInventoryToggle}
                 className={inventoryToggleTarget?.currentEnabled 
@@ -962,7 +962,7 @@ export default function SystemAdmin() {
                   : "bg-primary text-primary-foreground hover:bg-primary/90"
                 }
               >
-                {inventoryToggleTarget?.currentEnabled ? "Disable" : "Enable"}
+                {inventoryToggleTarget?.currentEnabled ? t('sa_disable') : t('sa_enable')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -973,17 +973,17 @@ export default function SystemAdmin() {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
-                {kdsToggleTarget?.currentEnabled ? "Disable Kitchen Display?" : "Enable Kitchen Display?"}
+                {kdsToggleTarget?.currentEnabled ? t('sa_disable_kds_title') : t('sa_enable_kds_title')}
               </AlertDialogTitle>
               <AlertDialogDescription>
                 {kdsToggleTarget?.currentEnabled 
-                  ? <>This will disable KDS for <strong>{kdsToggleTarget?.name}</strong>. Kitchen staff will no longer have access.</>
-                  : <>This will activate KDS for <strong>{kdsToggleTarget?.name}</strong>. Kitchen staff can view and manage orders.</>
+                  ? <>{t('sa_disable_kds_desc')} <strong>{kdsToggleTarget?.name}</strong>. {t('sa_disable_kds_note')}</>
+                  : <>{t('sa_enable_kds_desc')} <strong>{kdsToggleTarget?.name}</strong>. {t('sa_enable_kds_note')}</>
                 }
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
               <AlertDialogAction 
                 onClick={confirmKDSToggle}
                 className={kdsToggleTarget?.currentEnabled 
@@ -991,7 +991,7 @@ export default function SystemAdmin() {
                   : "bg-primary text-primary-foreground hover:bg-primary/90"
                 }
               >
-                {kdsToggleTarget?.currentEnabled ? "Disable" : "Enable"}
+                {kdsToggleTarget?.currentEnabled ? t('sa_disable') : t('sa_enable')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -1007,17 +1007,17 @@ export default function SystemAdmin() {
         }}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Edit Restaurant Name</DialogTitle>
-              <DialogDescription>Update the name for {editingRestaurant?.name}.</DialogDescription>
+              <DialogTitle>{t('sa_edit_name_title')}</DialogTitle>
+              <DialogDescription>{t('sa_edit_name_desc')} {editingRestaurant?.name}.</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-restaurant-name">Restaurant Name</Label>
+                <Label htmlFor="edit-restaurant-name">{t('restaurant_name')}</Label>
                 <Input
                   id="edit-restaurant-name"
                   value={newRestaurantName}
                   onChange={(e) => setNewRestaurantName(e.target.value)}
-                  placeholder="Enter new name"
+                  placeholder={t('sa_enter_new_name')}
                 />
               </div>
             </div>
@@ -1027,7 +1027,7 @@ export default function SystemAdmin() {
                 setEditingRestaurant(null);
                 setNewRestaurantName("");
               }}>
-                Cancel
+                {t('cancel')}
               </Button>
               <Button 
                 onClick={async () => {
@@ -1040,7 +1040,7 @@ export default function SystemAdmin() {
                 disabled={updateRestaurant.isPending || !newRestaurantName.trim()}
               >
                 {updateRestaurant.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                Save
+                {t('save')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -1058,22 +1058,22 @@ export default function SystemAdmin() {
         }}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Edit Owner Account</DialogTitle>
-              <DialogDescription>Update details for {editingOwner?.username || editingOwner?.email}.</DialogDescription>
+              <DialogTitle>{t('sa_edit_owner_title')}</DialogTitle>
+              <DialogDescription>{t('sa_edit_owner_desc')} {editingOwner?.username || editingOwner?.email}.</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-owner-display-name">Display Name</Label>
+                <Label htmlFor="edit-owner-display-name">{t('sa_display_name')}</Label>
                 <Input
                   id="edit-owner-display-name"
                   value={newOwnerDisplayName}
                   onChange={(e) => setNewOwnerDisplayName(e.target.value)}
                   placeholder="John Doe"
                 />
-                <p className="text-xs text-muted-foreground">Minimum 2 characters</p>
+                <p className="text-xs text-muted-foreground">{t('sa_display_name_min')}</p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-owner-email">Email</Label>
+                <Label htmlFor="edit-owner-email">{t('email')}</Label>
                 <Input
                   id="edit-owner-email"
                   type="email"
@@ -1083,7 +1083,7 @@ export default function SystemAdmin() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-owner-password">New Password (leave empty to keep current)</Label>
+                <Label htmlFor="edit-owner-password">{t('sa_new_password_hint')}</Label>
                 <Input
                   id="edit-owner-password"
                   type="password"
@@ -1101,7 +1101,7 @@ export default function SystemAdmin() {
                 setNewOwnerPassword("");
                 setNewOwnerDisplayName("");
               }}>
-                Cancel
+                {t('cancel')}
               </Button>
               <Button 
                 onClick={async () => {
@@ -1181,7 +1181,7 @@ export default function SystemAdmin() {
                 disabled={updatingOwner || !newOwnerEmail.trim() || newOwnerDisplayName.trim().length < 2}
               >
                 {updatingOwner ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                Save
+                {t('save')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -1198,8 +1198,8 @@ export default function SystemAdmin() {
         }}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Update Restaurant Logo</DialogTitle>
-              <DialogDescription>Upload a new logo for this restaurant.</DialogDescription>
+              <DialogTitle>{t('sa_update_logo_title')}</DialogTitle>
+              <DialogDescription>{t('sa_update_logo_desc')}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <input
@@ -1218,7 +1218,7 @@ export default function SystemAdmin() {
                     onClick={() => logoInputRef.current?.click()}
                   >
                     <Upload className="h-4 w-4 mr-2" />
-                    Change Logo
+                    {t('sa_change_logo')}
                   </Button>
                 </div>
               ) : (
@@ -1228,7 +1228,7 @@ export default function SystemAdmin() {
                   className="w-full"
                 >
                   <Upload className="h-4 w-4 mr-2" />
-                  Upload Logo
+                  {t('sa_upload_logo')}
                 </Button>
               )}
             </div>
@@ -1239,11 +1239,11 @@ export default function SystemAdmin() {
                 setLogoPreview(null);
                 setEditLogoRestaurantId(null);
               }}>
-                Cancel
+                {t('cancel')}
               </Button>
               <Button onClick={handleUpdateLogo} disabled={!logoFile || uploadingLogo}>
                 {uploadingLogo ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                Save
+                {t('save')}
               </Button>
             </DialogFooter>
           </DialogContent>
