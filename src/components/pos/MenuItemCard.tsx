@@ -98,13 +98,13 @@ export function MenuItemCard({
           isInOrder ? "left-7" : "left-2"
         )} />
       )}
-      <span className="font-medium text-sm mb-1 line-clamp-2">{item.name}</span>
+      <span className="font-medium text-xs mb-1 line-clamp-2">{item.name}</span>
       {showCategoryName && item.category_name && (
-        <span className="text-xs text-muted-foreground mb-1 line-clamp-1">
+        <span className="text-[10px] text-muted-foreground mb-1 line-clamp-1">
           {item.category_name}
         </span>
       )}
-      <span className="text-primary font-bold">
+      <span className="text-primary font-semibold text-xs">
         {formatJOD(Number(item.price))} {currency}
       </span>
     </button>
