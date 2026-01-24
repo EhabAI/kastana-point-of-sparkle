@@ -1803,6 +1803,7 @@ export default {
   
   // Send to Kitchen
   send_to_kitchen: "Send to Kitchen",
+  sent_to_kitchen: "Sent to Kitchen",
   send_to_kitchen_tooltip_enabled: "Only new items will be sent to the kitchen",
   send_to_kitchen_tooltip_disabled: "No new items to send",
   items_sent_to_kitchen: "Items sent to kitchen",

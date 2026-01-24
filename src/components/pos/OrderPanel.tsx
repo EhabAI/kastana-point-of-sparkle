@@ -265,78 +265,67 @@ export function OrderPanel({
           </Button>
         </div>
 
-        <div className="w-full grid grid-cols-2 gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onVoidOrder}
-            disabled={!hasItems || !isOpen}
-            className="text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
-          >
-            <Ban className="h-4 w-4 mr-1.5" />
-            {t("void")}
-          </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onVoidOrder}
+          disabled={!hasItems || !isOpen}
+          className="w-full text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+        >
+          <Ban className="h-4 w-4 mr-1.5" />
+          {t("void")}
+        </Button>
 
-          {/* Send to Kitchen Button - shown ONLY when KDS enabled AND pending items exist */}
-          {kdsEnabled && onSendToKitchen && hasPendingKitchenItems && hasItems && isOpen ? (
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={onSendToKitchen}
-              disabled={isSendingToKitchen}
-              className="border-primary bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary shadow-md"
-            >
-              {isSendingToKitchen ? (
-                <span className="h-4 w-4 ltr:mr-1.5 rtl:ml-1.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              ) : (
-                <ChefHat className="h-4 w-4 ltr:mr-1.5 rtl:ml-1.5" />
-              )}
-              <span className="flex flex-col items-center leading-tight">
-                <span className="text-xs font-normal opacity-80">{t("send_to_kitchen")}</span>
-                <span className="text-xs font-semibold">{pendingKitchenItems.length} {t("items")}</span>
-              </span>
-            </Button>
-          ) : (
-            <Button
-              size="lg"
-              className={cn(
-                "shadow-md transition-all duration-200",
-                hasItems && total > 0 && isOpen
-                  ? "shadow-lg shadow-primary/25 ring-2 ring-primary/20 hover:shadow-xl hover:shadow-primary/30"
-                  : "opacity-70"
-              )}
-              onClick={onPay}
-              disabled={!hasItems || total <= 0 || !isOpen}
-            >
-              <CreditCard className="h-4 w-4 ltr:mr-1.5 rtl:ml-1.5" />
-              <span className="flex flex-col items-center leading-tight">
-                <span className="text-xs font-normal opacity-80">{t("pay")}</span>
-                <span className="text-xs font-semibold">{formatJOD(total)} {localizedCurrency}</span>
-              </span>
-            </Button>
-          )}
-        </div>
-
-        {/* Pay Button - always visible when Send to Kitchen is shown */}
-        {kdsEnabled && onSendToKitchen && hasPendingKitchenItems && hasItems && isOpen && (
+        {/* Send to Kitchen Button - shown when KDS enabled, has items, and order is open */}
+        {kdsEnabled && onSendToKitchen && hasItems && isOpen && (
           <Button
             size="lg"
+            variant="outline"
+            onClick={onSendToKitchen}
+            disabled={isSendingToKitchen || !hasPendingKitchenItems}
             className={cn(
-              "w-full shadow-md transition-all duration-200",
-              hasItems && total > 0 && isOpen
-                ? "shadow-lg shadow-primary/25 ring-2 ring-primary/20 hover:shadow-xl hover:shadow-primary/30"
-                : "opacity-70"
+              "w-full border-primary text-primary shadow-md",
+              hasPendingKitchenItems 
+                ? "bg-primary/10 hover:bg-primary/20" 
+                : "bg-muted/50 opacity-70"
             )}
-            onClick={onPay}
-            disabled={!hasItems || total <= 0 || !isOpen}
           >
-            <CreditCard className="h-4 w-4 ltr:mr-1.5 rtl:ml-1.5" />
-            <span className="flex flex-col items-center leading-tight">
-              <span className="text-xs font-normal opacity-80">{t("pay")}</span>
-              <span className="text-xs font-semibold">{formatJOD(total)} {localizedCurrency}</span>
-            </span>
+            {isSendingToKitchen ? (
+              <span className="h-4 w-4 ltr:mr-2 rtl:ml-2 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            ) : (
+              <ChefHat className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+            )}
+            {hasPendingKitchenItems ? (
+              <span className="flex items-center gap-1.5">
+                <span>{t("send_to_kitchen")}</span>
+                <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                  {pendingKitchenItems.length}
+                </Badge>
+              </span>
+            ) : (
+              <span>{t("sent_to_kitchen")}</span>
+            )}
           </Button>
         )}
+
+        {/* Pay Button - always visible at bottom */}
+        <Button
+          size="lg"
+          className={cn(
+            "w-full shadow-md transition-all duration-200",
+            hasItems && total > 0 && isOpen
+              ? "shadow-lg shadow-primary/25 ring-2 ring-primary/20 hover:shadow-xl hover:shadow-primary/30"
+              : "opacity-70"
+          )}
+          onClick={onPay}
+          disabled={!hasItems || total <= 0 || !isOpen}
+        >
+          <CreditCard className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+          <span className="flex items-center gap-1.5">
+            <span>{t("pay")}</span>
+            <span className="font-semibold">{formatJOD(total)} {localizedCurrency}</span>
+          </span>
+        </Button>
       </CardFooter>
     </Card>
   );

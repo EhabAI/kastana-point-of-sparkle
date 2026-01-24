@@ -1808,6 +1808,7 @@ export default {
   
   // Send to Kitchen
   send_to_kitchen: "إرسال إلى المطبخ",
+  sent_to_kitchen: "تم الإرسال للمطبخ",
   send_to_kitchen_tooltip_enabled: "سيتم إرسال العناصر الجديدة فقط إلى المطبخ",
   send_to_kitchen_tooltip_disabled: "لا توجد عناصر جديدة للإرسال",
   items_sent_to_kitchen: "تم إرسال الأصناف إلى المطبخ",
