@@ -46,6 +46,7 @@ import {
   useTransferOrderItem,
   useBranchOpenShift,
   useTableCheckout,
+  useSendToKitchen,
 } from "@/hooks/pos";
 import type { SelectedModifier } from "@/hooks/pos/useModifiers";
 import { useCreateRefund } from "@/hooks/pos/useRefunds";
@@ -203,6 +204,7 @@ export default function POS() {
   const auditLogMutation = useAuditLog();
   const transferItemMutation = useTransferOrderItem();
   const inventoryDeductionMutation = useInventoryDeduction();
+  const sendToKitchenMutation = useSendToKitchen();
   
   // State for inventory deduction warnings
   const [inventoryWarnings, setInventoryWarnings] = useState<DeductionWarning[]>([]);
@@ -1839,6 +1841,32 @@ export default function POS() {
     }
   };
 
+  // Send to Kitchen Handler
+  const handleSendToKitchen = async () => {
+    if (!currentOrder || !restaurant) return;
+    
+    const orderItems = currentOrder.order_items || [];
+    const pendingItems = orderItems.filter(
+      (item: any) => !item.voided && !item.kitchen_sent_at
+    );
+    
+    if (pendingItems.length === 0) {
+      toast.info(t("send_to_kitchen_tooltip_disabled"));
+      return;
+    }
+    
+    try {
+      const result = await sendToKitchenMutation.mutateAsync({
+        orderId: currentOrder.id,
+        restaurantId: restaurant.id,
+        itemIds: pendingItems.map((item: any) => item.id),
+      });
+      toast.success(t("send_to_kitchen_success").replace("{{count}}", String(result.itemCount)));
+    } catch (error) {
+      toast.error(t("send_to_kitchen_failed"));
+    }
+  };
+
   // Move Order Handlers
   const handleStartMoveOrder = (tableId: string) => {
     // Cancel merge mode if active
@@ -2104,6 +2132,9 @@ export default function POS() {
                   onNewOrder={handleNewOrderButton}
                   shiftOpen={shiftOpen}
                   hasTable={!!currentOrder?.table_id}
+                  kdsEnabled={settings?.kds_enabled}
+                  onSendToKitchen={handleSendToKitchen}
+                  isSendingToKitchen={sendToKitchenMutation.isPending}
                 />
               </div>
             </div>
@@ -2152,6 +2183,9 @@ export default function POS() {
                   onNewOrder={handleNewOrderButton}
                   shiftOpen={shiftOpen}
                   hasTable={!!currentOrder?.table_id}
+                  kdsEnabled={settings?.kds_enabled}
+                  onSendToKitchen={handleSendToKitchen}
+                  isSendingToKitchen={sendToKitchenMutation.isPending}
                 />
               </div>
             </div>
