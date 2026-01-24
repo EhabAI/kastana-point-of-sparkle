@@ -255,3 +255,23 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Trainer highlight effect */
+.trainer-highlight {
+  position: relative;
+  z-index: 9999 !important;
+  outline: 3px solid hsl(var(--primary)) !important;
+  outline-offset: 2px;
+  border-radius: var(--radius);
+  box-shadow: 0 0 0 4px hsl(var(--primary) / 0.2) !important;
+  animation: trainer-pulse 2s ease-in-out infinite;
+}
+
+@keyframes trainer-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px hsl(var(--primary) / 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 8px hsl(var(--primary) / 0.1);
+  }
+}
