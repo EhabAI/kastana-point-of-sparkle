@@ -276,8 +276,8 @@ export function OrderPanel({
           {t("void")}
         </Button>
 
-        {/* Send to Kitchen Button - shown when KDS enabled, has items, and order is open */}
-        {kdsEnabled && onSendToKitchen && hasItems && isOpen && (
+        {/* Send to Kitchen Button - ALWAYS visible when order has items */}
+        {onSendToKitchen && hasItems && isOpen && (
           <Button
             size="lg"
             variant="outline"
@@ -287,7 +287,7 @@ export function OrderPanel({
               "w-full border-primary text-primary shadow-md",
               hasPendingKitchenItems 
                 ? "bg-primary/10 hover:bg-primary/20" 
-                : "bg-muted/50 opacity-70"
+                : "bg-muted/50 opacity-60 cursor-not-allowed"
             )}
           >
             {isSendingToKitchen ? (
