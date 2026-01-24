@@ -5,16 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { OrderItemRow } from "./OrderItemRow";
 import { OrderTotals } from "./OrderTotals";
 import { OrderBadges, getOrderStatusBackground } from "./OrderBadges";
-import { Percent, CreditCard, Pause, Ban, User, Phone, Plus, Smartphone, StickyNote, ChefHat } from "lucide-react";
+import { Percent, CreditCard, Pause, Ban, User, Phone, Plus, ChefHat } from "lucide-react";
 import { formatJOD, cn, getCurrencySymbol } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Separator } from "@/components/ui/separator";
 
 // Status badge configuration
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
@@ -263,49 +256,6 @@ export function OrderPanel({
           </Button>
         </div>
 
-        {/* Send to Kitchen Button - only visible when KDS is enabled */}
-        {kdsEnabled && onSendToKitchen && (
-          <>
-            <Separator className="my-1" />
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="w-full">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={onSendToKitchen}
-                      disabled={!hasItems || !isOpen || !hasPendingKitchenItems || isSendingToKitchen}
-                      className={cn(
-                        "w-full border-primary/40 transition-all duration-200",
-                        hasPendingKitchenItems && hasItems && isOpen
-                          ? "bg-primary/8 hover:bg-primary/15 text-primary hover:text-primary border-primary"
-                          : "opacity-50"
-                      )}
-                    >
-                      <ChefHat className="h-4 w-4 ltr:mr-1.5 rtl:ml-1.5" />
-                      {t("send_to_kitchen")}
-                      {hasPendingKitchenItems && (
-                        <Badge variant="secondary" className="ml-2 text-xs px-1.5 py-0 h-5">
-                          {pendingKitchenItems.length}
-                        </Badge>
-                      )}
-                    </Button>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    {hasPendingKitchenItems
-                      ? t("send_to_kitchen_tooltip_enabled")
-                      : t("send_to_kitchen_tooltip_disabled")}
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <Separator className="my-1" />
-          </>
-        )}
-
         <div className="w-full grid grid-cols-2 gap-3">
           <Button
             variant="outline"
@@ -317,11 +267,53 @@ export function OrderPanel({
             <Ban className="h-4 w-4 mr-1.5" />
             {t("void")}
           </Button>
+
+          {/* Send to Kitchen Button - shown ONLY when KDS enabled AND pending items exist */}
+          {kdsEnabled && onSendToKitchen && hasPendingKitchenItems && hasItems && isOpen ? (
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={onSendToKitchen}
+              disabled={isSendingToKitchen}
+              className="border-primary bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary shadow-md"
+            >
+              {isSendingToKitchen ? (
+                <span className="h-4 w-4 ltr:mr-1.5 rtl:ml-1.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              ) : (
+                <ChefHat className="h-4 w-4 ltr:mr-1.5 rtl:ml-1.5" />
+              )}
+              <span className="flex flex-col items-center leading-tight">
+                <span className="text-xs font-normal opacity-80">{t("send_to_kitchen")}</span>
+                <span className="text-xs font-semibold">{pendingKitchenItems.length} {t("items")}</span>
+              </span>
+            </Button>
+          ) : (
+            <Button
+              size="lg"
+              className={cn(
+                "shadow-md transition-all duration-200",
+                hasItems && total > 0 && isOpen
+                  ? "shadow-lg shadow-primary/25 ring-2 ring-primary/20 hover:shadow-xl hover:shadow-primary/30"
+                  : "opacity-70"
+              )}
+              onClick={onPay}
+              disabled={!hasItems || total <= 0 || !isOpen}
+            >
+              <CreditCard className="h-4 w-4 ltr:mr-1.5 rtl:ml-1.5" />
+              <span className="flex flex-col items-center leading-tight">
+                <span className="text-xs font-normal opacity-80">{t("pay")}</span>
+                <span className="text-xs font-semibold">{formatJOD(total)} {localizedCurrency}</span>
+              </span>
+            </Button>
+          )}
+        </div>
+
+        {/* Pay Button - always visible when Send to Kitchen is shown */}
+        {kdsEnabled && onSendToKitchen && hasPendingKitchenItems && hasItems && isOpen && (
           <Button
             size="lg"
             className={cn(
-              "shadow-md transition-all duration-200",
-              // Enhanced visual when total > 0 and order is open
+              "w-full shadow-md transition-all duration-200",
               hasItems && total > 0 && isOpen
                 ? "shadow-lg shadow-primary/25 ring-2 ring-primary/20 hover:shadow-xl hover:shadow-primary/30"
                 : "opacity-70"
@@ -335,7 +327,7 @@ export function OrderPanel({
               <span className="text-xs font-semibold">{formatJOD(total)} {localizedCurrency}</span>
             </span>
           </Button>
-        </div>
+        )}
       </CardFooter>
     </Card>
   );
