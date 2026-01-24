@@ -132,12 +132,21 @@ export function OrderPanel({
   const pendingKitchenItems = activeItems.filter((item) => !item.kitchen_sent_at);
   const hasPendingKitchenItems = pendingKitchenItems.length > 0;
 
+  // Total quantity of items in order
+  const totalItemsCount = activeItems.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
     <Card className={cn("h-full flex flex-col", orderBg)}>
       <CardHeader className="py-3 px-4">
         <CardTitle className="text-base flex items-center justify-between">
           <div className="flex items-center gap-2 flex-wrap">
             <span>{t("current_order")}</span>
+            {/* Item count badge */}
+            {totalItemsCount > 0 && (
+              <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                {totalItemsCount} {t("items")}
+              </Badge>
+            )}
             {/* Status Badge with Order Type */}
             {orderStatus && STATUS_CONFIG[orderStatus] && (
               <Badge 
