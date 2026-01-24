@@ -55,6 +55,7 @@ export function OrderTotals({
 
   return (
     <div className="space-y-2 text-sm w-full">
+      <Separator className="bg-border/80 h-[1.5px]" />
       <div className="flex justify-between">
         <span className="text-muted-foreground">{t("subtotal")}</span>
         <span>{formatJOD(subtotal)} {localizedCurrency}</span>
