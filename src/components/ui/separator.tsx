@@ -6,6 +6,6 @@ const Separator = React.forwardRef<React.ElementRef<typeof SeparatorPrimitive.Ro
   orientation = "horizontal",
   decorative = true,
   ...props
-}, ref) => <SeparatorPrimitive.Root ref={ref} decorative={decorative} orientation={orientation} className={cn("shrink-0 bg-border text-secondary-foreground border-[#2b65ee]", orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]", className)} {...props} />);
+}, ref) => <SeparatorPrimitive.Root ref={ref} decorative={decorative} orientation={orientation} className={cn("shrink-0 bg-border text-secondary-foreground border-secondary-foreground border-solid border-2", orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]", className)} {...props} />);
 Separator.displayName = SeparatorPrimitive.Root.displayName;
 export { Separator };
