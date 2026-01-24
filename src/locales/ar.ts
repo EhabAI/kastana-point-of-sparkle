@@ -1723,6 +1723,8 @@ export default {
   sub_manage_desc: "تحديث إعدادات الاشتراك لـ",
   sub_save_changes: "حفظ التعديلات",
   sub_start_date: "تاريخ البدء",
+  sub_note_label: "ملاحظة (اختياري)",
+  sub_note_helper: "تُستخدم هذه الملاحظة للتوثيق فقط ولن تظهر لصاحب المطعم.",
   sub_create_desc: "أدخل تفاصيل المطعم الجديد مع الاشتراك.",
   
   // Subscription periods
