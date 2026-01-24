@@ -242,15 +242,15 @@ export function OrderPanel({
           currency={currency}
         />
 
-        <div className="w-full grid grid-cols-2 gap-1.5">
+        <div className="w-full grid grid-cols-3 gap-1">
           <Button
             variant="outline"
             size="sm"
             onClick={onApplyDiscount}
             disabled={!hasItems || !isOpen}
-            className="h-8 text-xs text-muted-foreground hover:text-foreground"
+            className="h-7 text-[11px] px-2 text-muted-foreground hover:text-foreground"
           >
-            <Percent className="h-3.5 w-3.5 mr-1" />
+            <Percent className="h-3 w-3 ltr:mr-1 rtl:ml-1" />
             {t("discount")}
           </Button>
           <Button
@@ -258,23 +258,22 @@ export function OrderPanel({
             size="sm"
             onClick={onHoldOrder}
             disabled={!hasItems || !isOpen}
-            className="h-8 text-xs text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-900/30"
+            className="h-7 text-[11px] px-2 text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-900/30"
           >
-            <Pause className="h-3.5 w-3.5 mr-1" />
+            <Pause className="h-3 w-3 ltr:mr-1 rtl:ml-1" />
             {t("hold")}
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onVoidOrder}
+            disabled={!hasItems || !isOpen}
+            className="h-7 text-[11px] px-2 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+          >
+            <Ban className="h-3 w-3 ltr:mr-1 rtl:ml-1" />
+            {t("void")}
+          </Button>
         </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onVoidOrder}
-          disabled={!hasItems || !isOpen}
-          className="w-full h-8 text-xs text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
-        >
-          <Ban className="h-3.5 w-3.5 mr-1" />
-          {t("void")}
-        </Button>
 
         {/* Send to Kitchen Button - compact, secondary style */}
         {onSendToKitchen && hasItems && isOpen && (
