@@ -1793,4 +1793,8 @@ export default {
   // Add-on state labels
   sa_addon_enabled: "مفعّل",
   sa_addon_disabled: "غير مفعّل",
+  
+  // Subscription bonus text
+  sub_free_month: "شهر مجاني",
+  sub_free_months: "{{count}} أشهر مجانًا",
 } as const;
