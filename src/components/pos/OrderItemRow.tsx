@@ -93,32 +93,32 @@ export function OrderItemRow({
         )}
         
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
             <Button
               variant="outline"
               size="icon"
-              className="h-7 w-7"
+              className="h-6 w-6"
               onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
             >
-              <Minus className="h-3 w-3" />
+              <Minus className="h-2.5 w-2.5" />
             </Button>
-            <span className="w-8 text-center text-sm">{item.quantity}</span>
+            <span className="w-6 text-center text-xs">{item.quantity}</span>
             <Button
               variant="outline"
               size="icon"
-              className="h-7 w-7"
+              className="h-6 w-6"
               onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
             >
-              <Plus className="h-3 w-3" />
+              <Plus className="h-2.5 w-2.5" />
             </Button>
             <Button
               variant="outline"
               size="icon"
-              className="h-7 w-7"
+              className="h-6 w-6"
               onClick={() => setKeypadOpen(true)}
               title="Enter quantity"
             >
-              <Hash className="h-3 w-3" />
+              <Hash className="h-2.5 w-2.5" />
             </Button>
           </div>
           
