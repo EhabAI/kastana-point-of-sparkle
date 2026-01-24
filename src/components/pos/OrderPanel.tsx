@@ -139,20 +139,11 @@ export function OrderPanel({
     <Card className={cn("h-full flex flex-col", orderBg)}>
       <CardHeader className="py-2 px-3">
         <div className="flex items-center justify-between gap-2">
-          {/* Left: Title + Item Count */}
-          <div className="flex items-center gap-1.5 min-w-0">
+          {/* Left: Title + Item Count in parentheses */}
+          <div className="flex items-center gap-1 min-w-0">
             <span className="text-sm font-semibold truncate">{t("current_order")}</span>
-            {totalItemsCount > 0 && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 shrink-0">
-                {totalItemsCount}
-              </Badge>
-            )}
+            <span className="text-sm text-muted-foreground">({totalItemsCount})</span>
           </div>
-          
-          {/* Center: Order Number */}
-          {orderNumber && (
-            <span className="text-xs text-muted-foreground font-medium shrink-0">#{orderNumber}</span>
-          )}
           
           {/* Right: Status + Order Type + New Order Button */}
           <div className="flex items-center gap-1.5 shrink-0">
