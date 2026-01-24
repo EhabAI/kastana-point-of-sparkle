@@ -137,22 +137,30 @@ export function OrderPanel({
 
   return (
     <Card className={cn("h-full flex flex-col", orderBg)}>
-      <CardHeader className="py-3 px-4">
-        <CardTitle className="text-base flex items-center justify-between">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span>{t("current_order")}</span>
-            {/* Item count badge */}
+      <CardHeader className="py-2 px-3">
+        <div className="flex items-center justify-between gap-2">
+          {/* Left: Title + Item Count */}
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="text-sm font-semibold truncate">{t("current_order")}</span>
             {totalItemsCount > 0 && (
-              <Badge variant="secondary" className="text-xs px-2 py-0.5">
-                {totalItemsCount} {t("items")}
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 shrink-0">
+                {totalItemsCount}
               </Badge>
             )}
-            {/* Status Badge with Order Type */}
+          </div>
+          
+          {/* Center: Order Number */}
+          {orderNumber && (
+            <span className="text-xs text-muted-foreground font-medium shrink-0">#{orderNumber}</span>
+          )}
+          
+          {/* Right: Status + Order Type + New Order Button */}
+          <div className="flex items-center gap-1.5 shrink-0">
             {orderStatus && STATUS_CONFIG[orderStatus] && (
               <Badge 
                 variant="outline"
                 className={cn(
-                  "text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 border",
+                  "text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0 h-5 border",
                   STATUS_CONFIG[orderStatus].className
                 )}
               >
@@ -167,24 +175,19 @@ export function OrderPanel({
               hasNotes={!!hasOrderNotes}
               compact
             />
-          </div>
-          <div className="flex items-center gap-2">
-            {orderNumber && (
-              <span className="text-muted-foreground">#{orderNumber}</span>
-            )}
             {shiftOpen && (
               <Button
                 variant="outline"
                 size="icon"
                 onClick={onNewOrder}
-                className="h-7 w-7"
+                className="h-6 w-6"
                 title={t("new_order")}
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-3.5 w-3.5" />
               </Button>
             )}
           </div>
-        </CardTitle>
+        </div>
         {/* Customer info for takeaway */}
         {orderType === "TAKEAWAY" && customerInfo && (customerInfo.name || customerInfo.phone) && (
           <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mt-1">
