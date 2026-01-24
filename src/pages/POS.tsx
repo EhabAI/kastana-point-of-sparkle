@@ -1856,12 +1856,12 @@ export default function POS() {
     }
     
     try {
-      const result = await sendToKitchenMutation.mutateAsync({
+      await sendToKitchenMutation.mutateAsync({
         orderId: currentOrder.id,
         restaurantId: restaurant.id,
         itemIds: pendingItems.map((item: any) => item.id),
       });
-      toast.success(t("send_to_kitchen_success").replace("{{count}}", String(result.itemCount)));
+      toast.success(t("items_sent_to_kitchen"));
     } catch (error) {
       toast.error(t("send_to_kitchen_failed"));
     }

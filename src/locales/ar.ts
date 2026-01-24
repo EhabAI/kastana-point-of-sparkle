@@ -1807,9 +1807,9 @@ export default {
   sub_free_months: "{{count}} أشهر مجانًا",
   
   // Send to Kitchen
-  send_to_kitchen: "إرسال للمطبخ",
+  send_to_kitchen: "إرسال إلى المطبخ",
   send_to_kitchen_tooltip_enabled: "سيتم إرسال العناصر الجديدة فقط إلى المطبخ",
   send_to_kitchen_tooltip_disabled: "لا توجد عناصر جديدة للإرسال",
-  send_to_kitchen_success: "تم إرسال {{count}} عناصر إلى المطبخ",
+  items_sent_to_kitchen: "تم إرسال الأصناف إلى المطبخ",
   send_to_kitchen_failed: "فشل إرسال العناصر إلى المطبخ",
 } as const;

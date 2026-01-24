@@ -1805,6 +1805,6 @@ export default {
   send_to_kitchen: "Send to Kitchen",
   send_to_kitchen_tooltip_enabled: "Only new items will be sent to the kitchen",
   send_to_kitchen_tooltip_disabled: "No new items to send",
-  send_to_kitchen_success: "{{count}} items sent to kitchen",
+  items_sent_to_kitchen: "Items sent to kitchen",
   send_to_kitchen_failed: "Failed to send items to kitchen",
 } as const;
