@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { OrderItemRow } from "./OrderItemRow";
 import { OrderTotals } from "./OrderTotals";
 import { OrderBadges, getOrderStatusBackground } from "./OrderBadges";
-import { Percent, CreditCard, Pause, Ban, User, Phone, Plus, ChefHat } from "lucide-react";
+import { Percent, CreditCard, Pause, Ban, User, Phone, Plus, ChefHat, Minimize2, Maximize2 } from "lucide-react";
 import { formatJOD, cn, getCurrencySymbol } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -121,6 +123,8 @@ export function OrderPanel({
   isSendingToKitchen = false,
 }: OrderPanelProps) {
   const { t, language } = useLanguage();
+  const [isCompactView, setIsCompactView] = useState(false);
+  
   const activeItems = items.filter((item) => !item.voided);
   const customerInfo = parseCustomerInfo(orderNotes);
   const orderType = hasTable ? "DINE-IN" : "TAKEAWAY";
@@ -141,13 +145,37 @@ export function OrderPanel({
     <Card className={cn("h-full flex flex-col", orderBg)}>
       <CardHeader className="py-2 px-3">
         <div className="flex items-center justify-between gap-2">
-          {/* Left: Title + Item Count + Order Number */}
+          {/* Left: Title + Item Count + Order Number + Compact Toggle */}
           <div className="flex items-center gap-1 min-w-0">
             <span className="text-sm font-semibold truncate">{t("current_order")}</span>
             <span className="text-sm text-muted-foreground">({totalItemsCount})</span>
             {orderNumber && (
               <span className="text-xs text-muted-foreground">#{orderNumber}</span>
             )}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 ml-1"
+                    onClick={() => setIsCompactView(!isCompactView)}
+                  >
+                    {isCompactView ? (
+                      <Maximize2 className="h-3 w-3" />
+                    ) : (
+                      <Minimize2 className="h-3 w-3" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  {isCompactView 
+                    ? (language === "ar" ? "عرض عادي" : "Normal view")
+                    : (language === "ar" ? "عرض مضغوط" : "Compact view")
+                  }
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           
           {/* Right: Status + Order Type + Table (for dine-in) + New Order Button */}
@@ -214,7 +242,7 @@ export function OrderPanel({
               {t("no_items_in_order")}
             </div>
           ) : (
-            <div className="space-y-1">
+            <div className={cn("space-y-1", isCompactView && "space-y-0")}>
               {items.map((item) => (
                 <OrderItemRow
                   key={item.id}
@@ -226,6 +254,7 @@ export function OrderPanel({
                   onAddNotes={onAddNotes}
                   onTransfer={onTransferItem}
                   showTransfer={showTransfer}
+                  compact={isCompactView}
                 />
               ))}
             </div>

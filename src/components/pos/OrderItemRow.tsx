@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, X, MessageSquare, ArrowRightLeft, Hash } from "lucide-react";
 import { NumericKeypad } from "./NumericKeypad";
-import { formatJOD, getCurrencySymbol } from "@/lib/utils";
+import { formatJOD, getCurrencySymbol, cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OrderItemModifier {
@@ -31,6 +31,7 @@ interface OrderItemRowProps {
   onAddNotes: (itemId: string) => void;
   onTransfer?: (itemId: string) => void;
   showTransfer?: boolean;
+  compact?: boolean;
 }
 
 export function OrderItemRow({
@@ -42,6 +43,7 @@ export function OrderItemRow({
   onAddNotes,
   onTransfer,
   showTransfer,
+  compact = false,
 }: OrderItemRowProps) {
   const [keypadOpen, setKeypadOpen] = useState(false);
   const { language } = useLanguage();
@@ -67,10 +69,19 @@ export function OrderItemRow({
 
   return (
     <>
-      <div className="space-y-1 py-2 border-b last:border-b-0">
+      <div className={cn(
+        "space-y-1 border-b last:border-b-0",
+        compact ? "py-1" : "py-2"
+      )}>
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium flex-1">{item.name}</span>
-          <span className="text-sm font-medium">
+          <span className={cn(
+            "font-medium flex-1",
+            compact ? "text-[10px]" : "text-xs"
+          )}>{item.name}</span>
+          <span className={cn(
+            "font-medium",
+            compact ? "text-xs" : "text-sm"
+          )}>
             {formatJOD(lineTotal)} {localizedCurrency}
           </span>
         </div>
@@ -97,55 +108,58 @@ export function OrderItemRow({
             <Button
               variant="outline"
               size="icon"
-              className="h-6 w-6"
+              className={cn(compact ? "h-5 w-5" : "h-6 w-6")}
               onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
             >
-              <Minus className="h-2.5 w-2.5" />
+              <Minus className={cn(compact ? "h-2 w-2" : "h-2.5 w-2.5")} />
             </Button>
-            <span className="w-6 text-center text-xs">{item.quantity}</span>
+            <span className={cn(
+              "w-5 text-center",
+              compact ? "text-[10px]" : "text-xs"
+            )}>{item.quantity}</span>
             <Button
               variant="outline"
               size="icon"
-              className="h-6 w-6"
+              className={cn(compact ? "h-5 w-5" : "h-6 w-6")}
               onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
             >
-              <Plus className="h-2.5 w-2.5" />
+              <Plus className={cn(compact ? "h-2 w-2" : "h-2.5 w-2.5")} />
             </Button>
             <Button
               variant="outline"
               size="icon"
-              className="h-6 w-6"
+              className={cn(compact ? "h-5 w-5" : "h-6 w-6")}
               onClick={() => setKeypadOpen(true)}
               title="Enter quantity"
             >
-              <Hash className="h-2.5 w-2.5" />
+              <Hash className={cn(compact ? "h-2 w-2" : "h-2.5 w-2.5")} />
             </Button>
           </div>
           
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
             {showTransfer && onTransfer && (
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7"
+                className={cn(compact ? "h-5 w-5" : "h-7 w-7")}
                 onClick={() => onTransfer(item.id)}
                 title="Transfer to another order"
               >
-                <ArrowRightLeft className="h-3 w-3" />
+                <ArrowRightLeft className={cn(compact ? "h-2.5 w-2.5" : "h-3 w-3")} />
               </Button>
             )}
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7"
+              className={cn(compact ? "h-5 w-5" : "h-7 w-7")}
               onClick={() => onAddNotes(item.id)}
             >
-              <MessageSquare className="h-3 w-3" />
+              <MessageSquare className={cn(compact ? "h-2.5 w-2.5" : "h-3 w-3")} />
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-destructive hover:text-destructive"
+              className={cn(compact ? "h-5 w-5" : "h-7 w-7", "text-destructive hover:text-destructive")}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -153,7 +167,7 @@ export function OrderItemRow({
               }}
               title="Remove item"
             >
-              <X className="h-3 w-3" />
+              <X className={cn(compact ? "h-2.5 w-2.5" : "h-3 w-3")} />
             </Button>
           </div>
         </div>
