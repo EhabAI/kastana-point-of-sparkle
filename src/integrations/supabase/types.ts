@@ -1463,6 +1463,44 @@ export type Database = {
           },
         ]
       }
+      restaurant_subscriptions: {
+        Row: {
+          bonus_months: number
+          end_date: string
+          period: string
+          restaurant_id: string
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          bonus_months?: number
+          end_date: string
+          period: string
+          restaurant_id: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          bonus_months?: number
+          end_date?: string
+          period?: string
+          restaurant_id?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_subscriptions_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       restaurant_tables: {
         Row: {
           branch_id: string | null
