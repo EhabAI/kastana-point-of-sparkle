@@ -762,9 +762,15 @@ export default function SystemAdmin() {
                         {/* Status Section */}
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-2">
-                            <Badge variant={restaurant.is_active ? "default" : "destructive"} className="text-xs">
-                              {restaurant.is_active ? "ACTIVE" : "INACTIVE"}
-                            </Badge>
+                            {/* Status Badge - non-interactive display */}
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              restaurant.is_active 
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                                : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+                            }`}>
+                              {restaurant.is_active ? t('active') : t('inactive')}
+                            </span>
+                            {/* Action Switch */}
                             <Switch
                               checked={restaurant.is_active}
                               onCheckedChange={() => handleToggleActive(restaurant.id, restaurant.name, restaurant.is_active)}
@@ -822,58 +828,46 @@ export default function SystemAdmin() {
                       </div>
 
                       {/* Bottom row: Add-ons/Modules Section */}
-                      <div className="flex items-center gap-3 pt-2 border-t border-border/50">
+                      <div className="flex items-center gap-2.5 pt-2 border-t border-border/50">
                         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('sa_addons')}</span>
                         
-                        {/* Inventory Module */}
+                        {/* Inventory Module - compact */}
                         <div 
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-md border transition-colors ${
+                          className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors ${
                             inventoryEnabled 
-                              ? 'bg-primary/5 border-primary/20' 
-                              : 'bg-muted/50 border-border'
+                              ? 'bg-blue-50 dark:bg-blue-950/40' 
+                              : 'bg-muted/40'
                           }`}
                         >
-                          <Package className={`h-4 w-4 ${inventoryEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
-                          <span className={`text-sm ${inventoryEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
+                          <Package className={`h-3.5 w-3.5 ${inventoryEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                          <span className={`text-xs ${inventoryEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
                             {t('sa_addon_inventory')}
                           </span>
-                          <Badge 
-                            variant={inventoryEnabled ? "default" : "secondary"} 
-                            className="text-[10px] px-1.5 py-0"
-                          >
-                            {inventoryEnabled ? t('sa_status_on') : t('sa_status_off')}
-                          </Badge>
                           <Switch
                             checked={inventoryEnabled}
                             onCheckedChange={() => handleInventoryToggle(restaurant.id, restaurant.name, inventoryEnabled)}
                             disabled={toggleInventory.isPending}
-                            className="ml-1"
+                            className="h-4 w-7 data-[state=checked]:bg-blue-600"
                           />
                         </div>
 
-                        {/* KDS Module */}
+                        {/* KDS Module - compact */}
                         <div 
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-md border transition-colors ${
+                          className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors ${
                             kdsEnabled 
-                              ? 'bg-primary/5 border-primary/20' 
-                              : 'bg-muted/50 border-border'
+                              ? 'bg-blue-50 dark:bg-blue-950/40' 
+                              : 'bg-muted/40'
                           }`}
                         >
-                          <ChefHat className={`h-4 w-4 ${kdsEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
-                          <span className={`text-sm ${kdsEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
+                          <ChefHat className={`h-3.5 w-3.5 ${kdsEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                          <span className={`text-xs ${kdsEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
                             {t('sa_addon_kds')}
                           </span>
-                          <Badge 
-                            variant={kdsEnabled ? "default" : "secondary"} 
-                            className="text-[10px] px-1.5 py-0"
-                          >
-                            {kdsEnabled ? t('sa_status_on') : t('sa_status_off')}
-                          </Badge>
                           <Switch
                             checked={kdsEnabled}
                             onCheckedChange={() => handleKDSToggle(restaurant.id, restaurant.name, kdsEnabled)}
                             disabled={toggleKDS.isPending}
-                            className="ml-1"
+                            className="h-4 w-7 data-[state=checked]:bg-blue-600"
                           />
                         </div>
                       </div>
