@@ -4,6 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { DisabledTooltip, getDisabledReason } from "@/components/ui/disabled-tooltip";
 import { OrderItemRow } from "./OrderItemRow";
 import { OrderTotals } from "./OrderTotals";
 import { OrderBadges, getOrderStatusBackground } from "./OrderBadges";
@@ -275,36 +276,69 @@ export function OrderPanel({
         />
 
         <div className="w-full grid grid-cols-3 gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onApplyDiscount}
-            disabled={!hasItems || !isOpen}
-            className="h-7 text-[11px] px-2 text-muted-foreground hover:text-foreground"
-          >
-            <Percent className="h-3 w-3 ltr:mr-1 rtl:ml-1" />
-            {t("discount")}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onHoldOrder}
-            disabled={!hasItems || !isOpen}
-            className="h-7 text-[11px] px-2 text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-900/30"
-          >
-            <Pause className="h-3 w-3 ltr:mr-1 rtl:ml-1" />
-            {t("hold")}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onVoidOrder}
-            disabled={!hasItems || !isOpen}
-            className="h-7 text-[11px] px-2 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
-          >
-            <Ban className="h-3 w-3 ltr:mr-1 rtl:ml-1" />
-            {t("void")}
-          </Button>
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onApplyDiscount}
+              disabled={!hasItems || !isOpen}
+              className="w-full h-7 text-[11px] px-2 text-muted-foreground hover:text-foreground"
+            >
+              <Percent className="h-3 w-3 ltr:mr-1 rtl:ml-1" />
+              {t("discount")}
+            </Button>
+            {(!hasItems || !isOpen) && (
+              <span className="absolute -top-1 -right-1">
+                <DisabledTooltip
+                  reasonKey={getDisabledReason({ hasItems, isOpen }) || "order_not_open"}
+                  language={language}
+                  show={!hasItems || !isOpen}
+                />
+              </span>
+            )}
+          </div>
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onHoldOrder}
+              disabled={!hasItems || !isOpen}
+              className="w-full h-7 text-[11px] px-2 text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-900/30"
+            >
+              <Pause className="h-3 w-3 ltr:mr-1 rtl:ml-1" />
+              {t("hold")}
+            </Button>
+            {(!hasItems || !isOpen) && (
+              <span className="absolute -top-1 -right-1">
+                <DisabledTooltip
+                  reasonKey={getDisabledReason({ hasItems, isOpen }) || "order_not_open"}
+                  language={language}
+                  show={!hasItems || !isOpen}
+                />
+              </span>
+            )}
+          </div>
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onVoidOrder}
+              disabled={!hasItems || !isOpen}
+              className="w-full h-7 text-[11px] px-2 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Ban className="h-3 w-3 ltr:mr-1 rtl:ml-1" />
+              {t("void")}
+            </Button>
+            {(!hasItems || !isOpen) && (
+              <span className="absolute -top-1 -right-1">
+                <DisabledTooltip
+                  reasonKey={getDisabledReason({ hasItems, isOpen }) || "order_not_open"}
+                  language={language}
+                  show={!hasItems || !isOpen}
+                />
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Send to Kitchen Button - compact, secondary style */}
@@ -340,23 +374,34 @@ export function OrderPanel({
         )}
 
         {/* Pay Button - primary action, slightly reduced padding */}
-        <Button
-          size="default"
-          className={cn(
-            "w-full h-11 text-sm font-medium shadow-sm transition-all duration-200",
-            hasItems && total > 0 && isOpen
-              ? "shadow-md shadow-primary/20 ring-1 ring-primary/20 hover:shadow-lg hover:shadow-primary/25"
-              : "opacity-70"
+        <div className="relative w-full">
+          <Button
+            size="default"
+            className={cn(
+              "w-full h-11 text-sm font-medium shadow-sm transition-all duration-200",
+              hasItems && total > 0 && isOpen
+                ? "shadow-md shadow-primary/20 ring-1 ring-primary/20 hover:shadow-lg hover:shadow-primary/25"
+                : "opacity-70"
+            )}
+            onClick={onPay}
+            disabled={!hasItems || total <= 0 || !isOpen}
+          >
+            <CreditCard className="h-4 w-4 ltr:mr-1.5 rtl:ml-1.5" />
+            <span className="flex items-center gap-1.5">
+              <span>{t("pay")}</span>
+              <span className="font-semibold">{formatJOD(total)} {localizedCurrency}</span>
+            </span>
+          </Button>
+          {(!hasItems || total <= 0 || !isOpen) && (
+            <span className="absolute -top-1 -right-1">
+              <DisabledTooltip
+                reasonKey={getDisabledReason({ hasItems, isOpen, total }) || "order_not_open"}
+                language={language}
+                show={!hasItems || total <= 0 || !isOpen}
+              />
+            </span>
           )}
-          onClick={onPay}
-          disabled={!hasItems || total <= 0 || !isOpen}
-        >
-          <CreditCard className="h-4 w-4 ltr:mr-1.5 rtl:ml-1.5" />
-          <span className="flex items-center gap-1.5">
-            <span>{t("pay")}</span>
-            <span className="font-semibold">{formatJOD(total)} {localizedCurrency}</span>
-          </span>
-        </Button>
+        </div>
       </CardFooter>
     </Card>
   );
