@@ -33,6 +33,16 @@ import {
   isExplanationQuestion,
   shouldSkipScreenContext,
 } from "@/lib/assistantIntentFirstResponse";
+import {
+  isFollowUpPhrase,
+  isExplicitTopicSwitch,
+  detectScreenReference,
+  detectFeatureMention,
+  shouldContinueActiveTopic,
+  getContinuationPrefix,
+  getScreenLockedResponse,
+  type ActiveTopic,
+} from "@/lib/assistantActiveTopicTracker";
 import type { ScreenContext } from "@/lib/smartAssistantContext";
 
 interface IntentResult {
@@ -66,6 +76,41 @@ interface UseAssistantAIReturn {
   lastUIMatch: UIElementMatch | null;
   lastSoftIntent: V2SoftIntent | null;
   error: string | null;
+  activeTopic: ActiveTopic | null;
+}
+
+/**
+ * Extract topic ID and name from a user query for active topic tracking
+ */
+function extractTopicFromQuery(query: string, language: "ar" | "en"): { id: string; name: { ar: string; en: string } } | null {
+  const lowerQuery = query.toLowerCase();
+  
+  // Topic extraction mapping based on common keywords
+  const topicMappings: { keywords: string[]; id: string; name: { ar: string; en: string } }[] = [
+    { keywords: ["z report", "z-report", "تقرير z", "زي ريبورت", "تقرير زد"], id: "z_report", name: { ar: "تقرير Z", en: "Z Report" } },
+    { keywords: ["refund", "مرتجع", "استرداد", "ارجاع"], id: "refund", name: { ar: "المرتجعات", en: "Refunds" } },
+    { keywords: ["shift", "وردية", "الوردية", "شفت"], id: "shift", name: { ar: "الوردية", en: "Shift" } },
+    { keywords: ["inventory", "مخزون", "جرد", "المخزون"], id: "inventory_log", name: { ar: "المخزون", en: "Inventory" } },
+    { keywords: ["recipe", "وصفة", "الوصفات"], id: "recipes", name: { ar: "الوصفات", en: "Recipes" } },
+    { keywords: ["hold", "تعليق", "معلق"], id: "hold_order", name: { ar: "تعليق الطلب", en: "Hold Order" } },
+    { keywords: ["merge", "دمج", "جمع"], id: "merge_orders", name: { ar: "دمج الطلبات", en: "Merge Orders" } },
+    { keywords: ["void", "الغاء", "إلغاء"], id: "void_order", name: { ar: "إلغاء الطلب", en: "Void Order" } },
+    { keywords: ["payment", "دفع", "الدفع", "فاتورة"], id: "payment", name: { ar: "الدفع", en: "Payment" } },
+    { keywords: ["discount", "خصم", "تخفيض"], id: "discount", name: { ar: "الخصم", en: "Discount" } },
+    { keywords: ["kds", "kitchen", "مطبخ", "شاشة المطبخ"], id: "kds_status", name: { ar: "شاشة المطبخ", en: "Kitchen Display" } },
+    { keywords: ["qr", "qr code", "كيو ار"], id: "qr_pending", name: { ar: "طلبات QR", en: "QR Orders" } },
+    { keywords: ["variance", "فرق", "فروقات"], id: "variance", name: { ar: "فروقات المخزون", en: "Inventory Variance" } },
+    { keywords: ["cogs", "تكلفة البضاعة"], id: "cogs", name: { ar: "تكلفة البضاعة", en: "COGS" } },
+    { keywords: ["gross", "net", "صافي"], id: "gross_net", name: { ar: "الإجمالي والصافي", en: "Gross & Net" } },
+  ];
+  
+  for (const mapping of topicMappings) {
+    if (mapping.keywords.some(kw => lowerQuery.includes(kw))) {
+      return { id: mapping.id, name: mapping.name };
+    }
+  }
+  
+  return null;
 }
 
 /**
@@ -77,6 +122,7 @@ interface UseAssistantAIReturn {
  * 3. SAFE FALLBACK - Never ask to clarify, explain primary element
  * 4. ROLE & FEATURE AWARENESS - Respect disabled features
  * 5. AI BOUNDARY - AI only phrases responses, doesn't decide actions
+ * 6. CONTEXT PRESERVATION - Follow-up questions continue active topic
  */
 export function useAssistantAI(): UseAssistantAIReturn {
   const [isLoading, setIsLoading] = useState(false);
@@ -84,6 +130,9 @@ export function useAssistantAI(): UseAssistantAIReturn {
   const [lastUIMatch, setLastUIMatch] = useState<UIElementMatch | null>(null);
   const [lastSoftIntent, setLastSoftIntent] = useState<V2SoftIntent | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // SMART TRAINER: Track active topic for context preservation
+  const [activeTopic, setActiveTopic] = useState<ActiveTopic | null>(null);
   
   // Keep track of last matched entry for follow-up questions
   const lastMatchedEntryRef = useRef<string | null>(null);
@@ -125,6 +174,57 @@ export function useAssistantAI(): UseAssistantAIReturn {
     setLastSoftIntent(softIntent);
     
     try {
+      // ===== SMART TRAINER: CONTEXT PRESERVATION (HIGHEST PRIORITY) =====
+      // CRITICAL: Check if this is a follow-up that should continue the active topic
+      if (screenContext && activeTopic) {
+        const contextDecision = shouldContinueActiveTopic(query, activeTopic, screenContext);
+        
+        // If it's a follow-up phrase, use the active topic
+        if (contextDecision.continue && contextDecision.reason === "follow_up_phrase") {
+          // Force the intent to reference the active topic
+          lastMatchedEntryRef.current = activeTopic.id;
+          
+          // Get more detailed response for the active topic
+          const detailedAnswer = getDirectAnswer(activeTopic.id, language);
+          if (detailedAnswer) {
+            setIsLoading(false);
+            
+            // Add continuation prefix for clarity
+            const prefix = getContinuationPrefix(activeTopic, language);
+            const response = prefix + detailedAnswer;
+            
+            // Update conversation history
+            conversationHistoryRef.current.push({ role: "user", content: query });
+            conversationHistoryRef.current.push({ role: "assistant", content: response });
+            
+            if (conversationHistoryRef.current.length > 6) {
+              conversationHistoryRef.current = conversationHistoryRef.current.slice(-6);
+            }
+            
+            return response;
+          }
+        }
+        
+        // If user explicitly references a different screen, explain screen-lock
+        if (!contextDecision.continue && contextDecision.reason === "screen_reference") {
+          const referencedScreen = contextDecision.newTopicHint?.replace("screen:", "") as ScreenContext;
+          if (referencedScreen && referencedScreen !== screenContext) {
+            setIsLoading(false);
+            const lockResponse = getScreenLockedResponse(referencedScreen, screenContext, language);
+            
+            conversationHistoryRef.current.push({ role: "user", content: query });
+            conversationHistoryRef.current.push({ role: "assistant", content: lockResponse });
+            
+            if (conversationHistoryRef.current.length > 6) {
+              conversationHistoryRef.current = conversationHistoryRef.current.slice(-6);
+            }
+            
+            return lockResponse;
+          }
+        }
+      }
+      // ===== END SMART TRAINER CONTEXT PRESERVATION =====
+      
       // ===== NEW: INTENT-FIRST RESPONSE (HIGHEST PRIORITY) =====
       // Rule 1: If user is asking an explanation question, answer DIRECTLY
       // No greetings, no screen descriptions, no daily summaries
@@ -133,6 +233,18 @@ export function useAssistantAI(): UseAssistantAIReturn {
         
         if (directAnswer) {
           setIsLoading(false);
+          
+          // SMART TRAINER: Update active topic when we have a direct match
+          // Extract topic ID from the direct answer context
+          const topicMatch = extractTopicFromQuery(query, language);
+          if (topicMatch) {
+            setActiveTopic({
+              id: topicMatch.id,
+              name: topicMatch.name,
+              screen: screenContext || "unknown",
+              timestamp: Date.now(),
+            });
+          }
           
           // Update conversation history
           conversationHistoryRef.current.push({ role: "user", content: query });
@@ -306,9 +418,24 @@ export function useAssistantAI(): UseAssistantAIReturn {
         conversationHistoryRef.current = conversationHistoryRef.current.slice(-6);
       }
 
-      // Remember last matched entry for follow-ups
+      // SMART TRAINER: Remember last matched entry for follow-ups AND update active topic
       if (intentResult.matchedEntryIds.length > 0) {
-        lastMatchedEntryRef.current = intentResult.matchedEntryIds[0];
+        const matchedId = intentResult.matchedEntryIds[0];
+        lastMatchedEntryRef.current = matchedId;
+        
+        // Update active topic from matched entry
+        const matchedEntry = getEntryById(matchedId);
+        if (matchedEntry) {
+          setActiveTopic({
+            id: matchedId,
+            name: {
+              ar: matchedEntry.title.ar,
+              en: matchedEntry.title.en,
+            },
+            screen: screenContext || "unknown",
+            timestamp: Date.now(),
+          });
+        }
       }
 
       return response;
@@ -321,9 +448,9 @@ export function useAssistantAI(): UseAssistantAIReturn {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [activeTopic]);
 
-  return { processQuery, isLoading, lastIntent, lastUIMatch, lastSoftIntent, error };
+  return { processQuery, isLoading, lastIntent, lastUIMatch, lastSoftIntent, error, activeTopic };
 }
 
 /**
