@@ -76,6 +76,7 @@ import { CashDifferencesCard } from "@/components/owner/CashDifferencesCard";
 import { SuggestedNextAction } from "@/components/owner/SuggestedNextAction";
 import { MistakePatternDetector } from "@/components/owner/MistakePatternDetector";
 import { OperationalInsightsCard } from "@/components/owner/OperationalInsightsCard";
+import { OwnerChangesBanner } from "@/components/owner/OwnerChangesBanner";
 import { WhatChangedCard } from "@/components/owner/WhatChangedCard";
 
 
@@ -216,6 +217,8 @@ export default function OwnerAdmin() {
 
           {/* Overview Tab - Compact vertical rhythm */}
           <TabsContent value="overview" className="space-y-3 mt-3">
+            {/* Owner Changes Banner - informational only */}
+            {role === "owner" && <OwnerChangesBanner restaurantId={restaurant.id} />}
             {role === "owner" && (
               <DashboardOverview
                 restaurantId={restaurant.id}

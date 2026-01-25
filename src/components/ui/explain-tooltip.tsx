@@ -21,7 +21,17 @@ export type ExplainKey =
   | "discount"
   | "gross_sales"
   | "net_sales"
-  | "service_charge";
+  | "service_charge"
+  | "subtotal"
+  | "order_count"
+  | "avg_order_value"
+  | "refund_total"
+  | "void_count"
+  | "cash_difference"
+  | "shift_duration"
+  | "items_sold"
+  | "top_seller"
+  | "pending_orders";
 
 interface ExplainTooltipProps {
   explainKey: ExplainKey;
@@ -68,6 +78,46 @@ const EXPLAIN_COPY: Record<ExplainKey, { ar: string; en: string }> = {
   service_charge: {
     ar: "رسوم الخدمة المضافة\nحسب إعدادات المطعم.",
     en: "Service fee added according\nto restaurant settings.",
+  },
+  subtotal: {
+    ar: "مجموع الأصناف قبل\nالضريبة ورسوم الخدمة.",
+    en: "Sum of items before\ntax and service charge.",
+  },
+  order_count: {
+    ar: "عدد الطلبات المكتملة\nخلال الفترة المحددة.",
+    en: "Number of completed orders\nin the selected period.",
+  },
+  avg_order_value: {
+    ar: "متوسط قيمة الطلب الواحد\nخلال هذه الفترة.",
+    en: "Average value per order\nduring this period.",
+  },
+  refund_total: {
+    ar: "إجمالي المبالغ المستردة\nلأسباب مختلفة.",
+    en: "Total refunded amounts\nfor various reasons.",
+  },
+  void_count: {
+    ar: "عدد الأصناف الملغاة\nقبل إتمام الطلب.",
+    en: "Number of items voided\nbefore order completion.",
+  },
+  cash_difference: {
+    ar: "الفرق بين النقد المتوقع\nوالنقد الفعلي في الصندوق.",
+    en: "Difference between expected\nand actual cash in drawer.",
+  },
+  shift_duration: {
+    ar: "مدة الوردية من\nوقت الفتح حتى الآن.",
+    en: "Shift duration from\nopening time until now.",
+  },
+  items_sold: {
+    ar: "إجمالي الأصناف المباعة\nخلال هذه الفترة.",
+    en: "Total items sold\nduring this period.",
+  },
+  top_seller: {
+    ar: "الصنف الأكثر مبيعاً\nبناءً على الكمية.",
+    en: "Best selling item\nbased on quantity.",
+  },
+  pending_orders: {
+    ar: "طلبات في انتظار\nالتأكيد أو الدفع.",
+    en: "Orders waiting for\nconfirmation or payment.",
   },
 };
 
