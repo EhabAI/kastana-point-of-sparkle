@@ -1,6 +1,6 @@
 {
-  "version": "1.0.0",
-  "lastUpdated": "2026-01-18",
+  "version": "1.1.0",
+  "lastUpdated": "2026-01-26",
   "fallbackResponses": {
     "ar": "أستطيع مساعدتك في نظام Kastana POS. يرجى كتابة سؤالك بشكل واضح حول الطلبات، الدفع، المخزون، التقارير، أو أي ميزة أخرى في النظام.",
     "en": "I can help you with Kastana POS. Please ask your question clearly about orders, payments, inventory, reports, or any other system feature."
@@ -681,21 +681,148 @@
       "id": "screen_qr_orders",
       "intent": ["screen_explanation", "explain_screen", "qr_screen"],
       "keywords": {
-        "ar": ["شاشة طلبات QR", "شاشة كيو آر", "طلبات الكود", "اشرحلي شاشة QR", "طلبات الباركود", "شاشة الطلبات الذاتية"],
-        "en": ["qr orders screen", "qr code orders", "explain qr screen", "self-order screen", "barcode orders screen"]
+        "ar": ["شاشة طلبات QR", "شاشة كيو آر", "طلبات الكود", "اشرحلي شاشة QR", "طلبات الباركود", "شاشة الطلبات الذاتية", "تاب QR", "تبويب QR"],
+        "en": ["qr orders screen", "qr code orders", "explain qr screen", "self-order screen", "barcode orders screen", "qr tab", "qr orders tab"]
       },
       "title": {
-        "ar": "شاشة طلبات QR",
-        "en": "QR Orders Screen"
+        "ar": "تبويب طلبات QR",
+        "en": "QR Orders Tab"
       },
       "content": {
-        "ar": "شاشة طلبات QR:\n\n🎯 هدف الشاشة:\nإدارة الطلبات التي يرسلها العملاء عبر مسح رمز QR من الطاولة.\n\n📋 الأقسام الرئيسية:\n• الطلبات المعلقة: طلبات QR بانتظار قبول الكاشير\n• تفاصيل الطلب: الأصناف والملاحظات والإجمالي\n\n🔄 آلية العمل:\n1. العميل يمسح رمز QR على الطاولة\n2. يختار الأصناف من القائمة على جواله\n3. يرسل الطلب للنظام\n4. يظهر الطلب للكاشير كـ \"معلق\"\n5. الكاشير يقبل أو يرفض الطلب\n\n✅ ماذا يستطيع المستخدم فعله:\n• مراجعة طلبات QR المعلقة\n• قبول الطلب ونقله للطلبات المفتوحة\n• رفض الطلب مع إبداء السبب\n• تعديل الطلب بعد القبول\n\n⚠️ ملاحظات مهمة:\n• الطلب لا يُحسب مالياً حتى يُقبل ويُدفع\n• رمز QR مرتبط بطاولة محددة\n• يجب مراجعة الطلبات المعلقة بانتظام",
-        "en": "QR Orders Screen:\n\n🎯 Purpose:\nManage orders sent by customers via scanning QR code from the table.\n\n📋 Main Sections:\n• Pending Orders: QR orders awaiting cashier approval\n• Order Details: Items, notes, and total\n\n🔄 How It Works:\n1. Customer scans QR code on table\n2. Selects items from menu on their phone\n3. Submits order to system\n4. Order appears to cashier as \"pending\"\n5. Cashier accepts or rejects the order\n\n✅ What You Can Do:\n• Review pending QR orders\n• Accept order and move to open orders\n• Reject order with reason\n• Modify order after acceptance\n\n⚠️ Important Notes:\n• Order not counted financially until accepted and paid\n• QR code is linked to specific table\n• Must review pending orders regularly"
+        "ar": "تبويب طلبات QR في شاشة الكاشير:\n\n⚠️ هام: هذا التبويب يظهر فقط عند تفعيل إضافة QR Order من مدير النظام.\n\n🎯 الغرض:\nعرض وإدارة طلبات العملاء القادمة عبر مسح رمز QR من الطاولة.\n\n📋 ما يعرضه التبويب:\n• الطلبات المعلقة (source = QR, status = PENDING)\n• الطلبات من الفرع الحالي فقط\n• تفاصيل كل طلب (الأصناف، الملاحظات، الإجمالي)\n\n🔄 آلية القبول:\n1. الطلب يظهر في التبويب كـ 'معلق'\n2. الكاشير يضغط 'قبول'\n3. الطلب ينتقل لحالة OPEN\n4. يُرسل تلقائياً للمطبخ (Send to Kitchen)\n5. الطاولة تصبح مشغولة\n\n✅ ما يمكنك فعله:\n• قبول الطلب (يُرسل للمطبخ تلقائياً)\n• رفض الطلب مع السبب\n• تعديل الطلب بعد القبول\n\n⚠️ ملاحظات مهمة:\n• الطلب لا يُحسب مالياً حتى يُدفع\n• QR Order إضافة اختيارية يتحكم بها مدير النظام\n• المالك والكاشير لا يستطيعان تفعيل/إيقاف QR Order",
+        "en": "QR Orders Tab in Cashier Screen:\n\n⚠️ Important: This tab only appears when QR Order add-on is enabled by System Admin.\n\n🎯 Purpose:\nView and manage customer orders placed via scanning QR code from the table.\n\n📋 What the Tab Shows:\n• Pending orders (source = QR, status = PENDING)\n• Orders from current branch only\n• Details of each order (items, notes, total)\n\n🔄 Acceptance Flow:\n1. Order appears in tab as 'pending'\n2. Cashier clicks 'Accept'\n3. Order transitions to OPEN status\n4. Automatically sent to kitchen (Send to Kitchen)\n5. Table becomes occupied\n\n✅ What You Can Do:\n• Accept order (auto-sends to kitchen)\n• Reject order with reason\n• Modify order after acceptance\n\n⚠️ Important Notes:\n• Order not counted financially until paid\n• QR Order is an optional add-on controlled by System Admin\n• Owner and Cashier cannot enable/disable QR Order"
       },
       "metadata": {
         "feature_id": "screen_qr_orders",
         "affected_screens": ["POS", "QR"],
+        "user_roles": ["cashier", "owner"],
+        "requires_addon": "qr_order"
+      }
+    },
+    "qr_order_addon": {
+      "id": "qr_order_addon",
+      "intent": ["explain_feature", "qr_order", "addon"],
+      "keywords": {
+        "ar": ["إضافة QR", "تفعيل QR", "QR Order", "طلب QR", "إضافة طلبات QR", "هل QR مفعل", "لماذا لا أرى QR", "تفعيل طلبات QR"],
+        "en": ["qr addon", "qr order addon", "enable qr", "qr order feature", "why no qr", "is qr enabled", "activate qr order"]
+      },
+      "title": {
+        "ar": "إضافة طلبات QR",
+        "en": "QR Order Add-on"
+      },
+      "content": {
+        "ar": "إضافة طلبات QR:\n\n🎯 ما هي:\nإضافة اختيارية تتيح للعملاء الطلب مباشرة من جوالهم عبر مسح رمز QR على الطاولة.\n\n⚙️ التحكم:\n• مدير النظام فقط يستطيع تفعيل/إيقاف هذه الإضافة\n• المالك والكاشير لا يستطيعان التحكم بها\n• الإعداد: restaurant_settings.qr_order_enabled\n\n📍 عند إيقاف QR Order:\n• العملاء يستطيعون عرض القائمة فقط (لا طلب)\n• المالك لا يرى روابط أو أكواد QR في إدارة الطاولات\n• الكاشير لا يرى تبويب 'طلبات QR'\n\n📍 عند تفعيل QR Order:\n• العملاء يستطيعون الطلب من القائمة\n• المالك يرى روابط QR لكل طاولة\n• الكاشير يرى تبويب 'طلبات QR'\n\n⚠️ ملاحظات:\n• لا يوجد PWA أو تثبيت للقائمة (الروابط خاصة بكل طاولة)\n• كل جلسة طاولة مستقلة",
+        "en": "QR Order Add-on:\n\n🎯 What It Is:\nAn optional add-on that allows customers to order directly from their phone by scanning a QR code on the table.\n\n⚙️ Control:\n• Only System Admin can enable/disable this add-on\n• Owner and Cashier cannot control it\n• Setting: restaurant_settings.qr_order_enabled\n\n📍 When QR Order is Disabled:\n• Customers can only view menu (no ordering)\n• Owner doesn't see QR links/codes in Table Management\n• Cashier doesn't see 'QR Orders' tab\n\n📍 When QR Order is Enabled:\n• Customers can order from menu\n• Owner sees QR links for each table\n• Cashier sees 'QR Orders' tab\n\n⚠️ Notes:\n• No PWA or menu installation (links are table-specific)\n• Each table session is independent"
+      },
+      "metadata": {
+        "feature_id": "qr_order_addon",
+        "affected_screens": ["POS", "Owner", "Settings"],
+        "user_roles": ["owner", "cashier", "system_admin"]
+      }
+    },
+    "qr_menu_url": {
+      "id": "qr_menu_url",
+      "intent": ["explain_feature", "qr_link", "qr_url"],
+      "keywords": {
+        "ar": ["رابط QR", "عنوان القائمة", "رابط الطاولة", "رابط المنيو", "URL القائمة", "دومين QR", "نطاق QR"],
+        "en": ["qr link", "qr url", "menu url", "table link", "qr domain", "menu domain", "qr menu link"]
+      },
+      "title": {
+        "ar": "رابط قائمة QR",
+        "en": "QR Menu URL"
+      },
+      "content": {
+        "ar": "رابط قائمة QR:\n\n🌐 النطاق الرسمي:\nhttps://qrmenu.kastana.info\n\n📋 صيغة الرابط:\n/menu/{restaurant_id}/{branch_id}/{table_code}\n\nمثال:\nhttps://qrmenu.kastana.info/menu/abc123/def456/T01\n\n🔄 التوافق:\n• الروابط القديمة (بدون branch_id) تعمل\n• روابط نطاق Lovable القديمة تعمل\n• النظام يحل branch_id من سجل الطاولة\n\n⚠️ ملاحظات:\n• كل رابط خاص بطاولة محددة\n• الروابط stateless (لا حالة محفوظة)\n• كل جلسة طاولة مستقلة\n• لا يُنصح بتثبيت PWA (الرابط يتغير بتغير الطاولة)",
+        "en": "QR Menu URL:\n\n🌐 Official Domain:\nhttps://qrmenu.kastana.info\n\n📋 URL Format:\n/menu/{restaurant_id}/{branch_id}/{table_code}\n\nExample:\nhttps://qrmenu.kastana.info/menu/abc123/def456/T01\n\n🔄 Compatibility:\n• Old links (without branch_id) still work\n• Old Lovable domain links still work\n• System resolves branch_id from table record\n\n⚠️ Notes:\n• Each link is table-specific\n• Links are stateless\n• Each table session is independent\n• PWA installation not recommended (link changes per table)"
+      },
+      "metadata": {
+        "feature_id": "qr_menu_url",
+        "affected_screens": ["Menu", "Owner"],
+        "user_roles": ["owner"]
+      }
+    },
+    "qr_order_creation": {
+      "id": "qr_order_creation",
+      "intent": ["explain_feature", "qr_order_flow"],
+      "keywords": {
+        "ar": ["إنشاء طلب QR", "كيف يُنشأ طلب QR", "طلب العميل", "طلب من الجوال"],
+        "en": ["qr order creation", "how qr order created", "customer order", "mobile order"]
+      },
+      "title": {
+        "ar": "إنشاء طلب QR",
+        "en": "QR Order Creation"
+      },
+      "content": {
+        "ar": "إنشاء طلب QR:\n\n🔄 آلية الإنشاء:\n1. العميل يمسح رمز QR على الطاولة\n2. يفتح رابط القائمة على جواله\n3. يختار الأصناف ويضيف ملاحظات\n4. يضغط 'إرسال الطلب'\n\n📋 بيانات الطلب المُنشأ:\n• restaurant_id ✓\n• branch_id ✓\n• table_id ✓\n• source = 'QR'\n• status = 'PENDING'\n\n⚠️ حالات الفشل:\n• إذا لم يُحل أي من البيانات أعلاه، الطلب يفشل\n• الطاولة غير موجودة = فشل\n• QR Order معطل = فشل\n\n✅ بعد الإنشاء:\n• الطلب يظهر في تبويب 'طلبات QR' للكاشير\n• الطاولة تعتبر مشغولة (OCCUPIED)",
+        "en": "QR Order Creation:\n\n🔄 Creation Flow:\n1. Customer scans QR code on table\n2. Opens menu link on their phone\n3. Selects items and adds notes\n4. Clicks 'Submit Order'\n\n📋 Created Order Data:\n• restaurant_id ✓\n• branch_id ✓\n• table_id ✓\n• source = 'QR'\n• status = 'PENDING'\n\n⚠️ Failure Cases:\n• If any of above data cannot be resolved, order fails\n• Table not found = failure\n• QR Order disabled = failure\n\n✅ After Creation:\n• Order appears in 'QR Orders' tab for cashier\n• Table is considered occupied (OCCUPIED)"
+      },
+      "metadata": {
+        "feature_id": "qr_order_creation",
+        "affected_screens": ["Menu", "POS"],
+        "user_roles": ["cashier"]
+      }
+    },
+    "qr_order_acceptance": {
+      "id": "qr_order_acceptance",
+      "intent": ["explain_feature", "qr_acceptance", "accept_qr"],
+      "keywords": {
+        "ar": ["قبول طلب QR", "قبول الطلب", "موافقة الكاشير", "إرسال للمطبخ تلقائي"],
+        "en": ["accept qr order", "qr acceptance", "cashier approval", "auto send kitchen"]
+      },
+      "title": {
+        "ar": "قبول طلب QR",
+        "en": "QR Order Acceptance"
+      },
+      "content": {
+        "ar": "قبول طلب QR:\n\n🔄 ماذا يحدث عند القبول:\n1. الطلب ينتقل من PENDING إلى OPEN\n2. النظام يُرسل تلقائياً جميع الأصناف للمطبخ\n3. الطلب يظهر في شاشة المطبخ (KDS)\n4. الكاشير يستطيع التعديل أو إتمام الدفع\n\n⚠️ هام:\n• الإرسال للمطبخ يحدث تلقائياً فقط لطلبات QR\n• الطلبات العادية (من الكاشير) تحتاج ضغط 'إرسال للمطبخ' يدوياً\n• لا يتم إنشاء تذاكر مطبخ مكررة\n\n📋 بعد القبول:\n• الطلب يظهر في 'الطلبات المفتوحة'\n• الطاولة تبقى مشغولة\n• يمكن إضافة أصناف جديدة\n• الدفع والإغلاق كالطلبات العادية",
+        "en": "QR Order Acceptance:\n\n🔄 What Happens on Acceptance:\n1. Order transitions from PENDING to OPEN\n2. System automatically sends all items to kitchen\n3. Order appears on Kitchen Display (KDS)\n4. Cashier can modify or complete payment\n\n⚠️ Important:\n• Auto-send to kitchen happens ONLY for QR orders\n• Regular orders (from cashier) need manual 'Send to Kitchen'\n• No duplicate kitchen tickets are created\n\n📋 After Acceptance:\n• Order appears in 'Open Orders'\n• Table remains occupied\n• New items can be added\n• Payment and closing same as regular orders"
+      },
+      "metadata": {
+        "feature_id": "qr_order_acceptance",
+        "affected_screens": ["POS", "KDS"],
+        "user_roles": ["cashier"]
+      }
+    },
+    "table_state_qr": {
+      "id": "table_state_qr",
+      "intent": ["explain_feature", "table_status", "table_occupancy"],
+      "keywords": {
+        "ar": ["حالة الطاولة", "طاولة مشغولة", "طاولة فارغة", "متى تكون الطاولة مشغولة", "QR والطاولات"],
+        "en": ["table state", "table occupied", "table empty", "when table occupied", "qr and tables"]
+      },
+      "title": {
+        "ar": "حالة الطاولة وطلبات QR",
+        "en": "Table State and QR Orders"
+      },
+      "content": {
+        "ar": "حالة الطاولة وطلبات QR:\n\n🎯 متى تكون الطاولة مشغولة:\nالطاولة تعتبر مشغولة إذا كان هناك أي طلب فعال مرتبط بها:\n• OPEN: طلب مفتوح\n• ON_HOLD: طلب معلق\n• PENDING: طلب QR بانتظار القبول\n\n📋 ملاحظات:\n• حالة الطاولة تُحسب من الطلبات الفعالة\n• ليست من حقل status في جدول الطاولات\n• طلب QR (PENDING) يشغل الطاولة فوراً\n\n🔄 التدفق:\n1. عميل يرسل طلب QR → الطاولة مشغولة\n2. كاشير يقبل الطلب → الطاولة تبقى مشغولة\n3. الدفع → الطاولة تصبح فارغة\n4. الرفض → الطاولة تصبح فارغة",
+        "en": "Table State and QR Orders:\n\n🎯 When Table is Occupied:\nA table is considered occupied if there's ANY active order linked to it:\n• OPEN: Open order\n• ON_HOLD: Held order\n• PENDING: QR order awaiting acceptance\n\n📋 Notes:\n• Table state is derived from active orders\n• Not from status field in tables table\n• QR order (PENDING) occupies table immediately\n\n🔄 Flow:\n1. Customer sends QR order → Table occupied\n2. Cashier accepts order → Table remains occupied\n3. Payment → Table becomes empty\n4. Rejection → Table becomes empty"
+      },
+      "metadata": {
+        "feature_id": "table_state_qr",
+        "affected_screens": ["POS", "Tables"],
         "user_roles": ["cashier", "owner"]
+      }
+    },
+    "non_qr_orders": {
+      "id": "non_qr_orders",
+      "intent": ["explain_feature", "regular_orders"],
+      "keywords": {
+        "ar": ["طلبات عادية", "طلبات الكاشير", "طلبات غير QR", "فرق الطلبات"],
+        "en": ["regular orders", "cashier orders", "non-qr orders", "order difference"]
+      },
+      "title": {
+        "ar": "الطلبات العادية (غير QR)",
+        "en": "Regular Orders (Non-QR)"
+      },
+      "content": {
+        "ar": "الطلبات العادية (غير QR):\n\n🎯 المبدأ الأساسي:\nالطلبات التي يُنشئها الكاشير لا تتأثر بأي منطق خاص بـ QR.\n\n📋 الفروقات:\n• الإنشاء: الكاشير يُنشئ الطلب مباشرة\n• الحالة: الطلب يبدأ بحالة OPEN (ليس PENDING)\n• المطبخ: يجب الضغط يدوياً على 'إرسال للمطبخ'\n• الطاولة: نفس السلوك (الطاولة مشغولة)\n\n⚠️ ملاحظات:\n• الطلبات العادية لا تظهر في تبويب 'طلبات QR'\n• الطلبات العادية لا تُرسل تلقائياً للمطبخ\n• الدفع والإغلاق متطابق لجميع الطلبات\n• التقارير تعرض المصدر (source) لكل طلب",
+        "en": "Regular Orders (Non-QR):\n\n🎯 Core Principle:\nOrders created by cashier are NOT affected by any QR-specific logic.\n\n📋 Differences:\n• Creation: Cashier creates order directly\n• Status: Order starts as OPEN (not PENDING)\n• Kitchen: Must manually click 'Send to Kitchen'\n• Table: Same behavior (table becomes occupied)\n\n⚠️ Notes:\n• Regular orders don't appear in 'QR Orders' tab\n• Regular orders are not auto-sent to kitchen\n• Payment and closing identical for all orders\n• Reports show source for each order"
+      },
+      "metadata": {
+        "feature_id": "non_qr_orders",
+        "affected_screens": ["POS"],
+        "user_roles": ["cashier"]
       }
     },
     "screen_settings": {
@@ -882,23 +1009,24 @@
       "id": "section_pos_qr_pending",
       "intent": ["section_help", "explain_section"],
       "keywords": {
-        "ar": ["طلبات QR المعلقة", "QR pending", "الطلبات المعلقة في الكاشير", "اشرحلي طلبات QR", "كيو آر في شاشة الكاشير"],
-        "en": ["qr pending orders", "qr orders in pos", "pending qr", "explain qr pending", "qr section in pos"]
+        "ar": ["طلبات QR المعلقة", "QR pending", "الطلبات المعلقة في الكاشير", "اشرحلي طلبات QR", "كيو آر في شاشة الكاشير", "تبويب QR"],
+        "en": ["qr pending orders", "qr orders in pos", "pending qr", "explain qr pending", "qr section in pos", "qr tab"]
       },
       "title": {
-        "ar": "قسم طلبات QR المعلقة",
-        "en": "QR Pending Orders Section"
+        "ar": "تبويب طلبات QR",
+        "en": "QR Orders Tab"
       },
       "content": {
-        "ar": "قسم طلبات QR المعلقة في شاشة الكاشير:\n\n🎯 الغرض:\nإدارة الطلبات الواردة من العملاء عبر QR.\n\n✅ ما يمكنك فعله:\n• عرض الطلبات المعلقة من QR\n• مراجعة تفاصيل كل طلب\n• قبول الطلب ونقله للطلبات المفتوحة\n• رفض الطلب مع تحديد السبب\n\n🔄 سير العمل:\n1. العميل يمسح QR على الطاولة\n2. يختار الأصناف ويرسل الطلب\n3. الطلب يظهر هنا كـ \"معلق\"\n4. تقبل أو ترفض الطلب\n5. بعد القبول يصبح طلب عادي\n\n⚠️ ملاحظات مهمة:\n• الطلب المعلق لا يُحسب مالياً\n• يجب مراجعة الطلبات بانتظام\n• QR مرتبط بطاولة محددة\n• الرفض يُبلغ العميل\n\n💡 نصائح:\n• راجع الطلبات فور وصولها\n• تأكد من توفر الأصناف\n• استخدم الرفض للطلبات غير الواضحة",
-        "en": "QR Pending Orders Section in Cashier POS:\n\n🎯 Purpose:\nManage orders from customers via QR.\n\n✅ What You Can Do:\n• View pending QR orders\n• Review each order details\n• Accept order and move to open orders\n• Reject order with reason\n\n🔄 Workflow:\n1. Customer scans QR on table\n2. Selects items and submits order\n3. Order appears here as \"pending\"\n4. Accept or reject the order\n5. After acceptance becomes normal order\n\n⚠️ Important Notes:\n• Pending order not counted financially\n• Must review orders regularly\n• QR linked to specific table\n• Rejection notifies customer\n\n💡 Tips:\n• Review orders as they arrive\n• Verify item availability\n• Use rejection for unclear orders"
+        "ar": "تبويب طلبات QR في شاشة الكاشير:\n\n⚠️ هام: هذا التبويب يظهر فقط عند تفعيل إضافة QR Order.\n\n🎯 الغرض:\nإدارة الطلبات الواردة من العملاء عبر مسح رمز QR.\n\n✅ ما يمكنك فعله:\n• عرض الطلبات المعلقة (source=QR, status=PENDING)\n• مراجعة تفاصيل كل طلب\n• قبول الطلب (يُرسل للمطبخ تلقائياً)\n• رفض الطلب مع السبب\n\n🔄 سير العمل:\n1. العميل يمسح QR على الطاولة\n2. يختار الأصناف ويرسل الطلب\n3. الطلب يظهر هنا كـ 'معلق'\n4. عند القبول:\n   - الطلب ينتقل لحالة OPEN\n   - يُرسل تلقائياً للمطبخ\n   - يظهر في KDS\n\n⚠️ ملاحظات مهمة:\n• الطلب المعلق لا يُحسب مالياً\n• الطاولة تعتبر مشغولة فور وصول طلب QR\n• الإرسال التلقائي للمطبخ خاص بطلبات QR فقط\n• QR Order إضافة اختيارية من مدير النظام\n\n💡 نصائح:\n• راجع الطلبات فور وصولها\n• تأكد من توفر الأصناف قبل القبول\n• استخدم الرفض للطلبات غير القابلة للتنفيذ",
+        "en": "QR Orders Tab in Cashier POS:\n\n⚠️ Important: This tab only appears when QR Order add-on is enabled.\n\n🎯 Purpose:\nManage orders from customers via QR code scanning.\n\n✅ What You Can Do:\n• View pending orders (source=QR, status=PENDING)\n• Review each order details\n• Accept order (auto-sends to kitchen)\n• Reject order with reason\n\n🔄 Workflow:\n1. Customer scans QR on table\n2. Selects items and submits order\n3. Order appears here as 'pending'\n4. On acceptance:\n   - Order transitions to OPEN\n   - Auto-sent to kitchen\n   - Appears in KDS\n\n⚠️ Important Notes:\n• Pending order not counted financially\n• Table considered occupied when QR order arrives\n• Auto-send to kitchen is QR orders only\n• QR Order is optional add-on from System Admin\n\n💡 Tips:\n• Review orders as they arrive\n• Verify item availability before accepting\n• Use rejection for unfulfillable orders"
       },
       "metadata": {
         "feature_id": "section_pos_qr_pending",
         "affected_screens": ["POS", "QR"],
         "user_roles": ["cashier", "owner"],
         "parent_screen": "screen_cashier_pos",
-        "section_key": "qr_pending"
+        "section_key": "qr_pending",
+        "requires_addon": "qr_order"
       }
     },
     "section_tables_status": {
