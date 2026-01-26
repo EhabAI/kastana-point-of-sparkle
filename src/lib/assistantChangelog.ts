@@ -16,6 +16,97 @@ export interface ChangelogEntry {
 
 // Changelog data - add new entries at the top
 const CHANGELOG: ChangelogEntry[] = [
+  // === VERSION 2.2.0 - QR Order Stabilization ===
+  {
+    id: "qr_order_addon_stable",
+    version: "2.2.0",
+    date: "2026-01-26",
+    title: { 
+      ar: "إضافة طلبات QR (مستقرة)", 
+      en: "QR Order Add-on (Stable)" 
+    },
+    description: { 
+      ar: "إضافة اختيارية للطلب عبر QR. يتحكم بها مدير النظام فقط. عند القبول، يُرسل الطلب للمطبخ تلقائياً.",
+      en: "Optional QR ordering add-on. Controlled by System Admin only. On acceptance, order is auto-sent to kitchen."
+    },
+    roles: ["owner", "cashier", "system_admin"],
+    knowledgeId: "qr_order_addon"
+  },
+  {
+    id: "qr_orders_tab",
+    version: "2.2.0",
+    date: "2026-01-26",
+    title: { 
+      ar: "تبويب طلبات QR في الكاشير", 
+      en: "QR Orders Tab in POS" 
+    },
+    description: { 
+      ar: "تبويب مخصص لعرض وإدارة طلبات QR المعلقة. يظهر فقط عند تفعيل الإضافة.",
+      en: "Dedicated tab to view and manage pending QR orders. Only visible when add-on is enabled."
+    },
+    roles: ["cashier", "owner"],
+    knowledgeId: "screen_qr_orders"
+  },
+  {
+    id: "qr_auto_kitchen",
+    version: "2.2.0",
+    date: "2026-01-26",
+    title: { 
+      ar: "إرسال تلقائي للمطبخ عند قبول QR", 
+      en: "Auto Send to Kitchen on QR Accept" 
+    },
+    description: { 
+      ar: "عند قبول طلب QR، يُرسل تلقائياً للمطبخ. لا حاجة للضغط على 'إرسال للمطبخ' يدوياً.",
+      en: "When accepting a QR order, it is automatically sent to kitchen. No need for manual 'Send to Kitchen'."
+    },
+    roles: ["cashier", "owner", "kitchen"],
+    knowledgeId: "qr_order_acceptance"
+  },
+  {
+    id: "qr_domain_official",
+    version: "2.2.0",
+    date: "2026-01-26",
+    title: { 
+      ar: "نطاق QR الرسمي", 
+      en: "Official QR Menu Domain" 
+    },
+    description: { 
+      ar: "روابط QR تستخدم الآن النطاق الرسمي qrmenu.kastana.info مع دعم الفروع.",
+      en: "QR links now use official domain qrmenu.kastana.info with branch support."
+    },
+    roles: ["owner"],
+    knowledgeId: "qr_menu_url"
+  },
+  {
+    id: "qr_table_occupancy_fix",
+    version: "2.2.0",
+    date: "2026-01-26",
+    title: { 
+      ar: "إصلاح حالة الطاولات مع QR", 
+      en: "Table Occupancy Fix for QR" 
+    },
+    description: { 
+      ar: "الطاولات الآن تظهر مشغولة فور وصول طلب QR (حتى قبل القبول).",
+      en: "Tables now show as occupied immediately when QR order arrives (even before acceptance)."
+    },
+    roles: ["cashier", "owner"],
+    knowledgeId: "table_state_qr"
+  },
+  {
+    id: "qr_codes_scannable",
+    version: "2.2.0",
+    date: "2026-01-26",
+    title: { 
+      ar: "إصلاح أكواد QR", 
+      en: "QR Codes Now Scannable" 
+    },
+    description: { 
+      ar: "أكواد QR الآن حقيقية وقابلة للمسح بالكاميرا.",
+      en: "QR codes are now real and camera-scannable."
+    },
+    roles: ["owner"]
+  },
+  // === VERSION 2.1.0 - Smart Features Bundle ===
   {
     id: "smart_rules_bundle_1",
     version: "2.1.0",
@@ -76,6 +167,7 @@ const CHANGELOG: ChangelogEntry[] = [
     roles: ["owner"],
     knowledgeId: "system_confidence_score_explained"
   },
+  // === VERSION 2.0.0 - Smart Assistant & Variance ===
   {
     id: "consumption_variance_2c",
     version: "2.0.0",
@@ -105,6 +197,7 @@ const CHANGELOG: ChangelogEntry[] = [
     },
     roles: ["cashier", "owner", "kitchen"]
   },
+  // === VERSION 1.5.0 - KDS Add-on ===
   {
     id: "kds_addon_1",
     version: "1.5.0",
@@ -120,6 +213,7 @@ const CHANGELOG: ChangelogEntry[] = [
     roles: ["owner", "kitchen"],
     knowledgeId: "kds_overview"
   },
+  // === VERSION 1.4.0 - Inventory Insights ===
   {
     id: "inventory_insights_1",
     version: "1.4.0",
