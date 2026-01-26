@@ -2,6 +2,7 @@
 // Creates an auth user + assigns role, callable by owner only for cashier/kitchen.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.89.0'
+import { checkSubscriptionActive, subscriptionExpiredResponse } from "../_shared/subscription-guard.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -159,6 +160,13 @@ Deno.serve(async (req) => {
       if (callerRole.restaurant_id !== restaurantId) {
         console.error(`Restaurant mismatch: owner has ${callerRole.restaurant_id}, requested ${restaurantId}`)
         return errorResponse('not_authorized', 'You can only create staff for your own restaurant.', 403)
+      }
+
+      // Check subscription is active for owner's restaurant
+      const { isActive: subscriptionActive } = await checkSubscriptionActive(restaurantId);
+      if (!subscriptionActive) {
+        console.error('[admin-create-user] Restaurant subscription expired');
+        return subscriptionExpiredResponse(corsHeaders);
       }
 
       // For kitchen role, verify KDS is enabled

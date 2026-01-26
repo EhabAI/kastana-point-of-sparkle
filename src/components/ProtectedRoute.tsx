@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { RestaurantInactiveScreen } from '@/components/RestaurantInactiveScreen';
+import { SubscriptionExpiredScreen } from '@/components/SubscriptionExpiredScreen';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -13,7 +13,7 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, role, isActive, isRestaurantActive, loading, signOut } = useAuth();
   const { toast } = useToast();
-  const [showInactiveScreen, setShowInactiveScreen] = useState(false);
+  const [showSubscriptionExpired, setShowSubscriptionExpired] = useState(false);
 
   // Handle inactive user (cashier/owner deactivated)
   useEffect(() => {
@@ -27,12 +27,13 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     }
   }, [loading, user, isActive, signOut, toast]);
 
-  // Handle inactive restaurant for owners, cashiers, and kitchen staff
+  // Handle inactive restaurant/expired subscription for owners, cashiers, and kitchen staff
+  // System Admin is never blocked
   useEffect(() => {
-    if (!loading && user && role && (role === 'owner' || role === 'cashier' || role === 'kitchen') && !isRestaurantActive) {
-      setShowInactiveScreen(true);
+    if (!loading && user && role && role !== 'system_admin' && !isRestaurantActive) {
+      setShowSubscriptionExpired(true);
     } else {
-      setShowInactiveScreen(false);
+      setShowSubscriptionExpired(false);
     }
   }, [loading, user, role, isRestaurantActive]);
 
@@ -49,10 +50,11 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to="/login" replace />;
   }
 
-  // If restaurant is inactive for owner/cashier, show inactive screen
-  if (showInactiveScreen) {
+  // If restaurant subscription expired for owner/cashier/kitchen, show expired screen
+  // System Admin is never blocked
+  if (showSubscriptionExpired && role !== 'system_admin') {
     return (
-      <RestaurantInactiveScreen showLogout={true} />
+      <SubscriptionExpiredScreen showLogout={true} />
     );
   }
 

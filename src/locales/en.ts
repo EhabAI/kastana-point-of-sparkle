@@ -1815,4 +1815,9 @@ export default {
   send_to_kitchen_tooltip_disabled: "No new items to send",
   items_sent_to_kitchen: "Items sent to kitchen",
   send_to_kitchen_failed: "Failed to send items to kitchen",
+  
+  // Subscription Expired
+  subscription_expired_title: "Subscription Expired",
+  subscription_expired_message: "Your restaurant subscription has ended. Please contact support to renew.",
+  contact_support: "Contact Support",
 } as const;

@@ -2,6 +2,7 @@
 // Resets a user's password, callable by owners for their cashiers.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.89.0'
+import { checkSubscriptionActive, subscriptionExpiredResponse } from "../_shared/subscription-guard.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -95,6 +96,13 @@ Deno.serve(async (req) => {
     
     if (restErr || ownerRestaurantId !== restaurantId) {
       return errorResponse('not_authorized', 'You can only reset passwords for cashiers in your own restaurant.', 403)
+    }
+
+    // Check subscription is active
+    const { isActive: subscriptionActive } = await checkSubscriptionActive(restaurantId);
+    if (!subscriptionActive) {
+      console.error('[admin-reset-password] Restaurant subscription expired');
+      return subscriptionExpiredResponse(corsHeaders);
     }
 
     // Service-role client to update password + bypass RLS safely

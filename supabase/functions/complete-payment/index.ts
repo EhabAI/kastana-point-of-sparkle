@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkSubscriptionActive, subscriptionExpiredResponse } from "../_shared/subscription-guard.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -159,19 +160,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Step 5: Validate restaurant is active
-    const { data: restaurant, error: restaurantError } = await supabaseAdmin
-      .from("restaurants")
-      .select("is_active")
-      .eq("id", order.restaurant_id)
-      .single();
-
-    if (restaurantError || !restaurant || !restaurant.is_active) {
-      console.error("[complete-payment] Restaurant inactive or not found:", restaurantError);
-      return new Response(
-        JSON.stringify({ error: "Restaurant is not active" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Step 5: Validate restaurant subscription is active (includes is_active + subscription check)
+    const { isActive: subscriptionActive } = await checkSubscriptionActive(order.restaurant_id);
+    if (!subscriptionActive) {
+      console.error("[complete-payment] Restaurant subscription expired");
+      return subscriptionExpiredResponse(corsHeaders);
     }
 
     // Step 6: Validate payment totals
