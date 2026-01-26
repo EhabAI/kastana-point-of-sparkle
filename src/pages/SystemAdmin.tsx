@@ -42,7 +42,7 @@ import {
   useRestaurantSubscriptions,
   SubscriptionPeriod 
 } from "@/hooks/useRestaurantSubscriptions";
-import { Store, Users, Plus, Link, Loader2, Upload, Image, Package, ChefHat, Pencil, Key, AlertTriangle, RefreshCw, Calendar, QrCode, Power, PowerOff } from "lucide-react";
+import { Store, Users, Plus, Link, Loader2, Upload, Image, Package, ChefHat, Pencil, Key, AlertTriangle, RefreshCw, Calendar, QrCode, Power, PowerOff, CheckCircle2, XCircle } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -863,104 +863,68 @@ export default function SystemAdmin() {
                       <div className="flex flex-wrap items-start gap-3 pt-2 border-t border-border/50">
                         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('sa_addons')}</span>
                         
-                        {/* Inventory Module - Vertical Layout */}
-                        <div 
-                          className={`flex flex-col gap-1.5 px-3 py-2 rounded-md transition-colors ${
+                        {/* Inventory Module - Clickable */}
+                        <button
+                          onClick={() => handleInventoryToggle(restaurant.id, restaurant.name, inventoryEnabled)}
+                          disabled={toggleInventory.isPending}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all cursor-pointer hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${
                             inventoryEnabled 
-                              ? 'bg-blue-50 dark:bg-blue-950/40' 
-                              : 'bg-muted/30'
+                              ? 'bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-950/60' 
+                              : 'bg-muted/30 hover:bg-muted/50'
                           }`}
                         >
-                          {/* Line 1: Icon + Feature Name (full width) */}
-                          <div className="flex items-center gap-2">
-                            <Package className={`h-4 w-4 ${inventoryEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                            <span className={`text-xs font-semibold ${inventoryEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
-                              {t('sa_addon_inventory')}
-                            </span>
-                          </div>
-                          {/* Line 2: Switch + State Label */}
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              checked={inventoryEnabled}
-                              onCheckedChange={() => handleInventoryToggle(restaurant.id, restaurant.name, inventoryEnabled)}
-                              disabled={toggleInventory.isPending}
-                              className="h-4 w-7 data-[state=checked]:bg-blue-600"
-                            />
-                            <span className={`text-[11px] ${
-                              inventoryEnabled 
-                                ? 'text-green-600 dark:text-green-400 font-medium' 
-                                : 'text-muted-foreground'
-                            }`}>
-                              {inventoryEnabled ? t('sa_addon_enabled') : t('sa_addon_disabled')}
-                            </span>
-                          </div>
-                        </div>
+                          <Package className={`h-4 w-4 shrink-0 ${inventoryEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                          <span className={`text-xs font-semibold ${inventoryEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
+                            {t('sa_addon_inventory')}
+                          </span>
+                          {inventoryEnabled ? (
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600 dark:text-green-400 ms-auto" />
+                          ) : (
+                            <XCircle className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500 ms-auto" />
+                          )}
+                        </button>
 
-                        {/* KDS Module - Vertical Layout */}
-                        <div 
-                          className={`flex flex-col gap-1.5 px-3 py-2 rounded-md transition-colors ${
+                        {/* KDS Module - Clickable */}
+                        <button
+                          onClick={() => handleKDSToggle(restaurant.id, restaurant.name, kdsEnabled)}
+                          disabled={toggleKDS.isPending}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all cursor-pointer hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${
                             kdsEnabled 
-                              ? 'bg-blue-50 dark:bg-blue-950/40' 
-                              : 'bg-muted/30'
+                              ? 'bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-950/60' 
+                              : 'bg-muted/30 hover:bg-muted/50'
                           }`}
                         >
-                          {/* Line 1: Icon + Feature Name (full width) */}
-                          <div className="flex items-center gap-2">
-                            <ChefHat className={`h-4 w-4 ${kdsEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                            <span className={`text-xs font-semibold ${kdsEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
-                              {t('sa_addon_kds')}
-                            </span>
-                          </div>
-                          {/* Line 2: Switch + State Label */}
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              checked={kdsEnabled}
-                              onCheckedChange={() => handleKDSToggle(restaurant.id, restaurant.name, kdsEnabled)}
-                              disabled={toggleKDS.isPending}
-                              className="h-4 w-7 data-[state=checked]:bg-blue-600"
-                            />
-                            <span className={`text-[11px] ${
-                              kdsEnabled 
-                                ? 'text-green-600 dark:text-green-400 font-medium' 
-                                : 'text-muted-foreground'
-                            }`}>
-                              {kdsEnabled ? t('sa_addon_enabled') : t('sa_addon_disabled')}
-                            </span>
-                          </div>
-                        </div>
+                          <ChefHat className={`h-4 w-4 shrink-0 ${kdsEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                          <span className={`text-xs font-semibold ${kdsEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
+                            {t('sa_addon_kds')}
+                          </span>
+                          {kdsEnabled ? (
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600 dark:text-green-400 ms-auto" />
+                          ) : (
+                            <XCircle className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500 ms-auto" />
+                          )}
+                        </button>
 
-                        {/* QR Order Module - Vertical Layout */}
-                        <div 
-                          className={`flex flex-col gap-1.5 px-3 py-2 rounded-md transition-colors ${
+                        {/* QR Order Module - Clickable */}
+                        <button
+                          onClick={() => handleQRToggle(restaurant.id, restaurant.name, qrEnabled)}
+                          disabled={toggleQR.isPending}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all cursor-pointer hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${
                             qrEnabled 
-                              ? 'bg-blue-50 dark:bg-blue-950/40' 
-                              : 'bg-muted/30'
+                              ? 'bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-950/60' 
+                              : 'bg-muted/30 hover:bg-muted/50'
                           }`}
                         >
-                          {/* Line 1: Icon + Feature Name (full width) */}
-                          <div className="flex items-center gap-2">
-                            <QrCode className={`h-4 w-4 ${qrEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                            <span className={`text-xs font-semibold ${qrEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
-                              {t('sa_addon_qr')}
-                            </span>
-                          </div>
-                          {/* Line 2: Switch + State Label */}
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              checked={qrEnabled}
-                              onCheckedChange={() => handleQRToggle(restaurant.id, restaurant.name, qrEnabled)}
-                              disabled={toggleQR.isPending}
-                              className="h-4 w-7 data-[state=checked]:bg-blue-600"
-                            />
-                            <span className={`text-[11px] ${
-                              qrEnabled 
-                                ? 'text-green-600 dark:text-green-400 font-medium' 
-                                : 'text-muted-foreground'
-                            }`}>
-                              {qrEnabled ? t('sa_addon_enabled') : t('sa_addon_disabled')}
-                            </span>
-                          </div>
-                        </div>
+                          <QrCode className={`h-4 w-4 shrink-0 ${qrEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                          <span className={`text-xs font-semibold ${qrEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
+                            {t('sa_addon_qr')}
+                          </span>
+                          {qrEnabled ? (
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600 dark:text-green-400 ms-auto" />
+                          ) : (
+                            <XCircle className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500 ms-auto" />
+                          )}
+                        </button>
                       </div>
                       
                       {/* Subscription Info Row */}
