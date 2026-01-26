@@ -9,6 +9,8 @@ import { Loader2, Mail, Lock, Moon, Sun, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 import posLogoNew from "@/assets/pos-logo-new.png";
 import cashierIllustration from "@/assets/cashier-illustration.png";
+import { showSystemError } from "@/lib/systemErrorHandler";
+
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters")
@@ -41,18 +43,17 @@ export default function Login() {
     toast
   } = useToast();
 
+  // Detect browser language for error messages
+  const browserLanguage = navigator.language.startsWith("ar") ? "ar" : "en";
+  
   // Check for logout reason flag
   useEffect(() => {
     const logoutReason = sessionStorage.getItem("logout_reason");
     if (logoutReason === "RESTAURANT_INACTIVE") {
       sessionStorage.removeItem("logout_reason");
-      toast({
-        title: "Session Ended",
-        description: "This restaurant has been deactivated by system administration.",
-        variant: "destructive"
-      });
+      showSystemError("restaurant inactive", browserLanguage);
     }
-  }, [toast]);
+  }, [browserLanguage]);
   useEffect(() => {
     if (!loading && user && role) {
       if (role === "system_admin") {
@@ -81,24 +82,23 @@ export default function Login() {
       password
     });
     if (!validation.success) {
-      toast({
-        title: "Validation Error",
-        description: validation.error.errors[0].message,
-        variant: "destructive"
-      });
+      const errorMessage = validation.error.errors[0].message;
+      // Map Zod validation errors to system error patterns
+      if (errorMessage.includes("email")) {
+        showSystemError("invalid email format", browserLanguage);
+      } else if (errorMessage.includes("password") || errorMessage.includes("characters")) {
+        showSystemError("weak password requirements", browserLanguage);
+      } else {
+        showSystemError("validation error: " + errorMessage, browserLanguage);
+      }
       return;
     }
     setIsLoading(true);
-    const {
-      error
-    } = await signIn(email, password);
+    const { error } = await signIn(email, password);
     setIsLoading(false);
     if (error) {
-      toast({
-        title: "Login Failed",
-        description: error.message === "Invalid login credentials" ? "Invalid email or password. Please try again." : error.message,
-        variant: "destructive"
-      });
+      // Use system error handler for bilingual error messages
+      showSystemError(error, browserLanguage);
     }
   };
   if (loading) {
