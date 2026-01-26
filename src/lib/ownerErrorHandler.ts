@@ -1,7 +1,12 @@
 /**
  * Owner Dashboard Centralized Error Handler
  * Converts raw error.message / Supabase errors into business-friendly bilingual messages.
+ * 
+ * This is a specialized handler for Owner Dashboard that works with translation keys.
+ * For direct bilingual error display, see systemErrorHandler.ts
  */
+
+import { getSystemErrorMessage } from "@/lib/systemErrorHandler";
 
 interface OwnerErrorResult {
   title: string;
@@ -11,6 +16,9 @@ interface OwnerErrorResult {
 /**
  * Maps raw errors to business-friendly, bilingual messages for Owner Dashboard.
  * NEVER shows raw error.message, SQL, RLS/Policy wording, or stack traces.
+ * 
+ * This function uses translation keys - use it when you have access to the t() function.
+ * For direct bilingual messages without translation, use getSystemErrorMessage() instead.
  */
 export function getOwnerErrorMessage(
   error: unknown,
@@ -72,6 +80,17 @@ export function getOwnerErrorMessage(
     };
   }
 
+  // Subscription expired
+  if (
+    lowerMessage.includes("subscription") &&
+    (lowerMessage.includes("expired") || lowerMessage.includes("inactive"))
+  ) {
+    return {
+      title: t("error_owner_permission_title"),
+      description: t("error_owner_permission_desc"),
+    };
+  }
+
   // Duplicate / already exists errors
   if (
     lowerMessage.includes("duplicate key") ||
@@ -126,4 +145,19 @@ export function getOwnerErrorMessage(
 
   // Default: unexpected error
   return defaultResult;
+}
+
+/**
+ * Gets a bilingual error message for Owner Dashboard without translation keys.
+ * Use this when you don't have access to the t() function.
+ */
+export function getOwnerErrorDirect(
+  error: unknown,
+  language: "ar" | "en"
+): OwnerErrorResult {
+  const result = getSystemErrorMessage(error, language);
+  return {
+    title: result.title,
+    description: result.description,
+  };
 }
