@@ -42,7 +42,7 @@ import {
   useRestaurantSubscriptions,
   SubscriptionPeriod 
 } from "@/hooks/useRestaurantSubscriptions";
-import { Store, Users, Plus, Link, Loader2, Upload, Image, Package, ChefHat, Pencil, Key, AlertTriangle, RefreshCw, Calendar, QrCode } from "lucide-react";
+import { Store, Users, Plus, Link, Loader2, Upload, Image, Package, ChefHat, Pencil, Key, AlertTriangle, RefreshCw, Calendar, QrCode, Power, PowerOff } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -791,12 +791,17 @@ export default function SystemAdmin() {
                         {/* Status Section */}
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-3">
-                            {/* Status Badge - non-interactive display */}
-                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                            {/* Status Badge with Power Icon */}
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
                               restaurant.is_active 
                                 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
                                 : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
                             }`}>
+                              {restaurant.is_active ? (
+                                <Power className="h-3.5 w-3.5" />
+                              ) : (
+                                <PowerOff className="h-3.5 w-3.5" />
+                              )}
                               {restaurant.is_active ? t('active') : t('inactive')}
                             </span>
                             {/* Action Switch */}
