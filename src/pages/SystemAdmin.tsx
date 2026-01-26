@@ -791,25 +791,23 @@ export default function SystemAdmin() {
                         {/* Status Section */}
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-3">
-                            {/* Status Badge with Power Icon */}
-                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-                              restaurant.is_active 
-                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-                                : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
-                            }`}>
+                            {/* Clickable Status Badge with Power Icon */}
+                            <button
+                              onClick={() => handleToggleActive(restaurant.id, restaurant.name, restaurant.is_active)}
+                              disabled={toggleActive.isPending}
+                              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                restaurant.is_active 
+                                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50' 
+                                  : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                              }`}
+                            >
                               {restaurant.is_active ? (
                                 <Power className="h-3.5 w-3.5" />
                               ) : (
                                 <PowerOff className="h-3.5 w-3.5" />
                               )}
                               {restaurant.is_active ? t('active') : t('inactive')}
-                            </span>
-                            {/* Action Switch */}
-                            <Switch
-                              checked={restaurant.is_active}
-                              onCheckedChange={() => handleToggleActive(restaurant.id, restaurant.name, restaurant.is_active)}
-                              disabled={toggleActive.isPending}
-                            />
+                            </button>
                           </div>
 
                           {/* Actions */}
