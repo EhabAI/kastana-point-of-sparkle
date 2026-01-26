@@ -27,11 +27,12 @@ export function useBranchTables(branchId: string | undefined) {
       if (tablesError) throw tablesError;
 
       // Get open orders to check table status (using table_id column)
+      // Include 'pending' status for QR orders that haven't been confirmed yet
       const { data: openOrders, error: ordersError } = await supabase
         .from("orders")
         .select("id, table_id")
         .eq("branch_id", branchId)
-        .in("status", ["new", "open", "held"])
+        .in("status", ["new", "open", "held", "pending"])
         .not("table_id", "is", null);
 
       if (ordersError) throw ordersError;
