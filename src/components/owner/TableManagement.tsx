@@ -9,6 +9,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRestaurantTables, useCreateRestaurantTable, useUpdateRestaurantTable, RestaurantTable } from "@/hooks/useRestaurantTables";
 import { useBranches } from "@/hooks/useBranches";
+import { useQROrderEnabled } from "@/hooks/useQRModuleToggle";
 import { Loader2, Plus, Edit2, QrCode, Copy, Download, Table2, ChevronDown, Users, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -81,12 +82,14 @@ function TableRow({
   table, 
   restaurantId,
   onEdit,
-  branchName
+  branchName,
+  qrEnabled
 }: { 
   table: RestaurantTable; 
   restaurantId: string;
   onEdit: (table: RestaurantTable) => void;
   branchName: string;
+  qrEnabled: boolean;
 }) {
   const updateTable = useUpdateRestaurantTable();
   const { toast } = useToast();
@@ -157,12 +160,15 @@ function TableRow({
   return (
     <div className={`flex flex-col md:flex-row md:items-center justify-between p-4 rounded-lg gap-4 transition-all duration-200 hover:shadow-md hover:border-primary/30 border ${!hasValidBranch ? 'bg-destructive/10 border-destructive/30' : 'bg-muted/50 border-transparent'}`}>
       <div className="flex items-start gap-4">
-        {hasValidBranch ? (
-          <QRCodeDisplay data={menuLink} size={80} />
-        ) : (
-          <div className="w-20 h-20 bg-muted flex items-center justify-center rounded border border-dashed border-destructive">
-            <span className="text-xs text-destructive text-center px-1">{t("no_branch")}</span>
-          </div>
+        {/* QR Code - only show when qrEnabled */}
+        {qrEnabled && (
+          hasValidBranch ? (
+            <QRCodeDisplay data={menuLink} size={80} />
+          ) : (
+            <div className="w-20 h-20 bg-muted flex items-center justify-center rounded border border-dashed border-destructive">
+              <span className="text-xs text-destructive text-center px-1">{t("no_branch")}</span>
+            </div>
+          )
         )}
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
@@ -185,8 +191,13 @@ function TableRow({
             )}
           </div>
           <p className="text-sm text-muted-foreground mt-1">{t("code")}: {table.table_code}</p>
-          {hasValidBranch && (
+          {/* QR link text - only show when qrEnabled */}
+          {qrEnabled && hasValidBranch && (
             <p className="text-xs text-muted-foreground mt-1 break-all max-w-xs">{menuLink}</p>
+          )}
+          {/* Info text when QR disabled */}
+          {!qrEnabled && (
+            <p className="text-xs text-muted-foreground mt-1 italic">{t("qr_order_disabled_info")}</p>
           )}
         </div>
       </div>
@@ -196,14 +207,19 @@ function TableRow({
           onCheckedChange={handleToggleActive}
           disabled={updateTable.isPending || !hasValidBranch}
         />
-        <Button variant="outline" size="sm" onClick={handleCopyLink} disabled={!hasValidBranch}>
-          <Copy className="h-4 w-4 mr-1" />
-          {t("copy")}
-        </Button>
-        <Button variant="outline" size="sm" onClick={handleDownloadQR} disabled={!hasValidBranch}>
-          <Download className="h-4 w-4 mr-1" />
-          QR
-        </Button>
+        {/* QR buttons - only show when qrEnabled */}
+        {qrEnabled && (
+          <>
+            <Button variant="outline" size="sm" onClick={handleCopyLink} disabled={!hasValidBranch}>
+              <Copy className="h-4 w-4 mr-1" />
+              {t("copy")}
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDownloadQR} disabled={!hasValidBranch}>
+              <Download className="h-4 w-4 mr-1" />
+              QR
+            </Button>
+          </>
+        )}
         <Button variant="ghost" size="icon" onClick={() => onEdit(table)}>
           <Edit2 className="h-4 w-4" />
         </Button>
@@ -215,6 +231,7 @@ function TableRow({
 export function TableManagement({ restaurantId, tableCount }: TableManagementProps) {
   const { data: tables = [], isLoading } = useRestaurantTables(restaurantId);
   const { data: branches = [], isLoading: branchesLoading } = useBranches(restaurantId);
+  const { data: qrEnabled = false } = useQROrderEnabled(restaurantId);
   const createTable = useCreateRestaurantTable();
   const updateTable = useUpdateRestaurantTable();
   const { toast } = useToast();
@@ -414,6 +431,7 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
                     restaurantId={restaurantId}
                     onEdit={handleEdit}
                     branchName={getBranchName(table.branch_id)}
+                    qrEnabled={qrEnabled}
                   />
                 ))}
               </div>
