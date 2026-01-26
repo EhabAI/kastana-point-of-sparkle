@@ -14,6 +14,7 @@ export interface OpenOrder {
   notes: string | null;
   order_notes: string | null;
   table_id: string | null;
+  source?: string; // 'pos' or 'qr'
   order_items: {
     id: string;
     name: string;
@@ -30,11 +31,13 @@ export function useOpenOrders(branchId: string | undefined) {
     queryFn: async () => {
       if (!branchId) return [];
 
+      // Include 'pending' status for QR orders that haven't been confirmed yet
+      // This ensures table occupancy is correctly computed for QR orders
       const { data, error } = await supabase
         .from("orders")
-        .select("id, order_number, status, total, subtotal, created_at, notes, order_notes, table_id, order_items(id, name, quantity, price, notes, voided)")
+        .select("id, order_number, status, total, subtotal, created_at, notes, order_notes, table_id, source, order_items(id, name, quantity, price, notes, voided)")
         .eq("branch_id", branchId)
-        .in("status", ["new", "open", "held"])
+        .in("status", ["new", "open", "held", "pending"])
         .order("created_at", { ascending: false });
 
       if (error) throw error;
