@@ -880,7 +880,7 @@ export default function SystemAdmin() {
                           {inventoryEnabled ? (
                             <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600 dark:text-green-400 ms-auto" strokeWidth={2.5} />
                           ) : (
-                            <XCircle className="h-5 w-5 shrink-0 text-gray-400 dark:text-gray-500 ms-auto" strokeWidth={2.5} />
+                            <XCircle className="h-5 w-5 shrink-0 text-red-500 dark:text-red-400 ms-auto" strokeWidth={2.5} />
                           )}
                         </button>
 
@@ -901,7 +901,7 @@ export default function SystemAdmin() {
                           {kdsEnabled ? (
                             <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600 dark:text-green-400 ms-auto" strokeWidth={2.5} />
                           ) : (
-                            <XCircle className="h-5 w-5 shrink-0 text-gray-400 dark:text-gray-500 ms-auto" strokeWidth={2.5} />
+                            <XCircle className="h-5 w-5 shrink-0 text-red-500 dark:text-red-400 ms-auto" strokeWidth={2.5} />
                           )}
                         </button>
 
@@ -922,7 +922,7 @@ export default function SystemAdmin() {
                           {qrEnabled ? (
                             <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600 dark:text-green-400 ms-auto" strokeWidth={2.5} />
                           ) : (
-                            <XCircle className="h-5 w-5 shrink-0 text-gray-400 dark:text-gray-500 ms-auto" strokeWidth={2.5} />
+                            <XCircle className="h-5 w-5 shrink-0 text-red-500 dark:text-red-400 ms-auto" strokeWidth={2.5} />
                           )}
                         </button>
                       </div>
