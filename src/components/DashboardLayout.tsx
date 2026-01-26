@@ -50,14 +50,14 @@ export function DashboardLayout({
     });
   };
   return <div className="min-h-screen bg-background">
-      {/* Header - cleaner, reduced height */}
+      {/* Header - compact height */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-12 sm:h-14">
+          <div className="flex items-center justify-between h-10 sm:h-11">
             {/* LEFT – Brand Area */}
-            <div className="flex items-center gap-2.5">
-              <img src={posLogoNew} alt="Kastana POS" className="h-8 sm:h-10 w-auto" />
-              <span className="text-sm font-semibold text-foreground">
+            <div className="flex items-center gap-2">
+              <img src={posLogoNew} alt="Kastana POS" className="h-6 sm:h-7 w-auto" />
+              <span className="text-xs font-semibold text-foreground">
                 Kastana POS
               </span>
             </div>
@@ -65,24 +65,24 @@ export function DashboardLayout({
             {/* CENTER – User Display (hidden on mobile) */}
             <div className="hidden md:flex items-center justify-center flex-1">
               {displayName && (
-                <span className="font-medium text-foreground text-lg font-sans">
+                <span className="font-medium text-foreground text-sm font-sans">
                   {displayName} {role && `- ${formatRole(role)}`}
                 </span>
               )}
             </div>
 
             {/* RIGHT – Actions Area */}
-            <div className="flex items-center gap-1 sm:gap-1.5">
+            <div className="flex items-center gap-1">
               <ThemeToggle />
               <LanguageToggle />
               
               {/* Divider */}
-              <div className="hidden sm:block w-px h-5 bg-border/60 mx-1.5" />
+              <div className="hidden sm:block w-px h-4 bg-border/60 mx-1" />
               
               {/* Sign Out */}
-              <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground hover:text-foreground h-8 px-2">
-                <LogOut className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline ltr:ml-1.5 rtl:mr-1.5 text-xs">{t("sign_out")}</span>
+              <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground hover:text-foreground h-7 px-1.5">
+                <LogOut className="h-3 w-3" />
+                <span className="hidden sm:inline ltr:ml-1 rtl:mr-1 text-[11px]">{t("sign_out")}</span>
               </Button>
             </div>
           </div>
