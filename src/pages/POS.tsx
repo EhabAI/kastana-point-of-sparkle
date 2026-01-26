@@ -2062,6 +2062,7 @@ export default function POS() {
               openCount={openOrdersNoTable.length}
               occupiedTablesCount={occupiedTablesCount}
               favoritesCount={favoriteItems.length}
+              qrOrderEnabled={settings?.qr_order_enabled ?? false}
             />
           </div>
 

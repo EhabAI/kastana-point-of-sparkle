@@ -11,6 +11,7 @@ interface POSTabControlProps {
   openCount?: number;
   occupiedTablesCount?: number;
   favoritesCount?: number;
+  qrOrderEnabled?: boolean;
 }
 
 export function POSTabControl({
@@ -20,6 +21,7 @@ export function POSTabControl({
   openCount = 0,
   occupiedTablesCount = 0,
   favoritesCount = 0,
+  qrOrderEnabled = true,
 }: POSTabControlProps) {
   const { t } = useLanguage();
 
@@ -29,36 +31,44 @@ export function POSTabControl({
       label: t("pos_new_order"),
       icon: ShoppingCart,
       count: 0,
+      visible: true,
     },
     {
       id: "favorites" as POSTab,
       label: t("pos_favorites"),
       icon: Star,
       count: favoritesCount,
+      visible: true,
     },
     {
       id: "qr-pending" as POSTab,
       label: t("pos_qr_pending"),
       icon: QrCode,
       count: pendingCount,
+      visible: qrOrderEnabled, // Only show if QR Order module is enabled
     },
     {
       id: "open-orders" as POSTab,
       label: t("pos_open_orders"),
       icon: ClipboardList,
       count: openCount,
+      visible: true,
     },
     {
       id: "tables" as POSTab,
       label: t("pos_tables"),
       icon: Grid,
       count: occupiedTablesCount,
+      visible: true,
     },
   ];
 
+  // Filter to only visible tabs
+  const visibleTabs = tabs.filter((tab) => tab.visible);
+
   return (
     <div className="flex bg-muted/40 p-1 rounded-lg gap-1">
-      {tabs.map((tab) => (
+      {visibleTabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}

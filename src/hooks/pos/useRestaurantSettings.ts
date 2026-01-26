@@ -11,6 +11,7 @@ export interface RestaurantSettings {
   rounding_enabled: boolean;
   kds_enabled?: boolean;
   inventory_enabled?: boolean;
+  qr_order_enabled?: boolean;
 }
 
 const DEFAULT_SETTINGS: Omit<RestaurantSettings, "id" | "restaurant_id"> = {
@@ -20,6 +21,7 @@ const DEFAULT_SETTINGS: Omit<RestaurantSettings, "id" | "restaurant_id"> = {
   rounding_enabled: false,
   kds_enabled: false,
   inventory_enabled: false,
+  qr_order_enabled: false,
 };
 
 export function useRestaurantSettings() {

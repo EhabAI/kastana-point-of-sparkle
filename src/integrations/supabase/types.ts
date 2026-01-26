@@ -1416,6 +1416,7 @@ export type Database = {
           kds_enabled: boolean
           max_discount_value: number | null
           prices_include_tax: boolean
+          qr_order_enabled: boolean
           restaurant_id: string
           rounding_enabled: boolean
           service_charge_rate: number
@@ -1433,6 +1434,7 @@ export type Database = {
           kds_enabled?: boolean
           max_discount_value?: number | null
           prices_include_tax?: boolean
+          qr_order_enabled?: boolean
           restaurant_id: string
           rounding_enabled?: boolean
           service_charge_rate?: number
@@ -1450,6 +1452,7 @@ export type Database = {
           kds_enabled?: boolean
           max_discount_value?: number | null
           prices_include_tax?: boolean
+          qr_order_enabled?: boolean
           restaurant_id?: string
           rounding_enabled?: boolean
           service_charge_rate?: number
@@ -1937,6 +1940,10 @@ export type Database = {
           table_code: string
           table_name: string
         }[]
+      }
+      public_is_qr_enabled: {
+        Args: { p_restaurant_id: string }
+        Returns: boolean
       }
     }
     Enums: {

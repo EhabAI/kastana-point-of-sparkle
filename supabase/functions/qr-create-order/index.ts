@@ -242,6 +242,36 @@ serve(async (req) => {
     }
 
     // ═══════════════════════════════════════════════════════════════════
+    // 2.6. QR ORDER MODULE CHECK (ADD-ON GATE)
+    // ═══════════════════════════════════════════════════════════════════
+    const { data: settingsData, error: settingsError } = await supabase
+      .from("restaurant_settings")
+      .select("qr_order_enabled")
+      .eq("restaurant_id", restaurant_id)
+      .maybeSingle();
+
+    if (settingsError) {
+      console.error("Settings lookup error:", settingsError.message);
+      return new Response(
+        JSON.stringify({ error: "Failed to verify restaurant settings" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // If no settings exist or qr_order_enabled is false, block QR order creation
+    const qrEnabled = settingsData?.qr_order_enabled ?? false;
+    if (!qrEnabled) {
+      console.log(`[qr-create-order] QR Order disabled for restaurant: ${restaurant_id}`);
+      return new Response(
+        JSON.stringify({ 
+          error: "QR Order is disabled for this restaurant", 
+          code: "QR_DISABLED" 
+        }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
     // 3. RESOLVE TABLE AND BRANCH
     // ═══════════════════════════════════════════════════════════════════
     let table_id: string | null = providedTableId || null;
