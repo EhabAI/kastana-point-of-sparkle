@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkSubscriptionActive, subscriptionExpiredResponse } from "../_shared/subscription-guard.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -67,18 +68,11 @@ Deno.serve(async (req) => {
 
     const restaurantId = roleData.restaurant_id;
 
-    // Validate restaurant is active
-    const { data: restaurant } = await supabase
-      .from("restaurants")
-      .select("is_active")
-      .eq("id", restaurantId)
-      .single();
-
-    if (!restaurant?.is_active) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Restaurant is inactive" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Validate restaurant subscription is active
+    const { isActive: subscriptionActive } = await checkSubscriptionActive(restaurantId);
+    if (!subscriptionActive) {
+      console.error("[inventory-transfer] Restaurant subscription expired");
+      return subscriptionExpiredResponse(corsHeaders);
     }
 
     // ============ INVENTORY MODULE GUARD ============

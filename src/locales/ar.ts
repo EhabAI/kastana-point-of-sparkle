@@ -1820,4 +1820,9 @@ export default {
   send_to_kitchen_tooltip_disabled: "لا توجد عناصر جديدة للإرسال",
   items_sent_to_kitchen: "تم إرسال الأصناف إلى المطبخ",
   send_to_kitchen_failed: "فشل إرسال العناصر إلى المطبخ",
+  
+  // Subscription Expired
+  subscription_expired_title: "انتهى الاشتراك",
+  subscription_expired_message: "اشتراك المطعم منتهي. يرجى التواصل مع الدعم لتجديد الاشتراك.",
+  contact_support: "تواصل مع الدعم",
 } as const;

@@ -82,22 +82,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   };
 
+  /**
+   * Check if restaurant is active using the RPC function.
+   * This checks BOTH the is_active flag AND subscription validity.
+   */
   const fetchRestaurantActiveStatus = async (restId: string | null): Promise<boolean> => {
     if (!restId) return true;
 
     try {
-      const { data, error } = await supabase
-        .from("restaurants")
-        .select("is_active")
-        .eq("id", restId)
-        .maybeSingle();
+      // Use RPC to check both is_active flag AND subscription validity
+      const { data, error } = await supabase.rpc("is_restaurant_active", {
+        p_restaurant_id: restId,
+      });
 
       if (error) {
-        console.error("Error fetching restaurant status:", error);
-        return true;
+        console.error("Error fetching restaurant status via RPC:", error);
+        // Fallback: if RPC fails, check just the is_active flag
+        const { data: fallbackData } = await supabase
+          .from("restaurants")
+          .select("is_active")
+          .eq("id", restId)
+          .maybeSingle();
+        return fallbackData?.is_active ?? true;
       }
 
-      return data?.is_active ?? true;
+      return data === true;
     } catch (e) {
       console.error("Exception fetching restaurant status:", e);
       return true;

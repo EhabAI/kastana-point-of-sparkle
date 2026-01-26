@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkSubscriptionActive, subscriptionExpiredResponse } from "../_shared/subscription-guard.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -80,6 +81,13 @@ Deno.serve(async (req) => {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Validate restaurant subscription is active
+    const { isActive: subscriptionActive } = await checkSubscriptionActive(restaurant_id);
+    if (!subscriptionActive) {
+      console.error("[recipe-upsert] Restaurant subscription expired");
+      return subscriptionExpiredResponse(corsHeaders);
     }
 
     // Check if recipe exists
