@@ -12,6 +12,7 @@ import { useBranches } from "@/hooks/useBranches";
 import { Loader2, Plus, Edit2, QrCode, Copy, Download, Table2, ChevronDown, Users, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getOwnerErrorMessage } from "@/lib/ownerErrorHandler";
 
 interface TableManagementProps {
   restaurantId: string;
@@ -147,8 +148,9 @@ function TableRow({
   const handleToggleActive = async () => {
     try {
       await updateTable.mutateAsync({ id: table.id, isActive: !table.is_active });
-    } catch {
-      toast({ title: t("error_unexpected"), variant: "destructive" });
+    } catch (error) {
+      const { title, description } = getOwnerErrorMessage(error, t);
+      toast({ title, description, variant: "destructive" });
     }
   };
   
@@ -264,8 +266,9 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
       setNewTableName("");
       setNewTableCapacity(4);
       setCreateDialogOpen(false);
-    } catch {
-      toast({ title: t("error_unexpected"), variant: "destructive" });
+    } catch (error) {
+      const { title, description } = getOwnerErrorMessage(error, t);
+      toast({ title, description, variant: "destructive" });
     }
   };
   

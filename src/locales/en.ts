@@ -1,5 +1,22 @@
 // English translations for Kastana POS
 export default {
+  // Owner Error Messages (subscription/permission errors)
+  error_unexpected_owner_title: "Something went wrong",
+  error_unexpected_owner_desc: "Please try again or contact support if the issue persists.",
+  error_owner_permission_title: "Action Not Allowed",
+  error_owner_permission_desc: "Your subscription may have expired. Please contact support to renew.",
+  error_owner_duplicate_title: "Already Exists",
+  error_owner_duplicate_desc: "This item already exists. Please use a different name.",
+  error_owner_not_found_title: "Not Found",
+  error_owner_not_found_desc: "The requested item could not be found.",
+  error_owner_network_title: "Connection Error",
+  error_owner_network_desc: "Please check your internet connection and try again.",
+  error_owner_restaurant_mismatch_title: "Restaurant Mismatch",
+  error_owner_restaurant_mismatch_desc: "This action is not allowed for this restaurant.",
+  error_owner_branch_active_cashiers_title: "Cannot Delete Branch",
+  error_owner_branch_active_cashiers_desc: "Please deactivate all cashiers in this branch first.",
+  error_owner_branch_open_shifts_title: "Cannot Delete Branch",
+  error_owner_branch_open_shifts_desc: "Please close all open shifts in this branch first.",
   // Cash difference labels (shift close)
   shift_cash_difference: "Cash Difference",
   shift_cash_over: "Cash Over",
@@ -1599,24 +1616,6 @@ export default {
   manage_combo: "Manage Combo",
   select_item: "Select item",
   qty: "Qty",
-
-  // Owner Dashboard Error Messages
-  error_unexpected_owner_title: "Something went wrong",
-  error_unexpected_owner_desc: "An unexpected error occurred. Please try again.",
-  error_owner_permission_title: "Insufficient permissions",
-  error_owner_permission_desc: "You don't have the required permissions for this action.",
-  error_owner_duplicate_title: "Already exists",
-  error_owner_duplicate_desc: "This item already exists. Please check and try again.",
-  error_owner_not_found_title: "Not found",
-  error_owner_not_found_desc: "The requested item was not found.",
-  error_owner_network_title: "Connection error",
-  error_owner_network_desc: "Unable to connect. Please check your internet connection.",
-  error_owner_restaurant_mismatch_title: "Restaurant mismatch",
-  error_owner_restaurant_mismatch_desc: "This item belongs to a different restaurant.",
-  error_owner_branch_active_cashiers_title: "Cannot delete branch",
-  error_owner_branch_active_cashiers_desc: "This branch has active cashiers. Please deactivate them first.",
-  error_owner_branch_open_shifts_title: "Cannot delete branch",
-  error_owner_branch_open_shifts_desc: "This branch has open shifts. Please close them first.",
 
   // Insight Cards
   refund_void_reasons_title: "Refund & Void Reasons",
