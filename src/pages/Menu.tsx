@@ -681,9 +681,11 @@ export default function Menu() {
 
     try {
       // Call edge function instead of direct inserts
+      // Pass branch_id from URL if available for explicit branch association
       const { data, error: fnError } = await supabase.functions.invoke("qr-create-order", {
         body: {
           restaurant_id: restaurantId,
+          branch_id: branchIdParam || tableInfo?.branch_id || null,
           table_code: tableCode,
           items: cart.map((item) => ({
             menu_item_id: item.item_id,
