@@ -621,6 +621,7 @@ export default {
   tables: "Tables",
   tables_management: "Tables Management",
   tables_desc: "Manage restaurant tables with QR codes for menu access",
+  qr_order_disabled_info: "QR Order is not enabled for this restaurant",
   add_table: "Add Table",
   add_table_desc: "Create a new table with a unique QR code.",
   edit_table: "Edit Table",

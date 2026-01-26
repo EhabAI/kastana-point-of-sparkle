@@ -621,6 +621,7 @@ export default {
   tables: "الطاولات",
   tables_management: "إدارة الطاولات",
   tables_desc: "إدارة طاولات المطعم مع رموز QR للوصول للقائمة",
+  qr_order_disabled_info: "QR Order غير مفعّل لهذا المطعم",
   add_table: "إضافة طاولة",
   add_table_desc: "إنشاء طاولة جديدة برمز QR فريد.",
   edit_table: "تعديل الطاولة",
