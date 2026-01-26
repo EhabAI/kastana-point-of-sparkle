@@ -48,31 +48,31 @@ export function POSHeader({
   const { t } = useLanguage();
 
   return (
-    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/60">
+    <header className="sticky top-0 z-50 bg-blue-100 dark:bg-blue-900/40 backdrop-blur-sm border-b border-blue-200 dark:border-blue-800/50">
       <div className="px-4 sm:px-6">
-        <div className="flex items-center justify-between h-12 sm:h-14">
+        <div className="flex items-center justify-between h-10 sm:h-11">
           {/* LEFT – Brand Area */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <img 
               src={restaurantLogo || posLogoNew} 
               alt={`${restaurantName} logo`}
-              className="h-8 sm:h-10 w-auto object-contain rounded-lg"
+              className="h-6 sm:h-7 w-auto object-contain rounded-lg"
             />
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-foreground leading-tight">
+              <span className="text-xs font-semibold text-blue-900 dark:text-blue-100 leading-tight">
                 {restaurantName}
               </span>
-              <span className="text-[11px] text-muted-foreground leading-tight capitalize">
+              <span className="text-[10px] text-blue-700 dark:text-blue-300 leading-tight capitalize">
                 {cashierDisplayName}
               </span>
             </div>
             
             {/* Shift Status Badge */}
             <div
-              className={`px-2 py-1 rounded text-xs font-medium ${
+              className={`px-2 py-0.5 rounded text-[11px] font-medium ${
                 shiftStatus === "open"
-                  ? "bg-green-500/20 text-green-600 dark:text-green-400"
-                  : "bg-muted text-muted-foreground"
+                  ? "bg-green-500/20 text-green-700 dark:text-green-400"
+                  : "bg-blue-200 dark:bg-blue-800 text-blue-600 dark:text-blue-300"
               }`}
             >
               {shiftStatus === "open" ? t("shift_status_open") : t("shift_status_closed")}
@@ -80,12 +80,12 @@ export function POSHeader({
           </div>
 
           {/* RIGHT – Actions Area */}
-          <div className="flex items-center gap-1 sm:gap-1.5">
+          <div className="flex items-center gap-1">
             <ThemeToggle />
             <LanguageToggle />
             
             {/* Divider */}
-            <div className="hidden sm:block w-px h-5 bg-border/60 mx-1.5" />
+            <div className="hidden sm:block w-px h-4 bg-blue-300 dark:bg-blue-700 mx-1" />
 
             {shiftStatus === "open" ? (
               <>
@@ -146,16 +146,16 @@ export function POSHeader({
             )}
 
             {/* Divider */}
-            <div className="hidden sm:block w-px h-5 bg-border/60 mx-1.5" />
+            <div className="hidden sm:block w-px h-4 bg-blue-300 dark:bg-blue-700 mx-1" />
 
             {/* Sign Out */}
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={onSignOut}
-              className="text-muted-foreground hover:text-foreground h-8 px-2"
+              className="text-blue-700 dark:text-blue-200 hover:text-blue-900 dark:hover:text-white hover:bg-blue-200 dark:hover:bg-blue-800 h-7 px-1.5"
             >
-              <LogOut className="h-3.5 w-3.5" />
+              <LogOut className="h-3 w-3" />
             </Button>
           </div>
         </div>

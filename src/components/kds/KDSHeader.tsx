@@ -89,40 +89,40 @@ export function KDSHeader({
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/60">
+    <header className="sticky top-0 z-50 bg-blue-100 dark:bg-blue-900/40 backdrop-blur-sm border-b border-blue-200 dark:border-blue-800/50">
       <div className="px-4 sm:px-6">
-        <div className="flex items-center justify-between h-12 sm:h-14">
+        <div className="flex items-center justify-between h-10 sm:h-11">
           {/* LEFT – Brand Area */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <img 
               src={restaurantLogo || posLogoNew} 
               alt={restaurantName || "Kastana POS"}
-              className="h-8 sm:h-10 w-auto object-contain rounded-lg"
+              className="h-6 sm:h-7 w-auto object-contain rounded-lg"
             />
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-foreground leading-tight">
+              <span className="text-xs font-semibold text-blue-900 dark:text-blue-100 leading-tight">
                 {restaurantName || "Kastana POS"}
               </span>
-              <span className="text-[11px] text-muted-foreground leading-tight">
+              <span className="text-[10px] text-blue-700 dark:text-blue-300 leading-tight">
                 {t("kitchen_display")}
               </span>
             </div>
           </div>
 
           {/* RIGHT – Actions Area */}
-          <div className="flex items-center gap-1 sm:gap-1.5">
+          <div className="flex items-center gap-1">
             {/* Sound Toggle */}
             <Button
               variant={soundEnabled ? "default" : "outline"}
               size="sm"
               onClick={onSoundToggle}
               title={soundEnabled ? t("sound_on") : t("sound_off")}
-              className="h-8 px-2"
+              className="h-7 px-1.5"
             >
               {soundEnabled ? (
-                <Volume2 className="h-3.5 w-3.5" />
+                <Volume2 className="h-3 w-3" />
               ) : (
-                <VolumeX className="h-3.5 w-3.5" />
+                <VolumeX className="h-3 w-3" />
               )}
             </Button>
 
@@ -132,20 +132,20 @@ export function KDSHeader({
               size="sm"
               onClick={onToggleFullscreen}
               title={isFullscreen ? t("exit_fullscreen") : t("enter_fullscreen")}
-              className="h-8 px-2"
+              className="h-7 px-1.5"
             >
               {isFullscreen ? (
-                <Minimize className="h-3.5 w-3.5" />
+                <Minimize className="h-3 w-3" />
               ) : (
-                <Maximize className="h-3.5 w-3.5" />
+                <Maximize className="h-3 w-3" />
               )}
             </Button>
 
             {/* Settings Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 px-2">
-                  <Settings2 className="h-3.5 w-3.5" />
+                <Button variant="outline" size="sm" className="h-7 px-1.5">
+                  <Settings2 className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align={isRTL ? "start" : "end"} className="w-56">
@@ -195,13 +195,13 @@ export function KDSHeader({
               size="sm"
               onClick={onRefresh}
               disabled={isRefetching}
-              className="h-8 px-2"
+              className="h-7 px-1.5"
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${isRefetching ? "animate-spin" : ""}`} />
+              <RefreshCw className={`h-3 w-3 ${isRefetching ? "animate-spin" : ""}`} />
             </Button>
 
             {/* Divider */}
-            <div className="hidden sm:block w-px h-5 bg-border/60 mx-1.5" />
+            <div className="hidden sm:block w-px h-4 bg-blue-300 dark:bg-blue-700 mx-1" />
 
             {/* Theme Toggle */}
             <ThemeToggle />
@@ -210,11 +210,11 @@ export function KDSHeader({
             <LanguageToggle />
 
           {/* Divider */}
-            <div className="hidden sm:block w-px h-5 bg-border/60 mx-1.5" />
+            <div className="hidden sm:block w-px h-4 bg-blue-300 dark:bg-blue-700 mx-1" />
 
             {/* Current User - Display Name + Role */}
             {user && (
-              <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground px-2">
+              <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-blue-700 dark:text-blue-300 px-2">
                 <span className="truncate max-w-[150px] capitalize" title={displayName || user.email}>
                   {displayName ? `${displayName} - ${role?.replace('_', ' ')}` : user.email}
                 </span>
@@ -227,11 +227,11 @@ export function KDSHeader({
                 variant="ghost"
                 size="sm"
                 onClick={handleHomeClick}
-                className="text-muted-foreground hover:text-foreground h-8 px-2"
+                className="text-blue-700 dark:text-blue-200 hover:text-blue-900 dark:hover:text-white hover:bg-blue-200 dark:hover:bg-blue-800 h-7 px-1.5"
                 title={t("dashboard")}
               >
-                <Home className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline ltr:ml-1.5 rtl:mr-1.5 text-xs">
+                <Home className="h-3 w-3" />
+                <span className="hidden sm:inline ltr:ml-1 rtl:mr-1 text-[11px]">
                   {t("dashboard")}
                 </span>
               </Button>
@@ -242,11 +242,11 @@ export function KDSHeader({
               variant="ghost"
               size="sm"
               onClick={handleSignOut}
-              className="text-muted-foreground hover:text-destructive h-8 px-2"
+              className="text-blue-700 dark:text-blue-200 hover:text-red-600 dark:hover:text-red-400 hover:bg-blue-200 dark:hover:bg-blue-800 h-7 px-1.5"
               title={t("sign_out")}
             >
-              <LogOut className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline ltr:ml-1.5 rtl:mr-1.5 text-xs">
+              <LogOut className="h-3 w-3" />
+              <span className="hidden sm:inline ltr:ml-1 rtl:mr-1 text-[11px]">
                 {t("sign_out")}
               </span>
             </Button>
