@@ -332,7 +332,28 @@ serve(async (req) => {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // 9. AUDIT LOG (action: QR_ORDER_CONFIRMED - UPPER_SNAKE_CASE)
+    // 9. SEND TO KITCHEN: Automatically send all items to kitchen for QR orders
+    // ═══════════════════════════════════════════════════════════════════
+    // QR orders should appear in KDS immediately upon acceptance
+    const kitchenSentAt = new Date().toISOString();
+    
+    const { data: sentItems, error: sendToKitchenError } = await supabase
+      .from("order_items")
+      .update({ kitchen_sent_at: kitchenSentAt })
+      .eq("order_id", orderId)
+      .is("kitchen_sent_at", null) // Only items not already sent
+      .select("id");
+
+    if (sendToKitchenError) {
+      // Log but don't fail - the order confirmation itself succeeded
+      console.error("Send to kitchen error (non-fatal):", sendToKitchenError.message);
+    }
+
+    const sentItemCount = sentItems?.length || 0;
+    console.log(`[confirm-qr-order] Sent ${sentItemCount} items to kitchen for order #${order.order_number}`);
+
+    // ═══════════════════════════════════════════════════════════════════
+    // 10. AUDIT LOG (action: QR_ORDER_CONFIRMED - UPPER_SNAKE_CASE)
     // ═══════════════════════════════════════════════════════════════════
     const { error: auditError } = await supabase
       .from("audit_logs")
@@ -349,8 +370,10 @@ serve(async (req) => {
           shift_id: openShift.id,
           branch_id: userBranchId,
           previous_status: "pending",
-          new_status: newStatus, // Dine-in: "new" (KDS), Takeaway: "open" (payment first)
-          sent_to_kitchen: isDineIn, // Only dine-in goes to kitchen immediately
+          new_status: newStatus,
+          sent_to_kitchen: true, // QR orders always auto-sent to kitchen
+          kitchen_sent_at: kitchenSentAt,
+          items_sent_count: sentItemCount,
           confirmed_at: new Date().toISOString(),
         },
       });
@@ -361,7 +384,7 @@ serve(async (req) => {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // 10. SUCCESS RESPONSE
+    // 11. SUCCESS RESPONSE
     // ═══════════════════════════════════════════════════════════════════
     return new Response(
       JSON.stringify({
@@ -371,6 +394,11 @@ serve(async (req) => {
           order_number: updatedOrder.order_number,
           status: updatedOrder.status,
           shift_id: updatedOrder.shift_id,
+        },
+        kitchen: {
+          sent: true,
+          items_count: sentItemCount,
+          sent_at: kitchenSentAt,
         },
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
