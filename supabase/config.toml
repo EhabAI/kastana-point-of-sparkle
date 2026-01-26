@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.system-admin-renew-subscription]
 verify_jwt = false
+
+[functions.toggle-qr-module]
+verify_jwt = false

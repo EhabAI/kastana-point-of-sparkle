@@ -442,6 +442,9 @@ export default function Menu() {
   const [customerPhone, setCustomerPhone] = useState("");
   const [phoneError, setPhoneError] = useState(false);
 
+  // QR Order enabled state
+  const [qrOrderEnabled, setQrOrderEnabled] = useState<boolean | null>(null);
+
   // Clear cart when language changes to avoid mixed language items
   useEffect(() => {
     setCart([]);
@@ -482,6 +485,12 @@ export default function Menu() {
         setLoading(false);
         return;
       }
+
+      // Check if QR Order is enabled for this restaurant
+      const { data: isQREnabled } = await supabase.rpc("public_is_qr_enabled", {
+        p_restaurant_id: restaurantId,
+      });
+      setQrOrderEnabled(isQREnabled ?? false);
 
       setRestaurant(restaurantData[0]);
 
@@ -1007,14 +1016,27 @@ export default function Menu() {
         </SheetContent>
       </Sheet>
 
-      {/* Fixed Bottom Cart Button */}
-      {cart.length > 0 && !showConfirm && (
+      {/* Fixed Bottom Cart Button - only show if QR Order is enabled */}
+      {cart.length > 0 && !showConfirm && qrOrderEnabled && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t">
           <div className="max-w-3xl mx-auto">
             <Button className="w-full gap-2" size="lg" onClick={() => setShowConfirm(true)}>
               <ShoppingCart className="h-5 w-5" />
               {t("menu_confirm_order")} ({cart.length}) - {formatJOD(cartTotal)} {t("menu_currency")}
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* QR Order Disabled Message */}
+      {qrOrderEnabled === false && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-muted border-t">
+          <div className="max-w-3xl mx-auto text-center">
+            <p className="text-sm text-muted-foreground">
+              {language === "ar" 
+                ? "الطلب عبر QR غير متاح حاليًا لهذا المطعم" 
+                : "QR ordering is not available for this restaurant"}
+            </p>
           </div>
         </div>
       )}
