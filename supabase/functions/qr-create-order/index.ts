@@ -272,55 +272,94 @@ serve(async (req) => {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // 3. RESOLVE TABLE AND BRANCH
+    // 3. RESOLVE TABLE AND BRANCH (DETERMINISTIC)
     // ═══════════════════════════════════════════════════════════════════
-    let table_id: string | null = providedTableId || null;
-    let branch_id: string | null = providedBranchId || null;
+    // CRITICAL: Always resolve table first, then validate/derive branch from it.
+    // This ensures every QR order is correctly linked to restaurant + branch + table.
+    
+    let table_id: string | null = null;
+    let resolved_branch_id: string | null = null;
 
-    // If table_code provided, lookup the table
-    if (table_code && !table_id) {
-      const { data: tableData, error: tableError } = await supabase
-        .from("restaurant_tables")
-        .select("id, branch_id, is_active")
-        .eq("restaurant_id", restaurant_id)
-        .eq("table_code", table_code)
-        .maybeSingle();
+    // Build the table lookup query
+    let tableQuery = supabase
+      .from("restaurant_tables")
+      .select("id, branch_id, is_active, table_code, table_name")
+      .eq("restaurant_id", restaurant_id);
 
-      if (tableError) {
-        console.error("Table lookup error:", tableError.message);
-        return new Response(
-          JSON.stringify({ error: "Failed to lookup table" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+    // If table_id is provided directly, use it
+    if (providedTableId) {
+      tableQuery = tableQuery.eq("id", providedTableId);
+    } else if (table_code) {
+      // If branch_id is provided in URL, include it in the lookup for precision
+      if (providedBranchId) {
+        tableQuery = tableQuery.eq("branch_id", providedBranchId);
       }
-
-      if (!tableData) {
-        return new Response(
-          JSON.stringify({ error: "Table not found" }),
-          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      if (!tableData.is_active) {
-        return new Response(
-          JSON.stringify({ error: "Table is not active" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      table_id = tableData.id;
-      branch_id = tableData.branch_id || branch_id;
+      tableQuery = tableQuery.eq("table_code", table_code);
+    } else {
+      // This should not happen due to earlier validation, but guard anyway
+      return new Response(
+        JSON.stringify({ error: "table_code or table_id required for QR orders", code: "TABLE_REQUIRED" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // If still no branch_id, try to get default branch
-    if (!branch_id) {
+    const { data: tableData, error: tableError } = await tableQuery.maybeSingle();
+
+    if (tableError) {
+      console.error("Table lookup error:", tableError.message);
+      return new Response(
+        JSON.stringify({ error: "Failed to lookup table" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!tableData) {
+      console.log(`[qr-create-order] Table not found: restaurant=${restaurant_id} table_code=${table_code} branch=${providedBranchId}`);
+      return new Response(
+        JSON.stringify({ error: "Table not found", code: "TABLE_NOT_FOUND" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!tableData.is_active) {
+      return new Response(
+        JSON.stringify({ error: "Table is not active", code: "TABLE_INACTIVE" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Set resolved values from table lookup
+    table_id = tableData.id;
+    resolved_branch_id = tableData.branch_id;
+
+    // Validate branch_id if provided in URL - must match table's branch
+    if (providedBranchId && tableData.branch_id && providedBranchId !== tableData.branch_id) {
+      console.error(`Branch mismatch: URL branch=${providedBranchId}, table branch=${tableData.branch_id}`);
+      return new Response(
+        JSON.stringify({ 
+          error: "Branch ID does not match table's branch", 
+          code: "BRANCH_TABLE_MISMATCH" 
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Use table's branch_id (authoritative source)
+    const branch_id = resolved_branch_id;
+
+    // If table has no branch_id, try to get default branch as fallback
+    let final_branch_id = branch_id;
+    if (!final_branch_id) {
       const { data: defaultBranch } = await supabase
         .rpc("get_restaurant_default_branch", { p_restaurant_id: restaurant_id });
       
       if (defaultBranch) {
-        branch_id = defaultBranch;
+        final_branch_id = defaultBranch;
+        console.log(`[qr-create-order] Table has no branch, using default: ${final_branch_id}`);
       }
     }
+
+    console.log(`[qr-create-order] Resolved: table_id=${table_id} branch_id=${final_branch_id} table_code=${tableData.table_code}`);
 
     // ═══════════════════════════════════════════════════════════════════
     // 4. VALIDATE MENU ITEMS (SERVER-SIDE PRICE FETCH)
@@ -425,22 +464,22 @@ serve(async (req) => {
     
     const orderPayload = {
       restaurant_id,
-      branch_id,
-      table_id,
-      status: "pending",         // QR orders start as pending
-      source: "qr",              // Mark as QR order
-      subtotal: serverSubtotal,  // SERVER-CALCULATED
-      tax_rate: 0,               // Default, will be applied on confirmation
-      tax_amount: serverTaxAmount, // 0 for QR orders initially
+      branch_id: final_branch_id,  // Use resolved branch from table
+      table_id,                     // Always set from table lookup
+      status: "pending",            // QR orders start as pending
+      source: "qr",                 // Mark as QR order
+      subtotal: serverSubtotal,     // SERVER-CALCULATED
+      tax_rate: 0,                  // Default, will be applied on confirmation
+      tax_amount: serverTaxAmount,  // 0 for QR orders initially
       service_charge: serverServiceCharge, // 0 for QR orders initially
-      total: serverTotal,        // SERVER-CALCULATED
+      total: serverTotal,           // SERVER-CALCULATED
       // CRITICAL: Write to BOTH notes columns for POS compatibility
       // - `notes`: Read by POS screens (usePendingOrders, order details, reports)
       // - `order_notes`: Legacy/alternate column
       notes: sanitizedOrderNotes,
       order_notes: sanitizedOrderNotes,
       customer_phone: customer_phone?.trim() || null,
-      shift_id: null,            // Will be set when cashier confirms
+      shift_id: null,               // QR orders do NOT require an open shift
     };
 
     console.log("Inserting order with payload:", JSON.stringify(orderPayload));
@@ -521,16 +560,28 @@ serve(async (req) => {
     console.log(`Order items inserted for order ${orderData.id}`);
 
     // ═══════════════════════════════════════════════════════════════════
-    // 8. SKIP AUDIT LOG (user_id is required and NOT NULLABLE)
+    // 8. UPDATE TABLE STATUS (Mark as occupied for QR order visibility)
+    // ═══════════════════════════════════════════════════════════════════
+    // Note: The restaurant_tables table doesn't have a status column.
+    // Table occupancy in this system is determined by checking if there's
+    // an active order (status IN ['new', 'open', 'pending', 'held']) with 
+    // that table_id. See useBranchTables.ts which queries open orders.
+    // So we don't need to update any table status - the order with 
+    // table_id linkage automatically makes the table appear "occupied".
+    
+    console.log(`[qr-create-order] Table ${table_id} now has pending order ${orderData.id}`);
+
+    // ═══════════════════════════════════════════════════════════════════
+    // 9. SKIP AUDIT LOG (user_id is required and NOT NULLABLE)
     // ═══════════════════════════════════════════════════════════════════
     // The audit_logs table has user_id as NOT NULL, so we cannot insert
     // for anonymous QR orders. Logging is done via console for debugging.
     // Audit will be captured when cashier confirms the order (with their user_id).
     
-    console.log(`[AUDIT] QR_ORDER_CREATED | order_id=${orderData.id} order_number=${orderData.order_number} restaurant_id=${restaurant_id} branch_id=${branch_id} table_id=${table_id} table_code=${table_code} items=${orderItemsToInsert.length} subtotal=${serverSubtotal} total=${serverTotal}`);
+    console.log(`[AUDIT] QR_ORDER_CREATED | order_id=${orderData.id} order_number=${orderData.order_number} restaurant_id=${restaurant_id} branch_id=${final_branch_id} table_id=${table_id} table_code=${table_code} items=${orderItemsToInsert.length} subtotal=${serverSubtotal} total=${serverTotal}`);
 
     // ═══════════════════════════════════════════════════════════════════
-    // 9. SUCCESS RESPONSE
+    // 10. SUCCESS RESPONSE
     // ═══════════════════════════════════════════════════════════════════
     return new Response(
       JSON.stringify({
@@ -541,6 +592,8 @@ serve(async (req) => {
         subtotal: serverSubtotal,
         tax_amount: serverTaxAmount,
         total: serverTotal,
+        table_id: table_id,
+        branch_id: final_branch_id,
       }),
       { status: 201, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
