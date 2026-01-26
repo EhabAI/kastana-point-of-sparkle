@@ -34,6 +34,7 @@ import { useOwners, useCreateOwner } from "@/hooks/useOwners";
 import { useToggleRestaurantActive } from "@/hooks/useToggleRestaurantActive";
 import { useAllRestaurantsInventoryStatus, useToggleInventoryModule } from "@/hooks/useInventoryModuleToggle";
 import { useAllRestaurantsKDSStatus, useToggleKDSModule } from "@/hooks/useKDSModuleToggle";
+import { useAllRestaurantsQRStatus, useToggleQRModule } from "@/hooks/useQRModuleToggle";
 import { 
   useExpiringSubscriptions, 
   useCreateRestaurantWithSubscription, 
@@ -41,7 +42,7 @@ import {
   useRestaurantSubscriptions,
   SubscriptionPeriod 
 } from "@/hooks/useRestaurantSubscriptions";
-import { Store, Users, Plus, Link, Loader2, Upload, Image, Package, ChefHat, Pencil, Key, AlertTriangle, RefreshCw, Calendar } from "lucide-react";
+import { Store, Users, Plus, Link, Loader2, Upload, Image, Package, ChefHat, Pencil, Key, AlertTriangle, RefreshCw, Calendar, QrCode } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,6 +60,7 @@ export default function SystemAdmin() {
   const { data: owners = [], isLoading: loadingOwners } = useOwners();
   const { data: inventoryStatusMap = new Map() } = useAllRestaurantsInventoryStatus();
   const { data: kdsStatusMap = new Map() } = useAllRestaurantsKDSStatus();
+  const { data: qrStatusMap = new Map() } = useAllRestaurantsQRStatus();
   const { data: subscriptions = [] } = useRestaurantSubscriptions();
   const { data: expiringSubscriptions = [] } = useExpiringSubscriptions();
   const createRestaurantWithSub = useCreateRestaurantWithSubscription();
@@ -69,6 +71,7 @@ export default function SystemAdmin() {
   const toggleActive = useToggleRestaurantActive();
   const toggleInventory = useToggleInventoryModule();
   const toggleKDS = useToggleKDSModule();
+  const toggleQR = useToggleQRModule();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -129,6 +132,10 @@ export default function SystemAdmin() {
   // KDS toggle confirmation dialog
   const [kdsToggleDialogOpen, setKdsToggleDialogOpen] = useState(false);
   const [kdsToggleTarget, setKdsToggleTarget] = useState<{id: string; name: string; currentEnabled: boolean} | null>(null);
+
+  // QR Order toggle confirmation dialog
+  const [qrToggleDialogOpen, setQrToggleDialogOpen] = useState(false);
+  const [qrToggleTarget, setQrToggleTarget] = useState<{id: string; name: string; currentEnabled: boolean} | null>(null);
 
   const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -360,6 +367,22 @@ export default function SystemAdmin() {
       });
       setKdsToggleDialogOpen(false);
       setKdsToggleTarget(null);
+    }
+  };
+
+  const handleQRToggle = (restaurantId: string, restaurantName: string, currentEnabled: boolean) => {
+    setQrToggleTarget({ id: restaurantId, name: restaurantName, currentEnabled });
+    setQrToggleDialogOpen(true);
+  };
+
+  const confirmQRToggle = () => {
+    if (qrToggleTarget) {
+      toggleQR.mutate({ 
+        restaurantId: qrToggleTarget.id, 
+        enabled: !qrToggleTarget.currentEnabled 
+      });
+      setQrToggleDialogOpen(false);
+      setQrToggleTarget(null);
     }
   };
 
@@ -725,6 +748,7 @@ export default function SystemAdmin() {
                 {restaurants.map((restaurant) => {
                   const inventoryEnabled = inventoryStatusMap.get(restaurant.id) ?? false;
                   const kdsEnabled = kdsStatusMap.get(restaurant.id) ?? false;
+                  const qrEnabled = qrStatusMap.get(restaurant.id) ?? false;
                   const subscription = getSubscription(restaurant.id);
                   const subscriptionEndDate = subscription ? new Date(subscription.end_date) : null;
                   const now = new Date();
@@ -901,6 +925,39 @@ export default function SystemAdmin() {
                             </span>
                           </div>
                         </div>
+
+                        {/* QR Order Module - Vertical Layout */}
+                        <div 
+                          className={`flex flex-col gap-1.5 px-3 py-2 rounded-md transition-colors ${
+                            qrEnabled 
+                              ? 'bg-blue-50 dark:bg-blue-950/40' 
+                              : 'bg-muted/30'
+                          }`}
+                        >
+                          {/* Line 1: Icon + Feature Name (full width) */}
+                          <div className="flex items-center gap-2">
+                            <QrCode className={`h-4 w-4 ${qrEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                            <span className={`text-xs font-semibold ${qrEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
+                              {t('sa_addon_qr')}
+                            </span>
+                          </div>
+                          {/* Line 2: Switch + State Label */}
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={qrEnabled}
+                              onCheckedChange={() => handleQRToggle(restaurant.id, restaurant.name, qrEnabled)}
+                              disabled={toggleQR.isPending}
+                              className="h-4 w-7 data-[state=checked]:bg-blue-600"
+                            />
+                            <span className={`text-[11px] ${
+                              qrEnabled 
+                                ? 'text-green-600 dark:text-green-400 font-medium' 
+                                : 'text-muted-foreground'
+                            }`}>
+                              {qrEnabled ? t('sa_addon_enabled') : t('sa_addon_disabled')}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                       
                       {/* Subscription Info Row */}
@@ -1023,6 +1080,35 @@ export default function SystemAdmin() {
                 }
               >
                 {kdsToggleTarget?.currentEnabled ? t('sa_disable') : t('sa_enable')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* QR Order Module Toggle Confirmation Dialog */}
+        <AlertDialog open={qrToggleDialogOpen} onOpenChange={setQrToggleDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {qrToggleTarget?.currentEnabled ? t('sa_disable_qr_title') : t('sa_enable_qr_title')}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {qrToggleTarget?.currentEnabled 
+                  ? <>{t('sa_disable_qr_desc')} <strong>{qrToggleTarget?.name}</strong>. {t('sa_disable_qr_note')}</>
+                  : <>{t('sa_enable_qr_desc')} <strong>{qrToggleTarget?.name}</strong>. {t('sa_enable_qr_note')}</>
+                }
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={confirmQRToggle}
+                className={qrToggleTarget?.currentEnabled 
+                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" 
+                  : "bg-primary text-primary-foreground hover:bg-primary/90"
+                }
+              >
+                {qrToggleTarget?.currentEnabled ? t('sa_disable') : t('sa_enable')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
