@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,67 +14,100 @@ import { Loader2, Plus, Edit2, QrCode, Copy, Download, Table2, ChevronDown, User
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOwnerErrorMessage } from "@/lib/ownerErrorHandler";
+import QRCode from "qrcode";
 
 interface TableManagementProps {
   restaurantId: string;
   tableCount?: number;
 }
 
-// Simple QR Code generator using SVG (no external libraries)
-function generateQRCodeSVG(data: string, size: number = 200): string {
-  // This is a simplified QR-like visual representation
-  // For a real app, you'd use a proper QR library, but per requirements, no external libs
-  const cellSize = size / 25;
-  const padding = cellSize * 2;
-  const innerSize = size - padding * 2;
-  
-  // Create a deterministic pattern based on the data
-  const hash = data.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const cells: boolean[][] = [];
-  
-  for (let i = 0; i < 21; i++) {
-    cells[i] = [];
-    for (let j = 0; j < 21; j++) {
-      // Position detection patterns (corners)
-      const isTopLeft = i < 7 && j < 7;
-      const isTopRight = i < 7 && j >= 14;
-      const isBottomLeft = i >= 14 && j < 7;
-      
-      if (isTopLeft || isTopRight || isBottomLeft) {
-        // Draw finder patterns
-        const li = isTopLeft ? i : isTopRight ? i : i - 14;
-        const lj = isTopLeft ? j : isTopRight ? j - 14 : j;
-        cells[i][j] = (li === 0 || li === 6 || lj === 0 || lj === 6 || (li >= 2 && li <= 4 && lj >= 2 && lj <= 4));
-      } else {
-        // Data area - deterministic based on position and hash
-        cells[i][j] = ((i * 21 + j + hash) % 3) === 0;
-      }
-    }
+// Generate real QR code as data URL using qrcode library
+async function generateQRCodeDataURL(data: string, size: number = 200): Promise<string> {
+  try {
+    return await QRCode.toDataURL(data, {
+      width: size,
+      margin: 2,
+      color: {
+        dark: "#000000",
+        light: "#ffffff",
+      },
+      errorCorrectionLevel: "M",
+    });
+  } catch (error) {
+    console.error("QR code generation failed:", error);
+    return "";
   }
+}
 
-  const cellWidth = innerSize / 21;
-  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">`;
-  svg += `<rect width="${size}" height="${size}" fill="white"/>`;
-  
-  for (let i = 0; i < 21; i++) {
-    for (let j = 0; j < 21; j++) {
-      if (cells[i][j]) {
-        svg += `<rect x="${padding + j * cellWidth}" y="${padding + i * cellWidth}" width="${cellWidth}" height="${cellWidth}" fill="black"/>`;
-      }
-    }
+// Generate real QR code as SVG string using qrcode library
+async function generateQRCodeSVG(data: string, size: number = 200): Promise<string> {
+  try {
+    return await QRCode.toString(data, {
+      type: "svg",
+      width: size,
+      margin: 2,
+      color: {
+        dark: "#000000",
+        light: "#ffffff",
+      },
+      errorCorrectionLevel: "M",
+    });
+  } catch (error) {
+    console.error("QR code SVG generation failed:", error);
+    return "";
   }
-  
-  svg += "</svg>";
-  return svg;
 }
 
 function QRCodeDisplay({ data, size = 120 }: { data: string; size?: number }) {
-  const svgString = generateQRCodeSVG(data, size);
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!data) {
+      setQrDataUrl("");
+      setIsLoading(false);
+      return;
+    }
+    
+    setIsLoading(true);
+    generateQRCodeDataURL(data, size).then((url) => {
+      setQrDataUrl(url);
+      setIsLoading(false);
+    });
+  }, [data, size]);
+
+  if (isLoading) {
+    return (
+      <div 
+        className="bg-white p-2 rounded border flex items-center justify-center"
+        style={{ width: size, height: size }}
+      >
+        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!qrDataUrl) {
+    return (
+      <div 
+        className="bg-white p-2 rounded border flex items-center justify-center"
+        style={{ width: size, height: size }}
+      >
+        <QrCode className="h-6 w-6 text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
-    <div 
-      className="bg-white p-2 rounded border"
-      dangerouslySetInnerHTML={{ __html: svgString }}
-    />
+    <div className="bg-white p-2 rounded border">
+      <img 
+        src={qrDataUrl} 
+        alt="QR Code" 
+        width={size} 
+        height={size}
+        className="block"
+      />
+    </div>
   );
 }
 
@@ -111,41 +144,38 @@ function TableRow({
     toast({ title: t("link_copied") });
   };
   
-  const handleDownloadQR = () => {
+  const handleDownloadQR = async () => {
     if (!hasValidBranch) {
       toast({ title: t("branch_required_for_qr"), variant: "destructive" });
       return;
     }
-    const svg = generateQRCodeSVG(menuLink, 400);
-    const blob = new Blob([svg], { type: "image/svg+xml" });
-    const url = URL.createObjectURL(blob);
     
-    // Create canvas to convert SVG to PNG
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = 400;
-      canvas.height = 400;
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, 400, 400);
-        ctx.drawImage(img, 0, 0);
-        
-        canvas.toBlob((pngBlob) => {
-          if (pngBlob) {
-            const pngUrl = URL.createObjectURL(pngBlob);
-            const link = document.createElement("a");
-            link.download = `table-${table.table_name}-${table.table_code}.png`;
-            link.href = pngUrl;
-            link.click();
-            URL.revokeObjectURL(pngUrl);
-          }
-        }, "image/png");
-      }
+    try {
+      // Generate QR code as PNG data URL directly
+      const pngDataUrl = await QRCode.toDataURL(menuLink, {
+        width: 400,
+        margin: 2,
+        color: {
+          dark: "#000000",
+          light: "#ffffff",
+        },
+        errorCorrectionLevel: "M",
+      });
+      
+      // Convert data URL to blob and download
+      const response = await fetch(pngDataUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement("a");
+      link.download = `table-${table.table_name}-${table.table_code}.png`;
+      link.href = url;
+      link.click();
       URL.revokeObjectURL(url);
-    };
-    img.src = url;
+    } catch (error) {
+      console.error("QR download failed:", error);
+      toast({ title: t("error_unexpected"), variant: "destructive" });
+    }
   };
   
   const handleToggleActive = async () => {
