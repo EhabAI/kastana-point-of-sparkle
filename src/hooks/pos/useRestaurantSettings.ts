@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCashierRestaurant } from "./useCashierRestaurant";
+import { useCashierSession } from "./useCashierSession";
 
 export interface RestaurantSettings {
   id: string;
@@ -25,17 +25,19 @@ const DEFAULT_SETTINGS: Omit<RestaurantSettings, "id" | "restaurant_id"> = {
 };
 
 export function useRestaurantSettings() {
-  const { data: restaurant } = useCashierRestaurant();
+  // Use the same session data as POS.tsx for consistency
+  const { data: session } = useCashierSession();
+  const restaurantId = session?.restaurant?.id;
 
   return useQuery({
-    queryKey: ["restaurant-settings", restaurant?.id],
+    queryKey: ["restaurant-settings", restaurantId],
     queryFn: async () => {
-      if (!restaurant?.id) return DEFAULT_SETTINGS;
+      if (!restaurantId) return DEFAULT_SETTINGS;
 
       const { data, error } = await supabase
         .from("restaurant_settings")
         .select("*")
-        .eq("restaurant_id", restaurant.id)
+        .eq("restaurant_id", restaurantId)
         .maybeSingle();
 
       if (error) throw error;
@@ -45,8 +47,8 @@ export function useRestaurantSettings() {
         return data as RestaurantSettings;
       }
       
-      return { ...DEFAULT_SETTINGS, restaurant_id: restaurant.id } as RestaurantSettings;
+      return { ...DEFAULT_SETTINGS, restaurant_id: restaurantId } as RestaurantSettings;
     },
-    enabled: !!restaurant?.id,
+    enabled: !!restaurantId,
   });
 }
