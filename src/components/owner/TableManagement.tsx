@@ -131,8 +131,10 @@ function TableRow({
   // QR link requires branchId - do not generate QR if missing
   const branchId = table.branch_id;
   const hasValidBranch = !!branchId;
+  // Use official Kastana QR menu domain for all new QR codes
+  const QR_MENU_BASE_URL = "https://qrmenu.kastana.info";
   const menuLink = hasValidBranch 
-    ? `${window.location.origin}/menu/${restaurantId}/${branchId}/${table.table_code}`
+    ? `${QR_MENU_BASE_URL}/menu/${restaurantId}/${branchId}/${table.table_code}`
     : "";
   
   const handleCopyLink = async () => {
