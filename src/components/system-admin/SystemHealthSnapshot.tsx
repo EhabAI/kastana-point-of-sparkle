@@ -5,7 +5,7 @@ interface SystemHealthSnapshotProps {
   isActive: boolean;
   inventoryEnabled: boolean;
   hasOpenShift: boolean;
-  hasPendingQROrders: boolean;
+  qrEnabled: boolean;
 }
 
 /**
@@ -16,7 +16,7 @@ export function SystemHealthSnapshot({
   isActive,
   inventoryEnabled,
   hasOpenShift,
-  hasPendingQROrders,
+  qrEnabled,
 }: SystemHealthSnapshotProps) {
   const { t } = useLanguage();
 
@@ -38,8 +38,8 @@ export function SystemHealthSnapshot({
     },
     {
       label: t("health_qr_orders"),
-      value: hasPendingQROrders ? t("health_qr_pending") : t("health_qr_none"),
-      status: hasPendingQROrders ? "pending" : "neutral",
+      value: qrEnabled ? t("health_enabled") : t("health_disabled"),
+      status: qrEnabled ? "active" : "neutral",
     },
   ];
 

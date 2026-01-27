@@ -37,7 +37,7 @@ import { useAllRestaurantsKDSStatus, useToggleKDSModule } from "@/hooks/useKDSMo
 import { useAllRestaurantsQRStatus, useToggleQRModule } from "@/hooks/useQRModuleToggle";
 import { useAllRestaurantsHealthData } from "@/hooks/useSystemHealthSnapshot";
 import { SystemHealthSnapshot } from "@/components/system-admin/SystemHealthSnapshot";
-import { RestaurantStatusBadge, SetupIncompleteExplanation, getRestaurantOperationalState } from "@/components/system-admin/RestaurantStatusBadge";
+import { RestaurantStatusBadge, getRestaurantOperationalState } from "@/components/system-admin/RestaurantStatusBadge";
 import { 
   useExpiringSubscriptions, 
   useCreateRestaurantWithSubscription, 
@@ -835,11 +835,11 @@ export default function SystemAdmin() {
                   const hasOwner = !!restaurant.owner_id;
                   const operationalState = getRestaurantOperationalState(restaurant.is_active, hasValidSubscription, hasOwner);
                   
-                  // Card styling based on operational state
+                  // Card styling based on operational state (2px border for visibility)
                   const cardStyles = {
-                    inactive: 'bg-card border border-red-300 dark:border-red-800',
-                    setup_incomplete: 'bg-card border border-amber-300 dark:border-amber-700',
-                    ready: 'bg-card border border-green-300 dark:border-green-700',
+                    inactive: 'bg-card border-2 border-red-300 dark:border-red-800',
+                    setup_incomplete: 'bg-card border-2 border-amber-300 dark:border-amber-700',
+                    ready: 'bg-card border-2 border-green-300 dark:border-green-700',
                   };
                   
                   return (
@@ -866,10 +866,6 @@ export default function SystemAdmin() {
                                 ? `${t('sa_owner_label')}: ${owners.find(o => o.user_id === restaurant.owner_id)?.email || restaurant.owner_id.slice(0, 8) + '...'}`
                                 : t('sa_no_owner')}
                             </p>
-                            {/* Setup Incomplete Explanation */}
-                            {operationalState === 'setup_incomplete' && (
-                              <SetupIncompleteExplanation />
-                            )}
                           </div>
                         </div>
 
@@ -1073,7 +1069,7 @@ export default function SystemAdmin() {
                           isActive={restaurant.is_active}
                           inventoryEnabled={inventoryEnabled}
                           hasOpenShift={healthDataMap.get(restaurant.id)?.hasOpenShift ?? false}
-                          hasPendingQROrders={healthDataMap.get(restaurant.id)?.hasPendingQROrders ?? false}
+                          qrEnabled={qrEnabled}
                         />
                       </div>
                     </div>
