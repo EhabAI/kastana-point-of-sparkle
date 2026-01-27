@@ -8,13 +8,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { QROrderStatusView } from "@/components/qr/QROrderStatusView";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Minus,
   Plus,
   ShoppingCart,
-  Check,
   Send,
   Coffee,
   Pizza,
@@ -432,8 +432,14 @@ export default function Menu() {
 
   // Confirm order state
   const [showConfirm, setShowConfirm] = useState(false);
-  const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderLoading, setOrderLoading] = useState(false);
+
+  // Submitted order state - for showing status view after order submission
+  const [submittedOrder, setSubmittedOrder] = useState<{
+    orderId: string;
+    orderNumber: number;
+    status: string;
+  } | null>(null);
 
   // Order-level notes (not item notes)
   const [orderNotes, setOrderNotes] = useState("");
@@ -731,17 +737,18 @@ export default function Menu() {
         return;
       }
 
-      // Success - clear cart and show success
+      // Success - clear cart and show status view
       setCart([]);
       setOrderNotes("");
       setCustomerPhone("");
       setShowConfirm(false);
-      setOrderSuccess(true);
-
-      // Auto-hide success after 3 seconds
-      setTimeout(() => {
-        setOrderSuccess(false);
-      }, 3000);
+      
+      // Store submitted order data for status view
+      setSubmittedOrder({
+        orderId: data.order_id,
+        orderNumber: data.order_number,
+        status: data.status || "pending",
+      });
     } catch (err) {
       console.error("Order error:", err);
       // Generic network/unexpected error
@@ -778,7 +785,22 @@ export default function Menu() {
   }
 
   /* =======================
-     Success UI
+     Order Status View - After Successful Submission
+  ======================= */
+  if (submittedOrder) {
+    return (
+      <QROrderStatusView
+        orderId={submittedOrder.orderId}
+        orderNumber={submittedOrder.orderNumber}
+        initialStatus={submittedOrder.status}
+        restaurantName={restaurant?.name || undefined}
+        tableCode={tableCode}
+      />
+    );
+  }
+
+  /* =======================
+     Menu UI
   ======================= */
   return (
     <div className="min-h-screen bg-background pb-24" dir={isRTL ? "rtl" : "ltr"}>
@@ -808,13 +830,6 @@ export default function Menu() {
           </div>
         </div>
 
-        {/* Success Message */}
-        {orderSuccess && (
-          <div className="mb-4 p-4 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded-lg flex items-center gap-2">
-            <Check className="h-5 w-5" />
-            <span>{t("menu_order_sent")}</span>
-          </div>
-        )}
 
         {/* Menu - Polished */}
         <div className="space-y-4">
