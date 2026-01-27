@@ -1100,11 +1100,11 @@ export default {
   table_assigned: "Table assigned",
   next: "Next",
   merge_orders_question: "Merge Orders?",
-  about_to_merge: "You are about to merge two table orders:",
+  about_to_merge: "Orders will be merged into one order.",
   will_be_merged_into: "will be merged into",
   the_older_order: "the older order",
-  all_items_moved: "All items will be moved",
-  order_will_be_closed: "The order will be closed.",
+  all_items_moved: "All items will be moved from",
+  order_will_be_closed: "This action cannot be undone.",
   merging: "Merging...",
   orders_on_hold: "order(s) on hold. Resume to continue or cancel to void.",
   orders_you_hold: "Orders you hold will appear here",
@@ -1833,4 +1833,16 @@ export default {
   qr_status_no_active_order: "No active order at this time",
   qr_status_order_number: "Order number",
   qr_status_helper_wait: "Please wait, status will update automatically",
+
+  // Shift Close Warning
+  shift_close_warning_title: "Warning: Open Orders",
+  shift_close_warning_message: "There are open orders in this shift. Are you sure you want to close the shift?",
+  shift_close_warning_note: "Closing the shift with open orders may affect reports.",
+  open_orders_count: "Open Orders",
+  held_orders_count: "Held Orders",
+  close_shift_anyway: "Close Shift Anyway",
+  closing: "Closing...",
+
+  // Refund Reason (optional label)
+  refund_reason_label: "Refund Reason (optional)",
 } as const;

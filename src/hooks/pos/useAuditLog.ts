@@ -18,6 +18,7 @@ export type AuditAction =
   | "ORDER_CONFIRMED"
   | "ORDER_REJECTED"
   | "ORDER_MOVED_TABLE"
+  | "ORDER_MERGED"
   | "TABLE_CHECKOUT"
   | "ITEM_VOID"
   | "DISCOUNT_APPLY"

@@ -76,9 +76,8 @@ export function RefundDialog({
     ? maxRefundable 
     : Math.min(Number(customAmount) || 0, maxRefundable);
 
-  const hasReason = selectedReason !== "";
   const isValidAmount = refundAmount > 0 && refundAmount <= maxRefundable;
-  const canSubmit = isValidAmount && hasReason && !isProcessing && maxRefundable > 0;
+  const canSubmit = isValidAmount && !isProcessing && maxRefundable > 0;
 
   // Reset custom amount when dialog opens or type changes
   useEffect(() => {
@@ -241,10 +240,10 @@ export function RefundDialog({
                   )}
                 </div>
 
-                {/* Reason Dropdown */}
+                {/* Reason Dropdown - Optional */}
                 <div className="space-y-2">
                   <Label>
-                    {t("reason")} <span className="text-destructive">*</span>
+                    {t("refund_reason_label")}
                   </Label>
                   <Select
                     value={selectedReason}
