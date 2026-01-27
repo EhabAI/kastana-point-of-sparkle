@@ -43,6 +43,7 @@ export function RestaurantSettings() {
   const [taxRate, setTaxRate] = useState<string>("16");
   const [pricesIncludeTax, setPricesIncludeTax] = useState(false);
   const [businessHours, setBusinessHours] = useState<BusinessHours>(DEFAULT_BUSINESS_HOURS);
+  const [ownerPhone, setOwnerPhone] = useState<string>("");
   const [hasChanges, setHasChanges] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -54,6 +55,7 @@ export function RestaurantSettings() {
       setTaxRate(String((settings.tax_rate || 0) * 100));
       setPricesIncludeTax(settings.prices_include_tax || false);
       setBusinessHours(settings.business_hours || DEFAULT_BUSINESS_HOURS);
+      setOwnerPhone(settings.owner_phone || "");
       setHasChanges(false);
     }
   }, [settings]);
@@ -65,6 +67,11 @@ export function RestaurantSettings() {
 
   const handlePricesIncludeTaxChange = (checked: boolean) => {
     setPricesIncludeTax(checked);
+    setHasChanges(true);
+  };
+
+  const handleOwnerPhoneChange = (value: string) => {
+    setOwnerPhone(value);
     setHasChanges(true);
   };
 
@@ -90,6 +97,7 @@ export function RestaurantSettings() {
         tax_rate: taxRateDecimal,
         prices_include_tax: pricesIncludeTax,
         business_hours: businessHours,
+        owner_phone: ownerPhone.trim() || null,
       });
       setHasChanges(false);
     } catch {
@@ -132,6 +140,28 @@ export function RestaurantSettings() {
         </CardHeader>
         <CollapsibleContent>
           <CardContent className="space-y-8">
+            {/* Owner Phone Section */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-foreground">
+                {language === "ar" ? "رقم موبايل صاحب المطعم (اختياري)" : "Owner Phone (Optional)"}
+              </h3>
+              <div className="space-y-2">
+                <Input
+                  type="tel"
+                  value={ownerPhone}
+                  onChange={(e) => handleOwnerPhoneChange(e.target.value)}
+                  placeholder={language === "ar" ? "مثال: 079XXXXXXX" : "e.g. 079XXXXXXX"}
+                  dir="ltr"
+                  className="max-w-xs"
+                />
+                <p className="text-sm text-muted-foreground">
+                  {language === "ar" 
+                    ? "سيُستخدم لاحقًا للتنبيهات أو التواصل عبر واتساب (لا يتم الإرسال حاليًا)" 
+                    : "Will be used later for alerts or WhatsApp communication (not sent currently)"}
+                </p>
+              </div>
+            </div>
+
             {/* Currency Section */}
             <div className="space-y-3">
               <h3 className="text-sm font-medium text-foreground">{t("currency")}</h3>

@@ -30,6 +30,7 @@ export interface OwnerRestaurantSettings {
   prices_include_tax: boolean;
   currency: string;
   business_hours: BusinessHours;
+  owner_phone: string | null;
 }
 
 const DEFAULT_BUSINESS_HOURS: BusinessHours = {
@@ -52,7 +53,7 @@ export function useOwnerRestaurantSettings() {
 
       const { data, error } = await supabase
         .from("restaurant_settings")
-        .select("id, restaurant_id, tax_rate, prices_include_tax, currency, business_hours")
+        .select("id, restaurant_id, tax_rate, prices_include_tax, currency, business_hours, owner_phone")
         .eq("restaurant_id", restaurant.id)
         .maybeSingle();
 
@@ -82,6 +83,7 @@ export function useUpdateOwnerRestaurantSettings() {
       tax_rate?: number;
       prices_include_tax?: boolean;
       business_hours?: BusinessHours;
+      owner_phone?: string | null;
     }) => {
       if (!restaurant?.id) throw new Error("No restaurant found");
 
