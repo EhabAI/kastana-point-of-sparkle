@@ -109,10 +109,12 @@ export default function SystemAdmin() {
   
   // Edit owner states
   const [editOwnerDialogOpen, setEditOwnerDialogOpen] = useState(false);
-  const [editingOwner, setEditingOwner] = useState<{id: string; email: string; username?: string} | null>(null);
+  const [editingOwner, setEditingOwner] = useState<{id: string; email: string; username?: string; restaurantId?: string} | null>(null);
   const [newOwnerEmail, setNewOwnerEmail] = useState("");
   const [newOwnerPassword, setNewOwnerPassword] = useState("");
   const [newOwnerDisplayName, setNewOwnerDisplayName] = useState("");
+  const [newOwnerPhone, setNewOwnerPhone] = useState("");
+  const [loadingOwnerPhone, setLoadingOwnerPhone] = useState(false);
   const [updatingOwner, setUpdatingOwner] = useState(false);
 
   // Dialog states
@@ -840,14 +842,25 @@ export default function SystemAdmin() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => {
+                                onClick={async () => {
                                   const owner = owners.find(o => o.user_id === restaurant.owner_id);
                                   if (owner) {
-                                    setEditingOwner({ id: owner.user_id, email: owner.email || '', username: owner.username });
+                                    setEditingOwner({ id: owner.user_id, email: owner.email || '', username: owner.username, restaurantId: restaurant.id });
                                     setNewOwnerEmail(owner.email || '');
                                     setNewOwnerPassword('');
                                     setNewOwnerDisplayName(owner.username || '');
+                                    setNewOwnerPhone('');
                                     setEditOwnerDialogOpen(true);
+                                    
+                                    // Load owner phone from restaurant_settings
+                                    setLoadingOwnerPhone(true);
+                                    const { data: settingsData } = await supabase
+                                      .from('restaurant_settings')
+                                      .select('owner_phone')
+                                      .eq('restaurant_id', restaurant.id)
+                                      .maybeSingle();
+                                    setNewOwnerPhone(settingsData?.owner_phone || '');
+                                    setLoadingOwnerPhone(false);
                                   }
                                 }}
                               >
@@ -1138,6 +1151,7 @@ export default function SystemAdmin() {
             setNewOwnerEmail("");
             setNewOwnerPassword("");
             setNewOwnerDisplayName("");
+            setNewOwnerPhone("");
           }
         }}>
           <DialogContent>
@@ -1176,6 +1190,23 @@ export default function SystemAdmin() {
                   placeholder="••••••••"
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-owner-phone">
+                  رقم موبايل صاحب المطعم (اختياري)
+                </Label>
+                <Input
+                  id="edit-owner-phone"
+                  type="tel"
+                  dir="ltr"
+                  value={newOwnerPhone}
+                  onChange={(e) => setNewOwnerPhone(e.target.value)}
+                  placeholder="079XXXXXXX"
+                  disabled={loadingOwnerPhone}
+                />
+                <p className="text-xs text-muted-foreground">
+                  معلومة تشغيلية – لا يتم الإرسال حاليًا
+                </p>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => {
@@ -1184,6 +1215,7 @@ export default function SystemAdmin() {
                 setNewOwnerEmail("");
                 setNewOwnerPassword("");
                 setNewOwnerDisplayName("");
+                setNewOwnerPhone("");
               }}>
                 {t('cancel')}
               </Button>
@@ -1249,6 +1281,28 @@ export default function SystemAdmin() {
                       if (passError) throw passError;
                     }
                     
+                    // Update owner phone in restaurant_settings if restaurantId is available
+                    if (editingOwner.restaurantId) {
+                      const phoneValue = newOwnerPhone.trim() || null;
+                      // Check if settings exist
+                      const { data: existingSettings } = await supabase
+                        .from('restaurant_settings')
+                        .select('id')
+                        .eq('restaurant_id', editingOwner.restaurantId)
+                        .maybeSingle();
+                      
+                      if (existingSettings) {
+                        await supabase
+                          .from('restaurant_settings')
+                          .update({ owner_phone: phoneValue })
+                          .eq('restaurant_id', editingOwner.restaurantId);
+                      } else {
+                        await supabase
+                          .from('restaurant_settings')
+                          .insert({ restaurant_id: editingOwner.restaurantId, owner_phone: phoneValue });
+                      }
+                    }
+                    
                     queryClient.invalidateQueries({ queryKey: ['owners'] });
                     toast({ title: "Owner updated successfully" });
                     setEditOwnerDialogOpen(false);
@@ -1256,6 +1310,7 @@ export default function SystemAdmin() {
                     setNewOwnerEmail("");
                     setNewOwnerPassword("");
                     setNewOwnerDisplayName("");
+                    setNewOwnerPhone("");
                   } catch (error: any) {
                     toast({ title: "Error updating owner", description: error.message, variant: "destructive" });
                   } finally {
