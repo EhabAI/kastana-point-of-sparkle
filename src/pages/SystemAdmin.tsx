@@ -746,7 +746,7 @@ export default function SystemAdmin() {
             {restaurants.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">{t('sa_no_restaurants')}</p>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-2">
                 {restaurants.map((restaurant) => {
                   const inventoryEnabled = inventoryStatusMap.get(restaurant.id) ?? false;
                   const kdsEnabled = kdsStatusMap.get(restaurant.id) ?? false;
@@ -759,7 +759,7 @@ export default function SystemAdmin() {
                   const isExpiringSoon = daysLeft !== null && daysLeft >= 0 && daysLeft <= 7;
                   
                   return (
-                    <div key={restaurant.id} className={`p-4 rounded-lg space-y-3 ${
+                    <div key={restaurant.id} className={`p-3 rounded-lg space-y-2 ${
                       !subscription ? 'bg-destructive/10 border border-destructive/30' :
                       isExpired ? 'bg-destructive/10 border border-destructive/30' :
                       isExpiringSoon ? 'bg-amber-500/10 border border-amber-500/30' :
@@ -873,27 +873,27 @@ export default function SystemAdmin() {
                       </div>
 
                       {/* Bottom row: Add-ons/Modules Section */}
-                      <div className="flex flex-wrap items-start gap-3 pt-2 border-t border-border/50">
+                      <div className="flex flex-wrap items-center gap-2 pt-1.5 border-t border-border/50">
                         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('sa_addons')}</span>
                         
                         {/* Inventory Module - Clickable */}
                         <button
                           onClick={() => handleInventoryToggle(restaurant.id, restaurant.name, inventoryEnabled)}
                           disabled={toggleInventory.isPending}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all cursor-pointer hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${
+                          className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-all cursor-pointer hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${
                             inventoryEnabled 
                               ? 'bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-950/60' 
                               : 'bg-muted/30 hover:bg-muted/50'
                           }`}
                         >
-                          <Package className={`h-4 w-4 shrink-0 ${inventoryEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                          <Package className={`h-3.5 w-3.5 shrink-0 ${inventoryEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
                           <span className={`text-xs font-semibold ${inventoryEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
                             {t('sa_addon_inventory')}
                           </span>
                           {inventoryEnabled ? (
-                            <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600 dark:text-green-400 ms-auto" strokeWidth={2.5} />
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600 dark:text-green-400" strokeWidth={2.5} />
                           ) : (
-                            <XCircle className="h-5 w-5 shrink-0 text-red-500 dark:text-red-400 ms-auto" strokeWidth={2.5} />
+                            <XCircle className="h-4 w-4 shrink-0 text-red-500 dark:text-red-400" strokeWidth={2.5} />
                           )}
                         </button>
 
@@ -901,20 +901,20 @@ export default function SystemAdmin() {
                         <button
                           onClick={() => handleKDSToggle(restaurant.id, restaurant.name, kdsEnabled)}
                           disabled={toggleKDS.isPending}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all cursor-pointer hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${
+                          className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-all cursor-pointer hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${
                             kdsEnabled 
                               ? 'bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-950/60' 
                               : 'bg-muted/30 hover:bg-muted/50'
                           }`}
                         >
-                          <ChefHat className={`h-4 w-4 shrink-0 ${kdsEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                          <ChefHat className={`h-3.5 w-3.5 shrink-0 ${kdsEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
                           <span className={`text-xs font-semibold ${kdsEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
                             {t('sa_addon_kds')}
                           </span>
                           {kdsEnabled ? (
-                            <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600 dark:text-green-400 ms-auto" strokeWidth={2.5} />
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600 dark:text-green-400" strokeWidth={2.5} />
                           ) : (
-                            <XCircle className="h-5 w-5 shrink-0 text-red-500 dark:text-red-400 ms-auto" strokeWidth={2.5} />
+                            <XCircle className="h-4 w-4 shrink-0 text-red-500 dark:text-red-400" strokeWidth={2.5} />
                           )}
                         </button>
 
@@ -922,27 +922,27 @@ export default function SystemAdmin() {
                         <button
                           onClick={() => handleQRToggle(restaurant.id, restaurant.name, qrEnabled)}
                           disabled={toggleQR.isPending}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all cursor-pointer hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${
+                          className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-all cursor-pointer hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${
                             qrEnabled 
                               ? 'bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-950/60' 
                               : 'bg-muted/30 hover:bg-muted/50'
                           }`}
                         >
-                          <QrCode className={`h-4 w-4 shrink-0 ${qrEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                          <QrCode className={`h-3.5 w-3.5 shrink-0 ${qrEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
                           <span className={`text-xs font-semibold ${qrEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
                             {t('sa_addon_qr')}
                           </span>
                           {qrEnabled ? (
-                            <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600 dark:text-green-400 ms-auto" strokeWidth={2.5} />
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600 dark:text-green-400" strokeWidth={2.5} />
                           ) : (
-                            <XCircle className="h-5 w-5 shrink-0 text-red-500 dark:text-red-400 ms-auto" strokeWidth={2.5} />
+                            <XCircle className="h-4 w-4 shrink-0 text-red-500 dark:text-red-400" strokeWidth={2.5} />
                           )}
                         </button>
                       </div>
                       
                       {/* Subscription Info Row */}
-                      <div className="flex items-center justify-between gap-3 pt-2 border-t border-border/50">
-                        <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-border/50">
+                        <div className="flex items-center gap-2">
                           <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('sub_subscription')}</span>
                           {subscription ? (
                             <div className="flex items-center gap-2">
