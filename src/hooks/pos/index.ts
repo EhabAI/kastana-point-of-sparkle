@@ -21,3 +21,4 @@ export * from "./useInventoryDeduction";
 export * from "./useToggleFavorite";
 export * from "./useTableCheckout";
 export * from "./useSendToKitchen";
+export * from "../useInFlowIntelligence";

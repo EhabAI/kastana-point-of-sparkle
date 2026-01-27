@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,6 +10,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { FirstTimeCoachCard } from "@/components/pos/FirstTimeCoachCard";
+import { useInFlowIntelligence } from "@/hooks/useInFlowIntelligence";
 
 interface MergeOrdersDialogProps {
   open: boolean;
@@ -32,6 +35,20 @@ export function MergeOrdersDialog({
   isLoading,
 }: MergeOrdersDialogProps) {
   const { t } = useLanguage();
+  const { isFirstTime, completeAction } = useInFlowIntelligence();
+  const [showCoachCard, setShowCoachCard] = useState(false);
+
+  // Check if first time when dialog opens
+  useEffect(() => {
+    if (open && isFirstTime("merge_orders")) {
+      setShowCoachCard(true);
+    }
+  }, [open, isFirstTime]);
+
+  const handleConfirm = () => {
+    completeAction("merge_orders");
+    onConfirm();
+  };
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -39,6 +56,15 @@ export function MergeOrdersDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>{t("merge_orders_question")}</AlertDialogTitle>
           <AlertDialogDescription className="space-y-2">
+            {/* First-Time Coaching Card */}
+            {showCoachCard && (
+              <FirstTimeCoachCard
+                actionKey="merge_orders"
+                onDismiss={() => setShowCoachCard(false)}
+                className="mb-3"
+              />
+            )}
+            
             <p>
               {t("about_to_merge")}
             </p>
@@ -62,7 +88,7 @@ export function MergeOrdersDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isLoading}>{t("cancel")}</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} disabled={isLoading}>
+          <AlertDialogAction onClick={handleConfirm} disabled={isLoading}>
             {isLoading ? t("merging") : t("merge_orders")}
           </AlertDialogAction>
         </AlertDialogFooter>
