@@ -1825,4 +1825,14 @@ export default {
   subscription_expired_title: "انتهى الاشتراك",
   subscription_expired_message: "اشتراك المطعم منتهي. يرجى التواصل مع الدعم لتجديد الاشتراك.",
   contact_support: "تواصل مع الدعم",
+
+  // QR Order Status View
+  qr_status_received_title: "تم استلام طلبك بنجاح",
+  qr_status_received_subtitle: "جاري تحضير الطلب",
+  qr_status_preparing_title: "طلبك قيد التحضير",
+  qr_status_preparing_subtitle: "المطبخ يعمل على تجهيز طلبك",
+  qr_status_ready_title: "طلبك جاهز",
+  qr_status_ready_subtitle: "يرجى انتظار التقديم",
+  qr_status_order_number: "رقم الطلب",
+  qr_status_helper_wait: "يرجى الانتظار، سيتم تحديث الحالة تلقائيًا",
 } as const;

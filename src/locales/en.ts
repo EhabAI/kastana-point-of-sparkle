@@ -1820,4 +1820,14 @@ export default {
   subscription_expired_title: "Subscription Expired",
   subscription_expired_message: "Your restaurant subscription has ended. Please contact support to renew.",
   contact_support: "Contact Support",
+
+  // QR Order Status View
+  qr_status_received_title: "Your order has been received",
+  qr_status_received_subtitle: "Order is being prepared",
+  qr_status_preparing_title: "Your order is being prepared",
+  qr_status_preparing_subtitle: "The kitchen is working on your order",
+  qr_status_ready_title: "Your order is ready",
+  qr_status_ready_subtitle: "Please wait for serving",
+  qr_status_order_number: "Order number",
+  qr_status_helper_wait: "Please wait, status will update automatically",
 } as const;
