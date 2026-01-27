@@ -84,8 +84,10 @@ export default function SystemAdmin() {
   const [ownerEmail, setOwnerEmail] = useState("");
   const [ownerPassword, setOwnerPassword] = useState("");
   const [ownerDisplayName, setOwnerDisplayName] = useState("");
+  const [ownerPhone, setOwnerPhone] = useState("");
   const [selectedRestaurant, setSelectedRestaurant] = useState("");
   const [selectedOwner, setSelectedOwner] = useState("");
+  const [assignOwnerPhone, setAssignOwnerPhone] = useState("");
   const [viewingRestaurant, setViewingRestaurant] = useState<string | null>(null);
   const [editLogoRestaurantId, setEditLogoRestaurantId] = useState<string | null>(null);
   
@@ -307,6 +309,7 @@ export default function SystemAdmin() {
     setOwnerEmail("");
     setOwnerPassword("");
     setOwnerDisplayName("");
+    setOwnerPhone("");
     setOwnerDialogOpen(false);
   };
 
@@ -316,8 +319,32 @@ export default function SystemAdmin() {
       return;
     }
     await assignOwner.mutateAsync({ restaurantId: selectedRestaurant, ownerId: selectedOwner });
+    
+    // Save owner phone to restaurant_settings if provided
+    if (assignOwnerPhone.trim()) {
+      const phoneValue = assignOwnerPhone.trim();
+      // Check if settings exist
+      const { data: existingSettings } = await supabase
+        .from('restaurant_settings')
+        .select('id')
+        .eq('restaurant_id', selectedRestaurant)
+        .maybeSingle();
+      
+      if (existingSettings) {
+        await supabase
+          .from('restaurant_settings')
+          .update({ owner_phone: phoneValue })
+          .eq('restaurant_id', selectedRestaurant);
+      } else {
+        await supabase
+          .from('restaurant_settings')
+          .insert({ restaurant_id: selectedRestaurant, owner_phone: phoneValue });
+      }
+    }
+    
     setSelectedRestaurant("");
     setSelectedOwner("");
+    setAssignOwnerPhone("");
     setAssignDialogOpen(false);
   };
 
@@ -619,47 +646,68 @@ export default function SystemAdmin() {
                 </CardContent>
               </Card>
             </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
+            <DialogContent className="p-4">
+              <DialogHeader className="pb-2">
                 <DialogTitle>{t('sa_create_owner_dialog_title')}</DialogTitle>
-                <DialogDescription>{t('sa_create_owner_dialog_desc')}</DialogDescription>
+                <DialogDescription className="text-sm">{t('sa_create_owner_dialog_desc')}</DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="owner-display-name">{t('sa_display_name')}</Label>
+              <div className="space-y-2">
+                <div>
+                  <Label htmlFor="owner-display-name" className="text-sm mb-1 block">{t('sa_display_name')}</Label>
                   <Input
                     id="owner-display-name"
+                    className="py-2 px-3 h-9"
                     value={ownerDisplayName}
                     onChange={(e) => setOwnerDisplayName(e.target.value)}
                     placeholder="John Doe"
                   />
-                  <p className="text-xs text-muted-foreground">{t('sa_display_name_min')}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{t('sa_display_name_min')}</p>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="owner-email">{t('email')}</Label>
+                <div>
+                  <Label htmlFor="owner-email" className="text-sm mb-1 block">{t('email')}</Label>
                   <Input
                     id="owner-email"
                     type="email"
+                    className="py-2 px-3 h-9"
                     value={ownerEmail}
                     onChange={(e) => setOwnerEmail(e.target.value)}
                     placeholder="owner@example.com"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="owner-password">{t('password')}</Label>
+                <div>
+                  <Label htmlFor="owner-password" className="text-sm mb-1 block">{t('password')}</Label>
                   <Input
                     id="owner-password"
                     type="password"
+                    className="py-2 px-3 h-9"
                     value={ownerPassword}
                     onChange={(e) => setOwnerPassword(e.target.value)}
                     placeholder="••••••••"
                   />
                 </div>
+                <div>
+                  <Label htmlFor="owner-phone" className="text-sm mb-1 block">
+                    رقم موبايل صاحب المطعم (اختياري)
+                  </Label>
+                  <Input
+                    id="owner-phone"
+                    type="tel"
+                    dir="ltr"
+                    className="py-2 px-3 h-9"
+                    value={ownerPhone}
+                    onChange={(e) => setOwnerPhone(e.target.value)}
+                    placeholder="079XXXXXXXX"
+                  />
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    معلومة تشغيلية – لا يتم الإرسال حاليًا
+                  </p>
+                </div>
               </div>
-              <DialogFooter>
+              <DialogFooter className="pt-2">
                 <Button variant="outline" onClick={() => {
                   setOwnerDialogOpen(false);
                   setOwnerDisplayName("");
+                  setOwnerPhone("");
                 }}>
                   {t('cancel')}
                 </Button>
@@ -686,16 +734,16 @@ export default function SystemAdmin() {
                 </CardContent>
               </Card>
             </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
+            <DialogContent className="p-4">
+              <DialogHeader className="pb-2">
                 <DialogTitle>{t('sa_assign_dialog_title')}</DialogTitle>
-                <DialogDescription>{t('sa_assign_dialog_desc')}</DialogDescription>
+                <DialogDescription className="text-sm">{t('sa_assign_dialog_desc')}</DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label>{t('restaurant_name')}</Label>
+              <div className="space-y-2">
+                <div>
+                  <Label className="text-sm mb-1 block">{t('restaurant_name')}</Label>
                   <Select value={selectedRestaurant} onValueChange={setSelectedRestaurant}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9">
                       <SelectValue placeholder={t('sa_select_restaurant')} />
                     </SelectTrigger>
                     <SelectContent>
@@ -707,10 +755,10 @@ export default function SystemAdmin() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>{t('sa_owner_label')}</Label>
+                <div>
+                  <Label className="text-sm mb-1 block">{t('sa_owner_label')}</Label>
                   <Select value={selectedOwner} onValueChange={setSelectedOwner}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9">
                       <SelectValue placeholder={t('sa_select_owner')} />
                     </SelectTrigger>
                     <SelectContent>
@@ -722,9 +770,29 @@ export default function SystemAdmin() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <Label htmlFor="assign-owner-phone" className="text-sm mb-1 block">
+                    رقم موبايل صاحب المطعم (اختياري)
+                  </Label>
+                  <Input
+                    id="assign-owner-phone"
+                    type="tel"
+                    dir="ltr"
+                    className="py-2 px-3 h-9"
+                    value={assignOwnerPhone}
+                    onChange={(e) => setAssignOwnerPhone(e.target.value)}
+                    placeholder="079XXXXXXXX"
+                  />
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    معلومة تشغيلية – لا يتم الإرسال حاليًا
+                  </p>
+                </div>
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>
+              <DialogFooter className="pt-2">
+                <Button variant="outline" onClick={() => {
+                  setAssignDialogOpen(false);
+                  setAssignOwnerPhone("");
+                }}>
                   {t('cancel')}
                 </Button>
                 <Button onClick={handleAssignOwner} disabled={assignOwner.isPending}>
