@@ -22,6 +22,8 @@ import {
 import { AlertTriangle, Undo2 } from "lucide-react";
 import { formatJOD } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { FirstTimeCoachCard } from "@/components/pos/FirstTimeCoachCard";
+import { useInFlowIntelligence } from "@/hooks/useInFlowIntelligence";
 
 type RefundReason = "customer_request" | "order_mistake" | "system_error" | "other";
 type RefundType = "full" | "partial";
@@ -52,11 +54,20 @@ export function RefundDialog({
   isProcessing = false,
 }: RefundDialogProps) {
   const { t } = useLanguage();
+  const { isFirstTime, completeAction, showCoaching } = useInFlowIntelligence();
+  const [showCoachCard, setShowCoachCard] = useState(false);
   const [refundType, setRefundType] = useState<RefundType>("full");
   const [customAmount, setCustomAmount] = useState("");
   const [selectedReason, setSelectedReason] = useState<RefundReason | "">("");
   const [notes, setNotes] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
+
+  // Check if first time when dialog opens
+  useEffect(() => {
+    if (open && isFirstTime("refund")) {
+      setShowCoachCard(true);
+    }
+  }, [open, isFirstTime]);
 
   const maxRefundable = Math.max(0, totalPaid - alreadyRefunded);
   
@@ -113,6 +124,8 @@ export function RefundDialog({
       amount: refundAmount,
       reason: reasonText,
     });
+    // Mark refund action as completed (won't show coaching again)
+    completeAction("refund");
     handleClose();
   };
 
@@ -126,6 +139,7 @@ export function RefundDialog({
     setSelectedReason("");
     setNotes("");
     setShowConfirmation(false);
+    setShowCoachCard(false);
     onOpenChange(false);
   };
 
@@ -151,6 +165,15 @@ export function RefundDialog({
         <DialogBody>
           {!showConfirmation ? (
             <>
+              {/* First-Time Coaching Card */}
+              {showCoachCard && (
+                <FirstTimeCoachCard
+                  actionKey="refund"
+                  onDismiss={() => setShowCoachCard(false)}
+                  className="mb-3"
+                />
+              )}
+              
               {/* Action Impact Warning */}
               <div className="flex items-center gap-2 px-3 py-2 rounded-md text-xs bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50 mb-2">
                 <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
