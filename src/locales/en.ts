@@ -1828,6 +1828,9 @@ export default {
   qr_status_preparing_subtitle: "The kitchen is working on your order",
   qr_status_ready_title: "Your order is ready",
   qr_status_ready_subtitle: "Please wait for serving",
+  qr_status_cancelled_title: "Please contact restaurant staff",
+  qr_status_cancelled_subtitle: "For assistance with your order",
+  qr_status_no_active_order: "No active order at this time",
   qr_status_order_number: "Order number",
   qr_status_helper_wait: "Please wait, status will update automatically",
 } as const;

@@ -1833,6 +1833,9 @@ export default {
   qr_status_preparing_subtitle: "المطبخ يعمل على تجهيز طلبك",
   qr_status_ready_title: "طلبك جاهز",
   qr_status_ready_subtitle: "يرجى انتظار التقديم",
+  qr_status_cancelled_title: "يرجى مراجعة طاقم المطعم",
+  qr_status_cancelled_subtitle: "للمساعدة بخصوص طلبك",
+  qr_status_no_active_order: "لا يوجد طلب نشط حالياً",
   qr_status_order_number: "رقم الطلب",
   qr_status_helper_wait: "يرجى الانتظار، سيتم تحديث الحالة تلقائيًا",
 } as const;
