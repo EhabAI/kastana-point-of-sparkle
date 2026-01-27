@@ -1596,6 +1596,52 @@
         "tags": ["qr-order", "customer-confidence", "kds-linked", "ux-clean"],
         "related_features": ["kds", "qr_order"]
       }
+    },
+    "owner_phone_field": {
+      "id": "owner_phone_field",
+      "intent": ["owner_phone", "phone_number", "contact_settings", "notification_settings"],
+      "keywords": {
+        "ar": ["رقم الموبايل", "رقم صاحب المطعم", "واتساب", "إشعارات", "تنبيهات", "رسائل"],
+        "en": ["owner phone", "phone number", "whatsapp", "notifications", "alerts", "messages", "sms"]
+      },
+      "title": {
+        "ar": "حقل رقم الموبايل",
+        "en": "Owner Phone Field"
+      },
+      "content": {
+        "ar": "حقل رقم موبايل صاحب المطعم:\n\n📋 الوصف:\nحقل اختياري لتخزين رقم هاتف صاحب المطعم في إعدادات المطعم.\n\n⚙️ الحالة الحالية:\n• الحقل محفوظ في restaurant_settings\n• للاستعداد المستقبلي فقط\n• لا يوجد أي ربط نشط حالياً\n\n🚫 ما لا يفعله الحقل:\n• لا يرسل رسائل واتساب\n• لا يرسل SMS\n• لا يرسل إشعارات push\n• لا يوجد تحقق من الرقم\n• لا يوجد تفعيل OTP\n\n⚠️ تحذير مهم:\nيجب عدم وصف هذا الحقل كميزة إشعارات أو واتساب نشطة.\nهو فقط للتخزين والاستعداد المستقبلي.",
+        "en": "Owner Phone Field:\n\n📋 Description:\nOptional phone number stored in restaurant_settings for the restaurant owner.\n\n⚙️ Current State:\n• Field is stored in restaurant_settings\n• For future readiness only\n• No active integration currently\n\n🚫 What it does NOT do:\n• Does not send WhatsApp messages\n• Does not send SMS\n• Does not send push notifications\n• No phone verification\n• No OTP activation\n\n⚠️ Important Warning:\nThis field must never be described as an active WhatsApp or notification feature.\nIt is storage and future-readiness only."
+      },
+      "metadata": {
+        "feature_id": "owner_phone_field",
+        "affected_screens": ["OwnerSettings", "SystemAdmin"],
+        "user_roles": ["owner", "system_admin"],
+        "tags": ["settings", "future-feature", "no-notifications"],
+        "related_features": ["restaurant_settings"]
+      }
+    },
+    "assistant_messaging_rules": {
+      "id": "assistant_messaging_rules",
+      "intent": ["assistant_rules", "messaging_policy", "notification_policy"],
+      "keywords": {
+        "ar": ["قواعد المساعد", "سياسة الرسائل", "واتساب", "إشعارات"],
+        "en": ["assistant rules", "messaging policy", "whatsapp", "notifications", "sms"]
+      },
+      "title": {
+        "ar": "قواعد المساعد للرسائل",
+        "en": "Assistant Messaging Rules"
+      },
+      "content": {
+        "ar": "قواعد المساعد الذكي للرسائل والإشعارات:\n\n🚫 ممنوع:\n• لا تعد بإرسال واتساب\n• لا تعد بإرسال SMS\n• لا تعد بإشعارات push\n• لا تكشف حالات الطلب الداخلية للعملاء\n\n✅ الصحيح:\n• اشرح متابعة طلب QR كميزة ثقة وطمأنينة\n• لا تصفها كميزة رسائل أو إشعارات\n• العميل يرى حالة الطلب على الشاشة فقط\n• لا يوجد تواصل نشط مع العميل\n\n📝 أمثلة:\n❌ خطأ: \"سنرسل لك رسالة واتساب عند جهوزية طلبك\"\n✅ صحيح: \"يمكنك متابعة حالة طلبك على شاشة المتابعة\"\n\n❌ خطأ: \"سيتم إشعارك عند تحضير الطلب\"\n✅ صحيح: \"شاشة المتابعة تُحدَّث تلقائياً لتعكس حالة طلبك\"",
+        "en": "Smart Assistant Messaging Rules:\n\n🚫 Never:\n• Never promise WhatsApp messages\n• Never promise SMS\n• Never promise push notifications\n• Never expose internal order statuses to customers\n\n✅ Correct:\n• Explain QR order tracking as a confidence/reassurance feature\n• Do not describe it as a messaging or notification feature\n• Customer sees order status on screen only\n• No active communication with customer\n\n📝 Examples:\n❌ Wrong: \"We'll send you a WhatsApp when your order is ready\"\n✅ Correct: \"You can follow your order status on the tracking screen\"\n\n❌ Wrong: \"You'll be notified when your order is being prepared\"\n✅ Correct: \"The tracking screen updates automatically to reflect your order status\""
+      },
+      "metadata": {
+        "feature_id": "assistant_messaging_rules",
+        "affected_screens": ["All"],
+        "user_roles": ["cashier", "owner", "customer"],
+        "tags": ["assistant-rules", "policy", "messaging"],
+        "related_features": ["qr_order_confidence", "owner_phone_field", "smart_assistant"]
+      }
     }
   }
 }
