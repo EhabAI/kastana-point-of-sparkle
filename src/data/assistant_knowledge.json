@@ -1145,6 +1145,29 @@
         "section_key": "recipes"
       }
     },
+    "recipe_inventory_deduction_faq": {
+      "id": "recipe_inventory_deduction_faq",
+      "intent": ["faq", "troubleshoot"],
+      "keywords": {
+        "ar": ["ليش المخزون ما نقص", "كيف الوصفة بتأثر على المخزون", "هل لازم وصفة لكل صنف", "المخزون ما تغير", "الخصم ما صار", "الوصفة ما اشتغلت"],
+        "en": ["why inventory not deducted", "how recipe affects inventory", "do I need recipe for every item", "inventory not changing", "deduction not working", "recipe not working"]
+      },
+      "title": {
+        "ar": "الوصفات وخصم المخزون",
+        "en": "Recipes and Inventory Deduction"
+      },
+      "content": {
+        "ar": "الوصفات تُستخدم فقط لحساب خصم المخزون.\n\nيمكنك بيع الأصناف بدون وصفة، لكن المخزون لن ينقص.\n\nتحتاج وصفة فقط للأصناف التي تريد تتبع كلفتها ومخزونها.\n\n📌 متى يتم الخصم؟\n• عند إتمام الدفع فقط\n• لأصناف لها وصفة نشطة\n\n📌 ماذا لو لم أربط وصفة؟\n• البيع يعمل طبيعياً\n• المخزون لا يتأثر\n• لا يظهر تتبع للتكلفة",
+        "en": "Recipes are used only for calculating inventory deduction.\n\nYou can sell items without a recipe, but inventory won't be deducted.\n\nYou only need a recipe for items where you want to track cost and inventory.\n\n📌 When does deduction happen?\n• Only when payment is completed\n• For items with an active recipe\n\n📌 What if no recipe is linked?\n• Sales work normally\n• Inventory is not affected\n• No cost tracking shown"
+      },
+      "metadata": {
+        "feature_id": "recipe_inventory_deduction_faq",
+        "affected_screens": ["Inventory"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_inventory",
+        "section_key": "recipes"
+      }
+    },
     "section_inventory_movements": {
       "id": "section_inventory_movements",
       "intent": ["section_help", "explain_section"],

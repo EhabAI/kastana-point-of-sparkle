@@ -19,6 +19,7 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { RecipeHowItWorksHint } from "./RecipeHowItWorksHint";
 
 interface RecipeBuilderProps {
   restaurantId: string;
@@ -581,6 +582,10 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
               {t("recipe_builder")}
             </CardTitle>
             <CardDescription>{t("recipe_builder_desc")}</CardDescription>
+            {/* Static note about inventory deduction */}
+            <p className="text-xs text-muted-foreground mt-2">
+              {t("recipe_note")}
+            </p>
           </div>
           <Button 
             variant="outline" 
@@ -593,6 +598,8 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* First-time how it works hint */}
+          <RecipeHowItWorksHint />
           <div className="space-y-3">
             <Label>{t("select_menu_item")}</Label>
             
