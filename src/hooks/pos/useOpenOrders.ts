@@ -296,6 +296,8 @@ export function useSplitOrder() {
 
 export function useMergeOrders() {
   const queryClient = useQueryClient();
+  const { data: restaurant } = useCashierRestaurant();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -373,12 +375,27 @@ export function useMergeOrders() {
 
       if (closeError) throw closeError;
 
-      return { primaryOrderId, secondaryOrderId };
+      return { primaryOrderId, secondaryOrderId, restaurantId };
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["open-orders"] });
       queryClient.invalidateQueries({ queryKey: ["branch-tables"] });
       queryClient.invalidateQueries({ queryKey: ["current-order"] });
+
+      // Log ORDER_MERGED audit event
+      if (user?.id && restaurant?.id) {
+        await supabase.from("audit_logs").insert({
+          user_id: user.id,
+          restaurant_id: restaurant.id,
+          entity_type: "order",
+          entity_id: data.primaryOrderId,
+          action: "ORDER_MERGED",
+          details: {
+            primary_order_id: data.primaryOrderId,
+            secondary_order_id: data.secondaryOrderId,
+          } as unknown as Json,
+        });
+      }
     },
   });
 }

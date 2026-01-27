@@ -79,6 +79,7 @@ import {
 import {
   ShiftDialog,
   ShiftSummaryDialog,
+  ShiftCloseWarningDialog,
   PaymentDialog,
   DiscountDialog,
   HeldOrdersDialog,
@@ -259,8 +260,12 @@ export default function POS() {
     orderCount: number;
   } | null>(null);
 
+  // Shift close warning dialog state
+  const [shiftCloseWarningOpen, setShiftCloseWarningOpen] = useState(false);
+
   // Merge orders state
   const [mergeSelection, setMergeSelection] = useState<string[]>([]);
+
 
   // Move order state
   const [moveMode, setMoveMode] = useState<{
@@ -474,13 +479,20 @@ export default function POS() {
   };
 
   const handleCloseShift = async () => {
-    // Block shift close if there are held orders
-    if (heldOrders.length > 0) {
-      toast.error(t("cannot_close_held_orders"));
-      setHeldOrdersDialogOpen(true);
+    // Count open orders (non-held active orders)
+    const activeOpenOrders = openOrders.filter(o => o.status === "open" || o.status === "new");
+    
+    // If there are open or held orders, show warning dialog first
+    if (activeOpenOrders.length > 0 || heldOrders.length > 0) {
+      setShiftCloseWarningOpen(true);
       return;
     }
     
+    // No open orders - proceed directly
+    await proceedWithShiftClose();
+  };
+
+  const proceedWithShiftClose = async () => {
     // Refetch Z report data before opening dialog to ensure fresh expected cash
     try {
       await zReportRefetch();
@@ -492,6 +504,11 @@ export default function POS() {
     
     setShiftDialogMode("close");
     setShiftDialogOpen(true);
+  };
+
+  const handleShiftCloseWarningConfirm = async () => {
+    setShiftCloseWarningOpen(false);
+    await proceedWithShiftClose();
   };
 
   const handleShiftConfirm = async (amount: number) => {
@@ -2355,6 +2372,15 @@ export default function POS() {
         expectedCash={zReportData?.expectedCash}
         isExpectedCashLoading={zReportLoading}
         currency={currency}
+      />
+
+      <ShiftCloseWarningDialog
+        open={shiftCloseWarningOpen}
+        onOpenChange={setShiftCloseWarningOpen}
+        openOrdersCount={openOrders.filter(o => o.status === "open" || o.status === "new").length}
+        heldOrdersCount={heldOrders.length}
+        onConfirm={handleShiftCloseWarningConfirm}
+        isLoading={zReportLoading}
       />
 
       <NewOrderDialog
