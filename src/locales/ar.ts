@@ -1856,4 +1856,16 @@ export default {
 
   // Refund Reason (optional label)
   refund_reason_label: "سبب الاسترجاع (اختياري)",
+
+  // Module Descriptions (one-sentence clarity notes)
+  module_desc_pos: "إنشاء الطلبات، الدفع، وإدارة الطاولات.",
+  module_desc_inventory: "تتبع المخزون والخصم التلقائي عند البيع.",
+  module_desc_recipes: "ربط الأصناف بالمخزون لحساب التكلفة والخصم.",
+  module_desc_reports: "مراجعة المبيعات والأداء واتخاذ القرارات.",
+  module_desc_shifts: "فتح وإغلاق الورديات وتتبع النقد.",
+  module_desc_kds: "عرض الطلبات في المطبخ وتحديث حالتها.",
+  module_desc_settings: "ضبط الضريبة والعمولات وإعدادات النظام.",
+  module_desc_tables: "إدارة الطاولات وتتبع حالتها.",
+  module_desc_qr_orders: "استلام ومراجعة طلبات العملاء عبر QR.",
+  module_desc_menu: "إدارة التصنيفات والأصناف والأسعار.",
 } as const;

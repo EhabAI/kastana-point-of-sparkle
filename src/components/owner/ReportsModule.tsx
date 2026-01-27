@@ -18,6 +18,10 @@ export function ReportsModule() {
 
   return (
     <div className="space-y-4">
+      {/* Module description */}
+      <p className="text-sm text-muted-foreground">
+        {t("module_desc_reports")}
+      </p>
       {/* Date Filter */}
       <DateRangeFilter
         dateRange={dateRange}
