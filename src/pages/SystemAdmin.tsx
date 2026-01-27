@@ -1154,56 +1154,60 @@ export default function SystemAdmin() {
             setNewOwnerPhone("");
           }
         }}>
-          <DialogContent>
-            <DialogHeader>
+          <DialogContent className="p-4">
+            <DialogHeader className="pb-2">
               <DialogTitle>{t('sa_edit_owner_title')}</DialogTitle>
-              <DialogDescription>{t('sa_edit_owner_desc')} {editingOwner?.username || editingOwner?.email}.</DialogDescription>
+              <DialogDescription className="text-sm">{t('sa_edit_owner_desc')} {editingOwner?.username || editingOwner?.email}.</DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-owner-display-name">{t('sa_display_name')}</Label>
+            <div className="space-y-2">
+              <div>
+                <Label htmlFor="edit-owner-display-name" className="text-sm mb-1 block">{t('sa_display_name')}</Label>
                 <Input
                   id="edit-owner-display-name"
+                  className="py-2 px-3 h-9"
                   value={newOwnerDisplayName}
                   onChange={(e) => setNewOwnerDisplayName(e.target.value)}
                   placeholder="John Doe"
                 />
-                <p className="text-xs text-muted-foreground">{t('sa_display_name_min')}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('sa_display_name_min')}</p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-owner-email">{t('email')}</Label>
+              <div>
+                <Label htmlFor="edit-owner-email" className="text-sm mb-1 block">{t('email')}</Label>
                 <Input
                   id="edit-owner-email"
                   type="email"
+                  className="py-2 px-3 h-9"
                   value={newOwnerEmail}
                   onChange={(e) => setNewOwnerEmail(e.target.value)}
                   placeholder="owner@example.com"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-owner-password">{t('sa_new_password_hint')}</Label>
+              <div>
+                <Label htmlFor="edit-owner-password" className="text-sm mb-1 block">{t('sa_new_password_hint')}</Label>
                 <Input
                   id="edit-owner-password"
                   type="password"
+                  className="py-2 px-3 h-9"
                   value={newOwnerPassword}
                   onChange={(e) => setNewOwnerPassword(e.target.value)}
                   placeholder="••••••••"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-owner-phone">
+              <div>
+                <Label htmlFor="edit-owner-phone" className="text-sm mb-1 block">
                   رقم موبايل صاحب المطعم (اختياري)
                 </Label>
                 <Input
                   id="edit-owner-phone"
                   type="tel"
                   dir="ltr"
+                  className="py-2 px-3 h-9"
                   value={newOwnerPhone}
                   onChange={(e) => setNewOwnerPhone(e.target.value)}
                   placeholder="079XXXXXXX"
                   disabled={loadingOwnerPhone}
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   معلومة تشغيلية – لا يتم الإرسال حاليًا
                 </p>
               </div>
