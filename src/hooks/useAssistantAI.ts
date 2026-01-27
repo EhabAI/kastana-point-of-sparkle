@@ -49,6 +49,19 @@ import {
   getScreenLockedResponse,
   type ActiveTopic,
 } from "@/lib/assistantActiveTopicTracker";
+import {
+  updateSessionMemory,
+  getSessionMemory,
+  isContextlessFollowUp,
+  buildFollowUpPrefix,
+  getFollowUpSuggestions,
+  formatFollowUpSuggestions,
+  getValueLine,
+  detectCommonGaps,
+  formatGapMessage,
+  detectIntentFromMessage,
+  detectEntityFromMessage,
+} from "@/lib/assistantSessionMemory";
 import type { ScreenContext } from "@/lib/smartAssistantContext";
 
 interface IntentResult {
@@ -242,6 +255,46 @@ export function useAssistantAI(): UseAssistantAIReturn {
       }
       // ===== END SMART TRAINER CONTEXT PRESERVATION =====
       
+      // ===== SESSION MEMORY: CONTEXT-LESS FOLLOW-UP HANDLING =====
+      // Check if this is a follow-up that relies on session memory (e.g., "طيب الكمية؟")
+      if (isContextlessFollowUp(query)) {
+        const memory = getSessionMemory();
+        if (memory.lastTopicId && memory.lastTopicName) {
+          // Use session memory to continue the context
+          const directAnswer = getDirectAnswer(memory.lastTopicId, language);
+          if (directAnswer) {
+            setIsLoading(false);
+            
+            const prefix = buildFollowUpPrefix(language) || "";
+            let finalResponse = prefix + directAnswer;
+            
+            // Add value line if appropriate (after 2+ questions on same topic)
+            if (memory.questionCount >= 2) {
+              const valueLine = getValueLine(memory.lastTopicId, language);
+              if (valueLine) {
+                finalResponse += `\n\n${valueLine}`;
+              }
+            }
+            
+            // Update session memory
+            const intent = detectIntentFromMessage(query);
+            const entity = detectEntityFromMessage(query);
+            updateSessionMemory(intent, entity, memory.lastTopicId, memory.lastTopicName);
+            
+            // Update conversation history
+            conversationHistoryRef.current.push({ role: "user", content: query });
+            conversationHistoryRef.current.push({ role: "assistant", content: finalResponse });
+            
+            if (conversationHistoryRef.current.length > 6) {
+              conversationHistoryRef.current = conversationHistoryRef.current.slice(-6);
+            }
+            
+            return finalResponse;
+          }
+        }
+      }
+      // ===== END SESSION MEMORY FOLLOW-UP =====
+      
       // ===== NEW: INTENT-FIRST RESPONSE (HIGHEST PRIORITY) =====
       // Rule 1: If user is asking an explanation question, answer DIRECTLY
       // No greetings, no screen descriptions, no daily summaries
@@ -262,6 +315,11 @@ export function useAssistantAI(): UseAssistantAIReturn {
               screen: screenContext || "unknown",
               timestamp: Date.now(),
             });
+            
+            // SESSION MEMORY: Update session memory with detected intent/entity
+            const intent = detectIntentFromMessage(query);
+            const entity = detectEntityFromMessage(query);
+            updateSessionMemory(intent, entity, topicMatch.id, topicMatch.name);
           }
           
           // Append trainer routing suffix if deeper content exists
@@ -270,6 +328,18 @@ export function useAssistantAI(): UseAssistantAIReturn {
             const trainerSuffix = getTrainerRoutingSuffix(topicMatch.id, language);
             if (trainerSuffix && isProcedural(query)) {
               finalResponse = directAnswer + trainerSuffix;
+            }
+            
+            // Add value line for first-time topic explanations
+            const valueLine = getValueLine(topicMatch.id, language);
+            if (valueLine && !isProcedural(query)) {
+              finalResponse += `\n\n${valueLine}`;
+            }
+            
+            // Add follow-up suggestions (max 2, plain text)
+            const suggestions = getFollowUpSuggestions(topicMatch.id, language);
+            if (suggestions.length > 0) {
+              finalResponse += formatFollowUpSuggestions(suggestions, language);
             }
           }
           
@@ -435,6 +505,46 @@ export function useAssistantAI(): UseAssistantAIReturn {
       if (v2Context && !shouldSkipScreenContext(query)) {
         response = formatV2Response(response, v2Context, true);
       }
+      
+      // ===== SESSION MEMORY: Update and enhance response =====
+      const primaryMatchedId = intentResult.matchedEntryIds[0];
+      if (primaryMatchedId) {
+        const matchedEntry = getEntryById(primaryMatchedId);
+        
+        // Update session memory
+        const intent = detectIntentFromMessage(query);
+        const entity = detectEntityFromMessage(query);
+        updateSessionMemory(
+          intent, 
+          entity, 
+          primaryMatchedId, 
+          matchedEntry ? { ar: matchedEntry.title.ar, en: matchedEntry.title.en } : null
+        );
+        
+        // ===== GAP DETECTION: Proactive guidance =====
+        const gap = detectCommonGaps({
+          topicId: primaryMatchedId,
+          userRole: fallbackContext?.userRole,
+          screenContext: screenContext,
+          featureVisibility: {
+            inventoryEnabled: fallbackContext?.featureVisibility?.inventoryEnabled,
+            kdsEnabled: fallbackContext?.featureVisibility?.kdsEnabled,
+            qrEnabled: fallbackContext?.featureVisibility?.qrEnabled,
+          },
+        });
+        
+        if (gap) {
+          response += `\n\n${formatGapMessage(gap, language)}`;
+        }
+        // ===== END GAP DETECTION =====
+        
+        // Add follow-up suggestions for knowledge-based responses
+        const suggestions = getFollowUpSuggestions(primaryMatchedId, language);
+        if (suggestions.length > 0 && !response.includes("هل تحب:") && !response.includes("Would you like:")) {
+          response += formatFollowUpSuggestions(suggestions, language);
+        }
+      }
+      // ===== END SESSION MEMORY =====
 
       // Update conversation history
       conversationHistoryRef.current.push({ role: "user", content: query });

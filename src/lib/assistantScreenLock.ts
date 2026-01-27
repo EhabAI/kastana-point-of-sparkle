@@ -90,6 +90,7 @@ export interface FeatureVisibility {
   inventoryEnabled: boolean;
   kdsEnabled: boolean;
   discountsEnabled: boolean;
+  qrEnabled?: boolean;
 }
 
 /**
