@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatJOD } from "@/lib/utils";
+import { FirstTimeHint } from "@/components/ui/first-time-hint";
 
 interface ShiftDialogProps {
   open: boolean;
@@ -67,6 +68,9 @@ export function ShiftDialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
+        
+        {/* First-time shift hint */}
+        {mode === "open" && <FirstTimeHint hintKey="shifts" />}
 
         <div className="space-y-4 py-4">
           {mode === "open" && (

@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { FirstTimeHint } from "@/components/ui/first-time-hint";
 
 interface KDSLayoutProps {
   restaurantId: string;
@@ -145,6 +146,10 @@ export function KDSLayout({ restaurantId, branchId }: KDSLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background flex flex-col" dir={isRTL ? "rtl" : "ltr"}>
+      {/* First-time KDS hint */}
+      <div className="px-4 pt-2">
+        <FirstTimeHint hintKey="kds" className="max-w-xl mx-auto" />
+      </div>
       {/* Reusable KDS Header - follows system header style */}
       <KDSHeader
         restaurantName={restaurant?.name}

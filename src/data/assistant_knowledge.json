@@ -1665,6 +1665,29 @@
         "tags": ["assistant-rules", "policy", "messaging"],
         "related_features": ["qr_order_confidence", "owner_phone_field", "smart_assistant"]
       }
+    },
+    "smart_routing_guidance": {
+      "id": "smart_routing_guidance",
+      "intent": ["routing", "navigation", "next_steps"],
+      "keywords": {
+        "ar": ["وين أروح", "أي تبويب", "كيف أوصل", "أين أجد", "للمتابعة"],
+        "en": ["where to go", "which tab", "how to access", "where to find", "to continue"]
+      },
+      "title": {
+        "ar": "التوجيه الذكي",
+        "en": "Smart Routing"
+      },
+      "content": {
+        "ar": "التوجيه الذكي للشاشات:\n\nبعد كل شرح، وجّه المستخدم للتبويب المناسب:\n\n📍 أسئلة المخزون:\n→ \"للمتابعة، يمكنك فتح تبويب المخزون.\"\n\n📍 أسئلة الوصفات:\n→ \"يمكنك إدارة الوصفات من تبويب الوصفات.\"\n\n📍 أسئلة الوردية أو الدفع:\n→ \"للتأكد، راجع تبويب الوردية الحالية.\"\n\n📍 أسئلة طلبات QR:\n→ \"يمكنك متابعة هذه الطلبات من تبويب طلبات QR.\"\n\n📍 أسئلة التقارير:\n→ \"يمكنك مراجعة البيانات من تبويب التقارير.\"\n\n📍 أسئلة الإعدادات:\n→ \"يمكنك ضبط الإعدادات من تبويب الإعدادات.\"\n\n📍 أسئلة القائمة:\n→ \"يمكنك إدارة القائمة من تبويب القائمة.\"\n\n📍 أسئلة KDS:\n→ \"يمكنك متابعة الطلبات من شاشة المطبخ (KDS).\"\n\n⚠️ قواعد:\n• اقترح تبويب واحد فقط\n• صيغة توجيهية لا أمرية\n• لا روابط، نص فقط",
+        "en": "Smart Routing to Screens:\n\nAfter every explanation, guide the user to the relevant tab:\n\n📍 Inventory questions:\n→ \"To continue, you can open the Inventory tab.\"\n\n📍 Recipe questions:\n→ \"You can manage recipes from the Recipes tab.\"\n\n📍 Shift or payment questions:\n→ \"To verify, check the current Shift tab.\"\n\n📍 QR Order questions:\n→ \"You can follow these orders from the QR Orders tab.\"\n\n📍 Reports questions:\n→ \"You can review data from the Reports tab.\"\n\n📍 Settings questions:\n→ \"You can configure settings from the Settings tab.\"\n\n📍 Menu questions:\n→ \"You can manage the menu from the Menu tab.\"\n\n📍 KDS questions:\n→ \"You can monitor orders from the Kitchen Display (KDS) screen.\"\n\n⚠️ Rules:\n• Suggest ONE tab only\n• Phrase as guidance, not command\n• No links required, text only"
+      },
+      "metadata": {
+        "feature_id": "smart_routing_guidance",
+        "affected_screens": ["All"],
+        "user_roles": ["cashier", "owner", "kitchen"],
+        "tags": ["assistant-rules", "navigation", "routing"],
+        "is_internal_rule": true
+      }
     }
   }
 }

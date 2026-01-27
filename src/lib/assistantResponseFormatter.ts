@@ -385,6 +385,7 @@ export function formatDirectAnswer(
   options?: {
     note?: string;
     topicKey?: string; // For smart routing
+    routeTo?: string;  // Explicit routing suggestion
   }
 ): string {
   const lines: string[] = [];
@@ -406,5 +407,51 @@ export function formatDirectAnswer(
     result = appendTrainerGuidance(result, options.topicKey, language);
   }
   
+  // Append smart routing if specified
+  if (options?.routeTo) {
+    result = appendSmartRouting(result, options.routeTo, language);
+  }
+  
   return result;
+}
+
+// === SMART ROUTING ===
+
+const ROUTING_SUGGESTIONS: Record<string, { ar: string; en: string }> = {
+  inventory: { ar: "للمتابعة، يمكنك فتح تبويب المخزون.", en: "To continue, you can open the Inventory tab." },
+  recipes: { ar: "يمكنك إدارة الوصفات من تبويب الوصفات.", en: "You can manage recipes from the Recipes tab." },
+  shifts: { ar: "للتأكد، راجع تبويب الوردية الحالية.", en: "To verify, check the current Shift tab." },
+  qr_orders: { ar: "يمكنك متابعة هذه الطلبات من تبويب طلبات QR.", en: "You can follow these orders from the QR Orders tab." },
+  reports: { ar: "يمكنك مراجعة البيانات من تبويب التقارير.", en: "You can review data from the Reports tab." },
+  settings: { ar: "يمكنك ضبط الإعدادات من تبويب الإعدادات.", en: "You can configure settings from the Settings tab." },
+  menu: { ar: "يمكنك إدارة القائمة من تبويب القائمة.", en: "You can manage the menu from the Menu tab." },
+  kds: { ar: "يمكنك متابعة الطلبات من شاشة المطبخ (KDS).", en: "You can monitor orders from the Kitchen Display (KDS) screen." },
+  tables: { ar: "يمكنك إدارة الطاولات من تبويب الطاولات.", en: "You can manage tables from the Tables tab." },
+  orders: { ar: "يمكنك متابعة الطلبات المفتوحة من تبويب الطلبات.", en: "You can view open orders from the Orders tab." },
+};
+
+/**
+ * Append smart routing suggestion at the end of response
+ */
+export function appendSmartRouting(
+  response: string,
+  routeKey: string,
+  language: "ar" | "en"
+): string {
+  const suggestion = ROUTING_SUGGESTIONS[routeKey];
+  if (!suggestion) return response;
+  
+  const routingText = suggestion[language];
+  return `${response}\n\n📍 ${routingText}`;
+}
+
+/**
+ * Get routing suggestion for a topic
+ */
+export function getRoutingSuggestion(
+  topicKey: string,
+  language: "ar" | "en"
+): string | null {
+  const suggestion = ROUTING_SUGGESTIONS[topicKey];
+  return suggestion ? suggestion[language] : null;
 }

@@ -1851,4 +1851,16 @@ export default {
 
   // Refund Reason (optional label)
   refund_reason_label: "Refund Reason (optional)",
+
+  // Module Descriptions (one-sentence clarity notes)
+  module_desc_pos: "Create orders, process payments, and manage tables.",
+  module_desc_inventory: "Track inventory and auto-deduct on sales.",
+  module_desc_recipes: "Link items to inventory for costing and deduction.",
+  module_desc_reports: "Review sales, performance, and make decisions.",
+  module_desc_shifts: "Open and close shifts, track cash.",
+  module_desc_kds: "View kitchen orders and update their status.",
+  module_desc_settings: "Configure tax, fees, and system settings.",
+  module_desc_tables: "Manage tables and track their status.",
+  module_desc_qr_orders: "Receive and review customer QR orders.",
+  module_desc_menu: "Manage categories, items, and pricing.",
 } as const;

@@ -30,6 +30,10 @@ export function InventoryDashboard({ restaurantId, isReadOnly = false, currency 
 
   return (
     <div className="space-y-4">
+      {/* Module description */}
+      <p className="text-sm text-muted-foreground">
+        {t("module_desc_inventory")}
+      </p>
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <TabsList className="grid w-full max-w-2xl grid-cols-4">
