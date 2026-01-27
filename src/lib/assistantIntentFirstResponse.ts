@@ -406,10 +406,13 @@ export const KEYWORD_TO_TOPIC: Record<string, string> = {
   "adjustment": "stock_adjustment",
   "stock adjustment": "stock_adjustment",
   
-  // Recipes
+  // Recipes (Menu Item Ingredients)
   "وصفة": "recipes",
+  "وصفه": "recipes", // colloquial spelling
   "وصفات": "recipes",
   "مكونات": "recipes",
+  "خلطة": "recipes", // colloquial: mix/blend
+  "خلطات": "recipes",
   "recipe": "recipes",
   "recipes": "recipes",
   "ingredients": "recipes",

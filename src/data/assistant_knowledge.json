@@ -224,8 +224,8 @@
       "id": "recipes",
       "intent": ["recipe", "recipes", "ingredients"],
       "keywords": {
-        "ar": ["وصفة", "وصفات", "مكونات", "recipe", "خامات الصنف"],
-        "en": ["recipe", "recipes", "ingredients", "components"]
+        "ar": ["وصفة", "وصفه", "وصفات", "مكونات", "خلطة", "خلطات", "recipe", "خامات الصنف"],
+        "en": ["recipe", "recipes", "ingredients", "components", "mix"]
       },
       "title": {
         "ar": "الوصفات (Recipes)",
@@ -238,7 +238,8 @@
       "metadata": {
         "feature_id": "recipes",
         "affected_screens": ["Menu", "Inventory"],
-        "user_roles": ["owner"]
+        "user_roles": ["owner"],
+        "requires_module": "inventory_enabled"
       }
     },
     "kds": {
