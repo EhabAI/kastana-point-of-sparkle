@@ -1524,6 +1524,33 @@
         "user_roles": ["owner"],
         "related_features": ["system_confidence_score", "operational_notes", "daily_summary"]
       }
+    },
+    "restaurant_settings_owner_phone": {
+      "id": "restaurant_settings_owner_phone",
+      "intent": ["field_documentation", "restaurant_settings", "owner_contact", "future_feature"],
+      "keywords": {
+        "ar": ["رقم موبايل صاحب المطعم", "هاتف المالك", "owner phone", "رقم المالك", "موبايل صاحب المطعم", "واتساب", "تنبيهات"],
+        "en": ["owner phone", "owner mobile", "restaurant owner phone", "contact number", "whatsapp", "notifications"]
+      },
+      "title": {
+        "ar": "رقم موبايل صاحب المطعم",
+        "en": "Restaurant Owner Phone"
+      },
+      "content": {
+        "ar": "رقم موبايل صاحب المطعم:\n\n📋 الوصف:\nرقم موبايل صاحب المطعم، حقل اختياري يُستخدم للتجهيز المستقبلي للتنبيهات أو التواصل (مثل واتساب). لا يتم استخدامه أو الإرسال منه حاليًا في أي منطق تشغيلي.\n\n🗄️ التخزين:\n• الجدول: restaurant_settings\n• الحقل: owner_phone\n• النوع: TEXT (nullable)\n\n👥 صلاحيات التعديل:\n• صاحب المطعم (Owner) ✓\n• مدير النظام (System Admin) ✓\n• الكاشير ✗\n• المطبخ ✗\n\n⚙️ القواعد:\n• حقل اختياري - يمكن تركه فارغاً\n• لا يوجد تحقق أو OTP\n• لا يتم إرسال أي رسائل منه حالياً\n• لا يظهر للكاشير أو المطبخ\n\n🏷️ التصنيفات:\n• future-notifications (للتنبيهات المستقبلية)\n• whatsapp-ready (جاهز للواتساب - غير مفعّل)",
+        "en": "Restaurant Owner Phone:\n\n📋 Description:\nRestaurant owner's mobile number, an optional field for future notifications or communication (like WhatsApp). It is currently not used in any operational logic.\n\n🗄️ Storage:\n• Table: restaurant_settings\n• Field: owner_phone\n• Type: TEXT (nullable)\n\n👥 Edit Permissions:\n• Restaurant Owner ✓\n• System Admin ✓\n• Cashier ✗\n• Kitchen ✗\n\n⚙️ Rules:\n• Optional field - can be left empty\n• No validation or OTP\n• No messages sent from it currently\n• Not visible to Cashier or Kitchen\n\n🏷️ Tags:\n• future-notifications\n• whatsapp-ready (inactive)"
+      },
+      "metadata": {
+        "feature_id": "owner_phone",
+        "affected_screens": ["Settings", "SystemAdmin"],
+        "user_roles": ["owner", "system_admin"],
+        "table": "restaurant_settings",
+        "field_name": "owner_phone",
+        "field_type": "TEXT",
+        "nullable": true,
+        "tags": ["future-notifications", "whatsapp-ready"],
+        "status": "inactive"
+      }
     }
   }
 }
