@@ -32,7 +32,13 @@ import {
   getDirectAnswer,
   isExplanationQuestion,
   shouldSkipScreenContext,
+  isProcedural,
+  resolveArabicRecipeIntent,
 } from "@/lib/assistantIntentFirstResponse";
+import {
+  getTrainerRoutingSuffix,
+  isProceduralQuestion,
+} from "@/lib/assistantIntentResolver";
 import {
   isFollowUpPhrase,
   isExplicitTopicSwitch,
@@ -81,9 +87,19 @@ interface UseAssistantAIReturn {
 
 /**
  * Extract topic ID and name from a user query for active topic tracking
+ * Uses Arabic disambiguation for وصفة (recipe) vs وصف (description)
  */
 function extractTopicFromQuery(query: string, language: "ar" | "en"): { id: string; name: { ar: string; en: string } } | null {
   const lowerQuery = query.toLowerCase();
+  
+  // ARABIC DISAMBIGUATION: Check recipe vs description first
+  const recipeIntent = resolveArabicRecipeIntent(query);
+  if (recipeIntent === "recipes") {
+    return { id: "recipes", name: { ar: "الوصفات", en: "Recipes" } };
+  }
+  if (recipeIntent === "item_description") {
+    return { id: "item_description", name: { ar: "وصف الصنف", en: "Item Description" } };
+  }
   
   // Topic extraction mapping based on common keywords
   const topicMappings: { keywords: string[]; id: string; name: { ar: string; en: string } }[] = [
@@ -91,7 +107,8 @@ function extractTopicFromQuery(query: string, language: "ar" | "en"): { id: stri
     { keywords: ["refund", "مرتجع", "استرداد", "ارجاع"], id: "refund", name: { ar: "المرتجعات", en: "Refunds" } },
     { keywords: ["shift", "وردية", "الوردية", "شفت"], id: "shift", name: { ar: "الوردية", en: "Shift" } },
     { keywords: ["inventory", "مخزون", "جرد", "المخزون"], id: "inventory_log", name: { ar: "المخزون", en: "Inventory" } },
-    { keywords: ["recipe", "وصفة", "الوصفات"], id: "recipes", name: { ar: "الوصفات", en: "Recipes" } },
+    // Recipes already handled by disambiguation above, but include for non-Arabic
+    { keywords: ["recipe", "recipes", "ingredients"], id: "recipes", name: { ar: "الوصفات", en: "Recipes" } },
     { keywords: ["hold", "تعليق", "معلق"], id: "hold_order", name: { ar: "تعليق الطلب", en: "Hold Order" } },
     { keywords: ["merge", "دمج", "جمع"], id: "merge_orders", name: { ar: "دمج الطلبات", en: "Merge Orders" } },
     { keywords: ["void", "الغاء", "إلغاء"], id: "void_order", name: { ar: "إلغاء الطلب", en: "Void Order" } },
@@ -228,7 +245,8 @@ export function useAssistantAI(): UseAssistantAIReturn {
       // ===== NEW: INTENT-FIRST RESPONSE (HIGHEST PRIORITY) =====
       // Rule 1: If user is asking an explanation question, answer DIRECTLY
       // No greetings, no screen descriptions, no daily summaries
-      if (isExplanationQuestion(query)) {
+      // Rule 2: Procedural questions get direct answers + trainer routing
+      if (isExplanationQuestion(query) || isProcedural(query)) {
         const directAnswer = getDirectAnswer(query, language);
         
         if (directAnswer) {
@@ -246,16 +264,25 @@ export function useAssistantAI(): UseAssistantAIReturn {
             });
           }
           
+          // Append trainer routing suffix if deeper content exists
+          let finalResponse = directAnswer;
+          if (topicMatch) {
+            const trainerSuffix = getTrainerRoutingSuffix(topicMatch.id, language);
+            if (trainerSuffix && isProcedural(query)) {
+              finalResponse = directAnswer + trainerSuffix;
+            }
+          }
+          
           // Update conversation history
           conversationHistoryRef.current.push({ role: "user", content: query });
-          conversationHistoryRef.current.push({ role: "assistant", content: directAnswer });
+          conversationHistoryRef.current.push({ role: "assistant", content: finalResponse });
           
           // Keep only last 6 messages
           if (conversationHistoryRef.current.length > 6) {
             conversationHistoryRef.current = conversationHistoryRef.current.slice(-6);
           }
           
-          return directAnswer;
+          return finalResponse;
         }
       }
       // ===== END INTENT-FIRST RESPONSE =====

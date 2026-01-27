@@ -1,11 +1,15 @@
 // Kastana POS Assistant - Intent-First Response System
 // CRITICAL: Answer the EXACT question asked, no over-contextualization
+// SMART ROUTING: Guide to Trainer for deeper learning when appropriate
+
+import { disambiguateArabicRecipe, isProceduralQuestion } from "./assistantIntentResolver";
 
 export interface StandardResponse {
   definition: string;      // 1-2 sentences, simple language
   whyItMatters?: string;   // Business/operational value
   wherToFind?: string;     // Menu path in system
   whatYouCanDo?: string;   // Actions/outcomes
+  trainerModule?: string;  // For smart routing to Trainer
 }
 
 /**
@@ -24,6 +28,26 @@ export function isExplanationQuestion(message: string): boolean {
   ];
   
   return explanationPatterns.some(p => lowerMessage.includes(p));
+}
+
+/**
+ * Check if this is a procedural question (كيف أضيف، كيف أرفع)
+ * These should get DIRECT answers without welcome/overview
+ */
+export function isProcedural(message: string): boolean {
+  return isProceduralQuestion(message);
+}
+
+/**
+ * ARABIC RECIPE DISAMBIGUATION
+ * "وصفة" / "وصفه" / "مكونات" = Recipe (Menu Item Ingredients)
+ * "وصف" (without ة) = Item Description
+ */
+export function resolveArabicRecipeIntent(message: string): "recipes" | "item_description" | null {
+  const result = disambiguateArabicRecipe(message);
+  if (result === "recipe") return "recipes";
+  if (result === "description") return "item_description";
+  return null;
 }
 
 /**
@@ -130,13 +154,31 @@ export const TOPIC_DEFINITIONS: Record<string, {
       definition: "الوصفات تربط أصناف القائمة بمواد المخزون وتحدد الكمية المستخدمة من كل مادة.",
       whyItMatters: "أساسية للخصم التلقائي من المخزون عند البيع وحساب التكلفة.",
       wherToFind: "القائمة → الصنف → الوصفة",
-      whatYouCanDo: "إضافة المكونات وكمياتها لكل صنف."
+      whatYouCanDo: "إضافة المكونات وكمياتها لكل صنف.",
+      trainerModule: "recipes"
     },
     en: {
       definition: "Recipes link menu items to inventory materials and specify the quantity used from each.",
       whyItMatters: "Essential for auto-deduction from inventory on sale and cost calculation.",
       wherToFind: "Menu → Item → Recipe",
-      whatYouCanDo: "Add ingredients and their quantities for each item."
+      whatYouCanDo: "Add ingredients and their quantities for each item.",
+      trainerModule: "recipes"
+    }
+  },
+  
+  // === ITEM DESCRIPTION (NOT Recipe) ===
+  item_description: {
+    ar: {
+      definition: "وصف الصنف هو نص توضيحي يظهر للعميل ويصف مكونات أو طريقة تحضير الطبق.",
+      whyItMatters: "يساعد العملاء على اختيار الأصناف المناسبة.",
+      wherToFind: "القائمة → الصنف → تعديل → حقل الوصف",
+      whatYouCanDo: "إضافة أو تعديل وصف الصنف من إعدادات القائمة."
+    },
+    en: {
+      definition: "Item Description is explanatory text shown to customers describing the dish's contents or preparation.",
+      whyItMatters: "Helps customers choose suitable items.",
+      wherToFind: "Menu → Item → Edit → Description field",
+      whatYouCanDo: "Add or edit item description from menu settings."
     }
   },
   
@@ -406,7 +448,7 @@ export const KEYWORD_TO_TOPIC: Record<string, string> = {
   "adjustment": "stock_adjustment",
   "stock adjustment": "stock_adjustment",
   
-  // Recipes (Menu Item Ingredients)
+  // Recipes (Menu Item Ingredients) - use disambiguateArabicRecipe for وصفة vs وصف
   "وصفة": "recipes",
   "وصفه": "recipes", // colloquial spelling
   "وصفات": "recipes",
@@ -416,6 +458,14 @@ export const KEYWORD_TO_TOPIC: Record<string, string> = {
   "recipe": "recipes",
   "recipes": "recipes",
   "ingredients": "recipes",
+  
+  // Item Description (NOT Recipe) - وصف without ة
+  "وصف الصنف": "item_description",
+  "وصف المنتج": "item_description",
+  "اضافة وصف": "item_description",
+  "تعديل وصف": "item_description",
+  "item description": "item_description",
+  "product description": "item_description",
   
   // Z Report
   "تقرير z": "z_report",
