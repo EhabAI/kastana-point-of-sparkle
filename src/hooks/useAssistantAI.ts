@@ -62,6 +62,15 @@ import {
   detectIntentFromMessage,
   detectEntityFromMessage,
 } from "@/lib/assistantSessionMemory";
+import {
+  isDiagnosticQuestion,
+  detectDiagnosticCategory,
+  detectRelatedFlow,
+  generateDiagnosticResponse,
+  formatDiagnosticResponse,
+  checkViolatedInvariants,
+  type DiagnosticContext,
+} from "@/lib/assistantDiagnosticReasoner";
 import type { ScreenContext } from "@/lib/smartAssistantContext";
 
 interface IntentResult {
@@ -294,6 +303,49 @@ export function useAssistantAI(): UseAssistantAIReturn {
         }
       }
       // ===== END SESSION MEMORY FOLLOW-UP =====
+      
+      // ===== DIAGNOSTIC REASONING (HIGH PRIORITY) =====
+      // If user is asking "why isn't X working" or "ليش ما اشتغل", diagnose first
+      // This uses system invariants and flow diagnostics to reason about the issue
+      if (isDiagnosticQuestion(query)) {
+        // Build diagnostic context from available information
+        const diagnosticContext: DiagnosticContext = {
+          shiftOpen: fallbackContext?.shiftOpen,
+          restaurantActive: fallbackContext?.restaurantActive,
+          inventoryEnabled: fallbackContext?.featureVisibility?.inventoryEnabled,
+          kdsEnabled: fallbackContext?.featureVisibility?.kdsEnabled,
+          qrEnabled: fallbackContext?.featureVisibility?.qrEnabled,
+          userRole: fallbackContext?.userRole as DiagnosticContext["userRole"],
+          currentScreen: screenContext,
+        };
+        
+        // Check for invariant violations first
+        const violations = checkViolatedInvariants(diagnosticContext);
+        
+        // Generate diagnostic response using system knowledge
+        const diagnosticResult = generateDiagnosticResponse(query, diagnosticContext, language);
+        
+        // If we have high confidence diagnosis, return it directly
+        if (diagnosticResult.confidence >= 0.7) {
+          setIsLoading(false);
+          
+          const response = formatDiagnosticResponse(diagnosticResult, language);
+          
+          // Update conversation history
+          conversationHistoryRef.current.push({ role: "user", content: query });
+          conversationHistoryRef.current.push({ role: "assistant", content: response });
+          
+          if (conversationHistoryRef.current.length > 6) {
+            conversationHistoryRef.current = conversationHistoryRef.current.slice(-6);
+          }
+          
+          return response;
+        }
+        
+        // If low confidence, fall through to other handlers but remember we detected a diagnostic intent
+        // The flow diagnostics can be added to the final response
+      }
+      // ===== END DIAGNOSTIC REASONING =====
       
       // ===== NEW: INTENT-FIRST RESPONSE (HIGHEST PRIORITY) =====
       // Rule 1: If user is asking an explanation question, answer DIRECTLY
