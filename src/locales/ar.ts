@@ -1,5 +1,17 @@
 // Arabic translations for Kastana POS
 export default {
+  // System Health Snapshot
+  health_title: "الحالة",
+  health_restaurant: "المطعم",
+  health_inventory: "المخزون",
+  health_shift: "الوردية",
+  health_qr_orders: "طلبات QR",
+  health_enabled: "مفعّل",
+  health_disabled: "معطّل",
+  health_shift_open: "مفتوحة",
+  health_shift_closed: "مغلقة",
+  health_qr_pending: "قيد الانتظار",
+  health_qr_none: "لا يوجد",
   // Owner Error Messages (subscription/permission errors)
   error_unexpected_owner_title: "حدث خطأ ما",
   error_unexpected_owner_desc: "يرجى المحاولة مرة أخرى أو التواصل مع الدعم إذا استمرت المشكلة.",

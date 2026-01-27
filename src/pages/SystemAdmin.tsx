@@ -35,6 +35,8 @@ import { useToggleRestaurantActive } from "@/hooks/useToggleRestaurantActive";
 import { useAllRestaurantsInventoryStatus, useToggleInventoryModule } from "@/hooks/useInventoryModuleToggle";
 import { useAllRestaurantsKDSStatus, useToggleKDSModule } from "@/hooks/useKDSModuleToggle";
 import { useAllRestaurantsQRStatus, useToggleQRModule } from "@/hooks/useQRModuleToggle";
+import { useAllRestaurantsHealthData } from "@/hooks/useSystemHealthSnapshot";
+import { SystemHealthSnapshot } from "@/components/system-admin/SystemHealthSnapshot";
 import { 
   useExpiringSubscriptions, 
   useCreateRestaurantWithSubscription, 
@@ -61,6 +63,7 @@ export default function SystemAdmin() {
   const { data: inventoryStatusMap = new Map() } = useAllRestaurantsInventoryStatus();
   const { data: kdsStatusMap = new Map() } = useAllRestaurantsKDSStatus();
   const { data: qrStatusMap = new Map() } = useAllRestaurantsQRStatus();
+  const { data: healthDataMap = new Map() } = useAllRestaurantsHealthData();
   const { data: subscriptions = [] } = useRestaurantSubscriptions();
   const { data: expiringSubscriptions = [] } = useExpiringSubscriptions();
   const createRestaurantWithSub = useCreateRestaurantWithSubscription();
@@ -1047,6 +1050,16 @@ export default function SystemAdmin() {
                           <Pencil className="h-4 w-4 me-1" />
                           {t('sub_manage')}
                         </Button>
+                      </div>
+
+                      {/* System Health Snapshot */}
+                      <div className="pt-1.5 border-t border-border/50">
+                        <SystemHealthSnapshot
+                          isActive={restaurant.is_active}
+                          inventoryEnabled={inventoryEnabled}
+                          hasOpenShift={healthDataMap.get(restaurant.id)?.hasOpenShift ?? false}
+                          hasPendingQROrders={healthDataMap.get(restaurant.id)?.hasPendingQROrders ?? false}
+                        />
                       </div>
                     </div>
                   );

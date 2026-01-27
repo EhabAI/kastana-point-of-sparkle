@@ -1,5 +1,17 @@
 // English translations for Kastana POS
 export default {
+  // System Health Snapshot
+  health_title: "Health",
+  health_restaurant: "Restaurant",
+  health_inventory: "Inventory",
+  health_shift: "Shift",
+  health_qr_orders: "QR Orders",
+  health_enabled: "Enabled",
+  health_disabled: "Disabled",
+  health_shift_open: "Open",
+  health_shift_closed: "Closed",
+  health_qr_pending: "Pending",
+  health_qr_none: "None",
   // Owner Error Messages (subscription/permission errors)
   error_unexpected_owner_title: "Something went wrong",
   error_unexpected_owner_desc: "Please try again or contact support if the issue persists.",
