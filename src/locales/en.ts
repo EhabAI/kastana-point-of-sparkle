@@ -1,5 +1,11 @@
 // English translations for Kastana POS
 export default {
+  // Restaurant Operational States
+  status_inactive: "Inactive",
+  status_setup_incomplete: "Active – Setup Incomplete",
+  status_ready: "Active – Ready",
+  status_setup_explanation: "The restaurant is active, but some features are not enabled yet (such as subscription or add-ons).",
+  
   // System Health Snapshot
   health_title: "Health",
   health_restaurant: "Restaurant",

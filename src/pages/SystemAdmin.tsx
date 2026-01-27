@@ -37,6 +37,7 @@ import { useAllRestaurantsKDSStatus, useToggleKDSModule } from "@/hooks/useKDSMo
 import { useAllRestaurantsQRStatus, useToggleQRModule } from "@/hooks/useQRModuleToggle";
 import { useAllRestaurantsHealthData } from "@/hooks/useSystemHealthSnapshot";
 import { SystemHealthSnapshot } from "@/components/system-admin/SystemHealthSnapshot";
+import { RestaurantStatusBadge, SetupIncompleteExplanation, getRestaurantOperationalState } from "@/components/system-admin/RestaurantStatusBadge";
 import { 
   useExpiringSubscriptions, 
   useCreateRestaurantWithSubscription, 
@@ -829,13 +830,20 @@ export default function SystemAdmin() {
                   const isExpired = daysLeft !== null && daysLeft < 0;
                   const isExpiringSoon = daysLeft !== null && daysLeft >= 0 && daysLeft <= 7;
                   
+                  // Determine operational state
+                  const hasValidSubscription = subscription !== undefined && !isExpired;
+                  const hasOwner = !!restaurant.owner_id;
+                  const operationalState = getRestaurantOperationalState(restaurant.is_active, hasValidSubscription, hasOwner);
+                  
+                  // Card styling based on operational state
+                  const cardStyles = {
+                    inactive: 'bg-card border border-red-300 dark:border-red-800',
+                    setup_incomplete: 'bg-card border border-amber-300 dark:border-amber-700',
+                    ready: 'bg-card border border-green-300 dark:border-green-700',
+                  };
+                  
                   return (
-                    <div key={restaurant.id} className={`p-3 rounded-lg space-y-2 ${
-                      !subscription ? 'bg-destructive/10 border border-destructive/30' :
-                      isExpired ? 'bg-destructive/10 border border-destructive/30' :
-                      isExpiringSoon ? 'bg-amber-500/10 border border-amber-500/30' :
-                      'bg-muted/50'
-                    }`}>
+                    <div key={restaurant.id} className={`p-3 rounded-lg space-y-2 ${cardStyles[operationalState]}`}>
                       {/* Top row: Restaurant info + Status + Actions */}
                       <div className="flex items-center justify-between">
                         {/* Restaurant Info */}
@@ -851,33 +859,40 @@ export default function SystemAdmin() {
                               <Store className="h-5 w-5 text-primary" />
                             </div>
                           )}
-                          <div>
+                          <div className="min-w-0">
                             <p className="font-medium text-foreground">{restaurant.name}</p>
                             <p className="text-sm text-muted-foreground">
                               {restaurant.owner_id 
                                 ? `${t('sa_owner_label')}: ${owners.find(o => o.user_id === restaurant.owner_id)?.email || restaurant.owner_id.slice(0, 8) + '...'}`
                                 : t('sa_no_owner')}
                             </p>
+                            {/* Setup Incomplete Explanation */}
+                            {operationalState === 'setup_incomplete' && (
+                              <SetupIncompleteExplanation />
+                            )}
                           </div>
                         </div>
 
                         {/* Status Section */}
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-3">
-                            {/* Clickable Status Badge with Power Icon */}
+                            {/* Operational State Badge (read-only) */}
+                            <RestaurantStatusBadge state={operationalState} />
+                            
+                            {/* Clickable Active/Inactive Toggle */}
                             <button
                               onClick={() => handleToggleActive(restaurant.id, restaurant.name, restaurant.is_active)}
                               disabled={toggleActive.isPending}
-                              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed border ${
                                 restaurant.is_active 
-                                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50' 
-                                  : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                                  ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/40' 
+                                  : 'bg-red-50 text-red-600 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/40'
                               }`}
                             >
                               {restaurant.is_active ? (
-                                <Power className="h-3.5 w-3.5" />
+                                <Power className="h-3 w-3" />
                               ) : (
-                                <PowerOff className="h-3.5 w-3.5" />
+                                <PowerOff className="h-3 w-3" />
                               )}
                               {restaurant.is_active ? t('active') : t('inactive')}
                             </button>

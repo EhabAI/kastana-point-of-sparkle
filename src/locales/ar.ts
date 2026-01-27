@@ -1,5 +1,11 @@
 // Arabic translations for Kastana POS
 export default {
+  // Restaurant Operational States
+  status_inactive: "غير نشط",
+  status_setup_incomplete: "نشط – إعداد غير مكتمل",
+  status_ready: "نشط – جاهز",
+  status_setup_explanation: "المطعم نشط، لكن بعض الميزات غير مفعّلة (مثل الاشتراك أو الإضافات).",
+  
   // System Health Snapshot
   health_title: "الحالة",
   health_restaurant: "المطعم",
