@@ -341,3 +341,70 @@ export function getQuickResponse(
 ): string {
   return quickResponses[key]?.[language] || "";
 }
+
+/**
+ * SMART ROUTING: Append trainer guidance when deeper content exists
+ * Following the principle: Assistant = What now, Trainer = Why & How in depth
+ */
+export function appendTrainerGuidance(
+  response: string,
+  topicKey: string,
+  language: "ar" | "en"
+): string {
+  // Topics that have detailed content in Trainer
+  const trainerTopics: Record<string, { ar: string; en: string }> = {
+    recipes: { ar: "الوصفات", en: "Recipes" },
+    inventory: { ar: "المخزون", en: "Inventory" },
+    z_report: { ar: "تقرير Z", en: "Z Report" },
+    shift: { ar: "الورديات", en: "Shifts" },
+    refund: { ar: "المرتجعات", en: "Refunds" },
+    void_order: { ar: "إلغاء الطلبات", en: "Void Orders" },
+    payments: { ar: "المدفوعات", en: "Payments" },
+    discounts: { ar: "الخصومات", en: "Discounts" },
+    kds: { ar: "شاشة المطبخ", en: "Kitchen Display" },
+    qr_order: { ar: "طلبات QR", en: "QR Orders" },
+  };
+  
+  const module = trainerTopics[topicKey];
+  if (!module) return response;
+  
+  const suffix = language === "ar"
+    ? `\n\n💡 للشرح التفصيلي خطوة بخطوة:\nالمدرب الذكي ← ${module.ar}`
+    : `\n\n💡 For step-by-step walkthrough:\nSmart Trainer → ${module.en}`;
+  
+  return response + suffix;
+}
+
+/**
+ * Format a direct procedural answer (no welcome, no overview)
+ * Used when user asks "how to" questions
+ */
+export function formatDirectAnswer(
+  steps: string[],
+  language: "ar" | "en",
+  options?: {
+    note?: string;
+    topicKey?: string; // For smart routing
+  }
+): string {
+  const lines: string[] = [];
+  
+  // Numbered steps only
+  steps.slice(0, 5).forEach((step, index) => {
+    lines.push(`${index + 1}. ${step}`);
+  });
+  
+  // Optional note
+  if (options?.note) {
+    lines.push(`\n💡 ${options.note}`);
+  }
+  
+  let result = lines.join("\n");
+  
+  // Append trainer guidance if topic has deeper content
+  if (options?.topicKey) {
+    result = appendTrainerGuidance(result, options.topicKey, language);
+  }
+  
+  return result;
+}

@@ -1,6 +1,7 @@
 // Kastana POS Assistant - Intent Resolver
 // Enhanced intent classification with mode and confidence
 // CRITICAL: UI-first matching takes priority over AI classification
+// SMART ROUTING: Provide concise answers, guide to Trainer for depth
 
 import type { AssistantIntent } from "@/lib/assistantScopeGuard";
 import type { UIElementMatch } from "@/lib/assistantUIResolver";
@@ -19,6 +20,7 @@ export interface ResolvedIntent {
   confidence: number;
   escalateDetail?: boolean; // User asked for more detail
   uiMatch?: UIElementMatch; // UI element match if found
+  trainerModule?: string; // If deeper content exists in Trainer
 }
 
 // Training escalation patterns
@@ -33,6 +35,22 @@ const TRAINING_ESCALATION_PATTERNS = {
     "full steps", "detailed explanation", "elaborate", "how exactly",
     "example", "examples", "want to learn", "show me how",
   ],
+};
+
+// Topics that have deeper content in Trainer module
+const TRAINER_AVAILABLE_TOPICS: Record<string, { ar: string; en: string }> = {
+  recipes: { ar: "الوصفات", en: "Recipes" },
+  inventory: { ar: "المخزون", en: "Inventory" },
+  z_report: { ar: "تقرير Z", en: "Z Report" },
+  shift: { ar: "الورديات", en: "Shifts" },
+  refund: { ar: "المرتجعات", en: "Refunds" },
+  void_order: { ar: "إلغاء الطلبات", en: "Void Orders" },
+  hold_order: { ar: "تعليق الطلبات", en: "Hold Orders" },
+  merge_orders: { ar: "دمج الطلبات", en: "Merge Orders" },
+  kds: { ar: "شاشة المطبخ", en: "Kitchen Display" },
+  qr_order: { ar: "طلبات QR", en: "QR Orders" },
+  payments: { ar: "المدفوعات", en: "Payments" },
+  discounts: { ar: "الخصومات", en: "Discounts" },
 };
 
 // Blocked state patterns
@@ -193,4 +211,88 @@ export function getBlockedExplanation(
  */
 export function shouldMentionAudit(mode: ResolvedMode): boolean {
   return mode === "blocked" || mode === "admin_decision";
+}
+
+/**
+ * ARABIC DISAMBIGUATION: وصفة (recipe) vs وصف (description)
+ * Critical for correct intent resolution
+ */
+export function disambiguateArabicRecipe(message: string): "recipe" | "description" | null {
+  // Recipe patterns - ends with ة (taa marbuta) or colloquial variants
+  const recipePatterns = [
+    "وصفة", "وصفه", // formal and colloquial recipe
+    "وصفات", // plural recipes
+    "مكونات", // ingredients
+    "خلطة", "خلطات", // mix/blend
+  ];
+  
+  // Description patterns - no taa marbuta
+  const descriptionPatterns = [
+    "وصف الصنف",
+    "وصف المنتج", 
+    "وصف الطبق",
+    "اضافة وصف",
+    "تعديل وصف",
+  ];
+  
+  const lowerMessage = message;
+  
+  // Check description first (more specific)
+  if (descriptionPatterns.some(p => lowerMessage.includes(p))) {
+    return "description";
+  }
+  
+  // Check recipe patterns
+  if (recipePatterns.some(p => lowerMessage.includes(p))) {
+    return "recipe";
+  }
+  
+  // Standalone "وصف" without ة = description
+  if (/وصف(?!ة|ه)/.test(lowerMessage)) {
+    return "description";
+  }
+  
+  return null;
+}
+
+/**
+ * Check if topic has deeper content in Trainer
+ */
+export function getTrainerModule(topicKey: string): { ar: string; en: string } | null {
+  return TRAINER_AVAILABLE_TOPICS[topicKey] || null;
+}
+
+/**
+ * Generate smart routing suffix for responses
+ * Guides user to Trainer when deeper content exists
+ */
+export function getTrainerRoutingSuffix(
+  topicKey: string,
+  language: "ar" | "en"
+): string | null {
+  const module = TRAINER_AVAILABLE_TOPICS[topicKey];
+  if (!module) return null;
+  
+  if (language === "ar") {
+    return `\n\n💡 لو حاب تتعمق أكثر:\nالمدرب الذكي ← ${module.ar}`;
+  }
+  return `\n\n💡 For step-by-step details:\nSmart Trainer → ${module.en}`;
+}
+
+/**
+ * Check if question is procedural (how-to)
+ * Used to skip welcome messages and provide direct answers
+ */
+export function isProceduralQuestion(message: string): boolean {
+  const proceduralPatterns = [
+    // Arabic
+    "كيف", "طريقة", "خطوات", "اعمل", "افعل", "ارفع", "اضيف", "احذف",
+    "اسجل", "افتح", "اغلق", "اطبع", "ارسل", "انقل", "ادمج",
+    // English
+    "how to", "how do", "how can", "steps to", "way to",
+    "add", "delete", "remove", "create", "open", "close", "print", "send",
+  ];
+  
+  const lowerMessage = message.toLowerCase();
+  return proceduralPatterns.some(p => lowerMessage.includes(p));
 }
