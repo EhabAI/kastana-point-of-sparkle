@@ -52,7 +52,7 @@ export function RestaurantStatusBadge({ state }: RestaurantStatusBadgeProps) {
   const badgeContent = (
     <Badge
       variant="outline"
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium border ${config.className} ${state === 'setup_incomplete' ? 'cursor-help' : ''}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium border ${config.className} ${state === 'setup_incomplete' ? 'cursor-pointer' : ''}`}
     >
       <Icon className="h-3.5 w-3.5" />
       {config.label}
@@ -65,11 +65,12 @@ export function RestaurantStatusBadge({ state }: RestaurantStatusBadgeProps) {
       <TooltipProvider delayDuration={200}>
         <Tooltip>
           <TooltipTrigger asChild>
-            {badgeContent}
+            <span className="cursor-pointer">{badgeContent}</span>
           </TooltipTrigger>
           <TooltipContent
             side="top"
-            className="max-w-[220px] text-xs whitespace-pre-line"
+            sideOffset={8}
+            className="max-w-[260px] text-sm whitespace-pre-line z-[100]"
           >
             {tooltipText}
           </TooltipContent>
