@@ -172,8 +172,9 @@ export function DashboardOverview({ restaurantId, tableCount, staffCount, curren
               </TooltipProvider>
             </div>
             <div className="flex items-center gap-2">
+              {/* DISPLAY LOGIC: Green = operational, Muted = normal closed state (not an error) */}
               <span
-                className={`text-lg font-semibold ${isOpen ? "text-emerald-600 dark:text-emerald-500" : "text-red-600 dark:text-red-500"}`}
+                className={`text-lg font-semibold ${isOpen ? "text-emerald-600 dark:text-emerald-500" : "text-muted-foreground"}`}
               >
                 {isOpen ? t("open") : t("closed")}
               </span>
