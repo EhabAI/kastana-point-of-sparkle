@@ -1,32 +1,89 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { CheckCircle2, ChefHat, PartyPopper } from "lucide-react";
+import { CheckCircle2, ChefHat, PartyPopper, AlertCircle } from "lucide-react";
 
 /**
- * Order status types for QR order tracking
- * - pending: Order received, waiting for cashier confirmation
- * - open/new: Order confirmed, in preparation
- * - paid/completed: Order ready for pickup/serving
+ * Customer-facing status display type
+ * Maps internal order statuses to simple customer states
  */
-type OrderStatus = "pending" | "open" | "new" | "paid" | "completed" | string;
+type CustomerState = "received" | "preparing" | "ready" | "cancelled" | "none";
 
 interface QROrderStatusViewProps {
   orderId: string;
   orderNumber: number;
-  initialStatus: OrderStatus;
+  initialStatus: string;
   restaurantName?: string;
   tableCode?: string;
 }
 
 /**
- * Clean, minimal QR Order Status View
- * Shows order status after submission with auto-updates
+ * STATUS MAPPING (Internal → Customer View)
  * 
- * States:
- * A) Order Received (pending) - ✅ تم استلام طلبك بنجاح
- * B) In Preparation (open/new) - 👨‍🍳 طلبك قيد التحضير
- * C) Order Ready (paid/completed) - 🎉 طلبك جاهز
+ * A) Order Received:
+ *    - pending (QR submitted, waiting for cashier)
+ * 
+ * B) Order In Preparation:
+ *    - new (cashier confirmed)
+ *    - open (order active/in progress)
+ *    - held (temporarily held but still active)
+ * 
+ * C) Order Ready:
+ *    - ready (kitchen marked complete)
+ *    - paid/closed (keep showing "ready" - don't expose payment)
+ * 
+ * D) Cancelled/Rejected:
+ *    - cancelled, voided, rejected
+ */
+function mapStatusToCustomerState(status: string): CustomerState {
+  const normalizedStatus = status.toLowerCase().trim();
+  
+  // State A: Order Received
+  if (normalizedStatus === "pending" || normalizedStatus === "qr_pending") {
+    return "received";
+  }
+  
+  // State B: In Preparation
+  if (
+    normalizedStatus === "new" ||
+    normalizedStatus === "open" ||
+    normalizedStatus === "accepted" ||
+    normalizedStatus === "sent_to_kitchen" ||
+    normalizedStatus === "in_progress" ||
+    normalizedStatus === "held"
+  ) {
+    return "preparing";
+  }
+  
+  // State C: Order Ready (including paid - keep showing ready)
+  if (
+    normalizedStatus === "ready" ||
+    normalizedStatus === "paid" ||
+    normalizedStatus === "closed" ||
+    normalizedStatus === "completed"
+  ) {
+    return "ready";
+  }
+  
+  // State D: Cancelled/Rejected
+  if (
+    normalizedStatus === "cancelled" ||
+    normalizedStatus === "voided" ||
+    normalizedStatus === "rejected"
+  ) {
+    return "cancelled";
+  }
+  
+  // Default fallback - treat as received
+  return "received";
+}
+
+/**
+ * Clean, minimal QR Order Status View
+ * 
+ * Displays customer-friendly order status linked to KDS states.
+ * Read-only view with realtime updates.
+ * Never exposes internal system language to customers.
  */
 export function QROrderStatusView({
   orderId,
@@ -36,7 +93,8 @@ export function QROrderStatusView({
   tableCode,
 }: QROrderStatusViewProps) {
   const { t, isRTL } = useLanguage();
-  const [status, setStatus] = useState<OrderStatus>(initialStatus);
+  const [internalStatus, setInternalStatus] = useState(initialStatus);
+  const [orderExists, setOrderExists] = useState(true);
 
   // Subscribe to realtime order status updates
   useEffect(() => {
@@ -52,8 +110,20 @@ export function QROrderStatusView({
         },
         (payload) => {
           if (payload.new && "status" in payload.new) {
-            setStatus(payload.new.status as OrderStatus);
+            setInternalStatus(payload.new.status as string);
           }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "orders",
+          filter: `id=eq.${orderId}`,
+        },
+        () => {
+          setOrderExists(false);
         }
       )
       .subscribe();
@@ -63,10 +133,40 @@ export function QROrderStatusView({
     };
   }, [orderId]);
 
-  // Determine display state
-  const getStatusDisplay = () => {
-    switch (status) {
-      case "pending":
+  // Map internal status to customer state
+  const customerState = mapStatusToCustomerState(internalStatus);
+
+  // Handle no active order
+  if (!orderExists) {
+    return (
+      <div 
+        className="min-h-screen bg-background flex items-center justify-center p-6"
+        dir={isRTL ? "rtl" : "ltr"}
+      >
+        <div className="max-w-sm w-full text-center space-y-6">
+          {restaurantName && (
+            <p className="text-sm text-muted-foreground">{restaurantName}</p>
+          )}
+          <div className="flex justify-center">
+            <AlertCircle className="h-16 w-16 text-muted-foreground" strokeWidth={1.5} />
+          </div>
+          <h1 className="text-lg font-semibold text-foreground">
+            {t("qr_status_no_active_order")}
+          </h1>
+          {tableCode && (
+            <p className="text-xs text-muted-foreground/60 mt-6">
+              {t("menu_table")}: {tableCode}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Get display configuration based on customer state
+  const getDisplayConfig = () => {
+    switch (customerState) {
+      case "received":
         return {
           icon: CheckCircle2,
           iconColor: "text-primary",
@@ -75,8 +175,7 @@ export function QROrderStatusView({
           helperText: t("qr_status_helper_wait"),
           showOrderNumber: true,
         };
-      case "open":
-      case "new":
+      case "preparing":
         return {
           icon: ChefHat,
           iconColor: "text-primary",
@@ -85,8 +184,7 @@ export function QROrderStatusView({
           helperText: null,
           showOrderNumber: true,
         };
-      case "paid":
-      case "completed":
+      case "ready":
         return {
           icon: PartyPopper,
           iconColor: "text-primary",
@@ -95,8 +193,16 @@ export function QROrderStatusView({
           helperText: null,
           showOrderNumber: true,
         };
+      case "cancelled":
+        return {
+          icon: AlertCircle,
+          iconColor: "text-muted-foreground",
+          title: t("qr_status_cancelled_title"),
+          subtitle: t("qr_status_cancelled_subtitle"),
+          helperText: null,
+          showOrderNumber: false,
+        };
       default:
-        // Fallback for any other status
         return {
           icon: CheckCircle2,
           iconColor: "text-primary",
@@ -108,7 +214,7 @@ export function QROrderStatusView({
     }
   };
 
-  const display = getStatusDisplay();
+  const display = getDisplayConfig();
   const IconComponent = display.icon;
 
   return (
