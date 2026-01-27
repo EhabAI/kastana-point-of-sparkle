@@ -835,11 +835,11 @@ export default function SystemAdmin() {
                   const hasOwner = !!restaurant.owner_id;
                   const operationalState = getRestaurantOperationalState(restaurant.is_active, hasValidSubscription, hasOwner);
                   
-                  // Card styling based on operational state (2px border for visibility)
+                  // Card styling based on operational state (3px border for clear visibility)
                   const cardStyles = {
-                    inactive: 'bg-card border-2 border-red-300 dark:border-red-800',
-                    setup_incomplete: 'bg-card border-2 border-amber-300 dark:border-amber-700',
-                    ready: 'bg-card border-2 border-green-300 dark:border-green-700',
+                    inactive: 'bg-card border-[3px] border-red-400 dark:border-red-600',
+                    setup_incomplete: 'bg-card border-[3px] border-amber-400 dark:border-amber-500',
+                    ready: 'bg-card border-[3px] border-green-400 dark:border-green-500',
                   };
                   
                   return (
