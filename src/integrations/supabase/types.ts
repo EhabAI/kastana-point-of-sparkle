@@ -1415,6 +1415,7 @@ export type Database = {
           inventory_enabled: boolean
           kds_enabled: boolean
           max_discount_value: number | null
+          owner_phone: string | null
           prices_include_tax: boolean
           qr_order_enabled: boolean
           restaurant_id: string
@@ -1433,6 +1434,7 @@ export type Database = {
           inventory_enabled?: boolean
           kds_enabled?: boolean
           max_discount_value?: number | null
+          owner_phone?: string | null
           prices_include_tax?: boolean
           qr_order_enabled?: boolean
           restaurant_id: string
@@ -1451,6 +1453,7 @@ export type Database = {
           inventory_enabled?: boolean
           kds_enabled?: boolean
           max_discount_value?: number | null
+          owner_phone?: string | null
           prices_include_tax?: boolean
           qr_order_enabled?: boolean
           restaurant_id?: string
