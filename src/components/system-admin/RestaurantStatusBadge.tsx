@@ -1,6 +1,12 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Badge } from "@/components/ui/badge";
-import { Power, PowerOff, Settings, CheckCircle } from "lucide-react";
+import { PowerOff, Settings, CheckCircle } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export type RestaurantOperationalState = "inactive" | "setup_incomplete" | "ready";
 
@@ -9,13 +15,13 @@ interface RestaurantStatusBadgeProps {
 }
 
 /**
- * Status badge showing restaurant operational state
+ * Status badge showing restaurant operational state with tooltip for setup_incomplete
  * - Inactive: System-level kill switch (red)
- * - Setup Incomplete: Active but not fully configured (amber)
+ * - Setup Incomplete: Active but not fully configured (amber) - has tooltip
  * - Ready: Fully operational (green)
  */
 export function RestaurantStatusBadge({ state }: RestaurantStatusBadgeProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const stateConfig = {
     inactive: {
@@ -38,32 +44,41 @@ export function RestaurantStatusBadge({ state }: RestaurantStatusBadgeProps) {
   const config = stateConfig[state];
   const Icon = config.icon;
 
-  return (
+  // Tooltip text for setup_incomplete state
+  const tooltipText = language === "ar"
+    ? "المطعم نشط، لكن بعض الميزات غير مفعّلة\nمثل الاشتراك أو بعض الإضافات."
+    : "The restaurant is active, but some features\nsuch as subscription or add-ons are not enabled yet.";
+
+  const badgeContent = (
     <Badge
       variant="outline"
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium border ${config.className}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium border ${config.className} ${state === 'setup_incomplete' ? 'cursor-help' : ''}`}
     >
       <Icon className="h-3.5 w-3.5" />
       {config.label}
     </Badge>
   );
-}
 
-/**
- * Explanation text for setup incomplete state (bilingual)
- */
-export function SetupIncompleteExplanation() {
-  const { language } = useLanguage();
+  // Only show tooltip for setup_incomplete state
+  if (state === 'setup_incomplete') {
+    return (
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {badgeContent}
+          </TooltipTrigger>
+          <TooltipContent
+            side="top"
+            className="max-w-[220px] text-xs whitespace-pre-line"
+          >
+            {tooltipText}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
 
-  const explanation = language === "ar"
-    ? "المطعم نشط، لكن بعض الميزات غير مفعّلة (مثل الاشتراك أو الإضافات)."
-    : "The restaurant is active, but some features are not enabled yet (such as subscription or add-ons).";
-
-  return (
-    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-      {explanation}
-    </p>
-  );
+  return badgeContent;
 }
 
 /**
