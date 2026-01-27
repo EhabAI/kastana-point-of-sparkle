@@ -719,6 +719,10 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
             <div>
               <CardTitle>{t("ingredients")}</CardTitle>
               <CardDescription>{t("ingredients_desc")}</CardDescription>
+              {/* Static note in recipe edit area */}
+              <p className="text-xs text-muted-foreground mt-1">
+                {t("recipe_note")}
+              </p>
             </div>
             <Button onClick={addLine} size="sm" className="gap-2">
               <Plus className="h-4 w-4" />
