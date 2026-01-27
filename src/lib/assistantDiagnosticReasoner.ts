@@ -48,6 +48,7 @@ export interface DiagnosticResult {
   blockedBy?: SystemInvariant;
   missingPreconditions?: string[];
   suggestedFlow?: FlowDiagnostic;
+  topCauses?: string[]; // TOP 2 most likely causes
   diagnosticQuestion?: { ar: string; en: string };
   explanation: { ar: string; en: string };
   suggestedAction?: { ar: string; en: string };
@@ -290,29 +291,37 @@ export function generateDiagnosticResponse(
     }
   }
   
-  // Step 2: Detect related flow and provide diagnostics
+  // Step 2: Detect related flow and provide TOP 2 causes + 1 confirmation question
   const relatedFlow = detectRelatedFlow(message);
   
   if (relatedFlow) {
-    const diagnosticQuestion = relatedFlow.diagnostic_questions[language][0];
-    const likelyCause = relatedFlow.most_likely_causes[language][0];
+    // Get TOP 2 most likely causes
+    const cause1 = relatedFlow.most_likely_causes[language][0];
+    const cause2 = relatedFlow.most_likely_causes[language][1] || null;
+    
+    // Get ONE confirmation question (the most discriminating one)
+    const confirmationQuestion = relatedFlow.diagnostic_questions[language][0];
     
     return {
       issue: "flow_broken",
       suggestedFlow: relatedFlow,
+      topCauses: cause2 
+        ? [cause1, cause2] 
+        : [cause1],
       diagnosticQuestion: {
         ar: relatedFlow.diagnostic_questions.ar[0],
         en: relatedFlow.diagnostic_questions.en[0],
       },
       explanation: {
-        ar: `المشكلة المحتملة: ${likelyCause}`,
-        en: `Likely issue: ${relatedFlow.most_likely_causes.en[0]}`,
+        ar: cause2 
+          ? `أغلب سببين:\n1️⃣ ${relatedFlow.most_likely_causes.ar[0]}\n2️⃣ ${relatedFlow.most_likely_causes.ar[1]}`
+          : `السبب المحتمل: ${relatedFlow.most_likely_causes.ar[0]}`,
+        en: cause2
+          ? `Most likely causes:\n1️⃣ ${relatedFlow.most_likely_causes.en[0]}\n2️⃣ ${relatedFlow.most_likely_causes.en[1]}`
+          : `Likely cause: ${relatedFlow.most_likely_causes.en[0]}`,
       },
-      suggestedAction: {
-        ar: `تحقق من: ${diagnosticQuestion}`,
-        en: `Check: ${relatedFlow.diagnostic_questions.en[0]}`,
-      },
-      confidence: 0.8,
+      suggestedAction: undefined, // Will be determined after confirmation
+      confidence: 0.85,
     };
   }
   
@@ -481,31 +490,54 @@ export function formatDiagnosticResponse(
 ): string {
   const parts: string[] = [];
   
-  // Lead with confidence-appropriate opening
-  if (result.confidence >= 0.8) {
+  // For flow-based diagnostics, use the TOP 2 causes format
+  if (result.issue === "flow_broken" && result.topCauses) {
+    // No header - jump straight to causes
+    parts.push(result.explanation[language]);
+    
+    // Add ONE confirmation question
+    if (result.diagnosticQuestion) {
+      parts.push("");
+      parts.push(result.diagnosticQuestion[language]);
+    }
+    
+    return parts.join("\n");
+  }
+  
+  // For invariant violations, be direct and clear
+  if (result.issue === "invariant_violation") {
     parts.push(language === "ar" 
-      ? "🔍 وجدت السبب:" 
-      : "🔍 Found the cause:");
-  } else if (result.confidence >= 0.5) {
+      ? "🔍 السبب:" 
+      : "🔍 Cause:");
+    parts.push(result.explanation[language]);
+    
+    if (result.suggestedAction) {
+      parts.push("");
+      parts.push(language === "ar" ? "✅ الحل:" : "✅ Solution:");
+      parts.push(result.suggestedAction[language]);
+    }
+    
+    return parts.join("\n");
+  }
+  
+  // Default format for other cases
+  if (result.confidence >= 0.5) {
     parts.push(language === "ar"
       ? "💡 السبب المحتمل:"
       : "💡 Likely cause:");
   }
   
-  // Add explanation
   parts.push(result.explanation[language]);
   
-  // Add suggested action if available
   if (result.suggestedAction) {
     parts.push("");
     parts.push(language === "ar" ? "✅ الحل:" : "✅ Solution:");
     parts.push(result.suggestedAction[language]);
   }
   
-  // Add diagnostic question if we're not confident
+  // Add confirmation question if we're not confident
   if (result.confidence < 0.8 && result.diagnosticQuestion) {
     parts.push("");
-    parts.push(language === "ar" ? "🤔 للتأكد:" : "🤔 To confirm:");
     parts.push(result.diagnosticQuestion[language]);
   }
   

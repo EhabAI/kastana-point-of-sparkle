@@ -71,6 +71,13 @@ import {
   checkViolatedInvariants,
   type DiagnosticContext,
 } from "@/lib/assistantDiagnosticReasoner";
+import {
+  getOnboardingChecklist,
+  getAdoptionNudge,
+  getTrainerDeepLink,
+  wasOnboardingShown,
+  type AdoptionContext,
+} from "@/lib/assistantOnboardingAdoption";
 import type { ScreenContext } from "@/lib/smartAssistantContext";
 
 interface IntentResult {
@@ -589,6 +596,31 @@ export function useAssistantAI(): UseAssistantAIReturn {
           response += `\n\n${formatGapMessage(gap, language)}`;
         }
         // ===== END GAP DETECTION =====
+        
+        // ===== ADOPTION NUDGES (SOFT, ONE-TIME) =====
+        // Only show if not already shown this session
+        const adoptionContext: AdoptionContext = {
+          userRole: fallbackContext?.userRole as AdoptionContext["userRole"],
+          screenContext: screenContext,
+          inventoryEnabled: fallbackContext?.featureVisibility?.inventoryEnabled,
+          kdsEnabled: fallbackContext?.featureVisibility?.kdsEnabled,
+          qrEnabled: fallbackContext?.featureVisibility?.qrEnabled,
+          shiftOpen: fallbackContext?.shiftOpen,
+        };
+        
+        const nudge = getAdoptionNudge(adoptionContext, language);
+        if (nudge && !response.includes(nudge)) {
+          response += `\n\n${nudge}`;
+        }
+        // ===== END ADOPTION NUDGES =====
+        
+        // ===== SMART TRAINER DEEP-LINKING =====
+        // Add precise deep-link if deeper content exists
+        const deepLink = getTrainerDeepLink(primaryMatchedId, language);
+        if (deepLink && !response.includes("المدرب الذكي") && !response.includes("Smart Trainer")) {
+          response += deepLink;
+        }
+        // ===== END SMART TRAINER DEEP-LINKING =====
         
         // Add follow-up suggestions for knowledge-based responses
         const suggestions = getFollowUpSuggestions(primaryMatchedId, language);
@@ -1224,7 +1256,23 @@ function generateResponseFromKnowledge(
 ): string {
   // Handle system overview intent with built-in responses
   if (intent.intent === "system_overview") {
-    return SYSTEM_OVERVIEW_RESPONSES[intent.depth][language];
+    let response = SYSTEM_OVERVIEW_RESPONSES[intent.depth][language];
+    
+    // ===== ONBOARDING CHECKLIST (ROLE-BASED, ONE-TIME) =====
+    // If user is asking about the system and hasn't seen the checklist, offer it
+    if (fallbackContext?.userRole) {
+      const checklist = getOnboardingChecklist(
+        fallbackContext.userRole as "cashier" | "owner" | "kitchen" | "system_admin",
+        language
+      );
+      
+      if (checklist) {
+        response += `\n\n${checklist}`;
+      }
+    }
+    // ===== END ONBOARDING CHECKLIST =====
+    
+    return response;
   }
 
   // Handle troubleshooting intent with empathetic trainer-like responses
