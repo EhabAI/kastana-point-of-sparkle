@@ -1573,6 +1573,29 @@
         "user_roles": ["cashier", "owner", "kitchen"],
         "related_features": ["disabled_tooltip", "smart_assistant", "training_cards"]
       }
+    },
+    "qr_order_confidence": {
+      "id": "qr_order_confidence",
+      "intent": ["qr_order_status", "customer_tracking", "order_confidence", "qr_status_view"],
+      "keywords": {
+        "ar": ["حالة طلب QR", "تتبع الطلب", "متابعة الطلب", "شاشة العميل", "طلبي جاهز", "وين طلبي", "ثقة العميل"],
+        "en": ["qr order status", "order tracking", "customer view", "order confidence", "my order", "order ready", "order progress"]
+      },
+      "title": {
+        "ar": "شاشة متابعة طلب QR",
+        "en": "QR Order Confidence View"
+      },
+      "content": {
+        "ar": "شاشة متابعة طلب QR:\n\n📋 الوصف:\nشاشة للعميل تظهر بعد تقديم طلب عبر QR لطمأنته ومتابعة تقدم الطلب.\n\n🎯 الحالات:\n• تم استلام الطلب: الطلب وصل للكاشير وينتظر التأكيد\n• طلبك قيد التحضير: المطبخ يعمل على الطلب\n• طلبك جاهز: الطلب جاهز للتقديم\n\n⚙️ السلوك:\n• تقرأ حالة الطلب فقط (order.status)\n• تتحدث تلقائياً عند تغيير الحالة\n• بدون تفاعل أو إشعارات أو رسائل\n• طلب واحد نشط لكل طاولة/جلسة\n\n🔒 القيود:\n• لا واتساب أو SMS أو إشعارات\n• لا تفاصيل المطبخ أو البيانات الداخلية\n• قراءة فقط - بدون أزرار\n\n🗺️ ربط الحالات:\n• QR_PENDING / PENDING → تم استلام الطلب\n• ACCEPTED / IN_PROGRESS → قيد التحضير\n• READY → جاهز",
+        "en": "QR Order Confidence View:\n\n📋 Description:\nA customer-facing, read-only status view that appears after submitting a QR order to reassure the customer and reflect real kitchen progress.\n\n🎯 States:\n• Order Received: Order sent to cashier, waiting for confirmation\n• In Preparation: Kitchen is working on the order\n• Order Ready: Order is ready to be served\n\n⚙️ Behavior:\n• Reads order.status only\n• Updates automatically when status changes\n• No interaction, no notifications, no messaging\n• Single active order per table/session\n\n🔒 Constraints:\n• No WhatsApp, SMS, or push notifications\n• No kitchen details or internal data exposure\n• Read-only - no buttons\n\n🗺️ Status Mapping:\n• QR_PENDING / PENDING → Order Received\n• ACCEPTED / IN_PROGRESS → In Preparation\n• READY → Order Ready"
+      },
+      "metadata": {
+        "feature_id": "qr_order_confidence",
+        "affected_screens": ["QRMenu", "KDS"],
+        "user_roles": ["customer"],
+        "tags": ["qr-order", "customer-confidence", "kds-linked", "ux-clean"],
+        "related_features": ["kds", "qr_order"]
+      }
     }
   }
 }
