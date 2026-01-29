@@ -141,21 +141,13 @@ export function OffersStatusCard({ restaurantId }: OffersStatusCardProps) {
           </span>
         </div>
 
-        {/* Date Details */}
+        {/* Date Range - Single Line */}
         {status !== "none" && (promoStart || promoEnd) && (
-          <div className="space-y-0.5 text-xs mb-2">
-            {promoStart && (
-              <div className="flex items-center gap-1.5 text-white/90">
-                <span className="text-white/70">{t("starts_from")}:</span>
-                <span className="font-medium tabular-nums">{formatDate(promoStart)}</span>
-              </div>
-            )}
-            {promoEnd && (
-              <div className="flex items-center gap-1.5 text-white/90">
-                <span className="text-white/70">{t("ends_at")}:</span>
-                <span className="font-medium tabular-nums">{formatDate(promoEnd)}</span>
-              </div>
-            )}
+          <div className="text-xs text-white/90 mb-2">
+            <span className="text-white/70">{language === "ar" ? "المدة:" : "Period:"}</span>{" "}
+            <span className="font-medium tabular-nums">
+              {formatDate(promoStart) || "—"} → {formatDate(promoEnd) || "—"}
+            </span>
           </div>
         )}
 
