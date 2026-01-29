@@ -121,8 +121,8 @@ export function WhatChangedCard({ restaurantId }: WhatChangedCardProps) {
   if (isLoading) {
     return (
       <Card className="bg-muted/30 border-border/50">
-        <CardContent className="p-4">
-          <Skeleton className="h-12 w-full" />
+        <CardContent className="p-3">
+          <Skeleton className="h-10 w-full" />
         </CardContent>
       </Card>
     );
@@ -133,7 +133,7 @@ export function WhatChangedCard({ restaurantId }: WhatChangedCardProps) {
 
   return (
     <Card className="bg-muted/30 border-border/50">
-      <CardHeader className="pb-2 pt-4 px-4">
+      <CardHeader className="pb-1.5 pt-3 px-3">
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-muted-foreground" />
           <CardTitle className="text-sm font-semibold text-muted-foreground">
@@ -141,19 +141,19 @@ export function WhatChangedCard({ restaurantId }: WhatChangedCardProps) {
           </CardTitle>
         </div>
       </CardHeader>
-      <CardContent className="px-4 pb-4 pt-0">
+      <CardContent className="px-3 pb-3 pt-0">
         {noChanges ? (
-          <p className="text-xs text-muted-foreground/90">
+          <p className="text-xs text-muted-foreground/90 leading-snug">
             {language === "ar"
               ? "لم تُسجَّل تغييرات مهمة منذ أمس."
               : "No significant changes were recorded since yesterday."}
           </p>
         ) : (
-          <ul className="space-y-1">
+          <ul className="space-y-0.5">
             {changes.map((change) => (
               <li
                 key={change.key}
-                className="text-xs text-foreground/80 flex items-start gap-1.5"
+                className="text-xs text-foreground/80 flex items-start gap-1.5 leading-snug"
               >
                 <span className="text-muted-foreground mt-0.5">•</span>
                 <span>{language === "ar" ? change.textAr : change.textEn}</span>
