@@ -106,14 +106,14 @@ export function OffersStatusCard({ restaurantId }: OffersStatusCardProps) {
   const StatusIcon = currentStatus.icon;
 
   return (
-    <Card className="relative overflow-hidden bg-gradient-to-br from-indigo-400/90 to-violet-400/80 border-indigo-300/50 shadow-md">
+    <Card className="relative overflow-hidden bg-gradient-to-br from-indigo-400/90 to-violet-400/80 border-indigo-300/50 shadow-sm">
       {/* Thick accent bar on the right (RTL) */}
       <div className={`absolute top-0 end-0 w-2 h-full ${currentStatus.accentColor}`} />
       
-      <CardHeader className="pb-1.5 pt-3 px-3">
+      <CardHeader className="pb-1 pt-2.5 px-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Target className="h-4 w-4 text-white/90" />
+            <Target className="h-3.5 w-3.5 text-white/90" />
             <CardTitle className="text-sm font-semibold text-white">
               {t("offers_status_title")}
             </CardTitle>
@@ -130,20 +130,20 @@ export function OffersStatusCard({ restaurantId }: OffersStatusCardProps) {
           </TooltipProvider>
         </div>
       </CardHeader>
-      <CardContent className="px-3 pb-3 pt-0">
+      <CardContent className="px-3 pb-2.5 pt-0">
         {/* Large Status Badge */}
-        <div className="mb-1.5">
+        <div className="mb-1">
           <span
-            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[13px] font-medium ${currentStatus.badgeBg} shadow-sm`}
+            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${currentStatus.badgeBg} shadow-sm`}
           >
-            <StatusIcon className="h-3.5 w-3.5" />
+            <StatusIcon className="h-3 w-3" />
             {currentStatus.label}
           </span>
         </div>
 
         {/* Date Range - Single Line */}
         {status !== "none" && (promoStart || promoEnd) && (
-          <div className="text-xs text-white/90 mb-1">
+          <div className="text-[11px] text-white/90 mb-1">
             <span className="text-white/70">{language === "ar" ? "المدة:" : "Period:"}</span>{" "}
             <span className="font-medium tabular-nums">
               {language === "ar" 
@@ -155,8 +155,16 @@ export function OffersStatusCard({ restaurantId }: OffersStatusCardProps) {
         )}
 
         {/* Dynamic Helper Text */}
-        <p className="text-xs text-white/70 leading-snug">
+        <p className="text-[10px] text-white/70 leading-snug">
           {currentStatus.helperText}
+        </p>
+
+        {/* Automatic Activation Note - subtle helper text */}
+        <p className="text-[9px] text-white/50 leading-tight mt-1.5 italic">
+          {language === "ar" 
+            ? "يتم تفعيل العروض وإيقافها تلقائيًا حسب الجدول الزمني المحدد."
+            : "Offers are automatically activated and deactivated based on schedule."
+          }
         </p>
       </CardContent>
     </Card>

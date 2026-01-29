@@ -33,7 +33,7 @@ export const NotificationsAlerts = forwardRef<HTMLDivElement>(function Notificat
   const { t, language } = useLanguage();
   const currencySymbol = language === "ar" ? "د.أ" : "JOD";
   
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true); // Default open
 
   // Helper to get branch name by ID
   const getBranchName = (branchId: string | null) => {
@@ -349,9 +349,9 @@ export const NotificationsAlerts = forwardRef<HTMLDivElement>(function Notificat
       case "error":
         return <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />;
       case "warning":
-        return <AlertTriangle className="h-4 w-4 text-warning flex-shrink-0" />;
+        return <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0" />;
       case "success":
-        return <CheckCircle className="h-4 w-4 text-success flex-shrink-0" />;
+        return <CheckCircle className="h-4 w-4 text-emerald-500 flex-shrink-0" />;
       default:
         return <Info className="h-4 w-4 text-primary flex-shrink-0" />;
     }
@@ -360,13 +360,13 @@ export const NotificationsAlerts = forwardRef<HTMLDivElement>(function Notificat
   const getAlertStyles = (type: Alert["type"]) => {
     switch (type) {
       case "error":
-        return "bg-destructive/[0.04] border-l-destructive";
+        return "bg-destructive/5 border-l-destructive";
       case "warning":
-        return "bg-amber-50 dark:bg-amber-950/20 border-l-amber-500";
+        return "bg-amber-50/80 dark:bg-amber-950/20 border-l-amber-500";
       case "success":
         return "bg-emerald-50/50 dark:bg-emerald-950/20 border-l-emerald-500";
       default:
-        return "bg-primary/[0.03] border-l-primary/50";
+        return "bg-primary/5 border-l-primary/50";
     }
   };
 
@@ -382,28 +382,43 @@ export const NotificationsAlerts = forwardRef<HTMLDivElement>(function Notificat
 
   const hasAlerts = sortedAlerts.length > 0;
   const criticalCount = alertCounts.error + alertCounts.warning;
+  const hasIssues = criticalCount > 0;
+
+  // Determine section styling based on alert state
+  const getSectionStyle = () => {
+    if (hasIssues) {
+      return "bg-amber-50/80 dark:bg-amber-950/30 border-2 border-amber-300 dark:border-amber-700/50";
+    }
+    if (hasAlerts) {
+      return "bg-muted/30 border border-border/50";
+    }
+    return "bg-muted/20 border border-border/30";
+  };
 
   return (
-    <div ref={ref} className={`mt-4 rounded-lg ${hasAlerts ? 'bg-amber-50/70 dark:bg-amber-950/20 border-l-4 border-l-amber-500' : 'bg-muted/20'} p-3 transition-all duration-200 hover:shadow-md hover:bg-amber-50/90 dark:hover:bg-amber-950/30`}>
-      {/* Section Header - Action Required */}
+    <div ref={ref} className={`mt-3 rounded-lg ${getSectionStyle()} p-3 transition-all duration-200`}>
+      {/* Section Header - Attention Required with strong emphasis */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 w-full"
       >
-        <span className="text-sm font-bold text-foreground/80 uppercase tracking-[0.1em]">
-          {hasAlerts ? (t("attention_required") || "Attention Required") : (t("notifications_alerts"))}
+        {hasIssues && (
+          <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0" />
+        )}
+        <span className={`text-sm font-bold uppercase tracking-[0.08em] ${hasIssues ? "text-amber-700 dark:text-amber-400" : "text-foreground/70"}`}>
+          {hasIssues ? (t("attention_required") || "Attention Required") : (t("notifications_alerts"))}
         </span>
         {criticalCount > 0 && (
-          <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-500 text-white animate-pulse">
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-white">
             {criticalCount}
           </span>
         )}
-        <ChevronDown className={`h-3 w-3 text-muted-foreground/50 transition-transform duration-200 ltr:ml-auto rtl:mr-auto ${isOpen ? "" : "-rotate-90"}`} />
+        <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground/60 transition-transform duration-200 ltr:ml-auto rtl:mr-auto ${isOpen ? "" : "-rotate-90"}`} />
       </button>
 
       {/* Alerts List */}
       {isOpen && (
-        <div className="mt-3 space-y-1.5">
+        <div className="mt-2.5 space-y-1.5">
           {isLoading ? (
             <div className="flex items-center justify-center py-3">
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -417,16 +432,16 @@ export const NotificationsAlerts = forwardRef<HTMLDivElement>(function Notificat
             sortedAlerts.map((alert) => (
               <div 
                 key={alert.id} 
-                className={`flex items-start gap-3 py-2.5 px-3 rounded bg-background/60 dark:bg-background/40 border-l-2 transition-all duration-200 hover:shadow-sm hover:bg-background/80 ${getAlertStyles(alert.type)}`}
+                className={`flex items-start gap-2.5 py-2 px-2.5 rounded-md border-l-2 transition-all duration-200 hover:shadow-sm ${getAlertStyles(alert.type)}`}
               >
                 <div className="mt-0.5 flex-shrink-0">
                   {getAlertIcon(alert.type)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-foreground leading-tight">{alert.title}</p>
-                  <p className="text-[11px] text-muted-foreground/70 mt-0.5 leading-relaxed">{alert.message}</p>
+                  <p className="text-sm font-semibold text-foreground leading-tight">{alert.title}</p>
+                  <p className="text-[11px] text-muted-foreground/80 mt-0.5 leading-relaxed">{alert.message}</p>
                 </div>
-                <span className="text-[9px] text-muted-foreground/40 font-medium whitespace-nowrap">
+                <span className="text-[9px] text-muted-foreground/50 font-medium whitespace-nowrap">
                   {format(alert.timestamp, "HH:mm")}
                 </span>
               </div>
