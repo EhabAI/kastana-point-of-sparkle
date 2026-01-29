@@ -4,10 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Store, ChevronDown, ChevronUp, Package, ChefHat, QrCode, 
-  CheckCircle2, XCircle, Power, PowerOff, Pencil, Image, Key, Calendar
+  CheckCircle2, XCircle, Power, PowerOff, Pencil, Image, Key, Calendar, MessageCircle
 } from "lucide-react";
 import { RestaurantStatusBadge, getRestaurantOperationalState, RestaurantOperationalState } from "./RestaurantStatusBadge";
 import { SystemHealthSnapshot } from "./SystemHealthSnapshot";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { format, differenceInDays } from "date-fns";
 import { Restaurant } from "@/hooks/useRestaurants";
 import { RestaurantSubscription } from "@/hooks/useRestaurantSubscriptions";
@@ -17,6 +18,7 @@ interface RestaurantListRowProps {
   subscription: RestaurantSubscription | undefined;
   ownerEmail: string | null;
   ownerUsername: string | null;
+  ownerPhone: string | null;
   inventoryEnabled: boolean;
   kdsEnabled: boolean;
   qrEnabled: boolean;
@@ -37,11 +39,38 @@ interface RestaurantListRowProps {
   };
 }
 
+// Normalize phone for WhatsApp (Jordan format)
+function normalizePhoneForWhatsApp(phone: string): string | null {
+  if (!phone) return null;
+  
+  // Remove spaces, dashes, parentheses
+  let cleaned = phone.replace(/[\s\-\(\)]/g, '');
+  
+  // If starts with +, keep it but remove the +
+  if (cleaned.startsWith('+')) {
+    cleaned = cleaned.substring(1);
+  } 
+  // If starts with 0 and looks like Jordan mobile (079, 078, 077, etc.)
+  else if (cleaned.startsWith('0') && cleaned.length === 10 && /^07[789]/.test(cleaned)) {
+    cleaned = '962' + cleaned.substring(1);
+  }
+  // If starts with 7 and is 9 digits (Jordan mobile without prefix)
+  else if (cleaned.startsWith('7') && cleaned.length === 9 && /^7[789]/.test(cleaned)) {
+    cleaned = '962' + cleaned;
+  }
+  
+  // Validate: should be numeric and reasonable length
+  if (!/^\d{10,15}$/.test(cleaned)) return null;
+  
+  return cleaned;
+}
+
 export function RestaurantListRow({
   restaurant,
   subscription,
   ownerEmail,
   ownerUsername,
+  ownerPhone,
   inventoryEnabled,
   kdsEnabled,
   qrEnabled,
@@ -56,8 +85,27 @@ export function RestaurantListRow({
   onManageSubscription,
   togglesPending,
 }: RestaurantListRowProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // WhatsApp link generation
+  const normalizedPhone = normalizePhoneForWhatsApp(ownerPhone || '');
+  const hasWhatsApp = !!normalizedPhone;
+  
+  const getWhatsAppUrl = () => {
+    if (!normalizedPhone) return '';
+    const message = language === 'ar'
+      ? `مرحباً، معك فريق Kastana. بخصوص مطعم: ${restaurant.name}. كيف نقدر نساعدك؟`
+      : `Hello, this is Kastana team regarding: ${restaurant.name}. How can we help?`;
+    return `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(message)}`;
+  };
+
+  const handleWhatsAppClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (hasWhatsApp) {
+      window.open(getWhatsAppUrl(), '_blank', 'noopener,noreferrer');
+    }
+  };
 
   // Subscription status calculations
   const hasSubscription = !!subscription;
@@ -143,6 +191,27 @@ export function RestaurantListRow({
           )}
         </div>
 
+        {/* WhatsApp Button - Only show if phone exists */}
+        {hasWhatsApp && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800 hover:bg-green-50 dark:hover:bg-green-950/40"
+                  onClick={handleWhatsAppClick}
+                >
+                  <MessageCircle className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t('wa_contact_tooltip')}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+
         {/* Manage Button */}
         <Button
           variant="outline"
@@ -219,6 +288,33 @@ export function RestaurantListRow({
                 <Key className="h-3.5 w-3.5 me-1.5" />
                 {t('sa_owner_label')}
               </Button>
+            )}
+            
+            {/* WhatsApp Button in Expanded Section */}
+            {hasWhatsApp ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/40"
+                onClick={handleWhatsAppClick}
+              >
+                <MessageCircle className="h-3.5 w-3.5 me-1.5" />
+                {t('wa_contact')}
+              </Button>
+            ) : (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground opacity-60">
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      {t('wa_no_number')}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('wa_no_number_hint')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
 
