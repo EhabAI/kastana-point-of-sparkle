@@ -6,6 +6,20 @@ export default {
   status_ready: "نشط – جاهز",
   status_setup_explanation: "المطعم نشط، لكن بعض الميزات غير مفعّلة (مثل الاشتراك أو الإضافات).",
   
+  // Offers Status Card
+  offers_status_title: "حالة العروض",
+  offers_status_tooltip: "عرض الحالة الحالية لفئة العروض بدون الذهاب لإدارة القائمة",
+  offer_status_active: "عرض نشط",
+  offer_status_scheduled: "عرض مجدول",
+  offer_status_expired: "انتهى العرض",
+  offer_status_none: "لا يوجد عروض نشطة",
+  offer_status_disabled: "العروض معطلة",
+  starts_from: "يبدأ من",
+  ends_at: "ينتهي في",
+  offers_auto_visible_hint: "جميع العروض مفعّلة تلقائيًا خلال هذه المدة",
+  no_offers_category_hint: "لا توجد فئة عروض",
+  offers_always_visible_hint: "العروض مرئية دائماً عندما تكون الفئة مفعّلة",
+
   // System Health Snapshot
   health_title: "الحالة",
   health_restaurant: "المطعم",
