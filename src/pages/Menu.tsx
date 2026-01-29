@@ -637,13 +637,7 @@ export default function Menu() {
     });
   }, [categories, items]);
 
-  // Auto-expand offers category on mount
-  useEffect(() => {
-    const offerCategory = categoriesWithItems.find(c => c.isOfferCategory);
-    if (offerCategory && openCategoryId === null) {
-      setOpenCategoryId(offerCategory.id);
-    }
-  }, [categoriesWithItems]);
+  // Offers category stays collapsed by default - no auto-expand
 
   /* =======================
      Cart Functions
