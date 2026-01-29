@@ -121,8 +121,8 @@ export function WhatChangedCard({ restaurantId }: WhatChangedCardProps) {
   if (isLoading) {
     return (
       <Card className="bg-muted/30 border-border/50">
-        <CardContent className="p-3">
-          <Skeleton className="h-10 w-full" />
+        <CardContent className="p-2">
+          <Skeleton className="h-8 w-full" />
         </CardContent>
       </Card>
     );
@@ -133,29 +133,29 @@ export function WhatChangedCard({ restaurantId }: WhatChangedCardProps) {
 
   return (
     <Card className="bg-muted/30 border-border/50">
-      <CardHeader className="pb-1.5 pt-3 px-3">
-        <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-muted-foreground" />
-          <CardTitle className="text-sm font-semibold text-muted-foreground">
+      <CardHeader className="pb-1 pt-2 px-2">
+        <div className="flex items-center gap-1.5">
+          <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+          <CardTitle className="text-xs font-semibold text-muted-foreground">
             {language === "ar" ? "ما الذي تغيّر منذ أمس؟" : "What changed since yesterday?"}
           </CardTitle>
         </div>
       </CardHeader>
-      <CardContent className="px-3 pb-3 pt-0">
+      <CardContent className="px-2 pb-2 pt-0">
         {noChanges ? (
-          <p className="text-xs text-muted-foreground/90 leading-snug">
+          <p className="text-[11px] text-muted-foreground/90 leading-tight">
             {language === "ar"
               ? "لم تُسجَّل تغييرات مهمة منذ أمس."
               : "No significant changes were recorded since yesterday."}
           </p>
         ) : (
-          <ul className="space-y-0.5">
+          <ul className="space-y-0">
             {changes.map((change) => (
               <li
                 key={change.key}
-                className="text-xs text-foreground/80 flex items-start gap-1.5 leading-snug"
+                className="text-[11px] text-foreground/80 flex items-start gap-1 leading-tight"
               >
-                <span className="text-muted-foreground mt-0.5">•</span>
+                <span className="text-muted-foreground">•</span>
                 <span>{language === "ar" ? change.textAr : change.textEn}</span>
               </li>
             ))}
