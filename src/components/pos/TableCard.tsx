@@ -92,28 +92,31 @@ export function TableCard({
     return () => clearInterval(interval);
   }, [isOccupied, orderCreatedAt, language]);
 
-  // Status-based styling
+  // Status-based styling with updated colors
   const getStatusStyles = () => {
     if (selected) {
       return "border-primary bg-primary/10 ring-2 ring-primary ring-offset-2";
     }
     switch (tableStatus) {
       case "active":
-        return "border-blue-500 bg-blue-50/95 dark:bg-blue-950/40 dark:border-blue-400 shadow-lg ring-2 ring-blue-400/50";
+        // Soft rose/red for active tables
+        return "border-rose-400 bg-rose-50/90 dark:bg-rose-950/40 dark:border-rose-400 shadow-lg";
       case "held":
-        return "border-amber-500 bg-amber-50/95 dark:bg-amber-950/40 dark:border-amber-500 shadow-lg";
+        // Blue for on-hold tables
+        return "border-blue-400 bg-blue-50/90 dark:bg-blue-950/40 dark:border-blue-400 shadow-lg";
       case "free":
       default:
-        return "border-emerald-300/80 bg-emerald-50/60 dark:bg-emerald-950/20 dark:border-emerald-700/60 hover:border-emerald-400";
+        // Green for free tables
+        return "border-emerald-400 bg-emerald-50/80 dark:bg-emerald-950/30 dark:border-emerald-500 hover:border-emerald-500";
     }
   };
 
   const getStatusBadge = () => {
     switch (tableStatus) {
       case "active":
-        return { label: t("table_active"), className: "bg-blue-500 text-white" };
+        return { label: t("table_active"), className: "bg-rose-500 text-white" };
       case "held":
-        return { label: t("table_held"), className: "bg-amber-500 text-white" };
+        return { label: t("table_held"), className: "bg-blue-500 text-white" };
       case "free":
       default:
         return { label: t("free"), className: "bg-emerald-500 text-white" };
@@ -122,17 +125,17 @@ export function TableCard({
 
   const getTimerStyles = () => {
     if (tableStatus === "active") {
-      return "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300";
+      return "bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300";
     }
-    return "bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300";
+    return "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300";
   };
 
   const getSeatsIconColor = () => {
     switch (tableStatus) {
       case "active":
-        return "text-blue-600 dark:text-blue-400";
+        return "text-rose-600 dark:text-rose-400";
       case "held":
-        return "text-amber-600 dark:text-amber-400";
+        return "text-blue-600 dark:text-blue-400";
       case "free":
       default:
         return "text-emerald-600 dark:text-emerald-400";
@@ -146,7 +149,7 @@ export function TableCard({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "relative flex flex-col items-center justify-between p-4 rounded-2xl border-2 transition-all duration-200 min-w-[160px] min-h-[180px] group",
+        "relative flex flex-col items-center justify-between p-4 rounded-2xl border-[3px] transition-all duration-200 min-w-[160px] min-h-[180px] group shadow-sm",
         "hover:shadow-lg active:scale-[0.98]",
         getStatusStyles(),
         disabled && "opacity-50 cursor-not-allowed hover:shadow-none"
@@ -172,12 +175,12 @@ export function TableCard({
               className="z-50 max-w-[200px] p-3 text-xs leading-relaxed bg-popover border shadow-lg rounded-lg"
             >
               <p className="font-semibold mb-1.5 text-foreground">
-                {language === "ar" ? "معاني ألوان الطاولات:" : "Table Color Legend:"}
+                {language === "ar" ? "دلالات ألوان الطاولات:" : "Table color meanings:"}
               </p>
               <div className="space-y-1 text-muted-foreground">
-                <p>🟢 {language === "ar" ? "أخضر: طاولة فارغة" : "Green: Free table"}</p>
-                <p>🔵 {language === "ar" ? "أزرق: طاولة نشطة / عليها طلب" : "Blue: Active / has order"}</p>
-                <p>🟠 {language === "ar" ? "برتقالي: طاولة معلّقة (Hold)" : "Orange: On hold"}</p>
+                <p>🟢 {language === "ar" ? "فارغة: لا يوجد طلب" : "Free: No active order"}</p>
+                <p>🔴 {language === "ar" ? "نشطة: يوجد طلب مفتوح" : "Active: Order in progress"}</p>
+                <p>🔵 {language === "ar" ? "معلّقة: الطلب في وضع Hold" : "On Hold: Order temporarily paused"}</p>
               </div>
             </TooltipContent>
           </Tooltip>
@@ -294,12 +297,12 @@ function TableWithChairs({
   const getTableSurfaceStyles = () => {
     switch (tableStatus) {
       case "active":
-        return "bg-blue-200 dark:bg-blue-800/80 border-blue-500 dark:border-blue-400";
+        return "bg-rose-200 dark:bg-rose-800/80 border-rose-400 dark:border-rose-400";
       case "held":
-        return "bg-amber-200 dark:bg-amber-800/80 border-amber-500 dark:border-amber-400";
+        return "bg-blue-200 dark:bg-blue-800/80 border-blue-400 dark:border-blue-400";
       case "free":
       default:
-        return "bg-emerald-200 dark:bg-emerald-800/80 border-emerald-500 dark:border-emerald-400";
+        return "bg-emerald-200 dark:bg-emerald-800/80 border-emerald-400 dark:border-emerald-400";
     }
   };
 
@@ -307,9 +310,9 @@ function TableWithChairs({
   const getChairStyles = () => {
     switch (tableStatus) {
       case "active":
-        return "bg-blue-400/85 dark:bg-blue-400/80 border-blue-500/60 dark:border-blue-300/50";
+        return "bg-rose-400/85 dark:bg-rose-400/80 border-rose-500/60 dark:border-rose-300/50";
       case "held":
-        return "bg-amber-400/85 dark:bg-amber-400/80 border-amber-500/60 dark:border-amber-300/50";
+        return "bg-blue-400/85 dark:bg-blue-400/80 border-blue-500/60 dark:border-blue-300/50";
       case "free":
       default:
         return "bg-emerald-400/85 dark:bg-emerald-400/80 border-emerald-500/60 dark:border-emerald-300/50";
