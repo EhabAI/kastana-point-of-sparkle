@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { QROrderStatusView } from "@/components/qr/QROrderStatusView";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { toast } from "@/hooks/use-toast";
 import {
   Minus,
   Plus,
@@ -452,11 +454,24 @@ export default function Menu() {
 
   // QR Order enabled state
   const [qrOrderEnabled, setQrOrderEnabled] = useState<boolean | null>(null);
+  
+  // State for remove confirmation in order summary
+  const [confirmRemoveIndex, setConfirmRemoveIndex] = useState<number | null>(null);
+  
+  // Track previous language for change detection
+  const prevLanguageRef = useRef(language);
 
-  // Clear cart when language changes to avoid mixed language items
+  // Clear cart when language changes to avoid mixed language items + show toast
   useEffect(() => {
-    setCart([]);
-  }, [language]);
+    if (prevLanguageRef.current !== language) {
+      setCart([]);
+      toast({
+        description: t("qr_language_changed"),
+        duration: 1500,
+      });
+      prevLanguageRef.current = language;
+    }
+  }, [language, t]);
 
   /* =======================
      Load Data
@@ -664,6 +679,11 @@ export default function Menu() {
         },
       ];
     });
+    // Show toast for item added
+    toast({
+      description: t("qr_item_added"),
+      duration: 1500,
+    });
   };
 
   const decrementItem = (itemId: string) => {
@@ -683,6 +703,7 @@ export default function Menu() {
 
   const removeFromCart = (index: number) => {
     setCart((prev) => prev.filter((_, i) => i !== index));
+    setConfirmRemoveIndex(null);
   };
 
   /* =======================
@@ -1002,7 +1023,7 @@ export default function Menu() {
                                     <Button 
                                       variant="default" 
                                       size="icon"
-                                      className="h-9 w-9 sm:h-8 sm:w-8 rounded-full transition-all duration-150 active:scale-95 group-hover/item:shadow-sm"
+                                      className="h-9 w-9 sm:h-8 sm:w-8 rounded-full transition-all duration-150 hover:scale-105 active:scale-95 group-hover/item:shadow-sm"
                                       onClick={(e) => { e.stopPropagation(); incrementItem(item); }}
                                     >
                                       <Plus className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
@@ -1038,51 +1059,86 @@ export default function Menu() {
 
           <div className="mt-4 space-y-4">
             {/* Item List - Refined visual hierarchy */}
-            <div className="space-y-0">
-              {cart.map((item, index) => (
-                <div 
-                  key={index} 
-                  className={`group flex justify-between items-center py-3 px-1 ${
-                    index !== cart.length - 1 ? "border-b border-border/30" : ""
-                  }`}
-                >
-                  {/* Item info - primary focus */}
-                  <div className="flex-1 min-w-0 pe-3">
-                    <div className="flex items-baseline gap-2">
-                      {/* Item name - primary */}
-                      <p className="font-semibold text-foreground text-[15px] leading-snug line-clamp-1">
-                        {translateItemName(item.name, language)}
-                      </p>
-                      {/* Quantity - secondary, muted */}
-                      <span className="text-xs text-muted-foreground/70 flex-shrink-0">
-                        ×{item.quantity}
-                      </span>
+            <TooltipProvider delayDuration={300}>
+              <div className="space-y-0">
+                {cart.map((item, index) => (
+                  <div 
+                    key={index} 
+                    className={`group flex justify-between items-center py-3 px-1 ${
+                      index !== cart.length - 1 ? "border-b border-border/30" : ""
+                    }`}
+                  >
+                    {/* Item info - primary focus */}
+                    <div className="flex-1 min-w-0 pe-3">
+                      <div className="flex items-baseline gap-2">
+                        {/* Item name - primary */}
+                        <p className="font-semibold text-foreground text-[15px] leading-snug line-clamp-1">
+                          {translateItemName(item.name, language)}
+                        </p>
+                        {/* Quantity - secondary, muted */}
+                        <span className="text-xs text-muted-foreground/70 flex-shrink-0">
+                          ×{item.quantity}
+                        </span>
+                      </div>
+                      {/* Notes if any */}
+                      {item.notes && (
+                        <p className="text-xs text-muted-foreground/60 mt-0.5 line-clamp-1">{item.notes}</p>
+                      )}
                     </div>
-                    {/* Notes if any */}
-                    {item.notes && (
-                      <p className="text-xs text-muted-foreground/60 mt-0.5 line-clamp-1">{item.notes}</p>
-                    )}
+                    {/* Price + Delete */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="text-sm text-muted-foreground tabular-nums">
+                        {formatJOD(item.price * item.quantity)}
+                      </span>
+                      {/* Delete button with tooltip + confirmation for multi-item orders */}
+                      {confirmRemoveIndex === index ? (
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => removeFromCart(index)}
+                            className="px-2 py-1 text-xs font-medium rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 active:scale-95 transition-all duration-150"
+                          >
+                            {t("qr_remove_confirm")}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmRemoveIndex(null)}
+                            className="px-2 py-1 text-xs font-medium rounded-md text-muted-foreground hover:bg-muted active:scale-95 transition-all duration-150"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ) : (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                // If more than 1 item in cart, show confirmation
+                                if (cart.length > 1) {
+                                  setConfirmRemoveIndex(index);
+                                } else {
+                                  removeFromCart(index);
+                                }
+                              }}
+                              className="p-1.5 -me-1 rounded-md text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 active:scale-95 transition-all duration-150"
+                              aria-label={t("qr_remove_tooltip")}
+                            >
+                              <span className="text-sm">✕</span>
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="text-xs">
+                            {t("qr_remove_tooltip")}
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
                   </div>
-                  {/* Price + Delete */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-sm text-muted-foreground tabular-nums">
-                      {formatJOD(item.price * item.quantity)}
-                    </span>
-                    {/* Delete button - reduced weight, stronger on hover */}
-                    <button
-                      type="button"
-                      onClick={() => removeFromCart(index)}
-                      className="p-1.5 -me-1 rounded-md text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 active:scale-95 transition-all duration-150"
-                      aria-label={language === "ar" ? "حذف" : "Remove"}
-                    >
-                      <span className="text-sm">✕</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </TooltipProvider>
 
-            {/* Customer phone input - calmer styling */}
+            {/* Customer phone input - calmer styling with trust helper */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-foreground/90 flex items-center gap-1.5">
                 <Phone className="h-3.5 w-3.5" />
@@ -1099,20 +1155,24 @@ export default function Menu() {
                 className={`h-10 border-border/50 bg-background focus:border-primary/50 ${phoneError ? "border-destructive" : ""}`}
                 dir="ltr"
               />
-              {phoneError && (
+              {phoneError ? (
                 <p className="text-xs text-destructive">
                   {t("menu_phone_error") || "Please enter a valid phone number (7-15 digits)"}
+                </p>
+              ) : (
+                <p className="text-[10px] text-muted-foreground/50">
+                  {t("qr_phone_trust")}
                 </p>
               )}
             </div>
 
-            {/* Order-level notes - reduced placeholder opacity */}
+            {/* Order-level notes - improved placeholder */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-foreground/90">{t("menu_order_notes")}</label>
               <Textarea
                 value={orderNotes}
                 onChange={(e) => setOrderNotes(e.target.value.slice(0, 250))}
-                placeholder={t("menu_order_notes_placeholder")}
+                placeholder={t("qr_notes_placeholder")}
                 className="resize-none border-border/50 bg-background focus:border-primary/50 placeholder:opacity-50"
                 rows={2}
                 maxLength={250}
@@ -1120,26 +1180,40 @@ export default function Menu() {
               <p className="text-[10px] text-muted-foreground/50 text-end tabular-nums">{orderNotes.length}/250</p>
             </div>
 
-            {/* Total Section - Emphasized with separation */}
+            {/* Total Section - Enhanced with "Amount Due" label */}
             <div className="pt-3 mt-2 border-t-2 border-foreground/10 bg-muted/30 -mx-4 px-4 py-3 rounded-b-lg">
+              <p className="text-[10px] text-muted-foreground/60 mb-1">{t("qr_amount_due")}</p>
               <div className="flex justify-between items-center">
-                <span className="text-sm font-semibold text-foreground/90">{t("total")}</span>
+                <span className="text-sm font-bold text-foreground">{t("total")}</span>
                 <span className="text-xl font-bold text-foreground tabular-nums">
                   {formatJOD(cartTotal)} <span className="text-sm font-medium">{t("menu_currency")}</span>
                 </span>
               </div>
             </div>
 
-            {/* Submit Button - Softer, with micro-copy */}
+            {/* Submit Button - with disabled state tooltip */}
             <div className="space-y-2 pt-1">
-              <Button 
-                className="w-full gap-2 h-12 text-base font-semibold bg-primary/90 hover:bg-primary active:scale-[0.98] transition-all duration-150"
-                onClick={handleConfirmOrder} 
-                disabled={orderLoading}
-              >
-                <Send className="h-4 w-4" />
-                {t("menu_send_to_cashier")}
-              </Button>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="w-full">
+                      <Button 
+                        className="w-full gap-2 h-12 text-base font-semibold bg-primary/90 hover:bg-primary active:scale-[0.98] transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={handleConfirmOrder} 
+                        disabled={orderLoading || cart.length === 0}
+                      >
+                        <Send className="h-4 w-4" />
+                        {t("menu_send_to_cashier")}
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  {cart.length === 0 && (
+                    <TooltipContent side="top" className="text-xs">
+                      {t("qr_add_item_first")}
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
               {/* Micro-copy trust signal */}
               <p className="text-[10px] text-center text-muted-foreground/60">
                 {language === "ar" ? "سيتم إرسال الطلب مباشرة إلى المطبخ" : "Order will be sent directly to the kitchen"}

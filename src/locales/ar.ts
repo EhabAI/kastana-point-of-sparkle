@@ -1976,4 +1976,14 @@ export default {
   offers_duration: "مدة العروض",
   category_offers_visibility_hint: "يتم إظهار أو إخفاء جميع العروض تلقائيًا حسب هذه المدة",
   category_offers_dates_hint: "اتركها فارغة لإظهار العروض عند تفعيل التصنيف",
+  
+  // QR Menu UX Improvements
+  qr_item_added: "✔️ تمت إضافة الصنف",
+  qr_remove_tooltip: "إزالة من الطلب",
+  qr_remove_confirm: "إزالة؟",
+  qr_amount_due: "المبلغ المستحق",
+  qr_phone_trust: "نستخدم رقم الهاتف فقط في حال وجود استفسار عن الطلب",
+  qr_notes_placeholder: "مثال: بدون سكر – قليل الثلج – تغليف سفري",
+  qr_add_item_first: "أضف صنفًا أولًا",
+  qr_language_changed: "تم تغيير اللغة",
 } as const;

@@ -1971,4 +1971,14 @@ export default {
   offers_duration: "Offers Duration",
   category_offers_visibility_hint: "All offers are automatically shown or hidden based on this date range",
   category_offers_dates_hint: "Leave dates empty to show offers whenever the category is enabled",
+  
+  // QR Menu UX Improvements
+  qr_item_added: "✔️ Item added",
+  qr_remove_tooltip: "Remove from order",
+  qr_remove_confirm: "Remove?",
+  qr_amount_due: "Amount Due",
+  qr_phone_trust: "We only use your phone number if we have questions about your order",
+  qr_notes_placeholder: "e.g. No sugar – Less ice – Takeaway packaging",
+  qr_add_item_first: "Add an item first",
+  qr_language_changed: "Language changed",
 } as const;
