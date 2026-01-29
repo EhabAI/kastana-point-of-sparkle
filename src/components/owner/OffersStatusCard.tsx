@@ -25,9 +25,9 @@ export function OffersStatusCard({ restaurantId }: OffersStatusCardProps) {
 
   if (isLoading) {
     return (
-      <Card className="bg-gradient-to-br from-indigo-600 to-indigo-500 border-indigo-700">
-        <CardContent className="p-3">
-          <Skeleton className="h-14 w-full bg-white/20" />
+      <Card className="bg-gradient-to-br from-indigo-400/90 to-violet-400/80 border-indigo-300/50">
+        <CardContent className="p-4">
+          <Skeleton className="h-12 w-full bg-white/20" />
         </CardContent>
       </Card>
     );
@@ -89,15 +89,15 @@ export function OffersStatusCard({ restaurantId }: OffersStatusCardProps) {
     none: {
       label: t("offer_status_none"),
       icon: Ban,
-      accentColor: "bg-gray-400/60",
-      badgeBg: "bg-white/20 text-white/80",
+      accentColor: "bg-gray-300/80",
+      badgeBg: "bg-white/25 text-white/90",
       helperText: language === "ar" ? "لا توجد عروض مفعّلة حاليًا" : "No offers are currently active",
     },
     disabled: {
       label: t("offer_status_disabled"),
       icon: Ban,
-      accentColor: "bg-gray-400/60",
-      badgeBg: "bg-white/20 text-white/80",
+      accentColor: "bg-gray-300/80",
+      badgeBg: "bg-white/25 text-white/90",
       helperText: language === "ar" ? "لا توجد عروض مفعّلة حاليًا" : "No offers are currently active",
     },
   };
@@ -106,15 +106,15 @@ export function OffersStatusCard({ restaurantId }: OffersStatusCardProps) {
   const StatusIcon = currentStatus.icon;
 
   return (
-    <Card className="relative overflow-hidden bg-gradient-to-br from-indigo-600 to-violet-500 border-indigo-700/50 shadow-lg shadow-indigo-500/20">
+    <Card className="relative overflow-hidden bg-gradient-to-br from-indigo-400/90 to-violet-400/80 border-indigo-300/50 shadow-md">
       {/* Thick accent bar on the right (RTL) */}
       <div className={`absolute top-0 end-0 w-2 h-full ${currentStatus.accentColor}`} />
       
-      <CardHeader className="pb-1.5 pt-3 px-3">
+      <CardHeader className="pb-2 pt-4 px-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Target className="h-4 w-4 text-white/90" />
-            <CardTitle className="text-sm font-bold text-white">
+            <CardTitle className="text-sm font-semibold text-white">
               {t("offers_status_title")}
             </CardTitle>
           </div>
@@ -130,11 +130,11 @@ export function OffersStatusCard({ restaurantId }: OffersStatusCardProps) {
           </TooltipProvider>
         </div>
       </CardHeader>
-      <CardContent className="px-3 pb-3 pt-1">
+      <CardContent className="px-4 pb-4 pt-0">
         {/* Large Status Badge */}
         <div className="mb-2">
           <span
-            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold ${currentStatus.badgeBg} shadow-sm`}
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-medium ${currentStatus.badgeBg} shadow-sm`}
           >
             <StatusIcon className="h-3.5 w-3.5" />
             {currentStatus.label}
@@ -143,16 +143,16 @@ export function OffersStatusCard({ restaurantId }: OffersStatusCardProps) {
 
         {/* Date Details */}
         {status !== "none" && (promoStart || promoEnd) && (
-          <div className="space-y-0.5 text-xs mb-1.5">
+          <div className="space-y-0.5 text-xs mb-2">
             {promoStart && (
-              <div className="flex items-center gap-1.5 text-white/80">
-                <span className="text-white/60">{t("starts_from")}:</span>
+              <div className="flex items-center gap-1.5 text-white/90">
+                <span className="text-white/70">{t("starts_from")}:</span>
                 <span className="font-medium tabular-nums">{formatDate(promoStart)}</span>
               </div>
             )}
             {promoEnd && (
-              <div className="flex items-center gap-1.5 text-white/80">
-                <span className="text-white/60">{t("ends_at")}:</span>
+              <div className="flex items-center gap-1.5 text-white/90">
+                <span className="text-white/70">{t("ends_at")}:</span>
                 <span className="font-medium tabular-nums">{formatDate(promoEnd)}</span>
               </div>
             )}
@@ -160,7 +160,7 @@ export function OffersStatusCard({ restaurantId }: OffersStatusCardProps) {
         )}
 
         {/* Dynamic Helper Text */}
-        <p className="text-[11px] text-white/60 leading-relaxed">
+        <p className="text-xs text-white/70 leading-relaxed">
           {currentStatus.helperText}
         </p>
       </CardContent>

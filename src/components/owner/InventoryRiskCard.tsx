@@ -129,8 +129,8 @@ export function InventoryRiskCard({
   if (isLoading) {
     return (
       <Card className="bg-amber-50/50 dark:bg-amber-950/10 border-amber-100 dark:border-amber-900/30">
-        <CardContent className="p-2.5">
-          <Skeleton className="h-14 w-full" />
+        <CardContent className="p-4">
+          <Skeleton className="h-12 w-full" />
         </CardContent>
       </Card>
     );
@@ -186,20 +186,20 @@ export function InventoryRiskCard({
 
   return (
     <Card className="bg-amber-50/50 dark:bg-amber-950/10 border-amber-100 dark:border-amber-900/30">
-      <CardHeader className="pb-1 pt-2.5 px-3">
+      <CardHeader className="pb-2 pt-4 px-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <Package className="h-3.5 w-3.5 text-amber-500/70" />
-            <CardTitle className="text-xs font-medium text-amber-700/80 dark:text-amber-400/80">
+          <div className="flex items-center gap-2">
+            <Package className="h-4 w-4 text-amber-500/70" />
+            <CardTitle className="text-sm font-semibold text-amber-700/80 dark:text-amber-400/80">
               {t("inventory_risk_title")}
             </CardTitle>
           </div>
-          <span className="text-xs text-amber-600/60 font-normal">
+          <span className="text-[13px] font-medium text-amber-600/60">
             {totalItems} {language === "ar" ? "صنف" : "items"}
           </span>
         </div>
       </CardHeader>
-      <CardContent className="px-3 pb-2.5 pt-0">
+      <CardContent className="px-4 pb-4 pt-0">
         <div className="space-y-0.5">
           <TooltipProvider>
             {rows.map((row, index) => {
@@ -218,9 +218,9 @@ export function InventoryRiskCard({
                     >
                       <div className="flex items-center gap-1.5">
                         <Icon className={`h-3 w-3 ${row.color}`} />
-                        <span className="text-xs text-foreground/60">{row.label}</span>
+                        <span className="text-xs text-foreground/70">{row.label}</span>
                       </div>
-                      <span className={`text-xs font-medium tabular-nums ${row.color}`}>
+                      <span className={`text-[13px] font-medium tabular-nums ${row.color}`}>
                         {row.count}
                       </span>
                     </button>
