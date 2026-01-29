@@ -838,13 +838,15 @@ export default function Menu() {
             )}
             <div>
               <h1 className="text-2xl font-bold tracking-tight">{restaurant?.name ?? "Restaurant"}</h1>
-              {/* Enhanced Table Identifier with friendly label */}
-              <p className="text-xs text-muted-foreground/80 flex items-center gap-1.5">
-                <span className="opacity-70">{language === "ar" ? "أنت على طاولة" : "You're at table"}</span>
-                <span className="font-semibold text-foreground/80 bg-muted px-1.5 py-0.5 rounded text-[11px]">
+              {/* Enhanced Table Identifier - Clear two-line layout */}
+              <div className="mt-1">
+                <p className="text-[11px] text-muted-foreground">
+                  {language === "ar" ? "أنت على طاولة" : "You're at table"}
+                </p>
+                <span className="inline-flex items-center mt-0.5 px-2.5 py-1 text-xs font-bold text-primary bg-primary/10 border border-primary/25 rounded-md tracking-wide">
                   {tableCode}
                 </span>
-              </p>
+              </div>
             </div>
           </div>
 
@@ -856,8 +858,8 @@ export default function Menu() {
         </div>
 
 
-        {/* Menu - Polished with reduced spacing */}
-        <div className="space-y-2.5">
+        {/* Menu - Tighter spacing (reduced ~25%) */}
+        <div className="space-y-2">
           {categoriesWithItems.map((category) => {
             const isOpen = openCategoryId === category.id;
             const iconInfo = getCategoryIcon(category.name);
@@ -867,24 +869,24 @@ export default function Menu() {
             return (
               <div 
                 key={category.id} 
-                className={`rounded-xl overflow-hidden shadow-sm transition-all duration-150 ${
+                className={`rounded-xl overflow-hidden transition-shadow duration-150 ${
                   isOfferCategory 
-                    ? "border-2 border-primary/40 ring-2 ring-primary/15 bg-gradient-to-br from-primary/[0.04] via-transparent to-primary/[0.02]" 
-                    : "border border-border"
+                    ? "border-[1.5px] border-primary/30 bg-primary/[0.06] shadow-md shadow-primary/10" 
+                    : "border border-border shadow-sm"
                 }`}
               >
-                {/* Category Header - Enhanced for offers */}
+                {/* Category Header - Prominent for offers */}
                 <button
                   type="button"
                   onClick={() => setOpenCategoryId(isOpen ? null : category.id)}
                   className={`w-full flex justify-between items-center p-3.5 transition-colors ${
                     isOfferCategory
-                      ? "bg-gradient-to-r from-primary/10 via-primary/5 to-transparent hover:from-primary/15 hover:via-primary/8"
-                      : "bg-muted/60 dark:bg-muted/40 hover:bg-muted/80 dark:hover:bg-muted/50"
+                      ? "bg-gradient-to-r from-primary/15 via-primary/8 to-primary/[0.03] hover:from-primary/20 hover:via-primary/12"
+                      : "bg-muted/50 dark:bg-muted/30 hover:bg-muted/70 dark:hover:bg-muted/45"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl ${isOfferCategory ? "bg-primary/15" : iconInfo.bgColor}`}>
+                    <div className={`p-2 rounded-xl ${isOfferCategory ? "bg-primary/20 ring-1 ring-primary/30" : iconInfo.bgColor}`}>
                       <IconComponent className={`h-5 w-5 ${isOfferCategory ? "text-primary" : iconInfo.color}`} />
                     </div>
                     <div className="flex items-center gap-2">
@@ -892,14 +894,14 @@ export default function Menu() {
                         {translateCategoryName(category.name, language)}
                       </span>
                       {isOfferCategory && (
-                        <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-primary text-primary-foreground rounded-full animate-pulse">
+                        <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-primary text-primary-foreground rounded-full shadow-sm">
                           {language === "ar" ? "عرض" : "Special"}
                         </span>
                       )}
                     </div>
                   </div>
                   <span 
-                    className={`text-sm font-medium transition-transform duration-150 ${
+                    className={`text-lg font-medium transition-transform duration-150 ease-out ${
                       isOpen ? "rotate-45" : ""
                     } ${isOfferCategory ? "text-primary" : "text-muted-foreground"}`}
                   >
@@ -907,17 +909,21 @@ export default function Menu() {
                   </span>
                 </button>
 
-                {/* Animated Content Container */}
+                {/* Animated Content - Clear slide + fade */}
                 <div 
-                  className={`grid transition-all duration-150 ease-out ${
-                    isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                  className={`transition-all duration-150 ease-out overflow-hidden ${
+                    isOpen 
+                      ? "max-h-[1000px] opacity-100" 
+                      : "max-h-0 opacity-0"
                   }`}
+                  style={{
+                    transform: isOpen ? "translateY(0)" : "translateY(-6px)",
+                  }}
                 >
-                  <div className="overflow-hidden">
-                    {/* Divider */}
-                    <div className={`h-px ${isOfferCategory ? "bg-primary/20" : "bg-border/60"}`} />
-                    
-                    <div className="p-3.5 bg-background">
+                  {/* Divider */}
+                  <div className={`h-px ${isOfferCategory ? "bg-primary/25" : "bg-border/60"}`} />
+                  
+                  <div className={`p-3.5 ${isOfferCategory ? "bg-primary/[0.02]" : "bg-background"}`}>
                       {category.items.length === 0 ? (
                         <p className="text-sm text-muted-foreground">{t("menu_no_items")}</p>
                       ) : (
@@ -977,7 +983,6 @@ export default function Menu() {
                         </div>
                       )}
                     </div>
-                  </div>
                 </div>
               </div>
             );
