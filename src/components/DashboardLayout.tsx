@@ -17,10 +17,24 @@ export function DashboardLayout({
   children,
   title
 }: DashboardLayoutProps) {
-  const { signOut } = useAuth();
-  const { t } = useLanguage();
+  const { signOut, displayName, role } = useAuth();
+  const { t, language } = useLanguage();
   const { data: restaurant } = useOwnerRestaurant();
   const navigate = useNavigate();
+
+  const formatRole = (roleValue: string | null) => {
+    if (!roleValue) return '';
+    const roleTranslations: Record<string, string> = {
+      system_admin: 'مدير النظام',
+      owner: 'صاحب المطعم',
+      cashier: 'كاشيير',
+      kitchen: 'المطبخ'
+    };
+    if (language === 'ar') {
+      return roleTranslations[roleValue] || roleValue;
+    }
+    return roleValue.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  };
 
   // Generate initials from restaurant name (first 2 letters)
   const getInitials = (name: string) => {
@@ -62,8 +76,15 @@ export function DashboardLayout({
               )}
             </div>
 
-            {/* RIGHT – Actions Area */}
+            {/* RIGHT – User Info & Actions */}
             <div className="flex items-center gap-1">
+              {/* User Context - hidden on mobile */}
+              {displayName && (
+                <span className="hidden sm:inline text-[11px] text-blue-700/80 dark:text-blue-200/80 mr-2">
+                  {displayName} {role && `• ${formatRole(role)}`}
+                </span>
+              )}
+              
               <ThemeToggle />
               <LanguageToggle />
               
