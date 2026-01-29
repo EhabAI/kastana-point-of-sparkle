@@ -68,6 +68,8 @@ type Category = {
   id: string;
   name: string;
   sort_order: number | null;
+  promo_start: string | null;
+  promo_end: string | null;
 };
 
 type Item = {
@@ -555,10 +557,10 @@ export default function Menu() {
         effectiveBranchId = table.branch_id || effectiveBranchId;
       }
 
-      /* 3️⃣ Categories */
+      /* 3️⃣ Categories - include promo_start/promo_end for time filtering */
       const { data: categoriesData, error: categoriesError } = await supabase
         .from("menu_categories")
-        .select("id, name, sort_order")
+        .select("id, name, sort_order, promo_start, promo_end")
         .eq("restaurant_id", restaurantId)
         .eq("is_active", true)
         .order("sort_order", { ascending: true });
@@ -569,7 +571,26 @@ export default function Menu() {
         return;
       }
 
-      setCategories(categoriesData || []);
+      // Filter categories based on time for Offers category
+      const now = new Date();
+      const filteredCategories = (categoriesData || []).filter((cat) => {
+        const isOffer = cat.name === "العروض" || cat.name.toLowerCase() === "offers";
+        if (!isOffer) return true;
+        
+        // For offers category, check time range
+        const promoStart = cat.promo_start ? new Date(cat.promo_start) : null;
+        const promoEnd = cat.promo_end ? new Date(cat.promo_end) : null;
+        
+        // No dates = always visible
+        if (!promoStart && !promoEnd) return true;
+        
+        const afterStart = !promoStart || promoStart <= now;
+        const beforeEnd = !promoEnd || promoEnd >= now;
+        
+        return afterStart && beforeEnd;
+      });
+
+      setCategories(filteredCategories);
 
       /* 4️⃣ Items - get by category IDs */
       const categoryIds = (categoriesData || []).map((c) => c.id);

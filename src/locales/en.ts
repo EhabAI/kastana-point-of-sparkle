@@ -1917,4 +1917,9 @@ export default {
   offer_start_date: "Start Date",
   offer_end_date: "End Date",
   offer_dates_optional_hint: "Leave dates empty for a timeless offer",
+  
+  // Category-Level Offer Time Controls
+  offers_duration: "Offers Duration",
+  category_offers_visibility_hint: "All offers are automatically shown or hidden based on this date range",
+  category_offers_dates_hint: "Leave dates empty to show offers whenever the category is enabled",
 } as const;

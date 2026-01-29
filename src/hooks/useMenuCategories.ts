@@ -12,6 +12,57 @@ export interface MenuCategory {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  promo_start: string | null;
+  promo_end: string | null;
+}
+
+export type CategoryPromoStatus = 'active' | 'scheduled' | 'expired' | 'none';
+
+export interface MenuCategoryWithStatus extends MenuCategory {
+  promo_status: CategoryPromoStatus;
+}
+
+// Helper to compute category promo status
+export function computeCategoryPromoStatus(category: MenuCategory): CategoryPromoStatus {
+  const now = new Date();
+  const promoStart = category.promo_start ? new Date(category.promo_start) : null;
+  const promoEnd = category.promo_end ? new Date(category.promo_end) : null;
+
+  // No dates = no time-based status
+  if (!promoStart && !promoEnd) {
+    return 'none';
+  }
+
+  // If scheduled (start date in future)
+  if (promoStart && now < promoStart) {
+    return 'scheduled';
+  }
+
+  // If expired (end date passed)
+  if (promoEnd && now > promoEnd) {
+    return 'expired';
+  }
+
+  // Within date range = active
+  return 'active';
+}
+
+// Helper to check if category is currently visible (for POS/QR)
+export function isCategoryTimeActive(category: MenuCategory): boolean {
+  const now = new Date();
+  const promoStart = category.promo_start ? new Date(category.promo_start) : null;
+  const promoEnd = category.promo_end ? new Date(category.promo_end) : null;
+
+  // No dates = always visible (timeless)
+  if (!promoStart && !promoEnd) {
+    return true;
+  }
+
+  // Check if within date range
+  const afterStart = !promoStart || promoStart <= now;
+  const beforeEnd = !promoEnd || promoEnd >= now;
+
+  return afterStart && beforeEnd;
 }
 
 export function useMenuCategories(restaurantId?: string) {
@@ -27,7 +78,12 @@ export function useMenuCategories(restaurantId?: string) {
         .order('sort_order', { ascending: true });
       
       if (error) throw error;
-      return data as MenuCategory[];
+      
+      // Add computed promo_status
+      return (data as MenuCategory[]).map((cat): MenuCategoryWithStatus => ({
+        ...cat,
+        promo_status: computeCategoryPromoStatus(cat),
+      }));
     },
     enabled: !!restaurantId,
   });
@@ -76,10 +132,24 @@ export function useUpdateCategory() {
   const { t } = useLanguage();
 
   return useMutation({
-    mutationFn: async ({ id, name, is_active }: { id: string; name?: string; is_active?: boolean }) => {
+    mutationFn: async ({ 
+      id, 
+      name, 
+      is_active,
+      promo_start,
+      promo_end,
+    }: { 
+      id: string; 
+      name?: string; 
+      is_active?: boolean;
+      promo_start?: string | null;
+      promo_end?: string | null;
+    }) => {
       const updates: Partial<MenuCategory> = {};
       if (name !== undefined) updates.name = name;
       if (is_active !== undefined) updates.is_active = is_active;
+      if (promo_start !== undefined) updates.promo_start = promo_start;
+      if (promo_end !== undefined) updates.promo_end = promo_end;
 
       const { data, error } = await supabase
         .from('menu_categories')

@@ -2,6 +2,29 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCashierSession } from "./useCashierSession";
 
+// Helper to check if a category is time-active (for Offers category)
+function isCategoryTimeActive(category: { promo_start: string | null; promo_end: string | null }): boolean {
+  const now = new Date();
+  const promoStart = category.promo_start ? new Date(category.promo_start) : null;
+  const promoEnd = category.promo_end ? new Date(category.promo_end) : null;
+
+  // No dates = always visible (timeless)
+  if (!promoStart && !promoEnd) {
+    return true;
+  }
+
+  // Check if within date range
+  const afterStart = !promoStart || promoStart <= now;
+  const beforeEnd = !promoEnd || promoEnd >= now;
+
+  return afterStart && beforeEnd;
+}
+
+// Helper to check if category is the Offers category
+function isOfferCategory(name: string): boolean {
+  return name === "العروض" || name.toLowerCase() === "offers";
+}
+
 export function useCashierCategories() {
   const { data: session } = useCashierSession();
 
@@ -11,6 +34,7 @@ export function useCashierCategories() {
       if (!session?.branch?.id) return [];
 
       // Get categories active for this branch with branch-specific sort order
+      // Also fetch promo_start and promo_end for time-based filtering
       const { data, error } = await supabase
         .from("branch_menu_categories")
         .select(`
@@ -19,7 +43,9 @@ export function useCashierCategories() {
           category:menu_categories!inner(
             id,
             name,
-            restaurant_id
+            restaurant_id,
+            promo_start,
+            promo_end
           )
         `)
         .eq("branch_id", session.branch.id)
@@ -28,13 +54,25 @@ export function useCashierCategories() {
 
       if (error) throw error;
 
-      // Flatten the response to match expected Category shape
-      return (data || []).map((item) => ({
-        id: item.category.id,
-        name: item.category.name,
-        restaurant_id: item.category.restaurant_id,
-        sort_order: item.sort_order,
-      }));
+      // Flatten the response and filter based on time for Offers category
+      return (data || [])
+        .filter((item) => {
+          // For offers category, check if within time range
+          if (isOfferCategory(item.category.name)) {
+            return isCategoryTimeActive({
+              promo_start: item.category.promo_start,
+              promo_end: item.category.promo_end,
+            });
+          }
+          // All other categories pass through
+          return true;
+        })
+        .map((item) => ({
+          id: item.category.id,
+          name: item.category.name,
+          restaurant_id: item.category.restaurant_id,
+          sort_order: item.sort_order,
+        }));
     },
     enabled: !!session?.branch?.id,
   });
