@@ -48,5 +48,8 @@ export function useKitchenSession() {
     restaurantId: restaurantQuery.data,
     branchId: branchQuery.data,
     isLoading: restaurantQuery.isLoading || branchQuery.isLoading,
+    // IMPORTANT: callers can rely on this to know the kitchen session has been
+    // *resolved* (even if restaurantId/branchId end up null).
+    isFetched: restaurantQuery.isFetched && branchQuery.isFetched,
   };
 }
