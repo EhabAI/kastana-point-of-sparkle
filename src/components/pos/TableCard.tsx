@@ -152,16 +152,36 @@ export function TableCard({
         disabled && "opacity-50 cursor-not-allowed hover:shadow-none"
       )}
     >
-      {/* Status Badge - Top Left */}
+      {/* Status Badge - Top Left with Color Legend Tooltip */}
       <div className="absolute top-2.5 left-2.5">
-        <span
-          className={cn(
-            "px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider",
-            statusBadge.className
-          )}
-        >
-          {statusBadge.label}
-        </span>
+        <TooltipProvider>
+          <Tooltip delayDuration={200}>
+            <TooltipTrigger asChild>
+              <span
+                className={cn(
+                  "px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider cursor-help",
+                  statusBadge.className
+                )}
+              >
+                {statusBadge.label}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent 
+              side="bottom" 
+              align="start"
+              className="z-50 max-w-[200px] p-3 text-xs leading-relaxed bg-popover border shadow-lg rounded-lg"
+            >
+              <p className="font-semibold mb-1.5 text-foreground">
+                {language === "ar" ? "معاني ألوان الطاولات:" : "Table Color Legend:"}
+              </p>
+              <div className="space-y-1 text-muted-foreground">
+                <p>🟢 {language === "ar" ? "أخضر: طاولة فارغة" : "Green: Free table"}</p>
+                <p>🔵 {language === "ar" ? "أزرق: طاولة نشطة / عليها طلب" : "Blue: Active / has order"}</p>
+                <p>🟠 {language === "ar" ? "برتقالي: طاولة معلّقة (Hold)" : "Orange: On hold"}</p>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* Top Right Section: Merged Badge OR Action Buttons (Move/Merge) */}
@@ -283,16 +303,16 @@ function TableWithChairs({
     }
   };
 
-  // Chair indicator color based on status (lighter version)
-  const getChairColor = () => {
+  // Chair indicator color based on status (enhanced visibility)
+  const getChairStyles = () => {
     switch (tableStatus) {
       case "active":
-        return "bg-blue-300/70 dark:bg-blue-500/50";
+        return "bg-blue-400/85 dark:bg-blue-400/80 border-blue-500/60 dark:border-blue-300/50";
       case "held":
-        return "bg-amber-300/70 dark:bg-amber-500/50";
+        return "bg-amber-400/85 dark:bg-amber-400/80 border-amber-500/60 dark:border-amber-300/50";
       case "free":
       default:
-        return "bg-emerald-300/70 dark:bg-emerald-500/50";
+        return "bg-emerald-400/85 dark:bg-emerald-400/80 border-emerald-500/60 dark:border-emerald-300/50";
     }
   };
 
@@ -302,9 +322,8 @@ function TableWithChairs({
     
     const chairs = [];
     const angleStep = 360 / capacity;
-    const radius = 48; // Distance from center to chair
-    const tableSize = 80; // Table is 80px (w-20)
-    const chairSize = 8; // Small circle size
+    const radius = 50; // Distance from center to chair
+    const chairSize = 10; // Increased size for better visibility (+20%)
     
     for (let i = 0; i < capacity; i++) {
       // Start from top (-90 degrees) and go clockwise
@@ -319,9 +338,10 @@ function TableWithChairs({
         <div
           key={i}
           className={cn(
-            "absolute rounded-full",
-            getChairColor(),
-            "animate-[chair-pop_150ms_ease-out_forwards]"
+            "absolute rounded-full border",
+            getChairStyles(),
+            "animate-[chair-pop_150ms_ease-out_forwards]",
+            "shadow-sm"
           )}
           style={{
             width: chairSize,
