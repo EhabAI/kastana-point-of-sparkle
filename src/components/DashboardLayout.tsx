@@ -79,7 +79,7 @@ export function DashboardLayout({
             {/* CENTER – User Context (hidden on mobile) */}
             <div className="hidden md:flex items-center justify-center flex-1">
               {displayName && (
-                <span className="text-[11px] text-blue-700/80 dark:text-blue-200/80">
+                <span className="text-sm font-semibold text-blue-800 dark:text-blue-100">
                   {displayName} {role && `• ${formatRole(role)}`}
                 </span>
               )}
