@@ -38,22 +38,27 @@ export function DashboardLayout({
       <header className="sticky top-0 z-50 bg-blue-100 dark:bg-blue-900/40 backdrop-blur-sm border-b border-blue-200 dark:border-blue-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-9">
-            {/* LEFT – Logo Only */}
-            <div className="flex items-center">
+            {/* LEFT – Logo & Restaurant Name */}
+            <div className="flex items-center gap-2">
               {restaurant?.logo_url ? (
                 <img 
                   src={restaurant.logo_url} 
                   alt={restaurant.name} 
-                  className="h-7 w-7 object-contain rounded-md"
+                  className="h-6 w-6 object-contain rounded-md"
                 />
               ) : restaurant?.name ? (
-                <div className="h-7 w-7 rounded-md bg-blue-600 dark:bg-blue-500 flex items-center justify-center">
-                  <span className="text-[10px] font-bold text-white">
+                <div className="h-6 w-6 rounded-md bg-blue-600 dark:bg-blue-500 flex items-center justify-center">
+                  <span className="text-[9px] font-bold text-white">
                     {getInitials(restaurant.name)}
                   </span>
                 </div>
               ) : (
-                <div className="h-7 w-7 rounded-md bg-blue-200 dark:bg-blue-800" />
+                <div className="h-6 w-6 rounded-md bg-blue-200 dark:bg-blue-800" />
+              )}
+              {restaurant?.name && (
+                <span className="text-xs font-semibold text-blue-900 dark:text-blue-100 truncate max-w-[120px] sm:max-w-[200px]">
+                  {restaurant.name}
+                </span>
               )}
             </div>
 
