@@ -66,7 +66,7 @@ import { RestaurantSettings } from "@/components/owner/RestaurantSettings";
 import { DiscountSettings } from "@/components/owner/DiscountSettings";
 import { BasicReports } from "@/components/owner/BasicReports";
 import { ShiftsView } from "@/components/owner/ShiftsView";
-import { DashboardOverview } from "@/components/owner/DashboardOverview";
+
 import { ReportsModule } from "@/components/owner/ReportsModule";
 import { AnalyticsCharts } from "@/components/owner/AnalyticsCharts";
 import { BestWorstSellers } from "@/components/owner/BestWorstSellers";
@@ -231,14 +231,6 @@ export default function OwnerAdmin() {
           <TabsContent value="overview" className="space-y-2 mt-2">
             {/* Owner Changes Banner - informational only */}
             {role === "owner" && <OwnerChangesBanner restaurantId={restaurant.id} />}
-            {role === "owner" && (
-              <DashboardOverview
-                restaurantId={restaurant.id}
-                tableCount={tables.length}
-                staffCount={cashiers.length}
-                currency={currency}
-              />
-            )}
             {/* Smart Features Row */}
             {role === "owner" && (
               <div className="space-y-3">
