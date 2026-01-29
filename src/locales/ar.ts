@@ -1913,4 +1913,13 @@ export default {
 
   // Promo Visibility Hint
   promo_visibility_hint: "تظهر العروض تلقائياً حسب التاريخ والحالة. العروض النشطة تظهر في الكاشير وقائمة QR.",
+  
+  // Time-Based Offers (Offer Category Only)
+  offer_time_settings: "إعدادات وقت العرض",
+  offer_visibility_hint: "يتم إظهار أو إخفاء العرض تلقائيًا حسب المدة والتفعيل",
+  enable_offer: "تفعيل العرض",
+  enable_offer_desc: "عند التعطيل، سيُخفى هذا العرض من الكاشير وقائمة QR",
+  offer_start_date: "تاريخ البداية",
+  offer_end_date: "تاريخ الانتهاء",
+  offer_dates_optional_hint: "اتركها فارغة لعرض بدون مدة محددة",
 } as const;
