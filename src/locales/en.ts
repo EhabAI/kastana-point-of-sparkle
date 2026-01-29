@@ -1908,4 +1908,13 @@ export default {
 
   // Promo Visibility Hint
   promo_visibility_hint: "Offer visibility is automatically controlled by date and status. Active offers appear in POS and QR Menu.",
+  
+  // Time-Based Offers (Offer Category Only)
+  offer_time_settings: "Offer Time Settings",
+  offer_visibility_hint: "Offer visibility is automatically controlled by date and status",
+  enable_offer: "Enable Offer",
+  enable_offer_desc: "When disabled, this offer will be hidden from POS and QR Menu",
+  offer_start_date: "Start Date",
+  offer_end_date: "End Date",
+  offer_dates_optional_hint: "Leave dates empty for a timeless offer",
 } as const;

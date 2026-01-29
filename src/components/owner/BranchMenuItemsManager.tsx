@@ -181,6 +181,12 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
     return categories.find(c => c.id === catId)?.name || t("uncategorized");
   };
 
+  // Check if a category is the "العروض" (Offers) category
+  const isOfferCategory = (catId: string) => {
+    const category = categories.find(c => c.id === catId);
+    return category?.name === "العروض" || category?.name?.toLowerCase() === "offers";
+  };
+
   const toggleSelectItem = (itemId: string) => {
     setSelectedItems(prev => 
       prev.includes(itemId) 
@@ -482,10 +488,20 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
       <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("edit_item")} - {editingItem?.base_name}</DialogTitle>
-            <DialogDescription>
-              {t("base_price")}: {formatJOD(editingItem?.menu_item?.price || 0)} {currency}
-            </DialogDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle>{t("edit_item")} - {editingItem?.base_name}</DialogTitle>
+                <DialogDescription>
+                  {t("base_price")}: {formatJOD(editingItem?.menu_item?.price || 0)} {currency}
+                </DialogDescription>
+              </div>
+              {/* Show status badge only for offer items */}
+              {editingItem && isOfferCategory(editingItem.category_id) && editingItem.promo_status !== 'none' && (
+                <div className="me-6">
+                  {getPromoStatusBadge(editingItem.promo_status)}
+                </div>
+              )}
+            </div>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -501,76 +517,97 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                 placeholder={editingItem?.menu_item?.price?.toString()}
               />
             </div>
-            <div className="border-t pt-4">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-medium flex items-center gap-2">
-                  <Flame className="h-4 w-4 text-destructive" />
-                  {t("promo_settings")}
-                </h4>
-                <TooltipProvider delayDuration={200}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button type="button" className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
-                        <Clock className="h-4 w-4" />
-                        <Info className="h-3 w-3" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="left" className="max-w-[250px] text-xs">
-                      <p>{t("promo_visibility_hint")}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <div className="space-y-3">
-                {/* Promo Enabled Toggle */}
-                <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
-                  <div className="space-y-0.5">
-                    <Label className="text-sm font-medium">{t("promo_enabled")}</Label>
-                    <p className="text-xs text-muted-foreground">{t("promo_enabled_desc")}</p>
+            
+            {/* Time-based offer controls - ONLY for offer category items */}
+            {editingItem && isOfferCategory(editingItem.category_id) && (
+              <div className="border-t pt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium flex items-center gap-2">
+                    <Flame className="h-4 w-4 text-destructive" />
+                    {t("offer_time_settings")}
+                  </h4>
+                  <TooltipProvider delayDuration={200}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button type="button" className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
+                          <Clock className="h-4 w-4" />
+                          <Info className="h-3 w-3" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="max-w-[250px] text-xs">
+                        <p>{t("offer_visibility_hint")}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <div className="space-y-3">
+                  {/* Enable Offer Toggle */}
+                  <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-medium">{t("enable_offer")}</Label>
+                      <p className="text-xs text-muted-foreground">{t("enable_offer_desc")}</p>
+                    </div>
+                    <Switch
+                      checked={editFormData.promo_enabled}
+                      onCheckedChange={(checked) => setEditFormData({ ...editFormData, promo_enabled: checked })}
+                    />
                   </div>
-                  <Switch
-                    checked={editFormData.promo_enabled}
-                    onCheckedChange={(checked) => setEditFormData({ ...editFormData, promo_enabled: checked })}
-                  />
+                  
+                  {/* Date Range */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>{t("offer_start_date")}</Label>
+                      <Input
+                        type="datetime-local"
+                        value={editFormData.promo_start}
+                        onChange={(e) => setEditFormData({ ...editFormData, promo_start: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{t("offer_end_date")}</Label>
+                      <Input
+                        type="datetime-local"
+                        value={editFormData.promo_end}
+                        onChange={(e) => setEditFormData({ ...editFormData, promo_end: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{t("offer_dates_optional_hint")}</p>
                 </div>
-                <div className="space-y-2">
-                  <Label>{t("promo_price")}</Label>
-                  <Input
-                    type="number"
-                    step="0.001"
-                    value={editFormData.promo_price}
-                    onChange={(e) => setEditFormData({ ...editFormData, promo_price: e.target.value })}
-                    placeholder={t("promo_price")}
-                  />
+              </div>
+            )}
+
+            {/* Promo settings for NON-offer items */}
+            {editingItem && !isOfferCategory(editingItem.category_id) && (
+              <div className="border-t pt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium flex items-center gap-2">
+                    <Flame className="h-4 w-4 text-destructive" />
+                    {t("promo_settings")}
+                  </h4>
                 </div>
-                <div className="space-y-2">
-                  <Label>{t("promo_label")}</Label>
-                  <Input
-                    value={editFormData.promo_label}
-                    onChange={(e) => setEditFormData({ ...editFormData, promo_label: e.target.value })}
-                    placeholder={t("promo_label_placeholder")}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-3">
                   <div className="space-y-2">
-                    <Label>{t("promo_start")}</Label>
+                    <Label>{t("promo_price")}</Label>
                     <Input
-                      type="datetime-local"
-                      value={editFormData.promo_start}
-                      onChange={(e) => setEditFormData({ ...editFormData, promo_start: e.target.value })}
+                      type="number"
+                      step="0.001"
+                      value={editFormData.promo_price}
+                      onChange={(e) => setEditFormData({ ...editFormData, promo_price: e.target.value })}
+                      placeholder={t("promo_price")}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("promo_end")}</Label>
+                    <Label>{t("promo_label")}</Label>
                     <Input
-                      type="datetime-local"
-                      value={editFormData.promo_end}
-                      onChange={(e) => setEditFormData({ ...editFormData, promo_end: e.target.value })}
+                      value={editFormData.promo_label}
+                      onChange={(e) => setEditFormData({ ...editFormData, promo_label: e.target.value })}
+                      placeholder={t("promo_label_placeholder")}
                     />
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingItem(null)}>{t("cancel")}</Button>
