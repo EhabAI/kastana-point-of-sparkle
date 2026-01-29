@@ -21,6 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useBranchMenuItems, useUpdateBranchMenuItem, useBulkUpdateBranchMenuItems, useCopyBranchPrices, BranchMenuItemWithBase, PromoStatus } from "@/hooks/useBranchMenuItems";
 import { useBranchContext } from "@/contexts/BranchContext";
@@ -42,9 +48,12 @@ import {
   Search,
   Clock,
   Ban,
-  CalendarClock
+  CalendarClock,
+  Info,
+  CalendarDays
 } from "lucide-react";
 import { formatJOD } from "@/lib/utils";
+import { format } from "date-fns";
 
 interface BranchMenuItemsManagerProps {
   restaurantId: string;
@@ -405,7 +414,7 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                                   onCheckedChange={() => toggleSelectItem(item.menu_item_id)}
                                 />
                                 <div>
-                                <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-2 flex-wrap">
                                     <span className="font-medium">{item.base_name}</span>
                                     {getPromoStatusBadge(item.promo_status)}
                                     {item.promo_status === 'active' && item.promo_label && (
@@ -425,6 +434,19 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                                       <Badge variant="outline" className="text-xs">{t("custom_price")}</Badge>
                                     )}
                                   </div>
+                                  {/* Show promo time range if scheduled or expired */}
+                                  {(item.promo_status === 'scheduled' || item.promo_status === 'expired' || item.promo_status === 'active') && (item.promo_start || item.promo_end) && (
+                                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                                      <CalendarDays className="h-3 w-3" />
+                                      {item.promo_start && (
+                                        <span>{format(new Date(item.promo_start), "dd/MM/yyyy HH:mm")}</span>
+                                      )}
+                                      {item.promo_start && item.promo_end && <span>→</span>}
+                                      {item.promo_end && (
+                                        <span>{format(new Date(item.promo_end), "dd/MM/yyyy HH:mm")}</span>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                               <div className="flex items-center gap-3">
@@ -480,10 +502,25 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
               />
             </div>
             <div className="border-t pt-4">
-              <h4 className="font-medium mb-3 flex items-center gap-2">
-                <Flame className="h-4 w-4 text-destructive" />
-                {t("promo_settings")}
-              </h4>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium flex items-center gap-2">
+                  <Flame className="h-4 w-4 text-destructive" />
+                  {t("promo_settings")}
+                </h4>
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
+                        <Clock className="h-4 w-4" />
+                        <Info className="h-3 w-3" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="max-w-[250px] text-xs">
+                      <p>{t("promo_visibility_hint")}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <div className="space-y-3">
                 {/* Promo Enabled Toggle */}
                 <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
@@ -549,7 +586,22 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
       <Dialog open={promoDialogOpen} onOpenChange={setPromoDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("apply_promo")} - {selectedItems.length} {t("selected")}</DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle>{t("apply_promo")} - {selectedItems.length} {t("selected")}</DialogTitle>
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors me-6">
+                      <Clock className="h-4 w-4" />
+                      <Info className="h-3 w-3" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="left" className="max-w-[250px] text-xs">
+                    <p>{t("promo_visibility_hint")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </DialogHeader>
           <div className="space-y-4 py-4">
             {/* Promo Enabled Toggle */}

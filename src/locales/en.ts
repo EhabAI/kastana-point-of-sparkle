@@ -1905,4 +1905,7 @@ export default {
   // Promo Enable Toggle
   promo_enabled: "Enable Offer",
   promo_enabled_desc: "Toggle to enable or disable this offer regardless of time",
+
+  // Promo Visibility Hint
+  promo_visibility_hint: "Offer visibility is automatically controlled by date and status. Active offers appear in POS and QR Menu.",
 } as const;
