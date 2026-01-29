@@ -608,6 +608,8 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          promo_end: string | null
+          promo_start: string | null
           restaurant_id: string
           sort_order: number
           updated_at: string
@@ -617,6 +619,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          promo_end?: string | null
+          promo_start?: string | null
           restaurant_id: string
           sort_order?: number
           updated_at?: string
@@ -626,6 +630,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          promo_end?: string | null
+          promo_start?: string | null
           restaurant_id?: string
           sort_order?: number
           updated_at?: string

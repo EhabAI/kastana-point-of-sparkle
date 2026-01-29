@@ -14,6 +14,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -41,7 +48,11 @@ import {
   Star,
   Package,
   Search,
-  AlertTriangle
+  AlertTriangle,
+  Clock,
+  CalendarClock,
+  Info,
+  Ban
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -315,7 +326,7 @@ function CategoriesSection({
   isLoading,
 }: {
   restaurantId: string;
-  categories: { id: string; name: string; is_active: boolean; sort_order: number }[];
+  categories: { id: string; name: string; is_active: boolean; sort_order: number; promo_start?: string | null; promo_end?: string | null; promo_status?: string }[];
   isLoading: boolean;
 }) {
   const createCategory = useCreateCategory();
@@ -326,8 +337,48 @@ function CategoriesSection({
 
   const [newCategoryName, setNewCategoryName] = useState("");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<{ id: string; name: string } | null>(null);
+  const [editingCategory, setEditingCategory] = useState<{ 
+    id: string; 
+    name: string;
+    promo_start: string;
+    promo_end: string;
+    promo_status: string;
+  } | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+
+  // Check if a category is the "العروض" (Offers) category
+  const isOfferCategory = (name: string) => {
+    return name === "العروض" || name.toLowerCase() === "offers";
+  };
+
+  // Get promo status badge for offers category
+  const getCategoryPromoStatusBadge = (status: string) => {
+    switch (status) {
+      case 'active':
+        return (
+          <Badge variant="destructive" className="text-xs gap-1">
+            <Flame className="h-3 w-3" />
+            {t("promo_status_active")}
+          </Badge>
+        );
+      case 'scheduled':
+        return (
+          <Badge variant="default" className="text-xs gap-1 bg-blue-500 hover:bg-blue-600">
+            <CalendarClock className="h-3 w-3" />
+            {t("promo_status_scheduled")}
+          </Badge>
+        );
+      case 'expired':
+        return (
+          <Badge variant="secondary" className="text-xs gap-1 text-muted-foreground">
+            <Clock className="h-3 w-3" />
+            {t("promo_status_expired")}
+          </Badge>
+        );
+      default:
+        return null;
+    }
+  };
 
   const handleCreateCategory = async () => {
     if (!newCategoryName.trim()) {
@@ -349,7 +400,12 @@ function CategoriesSection({
       return;
     }
     try {
-      await updateCategory.mutateAsync({ id: editingCategory.id, name: editingCategory.name });
+      await updateCategory.mutateAsync({ 
+        id: editingCategory.id, 
+        name: editingCategory.name,
+        promo_start: editingCategory.promo_start || null,
+        promo_end: editingCategory.promo_end || null,
+      });
       setEditingCategory(null);
     } catch {
       toast({ title: t("error_unexpected"), variant: "destructive" });
@@ -372,6 +428,16 @@ function CategoriesSection({
         toast({ title: t("error_unexpected"), variant: "destructive" });
       }
     }
+  };
+
+  const openEditDialog = (category: typeof categories[0]) => {
+    setEditingCategory({
+      id: category.id,
+      name: category.name,
+      promo_start: category.promo_start ? new Date(category.promo_start).toISOString().slice(0, 16) : "",
+      promo_end: category.promo_end ? new Date(category.promo_end).toISOString().slice(0, 16) : "",
+      promo_status: category.promo_status || 'none',
+    });
   };
 
   return (
@@ -445,10 +511,19 @@ function CategoriesSection({
               <div key={category.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg transition-all duration-200 hover:shadow-md hover:bg-muted/70 border border-transparent hover:border-primary/20">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <FolderOpen className="h-4 w-4 text-primary" />
+                    {isOfferCategory(category.name) ? (
+                      <Flame className="h-4 w-4 text-destructive" />
+                    ) : (
+                      <FolderOpen className="h-4 w-4 text-primary" />
+                    )}
                   </div>
                   <div>
-                    <p className="font-medium text-foreground">{category.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-foreground">{category.name}</p>
+                      {isOfferCategory(category.name) && category.promo_status && category.promo_status !== 'none' && (
+                        getCategoryPromoStatusBadge(category.promo_status)
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground">{category.is_active ? t("active") : t("inactive")}</p>
                   </div>
                 </div>
@@ -465,15 +540,25 @@ function CategoriesSection({
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => setEditingCategory({ id: category.id, name: category.name })}
+                        onClick={() => openEditDialog(category)}
                       >
                         <Edit2 className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>{t("edit_category")}</DialogTitle>
-                        <DialogDescription>{t("update_category")}</DialogDescription>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <DialogTitle>{t("edit_category")}</DialogTitle>
+                            <DialogDescription>{t("update_category")}</DialogDescription>
+                          </div>
+                          {/* Show status badge for offers category */}
+                          {isOfferCategory(category.name) && editingCategory?.promo_status && editingCategory.promo_status !== 'none' && (
+                            <div className="me-6">
+                              {getCategoryPromoStatusBadge(editingCategory.promo_status)}
+                            </div>
+                          )}
+                        </div>
                       </DialogHeader>
                       <div className="space-y-4 py-4">
                         <div className="space-y-2">
@@ -486,6 +571,56 @@ function CategoriesSection({
                             }
                           />
                         </div>
+                        
+                        {/* Offer Duration - Only for Offers category */}
+                        {isOfferCategory(category.name) && (
+                          <div className="border-t pt-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="font-medium flex items-center gap-2">
+                                <Flame className="h-4 w-4 text-destructive" />
+                                {t("offers_duration")}
+                              </h4>
+                              <TooltipProvider delayDuration={200}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button type="button" className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
+                                      <Clock className="h-4 w-4" />
+                                      <Info className="h-3 w-3" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="left" className="max-w-[250px] text-xs">
+                                    <p>{t("category_offers_visibility_hint")}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <div className="space-y-3">
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-2">
+                                  <Label>{t("offer_start_date")}</Label>
+                                  <Input
+                                    type="datetime-local"
+                                    value={editingCategory?.promo_start || ""}
+                                    onChange={(e) =>
+                                      setEditingCategory((prev) => (prev ? { ...prev, promo_start: e.target.value } : null))
+                                    }
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label>{t("offer_end_date")}</Label>
+                                  <Input
+                                    type="datetime-local"
+                                    value={editingCategory?.promo_end || ""}
+                                    onChange={(e) =>
+                                      setEditingCategory((prev) => (prev ? { ...prev, promo_end: e.target.value } : null))
+                                    }
+                                  />
+                                </div>
+                              </div>
+                              <p className="text-xs text-muted-foreground">{t("category_offers_dates_hint")}</p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <DialogFooter>
                         <Button variant="outline" onClick={() => setEditingCategory(null)}>

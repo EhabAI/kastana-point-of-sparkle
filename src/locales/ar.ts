@@ -1919,7 +1919,12 @@ export default {
   offer_visibility_hint: "يتم إظهار أو إخفاء العرض تلقائيًا حسب المدة والتفعيل",
   enable_offer: "تفعيل العرض",
   enable_offer_desc: "عند التعطيل، سيُخفى هذا العرض من الكاشير وقائمة QR",
-  offer_start_date: "تاريخ البداية",
-  offer_end_date: "تاريخ الانتهاء",
+  offer_start_date: "يبدأ من",
+  offer_end_date: "ينتهي في",
   offer_dates_optional_hint: "اتركها فارغة لعرض بدون مدة محددة",
+  
+  // Category-Level Offer Time Controls
+  offers_duration: "مدة العروض",
+  category_offers_visibility_hint: "يتم إظهار أو إخفاء جميع العروض تلقائيًا حسب هذه المدة",
+  category_offers_dates_hint: "اتركها فارغة لإظهار العروض عند تفعيل التصنيف",
 } as const;
