@@ -1022,49 +1022,70 @@ export default function Menu() {
         </div>
       </div>
 
-      {/* Order Confirmation Bottom Sheet */}
+      {/* Order Confirmation Bottom Sheet - Enhanced */}
       <Sheet open={showConfirm} onOpenChange={setShowConfirm}>
         <SheetContent
           side="bottom"
           className="rounded-t-2xl max-h-[80vh] overflow-auto"
           dir={isRTL ? "rtl" : "ltr"}
         >
-          <SheetHeader>
-            <SheetTitle>{t("menu_order_summary")}</SheetTitle>
-            <SheetDescription>
-              {t("menu_table")}: {tableCode}
+          <SheetHeader className="pb-2">
+            <SheetTitle className="text-lg">{t("menu_order_summary")}</SheetTitle>
+            <SheetDescription className="text-xs">
+              {t("menu_table")}: <span className="font-medium text-foreground/80">{tableCode}</span>
             </SheetDescription>
           </SheetHeader>
 
-          <div className="mt-4 space-y-3">
-            {cart.map((item, index) => (
-              <div key={index} className="flex justify-between items-start p-3 bg-muted/50 rounded-lg">
-                <div className="flex-1">
-                  <p className="font-medium">
-                    {item.name} x{item.quantity}
-                  </p>
-                  {item.notes && <p className="text-sm text-muted-foreground">{item.notes}</p>}
+          <div className="mt-4 space-y-4">
+            {/* Item List - Refined visual hierarchy */}
+            <div className="space-y-0">
+              {cart.map((item, index) => (
+                <div 
+                  key={index} 
+                  className={`group flex justify-between items-center py-3 px-1 ${
+                    index !== cart.length - 1 ? "border-b border-border/30" : ""
+                  }`}
+                >
+                  {/* Item info - primary focus */}
+                  <div className="flex-1 min-w-0 pe-3">
+                    <div className="flex items-baseline gap-2">
+                      {/* Item name - primary */}
+                      <p className="font-semibold text-foreground text-[15px] leading-snug line-clamp-1">
+                        {translateItemName(item.name, language)}
+                      </p>
+                      {/* Quantity - secondary, muted */}
+                      <span className="text-xs text-muted-foreground/70 flex-shrink-0">
+                        ×{item.quantity}
+                      </span>
+                    </div>
+                    {/* Notes if any */}
+                    {item.notes && (
+                      <p className="text-xs text-muted-foreground/60 mt-0.5 line-clamp-1">{item.notes}</p>
+                    )}
+                  </div>
+                  {/* Price + Delete */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-sm text-muted-foreground tabular-nums">
+                      {formatJOD(item.price * item.quantity)}
+                    </span>
+                    {/* Delete button - reduced weight, stronger on hover */}
+                    <button
+                      type="button"
+                      onClick={() => removeFromCart(index)}
+                      className="p-1.5 -me-1 rounded-md text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 active:scale-95 transition-all duration-150"
+                      aria-label={language === "ar" ? "حذف" : "Remove"}
+                    >
+                      <span className="text-sm">✕</span>
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">
-                    {formatJOD(item.price * item.quantity)} {t("menu_currency")}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeFromCart(index)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    ✕
-                  </Button>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
 
-            {/* Customer phone input (optional) */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <Phone className="h-4 w-4" />
+            {/* Customer phone input - calmer styling */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                <Phone className="h-3.5 w-3.5" />
                 {t("menu_phone_label") || "Phone Number (Optional)"}
               </label>
               <Input
@@ -1075,7 +1096,7 @@ export default function Menu() {
                   setPhoneError(false);
                 }}
                 placeholder={t("menu_phone_placeholder") || "+962 7XX XXX XXX"}
-                className={phoneError ? "border-destructive" : ""}
+                className={`h-10 border-border/50 bg-background focus:border-primary/50 ${phoneError ? "border-destructive" : ""}`}
                 dir="ltr"
               />
               {phoneError && (
@@ -1085,31 +1106,45 @@ export default function Menu() {
               )}
             </div>
 
-            {/* Order-level notes */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t("menu_order_notes")}</label>
+            {/* Order-level notes - reduced placeholder opacity */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">{t("menu_order_notes")}</label>
               <Textarea
                 value={orderNotes}
                 onChange={(e) => setOrderNotes(e.target.value.slice(0, 250))}
                 placeholder={t("menu_order_notes_placeholder")}
-                className="resize-none"
+                className="resize-none border-border/50 bg-background focus:border-primary/50 placeholder:opacity-50"
                 rows={2}
                 maxLength={250}
               />
-              <p className="text-xs text-muted-foreground text-end">{orderNotes.length}/250</p>
+              <p className="text-[10px] text-muted-foreground/50 text-end tabular-nums">{orderNotes.length}/250</p>
             </div>
 
-            <div className="border-t pt-3 flex justify-between items-center font-bold text-lg">
-              <span>{t("total")}</span>
-              <span>
-                {formatJOD(cartTotal)} {t("menu_currency")}
-              </span>
+            {/* Total Section - Emphasized with separation */}
+            <div className="pt-3 mt-2 border-t-2 border-foreground/10 bg-muted/30 -mx-4 px-4 py-3 rounded-b-lg">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-muted-foreground">{t("total")}</span>
+                <span className="text-xl font-bold text-foreground tabular-nums">
+                  {formatJOD(cartTotal)} <span className="text-sm font-medium">{t("menu_currency")}</span>
+                </span>
+              </div>
             </div>
 
-            <Button className="w-full gap-2" onClick={handleConfirmOrder} disabled={orderLoading}>
-              <Send className="h-4 w-4" />
-              {t("menu_send_to_cashier")}
-            </Button>
+            {/* Submit Button - Softer, with micro-copy */}
+            <div className="space-y-2 pt-1">
+              <Button 
+                className="w-full gap-2 h-12 text-base font-semibold bg-primary/90 hover:bg-primary active:scale-[0.98] transition-all duration-150"
+                onClick={handleConfirmOrder} 
+                disabled={orderLoading}
+              >
+                <Send className="h-4 w-4" />
+                {t("menu_send_to_cashier")}
+              </Button>
+              {/* Micro-copy trust signal */}
+              <p className="text-[10px] text-center text-muted-foreground/60">
+                {language === "ar" ? "سيتم إرسال الطلب مباشرة إلى المطبخ" : "Order will be sent directly to the kitchen"}
+              </p>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
