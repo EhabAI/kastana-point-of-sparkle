@@ -37,7 +37,7 @@ export function MenuItemCard({
   showCategoryName = false,
   isInOrder = false
 }: MenuItemCardProps) {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   
   // Detect offer/deal (via is_offer, promo_price, or name keywords)
   const hasPromo = item.promo_price != null && item.promo_price > 0;
@@ -51,6 +51,35 @@ export function MenuItemCard({
       onToggleFavorite(item.id, !item.is_favorite);
     }
   };
+
+  // Determine tooltip content and styling based on item state
+  const getTooltipConfig = () => {
+    if (isOffer) {
+      return {
+        text: item.promo_label || t("item_tooltip_offer"),
+        className: "bg-destructive text-destructive-foreground",
+      };
+    }
+    if (isInOrder) {
+      return {
+        text: t("item_tooltip_selected"),
+        className: "bg-primary text-primary-foreground",
+      };
+    }
+    if (item.is_favorite) {
+      return {
+        text: t("item_tooltip_favorite"),
+        className: "bg-warning text-warning-foreground",
+      };
+    }
+    // Regular item
+    return {
+      text: t("item_tooltip_regular"),
+      className: "bg-muted text-muted-foreground border border-border",
+    };
+  };
+
+  const tooltipConfig = getTooltipConfig();
 
   const cardContent = (
     <button
@@ -111,19 +140,24 @@ export function MenuItemCard({
     </button>
   );
 
-  // Wrap offer items with tooltip
-  if (isOffer && item.is_available) {
+  // Wrap all items with tooltip (only for available items)
+  if (item.is_available) {
     return (
-      <TooltipProvider delayDuration={300}>
+      <TooltipProvider delayDuration={400}>
         <Tooltip>
           <TooltipTrigger asChild>
             {cardContent}
           </TooltipTrigger>
           <TooltipContent 
             side="top" 
-            className="bg-destructive text-destructive-foreground text-xs font-medium"
+            className={cn(
+              "text-xs font-semibold px-2.5 py-1 rounded-md shadow-md",
+              "animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-1",
+              "duration-100",
+              tooltipConfig.className
+            )}
           >
-            {item.promo_label || (language === "ar" ? "عرض خاص" : "Special Offer")}
+            {tooltipConfig.text}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

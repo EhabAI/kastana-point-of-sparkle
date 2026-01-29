@@ -1889,4 +1889,10 @@ export default {
   item_color_selected: "Currently selected item",
   item_color_regular: "Regular item",
   item_color_favorite: "Favorite item",
+
+  // POS Item Tooltips (per-card hover)
+  item_tooltip_offer: "Special Offer",
+  item_tooltip_selected: "Selected Item",
+  item_tooltip_regular: "Regular Price",
+  item_tooltip_favorite: "Favorite",
 } as const;
