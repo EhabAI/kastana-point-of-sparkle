@@ -109,6 +109,7 @@ export type Database = {
           is_available: boolean
           menu_item_id: string
           price: number | null
+          promo_enabled: boolean
           promo_end: string | null
           promo_label: string | null
           promo_price: number | null
@@ -124,6 +125,7 @@ export type Database = {
           is_available?: boolean
           menu_item_id: string
           price?: number | null
+          promo_enabled?: boolean
           promo_end?: string | null
           promo_label?: string | null
           promo_price?: number | null
@@ -139,6 +141,7 @@ export type Database = {
           is_available?: boolean
           menu_item_id?: string
           price?: number | null
+          promo_enabled?: boolean
           promo_end?: string | null
           promo_label?: string | null
           promo_price?: number | null
