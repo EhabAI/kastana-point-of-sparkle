@@ -92,6 +92,7 @@ import { WhatChangedCard } from "@/components/owner/WhatChangedCard";
 
 
 import { InventoryRiskCard } from "@/components/owner/InventoryRiskCard";
+import { OffersStatusCard } from "@/components/owner/OffersStatusCard";
 import { useRestaurantTables } from "@/hooks/useRestaurantTables";
 import { useCashiers } from "@/hooks/useCashiers";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
@@ -251,6 +252,7 @@ export default function OwnerAdmin() {
                       restaurantId={restaurant.id} 
                       inventoryEnabled={inventoryEnabled}
                     />
+                    <OffersStatusCard restaurantId={restaurant.id} />
                   </div>
                 </div>
                 {/* Action cards row */}

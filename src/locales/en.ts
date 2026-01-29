@@ -6,6 +6,20 @@ export default {
   status_ready: "Active – Ready",
   status_setup_explanation: "The restaurant is active, but some features are not enabled yet (such as subscription or add-ons).",
   
+  // Offers Status Card
+  offers_status_title: "Offers Status",
+  offers_status_tooltip: "View the current status of your offers category without going to menu management",
+  offer_status_active: "Active Offer",
+  offer_status_scheduled: "Scheduled Offer",
+  offer_status_expired: "Offer Expired",
+  offer_status_none: "No Active Offers",
+  offer_status_disabled: "Offers Disabled",
+  starts_from: "Starts from",
+  ends_at: "Ends at",
+  offers_auto_visible_hint: "All offers are automatically active during this period",
+  no_offers_category_hint: "No offers category found",
+  offers_always_visible_hint: "Offers are always visible when category is enabled",
+
   // System Health Snapshot
   health_title: "Health",
   health_restaurant: "Restaurant",
