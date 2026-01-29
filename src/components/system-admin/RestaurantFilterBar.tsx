@@ -52,7 +52,7 @@ export function RestaurantFilterBar({
   };
 
   return (
-    <div className="space-y-3 p-3 bg-muted/30 rounded-lg border">
+    <div className="space-y-3 p-3 bg-muted/20 rounded-lg border border-border/60">
       {/* Row 1: Search + Dropdowns */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Search */}
@@ -63,16 +63,16 @@ export function RestaurantFilterBar({
             placeholder={t('sa_filter_search_placeholder')}
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-8 h-9"
+            className="pl-8 h-9 border-border/60 focus:border-border"
           />
         </div>
 
         {/* Status Filter */}
         <Select value={statusFilter} onValueChange={(v) => onStatusChange(v as StatusFilter)}>
-          <SelectTrigger className="w-[130px] h-9">
+          <SelectTrigger className="w-[130px] h-9 border-border/60 hover:border-border">
             <SelectValue placeholder={t('status')} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="border-border/60">
             <SelectItem value="all">{t('all')}</SelectItem>
             <SelectItem value="active">{t('active')}</SelectItem>
             <SelectItem value="inactive">{t('inactive')}</SelectItem>
@@ -81,10 +81,10 @@ export function RestaurantFilterBar({
 
         {/* Subscription Filter */}
         <Select value={subscriptionFilter} onValueChange={(v) => onSubscriptionChange(v as SubscriptionFilter)}>
-          <SelectTrigger className="w-[150px] h-9">
+          <SelectTrigger className="w-[150px] h-9 border-border/60 hover:border-border">
             <SelectValue placeholder={t('sub_subscription')} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="border-border/60">
             <SelectItem value="all">{t('all')}</SelectItem>
             <SelectItem value="active">{t('sa_sub_active')}</SelectItem>
             <SelectItem value="expired">{t('sa_sub_expired')}</SelectItem>
@@ -94,10 +94,10 @@ export function RestaurantFilterBar({
 
         {/* Sort */}
         <Select value={sortOption} onValueChange={(v) => onSortChange(v as SortOption)}>
-          <SelectTrigger className="w-[160px] h-9">
+          <SelectTrigger className="w-[160px] h-9 border-border/60 hover:border-border">
             <SelectValue placeholder={t('sa_sort_by')} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="border-border/60">
             <SelectItem value="newest">{t('sa_sort_newest')}</SelectItem>
             <SelectItem value="oldest">{t('sa_sort_oldest')}</SelectItem>
             <SelectItem value="last_activity">{t('sa_sort_last_activity')}</SelectItem>
@@ -122,7 +122,7 @@ export function RestaurantFilterBar({
                 transition-all border
                 ${isActive 
                   ? 'bg-primary text-primary-foreground border-primary' 
-                  : 'bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-foreground'
+                  : 'bg-background text-muted-foreground border-border/60 hover:border-border hover:text-foreground'
                 }
               `}
             >
