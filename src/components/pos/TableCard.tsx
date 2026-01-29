@@ -259,9 +259,10 @@ export function TableCard({
   );
 }
 
-// Simplified table visualization without chair dots
+// Table visualization with chair indicators
 function TableWithChairs({ 
   tableName, 
+  capacity,
   tableStatus,
   orderNumber 
 }: { 
@@ -282,12 +283,69 @@ function TableWithChairs({
     }
   };
 
+  // Chair indicator color based on status (lighter version)
+  const getChairColor = () => {
+    switch (tableStatus) {
+      case "active":
+        return "bg-blue-300/70 dark:bg-blue-500/50";
+      case "held":
+        return "bg-amber-300/70 dark:bg-amber-500/50";
+      case "free":
+      default:
+        return "bg-emerald-300/70 dark:bg-emerald-500/50";
+    }
+  };
+
+  // Calculate chair positions in a circular layout
+  const renderChairs = () => {
+    if (!capacity || capacity <= 0) return null;
+    
+    const chairs = [];
+    const angleStep = 360 / capacity;
+    const radius = 48; // Distance from center to chair
+    const tableSize = 80; // Table is 80px (w-20)
+    const chairSize = 8; // Small circle size
+    
+    for (let i = 0; i < capacity; i++) {
+      // Start from top (-90 degrees) and go clockwise
+      const angleDeg = -90 + (i * angleStep);
+      const angleRad = (angleDeg * Math.PI) / 180;
+      
+      // Calculate position relative to center
+      const x = Math.cos(angleRad) * radius;
+      const y = Math.sin(angleRad) * radius;
+      
+      chairs.push(
+        <div
+          key={i}
+          className={cn(
+            "absolute rounded-full",
+            getChairColor(),
+            "animate-[chair-pop_150ms_ease-out_forwards]"
+          )}
+          style={{
+            width: chairSize,
+            height: chairSize,
+            left: `calc(50% + ${x}px - ${chairSize / 2}px)`,
+            top: `calc(50% + ${y}px - ${chairSize / 2}px)`,
+            animationDelay: `${i * 20}ms`,
+          }}
+        />
+      );
+    }
+    
+    return chairs;
+  };
+
   return (
-    <div className="flex items-center justify-center">
+    <div className="relative flex items-center justify-center" style={{ width: 100, height: 100 }}>
+      {/* Chair indicators around the table */}
+      {renderChairs()}
+      
       {/* Square Table Surface */}
       <div
         className={cn(
-          "w-20 h-20 rounded-xl flex flex-col items-center justify-center border-2 shadow-sm",
+          "w-20 h-20 rounded-xl flex flex-col items-center justify-center border-2 shadow-sm z-10",
           getTableSurfaceStyles()
         )}
       >
