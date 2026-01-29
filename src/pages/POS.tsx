@@ -2097,16 +2097,61 @@ export default function POS() {
 
               {/* Menu Items */}
               <div className="flex-1 bg-muted/30 flex flex-col">
-                {/* B1: Search Input */}
-                <div className="p-2 border-b bg-card">
+                {/* B1: Search Input with Color Legend */}
+                <div className="p-2 border-b bg-card flex items-center gap-2">
                   <input
                     ref={searchInputRef}
                     type="text"
                     value={menuSearch}
                     onChange={(e) => setMenuSearch(e.target.value)}
                     placeholder={t("search_items_placeholder")}
-                    className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="flex-1 px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                   />
+                  {/* Item Color Legend Tooltip */}
+                  <TooltipProvider delayDuration={200}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-help"
+                          aria-label={t("item_color_legend")}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M12 16v-4" />
+                            <path d="M12 8h.01" />
+                          </svg>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent 
+                        side="bottom" 
+                        align="end"
+                        className="bg-popover text-popover-foreground border shadow-lg rounded-lg p-3 max-w-xs z-50"
+                      >
+                        <div className="space-y-2 text-xs">
+                          <p className="font-semibold text-sm mb-2">
+                            {t("item_color_legend_title")}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <span className="w-3 h-3 rounded-full bg-destructive/80 shrink-0" />
+                            <span>{t("item_color_offer")}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-3 h-3 rounded-full bg-primary/80 shrink-0 ring-1 ring-primary/40" />
+                            <span>{t("item_color_selected")}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-3 h-3 rounded-full bg-card border border-border shrink-0" />
+                            <span>{t("item_color_regular")}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-warning shrink-0">⭐</span>
+                            <span>{t("item_color_favorite")}</span>
+                          </div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
                 <div className="flex-1 overflow-hidden">
                   <MenuItemGrid

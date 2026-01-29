@@ -1886,4 +1886,12 @@ export default {
   module_desc_tables: "إدارة الطاولات وتتبع حالتها.",
   module_desc_qr_orders: "استلام ومراجعة طلبات العملاء عبر QR.",
   module_desc_menu: "إدارة التصنيفات والأصناف والأسعار.",
+
+  // POS Item Color Legend
+  item_color_legend: "دلالات ألوان الأصناف",
+  item_color_legend_title: "دلالات ألوان الأصناف:",
+  item_color_offer: "صنف عليه عرض أو سعر خاص",
+  item_color_selected: "الصنف المحدد حاليًا",
+  item_color_regular: "صنف عادي بالسعر الأساسي",
+  item_color_favorite: "صنف مفضل",
 } as const;
