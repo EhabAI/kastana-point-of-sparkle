@@ -69,29 +69,7 @@ export default function KDS() {
     : kdsFetched && !kdsLoading && typeof kdsEnabled === "boolean";
   const dataReady = restaurantIdResolved && kdsFlagResolved;
 
-  // IMPORTANT: Never show "disabled" while data is incomplete.
-  if (!roleResolved) {
-    return null;
-  }
-
-  // SECURITY: Redirect denied roles as soon as role is known (no feature-flag decisions needed)
-  if (isDeniedRole) {
-    if (role === "cashier") return <Navigate to="/pos" replace />;
-    if (role === "system_admin") return <Navigate to="/system-admin" replace />;
-    return <Navigate to="/login" replace />;
-  }
-
-  // SECURITY: Require a valid allowed role
-  if (!isAllowedRole) {
-    return <Navigate to="/login" replace />;
-  }
-
-  // Wait for kitchen session + flags before making any enabled/disabled decision.
-  if (!dataReady) {
-    return null;
-  }
-
-  // SECURITY: Log access violations
+  // SECURITY: Log access violations (useEffect MUST be before any returns)
   useEffect(() => {
     if (!dataReady) return;
     
@@ -133,6 +111,28 @@ export default function KDS() {
     isAllowedRole, 
     auditLog
   ]);
+
+  // IMPORTANT: Never show "disabled" while data is incomplete.
+  if (!roleResolved) {
+    return null;
+  }
+
+  // SECURITY: Redirect denied roles as soon as role is known (no feature-flag decisions needed)
+  if (isDeniedRole) {
+    if (role === "cashier") return <Navigate to="/pos" replace />;
+    if (role === "system_admin") return <Navigate to="/system-admin" replace />;
+    return <Navigate to="/login" replace />;
+  }
+
+  // SECURITY: Require a valid allowed role
+  if (!isAllowedRole) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Wait for kitchen session + flags before making any enabled/disabled decision.
+  if (!dataReady) {
+    return null;
+  }
 
   // SECURITY: Require a valid restaurant ID
   if (!restaurantId) {
