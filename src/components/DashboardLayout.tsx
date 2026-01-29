@@ -2,11 +2,12 @@ import { ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useOwnerRestaurant } from '@/hooks/useRestaurants';
+import kastanaLogo from '@/assets/pos-logo-new.png';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -21,6 +22,9 @@ export function DashboardLayout({
   const { t, language } = useLanguage();
   const { data: restaurant } = useOwnerRestaurant();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  const isSystemAdmin = location.pathname === '/system-admin';
 
   const formatRole = (roleValue: string | null) => {
     if (!roleValue) return '';
@@ -52,27 +56,37 @@ export function DashboardLayout({
       <header className="sticky top-0 z-50 bg-blue-100 dark:bg-blue-900/40 backdrop-blur-sm border-b border-blue-200 dark:border-blue-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-9">
-            {/* LEFT – Logo & Restaurant Name */}
+            {/* LEFT – Logo & Restaurant Name (or Kastana Logo for System Admin) */}
             <div className="flex items-center gap-2">
-              {restaurant?.logo_url ? (
+              {isSystemAdmin ? (
                 <img 
-                  src={restaurant.logo_url} 
-                  alt={restaurant.name} 
-                  className="h-6 w-6 object-contain rounded-md"
+                  src={kastanaLogo} 
+                  alt="Kastana POS" 
+                  className="h-6 object-contain"
                 />
-              ) : restaurant?.name ? (
-                <div className="h-6 w-6 rounded-md bg-blue-600 dark:bg-blue-500 flex items-center justify-center">
-                  <span className="text-[9px] font-bold text-white">
-                    {getInitials(restaurant.name)}
-                  </span>
-                </div>
               ) : (
-                <div className="h-6 w-6 rounded-md bg-blue-200 dark:bg-blue-800" />
-              )}
-              {restaurant?.name && (
-                <span className="text-xs font-semibold text-blue-900 dark:text-blue-100 truncate max-w-[120px] sm:max-w-[200px]">
-                  {restaurant.name}
-                </span>
+                <>
+                  {restaurant?.logo_url ? (
+                    <img 
+                      src={restaurant.logo_url} 
+                      alt={restaurant.name} 
+                      className="h-6 w-6 object-contain rounded-md"
+                    />
+                  ) : restaurant?.name ? (
+                    <div className="h-6 w-6 rounded-md bg-blue-600 dark:bg-blue-500 flex items-center justify-center">
+                      <span className="text-[9px] font-bold text-white">
+                        {getInitials(restaurant.name)}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="h-6 w-6 rounded-md bg-blue-200 dark:bg-blue-800" />
+                  )}
+                  {restaurant?.name && (
+                    <span className="text-xs font-semibold text-blue-900 dark:text-blue-100 truncate max-w-[120px] sm:max-w-[200px]">
+                      {restaurant.name}
+                    </span>
+                  )}
+                </>
               )}
             </div>
 
