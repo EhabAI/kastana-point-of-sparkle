@@ -145,22 +145,7 @@ export default function OwnerAdmin() {
   return (
     <BranchProvider>
       <DashboardLayout title={t("owner_dashboard")}>
-        <div className="space-y-5 animate-fade-in">
-        {/* Restaurant Header - Minimal & Professional */}
-        <div className="flex items-center gap-3 pb-3 border-b border-border/30">
-          {restaurant.logo_url ? (
-            <img
-              src={restaurant.logo_url}
-              alt={`${restaurant.name} logo`}
-              className="w-8 h-8 object-contain rounded-lg ring-1 ring-border/30"
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center ring-1 ring-border/30">
-              <Store className="h-4 w-4 text-muted-foreground" />
-            </div>
-          )}
-          <h2 className="text-base font-semibold text-foreground tracking-tight">{restaurant.name}</h2>
-        </div>
+        <div className="space-y-4 animate-fade-in">
 
         {/* Tabbed Navigation - Professional POS-style full-width tabs */}
         <Tabs defaultValue="overview" className="w-full">
