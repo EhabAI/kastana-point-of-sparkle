@@ -164,11 +164,11 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
   
   return (
     <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800/50 border h-full">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2 pt-3 px-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
-            <div className="p-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30">
-              <CalendarIcon className="h-4 w-4 text-blue-600" />
+          <CardTitle className="text-sm flex items-center gap-2">
+            <div className="p-1 rounded-full bg-blue-100 dark:bg-blue-900/30">
+              <CalendarIcon className="h-3.5 w-3.5 text-blue-600" />
             </div>
             {t.daily_summary_title}
           </CardTitle>
@@ -178,11 +178,11 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
                 variant="outline"
                 size="sm"
                 className={cn(
-                  "h-7 px-2 text-xs bg-white dark:bg-background border-blue-200 dark:border-blue-800/50",
+                  "h-6 px-2 text-xs bg-white dark:bg-background border-blue-200 dark:border-blue-800/50",
                   !selectedDate && "text-muted-foreground"
                 )}
               >
-                <CalendarIcon className="h-3.5 w-3.5 ltr:mr-1.5 rtl:ml-1.5" />
+                <CalendarIcon className="h-3 w-3 ltr:mr-1 rtl:ml-1" />
                 {format(selectedDate, language === "ar" ? "d MMM" : "MMM d")}
               </Button>
             </PopoverTrigger>
@@ -199,14 +199,14 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
           </Popover>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-2 px-3 pb-3 pt-0">
         {/* Section 1: Operational Activity */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-blue-600">
-            <ClipboardList className="h-4 w-4" />
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-blue-600">
+            <ClipboardList className="h-3.5 w-3.5" />
             {t.daily_summary_operational_activity}
           </div>
-          <div className="space-y-1.5 text-sm ltr:pl-6 rtl:pr-6">
+          <div className="space-y-0.5 text-xs ltr:pl-5 rtl:pr-5">
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t.daily_summary_orders_count}:</span>
               <span className="font-medium">{summary.ordersCount}</span>
@@ -222,17 +222,15 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
           </div>
         </div>
         
-        <Separator />
-        
         {/* Section 2: Sales */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-blue-600">
-            <DollarSign className="h-4 w-4" />
+        <div className="space-y-1 pt-2">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-blue-600">
+            <DollarSign className="h-3.5 w-3.5" />
             {t.daily_summary_sales}
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                  <Info className="h-3 w-3 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-xs">
                   <p className="text-xs">{t.daily_summary_sales_tooltip}</p>
@@ -240,23 +238,21 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
               </Tooltip>
             </TooltipProvider>
           </div>
-          <div className="ltr:pl-6 rtl:pr-6">
-            <div className="flex justify-between text-sm">
+          <div className="ltr:pl-5 rtl:pr-5">
+            <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">{t.daily_summary_gross_sales}:</span>
               <span className="font-medium">{formatJOD(summary.grossSales)} {currency}</span>
             </div>
           </div>
         </div>
         
-        <Separator />
-        
         {/* Section 3: Refunds */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-blue-600">
-            <RotateCcw className="h-4 w-4" />
+        <div className="space-y-1 pt-2">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-blue-600">
+            <RotateCcw className="h-3.5 w-3.5" />
             {t.daily_summary_refunds}
           </div>
-          <div className="space-y-1.5 text-sm ltr:pl-6 rtl:pr-6">
+          <div className="space-y-0.5 text-xs ltr:pl-5 rtl:pr-5">
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t.daily_summary_refund_count}:</span>
               <span className="font-medium">{summary.refundCount}</span>
@@ -272,21 +268,19 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
           </div>
         </div>
         
-        <Separator />
-        
         {/* Section 4: Revenue */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-blue-600">
-            <Wallet className="h-4 w-4" />
+        <div className="space-y-1 pt-2">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-blue-600">
+            <Wallet className="h-3.5 w-3.5" />
             {t.daily_summary_revenue}
           </div>
-          <div className="ltr:pl-6 rtl:pr-6 space-y-2">
-            <p className="text-xs text-muted-foreground">
+          <div className="ltr:pl-5 rtl:pr-5 space-y-1">
+            <p className="text-[10px] text-muted-foreground leading-tight">
               {t.daily_summary_revenue_formula}
             </p>
             <div className="flex justify-between items-center">
-              <span className="text-muted-foreground text-sm">{t.daily_summary_net_revenue}:</span>
-              <span className={`text-lg font-bold ${getRevenueColor()}`}>
+              <span className="text-muted-foreground text-xs">{t.daily_summary_net_revenue}:</span>
+              <span className={`text-base font-bold ${getRevenueColor()}`}>
                 {summary.netRevenue < 0 ? "-" : ""}{formatJOD(Math.abs(summary.netRevenue))} {currency}
               </span>
             </div>

@@ -129,8 +129,8 @@ export function InventoryRiskCard({
   if (isLoading) {
     return (
       <Card className="bg-amber-50/50 dark:bg-amber-950/10 border-amber-100 dark:border-amber-900/30">
-        <CardContent className="p-3">
-          <Skeleton className="h-10 w-full" />
+        <CardContent className="p-2">
+          <Skeleton className="h-8 w-full" />
         </CardContent>
       </Card>
     );
@@ -152,7 +152,6 @@ export function InventoryRiskCard({
       tooltip: t("inv_low_stock_desc"),
       count: lowStockCount,
       color: "text-amber-600/80",
-      bgColor: "bg-amber-100/50 dark:bg-amber-900/20",
       onClick: onLowStockClick,
     },
     {
@@ -161,7 +160,6 @@ export function InventoryRiskCard({
       tooltip: t("inv_near_reorder_tooltip"),
       count: nearReorderCount,
       color: "text-amber-500/70",
-      bgColor: "bg-amber-100/40 dark:bg-amber-900/15",
       onClick: onLowStockClick,
     },
     {
@@ -170,7 +168,6 @@ export function InventoryRiskCard({
       tooltip: t("inv_negative_stock_tooltip"),
       count: negativeStockCount,
       color: "text-amber-600/80",
-      bgColor: "bg-amber-100/50 dark:bg-amber-900/20",
       onClick: onNegativeStockClick,
     },
     {
@@ -179,59 +176,52 @@ export function InventoryRiskCard({
       tooltip: t("inv_items_without_recipe_tooltip"),
       count: withoutRecipeCount,
       color: "text-amber-500/70",
-      bgColor: "bg-amber-100/40 dark:bg-amber-900/15",
       onClick: onWithoutRecipeClick,
     },
   ].filter((row) => row.count > 0);
 
   return (
     <Card className="bg-amber-50/50 dark:bg-amber-950/10 border-amber-100 dark:border-amber-900/30">
-      <CardHeader className="pb-1.5 pt-3 px-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Package className="h-4 w-4 text-amber-500/70" />
-            <CardTitle className="text-sm font-semibold text-amber-700/80 dark:text-amber-400/80">
+      <CardContent className="p-2">
+        {/* Single-row flex: title left, items right */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Package className="h-3.5 w-3.5 text-amber-500/70" />
+            <span className="text-xs font-semibold text-amber-700/80 dark:text-amber-400/80">
               {t("inventory_risk_title")}
-            </CardTitle>
+            </span>
+            <span className="text-[11px] text-amber-600/60">
+              ({totalItems})
+            </span>
           </div>
-          <span className="text-[13px] font-medium text-amber-600/60">
-            {totalItems} {language === "ar" ? "صنف" : "items"}
-          </span>
-        </div>
-      </CardHeader>
-      <CardContent className="px-3 pb-3 pt-0">
-        <div className="space-y-0">
-          <TooltipProvider>
-            {rows.map((row, index) => {
-              const Icon = row.icon;
-              return (
-                <Tooltip key={index}>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={row.onClick}
-                      disabled={!row.onClick}
-                      className={`w-full flex items-center justify-between py-0.5 px-1 rounded transition-colors ${
-                        row.onClick
-                          ? "hover:bg-amber-100/50 dark:hover:bg-amber-900/20 cursor-pointer"
-                          : "cursor-default"
-                      }`}
-                    >
-                      <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-3 flex-wrap justify-end">
+            <TooltipProvider>
+              {rows.map((row, index) => {
+                const Icon = row.icon;
+                return (
+                  <Tooltip key={index}>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={row.onClick}
+                        disabled={!row.onClick}
+                        className={`flex items-center gap-1 ${
+                          row.onClick ? "hover:opacity-80 cursor-pointer" : "cursor-default"
+                        }`}
+                      >
                         <Icon className={`h-3 w-3 ${row.color}`} />
-                        <span className="text-xs text-foreground/70 leading-snug">{row.label}</span>
-                      </div>
-                      <span className={`text-[13px] font-medium tabular-nums ${row.color}`}>
-                        {row.count}
-                      </span>
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="left" className="max-w-[200px]">
-                    <p className="text-xs">{row.tooltip}</p>
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })}
-          </TooltipProvider>
+                        <span className={`text-[11px] font-medium tabular-nums ${row.color}`}>
+                          {row.count}
+                        </span>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-[180px]">
+                      <p className="text-xs">{row.label}: {row.tooltip}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </TooltipProvider>
+          </div>
         </div>
       </CardContent>
     </Card>

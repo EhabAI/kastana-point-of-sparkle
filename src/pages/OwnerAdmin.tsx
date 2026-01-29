@@ -228,7 +228,7 @@ export default function OwnerAdmin() {
           </div>
 
           {/* Overview Tab - Compact vertical rhythm */}
-          <TabsContent value="overview" className="space-y-3 mt-3">
+          <TabsContent value="overview" className="space-y-2 mt-2">
             {/* Owner Changes Banner - informational only */}
             {role === "owner" && <OwnerChangesBanner restaurantId={restaurant.id} />}
             {role === "owner" && (
