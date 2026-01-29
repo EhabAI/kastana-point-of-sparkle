@@ -90,7 +90,7 @@ export function RestaurantSummaryBar({
               flex items-center gap-2 px-3 py-2 rounded-lg border transition-all
               ${isSelected 
                 ? `${item.bgClass} border-current ring-2 ring-offset-1 ring-current/20` 
-                : 'bg-card border-border hover:bg-muted/50'
+                : 'bg-card border-border/60 hover:border-border hover:bg-muted/30'
               }
             `}
           >

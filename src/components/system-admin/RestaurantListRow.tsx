@@ -73,19 +73,19 @@ export function RestaurantListRow({
     !!restaurant.owner_id
   );
 
-  // Border color based on state
-  const getBorderColor = () => {
-    if (!restaurant.is_active) return 'border-l-red-400';
-    if (operationalState === 'setup_incomplete') return 'border-l-amber-400';
-    if (isExpired || !hasSubscription) return 'border-l-rose-400';
-    return 'border-l-green-400';
+  // Border color based on state - both left accent and overall border
+  const getBorderClasses = () => {
+    if (!restaurant.is_active) return 'border-l-red-400 border-red-200/50 dark:border-red-900/30';
+    if (operationalState === 'setup_incomplete') return 'border-l-amber-400 border-amber-200/50 dark:border-amber-900/30';
+    if (isExpired || !hasSubscription) return 'border-l-rose-400 border-rose-200/50 dark:border-rose-900/30';
+    return 'border-l-green-400 border-green-200/50 dark:border-green-900/30';
   };
 
   return (
     <div 
       className={`
-        bg-card rounded-lg border border-l-[3px] ${getBorderColor()}
-        transition-all hover:shadow-sm
+        bg-card rounded-lg border border-l-[3px] ${getBorderClasses()}
+        transition-all hover:shadow-sm hover:border-opacity-80
       `}
     >
       {/* Compact Row - Always Visible */}
