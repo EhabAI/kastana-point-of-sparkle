@@ -212,17 +212,17 @@ export default function OwnerAdmin() {
             </TabsList>
           </div>
 
-          {/* Overview Tab - Compact vertical rhythm */}
-          <TabsContent value="overview" className="space-y-2 mt-2">
+          {/* Overview Tab - Compact vertical rhythm with reduced spacing */}
+          <TabsContent value="overview" className="space-y-2 mt-1.5">
             {/* Owner Changes Banner - informational only */}
             {role === "owner" && <OwnerChangesBanner restaurantId={restaurant.id} />}
             {/* Smart Features Row */}
             {role === "owner" && (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {/* Main dashboard grid: Daily Summary left, Cash + Inventory stacked right */}
-                <div className="grid gap-3 grid-cols-1 lg:grid-cols-2">
+                <div className="grid gap-2 grid-cols-1 lg:grid-cols-2">
                   <DailySummaryCard restaurantId={restaurant.id} currency={currency} />
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-1.5">
                     <CashDifferencesCard restaurantId={restaurant.id} currency={currency} compact />
                     <WhatChangedCard restaurantId={restaurant.id} />
                     <InventoryRiskCard 
