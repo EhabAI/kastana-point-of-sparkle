@@ -94,9 +94,11 @@ export function RestaurantListRow({
   
   const getWhatsAppUrl = () => {
     if (!normalizedPhone) return '';
+    // Sanitize restaurant name to prevent any injection (strip control chars)
+    const safeName = restaurant.name.replace(/[\x00-\x1F\x7F]/g, '').trim();
     const message = language === 'ar'
-      ? `مرحباً، معك فريق Kastana. بخصوص مطعم: ${restaurant.name}. كيف نقدر نساعدك؟`
-      : `Hello, this is Kastana team regarding: ${restaurant.name}. How can we help?`;
+      ? `مرحباً، معك فريق Kastana. بخصوص مطعم: ${safeName}. كيف نقدر نساعدك؟`
+      : `Hello, this is Kastana team regarding: ${safeName}. How can we help?`;
     return `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(message)}`;
   };
 
