@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { StatCard } from "@/components/StatCard";
@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -36,8 +35,18 @@ import { useAllRestaurantsInventoryStatus, useToggleInventoryModule } from "@/ho
 import { useAllRestaurantsKDSStatus, useToggleKDSModule } from "@/hooks/useKDSModuleToggle";
 import { useAllRestaurantsQRStatus, useToggleQRModule } from "@/hooks/useQRModuleToggle";
 import { useAllRestaurantsHealthData } from "@/hooks/useSystemHealthSnapshot";
-import { SystemHealthSnapshot } from "@/components/system-admin/SystemHealthSnapshot";
-import { RestaurantStatusBadge, getRestaurantOperationalState } from "@/components/system-admin/RestaurantStatusBadge";
+import { 
+  RestaurantSummaryBar, 
+  RestaurantFilterBar, 
+  RestaurantListRow, 
+  RestaurantListPagination,
+  getRestaurantOperationalState,
+  SummaryFilter,
+  StatusFilter,
+  SubscriptionFilter,
+  SortOption,
+  FeatureFilter,
+} from "@/components/system-admin";
 import { 
   useExpiringSubscriptions, 
   useCreateRestaurantWithSubscription, 
@@ -45,16 +54,19 @@ import {
   useRestaurantSubscriptions,
   SubscriptionPeriod 
 } from "@/hooks/useRestaurantSubscriptions";
-import { Store, Users, Plus, Link, Loader2, Upload, Image, Package, ChefHat, Pencil, Key, AlertTriangle, RefreshCw, Calendar, QrCode, Power, PowerOff, CheckCircle2, XCircle } from "lucide-react";
+import { Store, Users, Plus, Link, Loader2, Upload, Calendar } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { formatJOD } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { format, differenceInDays } from "date-fns";
 
 const emailSchema = z.string().email("Please enter a valid email");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
+
+// Constants for localStorage keys
+const STORAGE_KEY_PAGE_SIZE = 'sa_restaurants_page_size';
+const STORAGE_KEY_SORT = 'sa_restaurants_sort';
 
 export default function SystemAdmin() {
   const { t } = useLanguage();
@@ -80,6 +92,28 @@ export default function SystemAdmin() {
   const queryClient = useQueryClient();
   const logoInputRef = useRef<HTMLInputElement>(null);
 
+  // Filter & Pagination State
+  const [summaryFilter, setSummaryFilter] = useState<SummaryFilter>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [subscriptionFilter, setSubscriptionFilter] = useState<SubscriptionFilter>('all');
+  const [sortOption, setSortOption] = useState<SortOption>(() => {
+    return (localStorage.getItem(STORAGE_KEY_SORT) as SortOption) || 'newest';
+  });
+  const [activeFeatures, setActiveFeatures] = useState<FeatureFilter[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(() => {
+    return Number(localStorage.getItem(STORAGE_KEY_PAGE_SIZE)) || 10;
+  });
+
+  // Persist preferences
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_PAGE_SIZE, String(pageSize));
+  }, [pageSize]);
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_SORT, sortOption);
+  }, [sortOption]);
+
   // Form states
   const [restaurantName, setRestaurantName] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -92,7 +126,6 @@ export default function SystemAdmin() {
   const [selectedRestaurant, setSelectedRestaurant] = useState("");
   const [selectedOwner, setSelectedOwner] = useState("");
   const [assignOwnerPhone, setAssignOwnerPhone] = useState("");
-  const [viewingRestaurant, setViewingRestaurant] = useState<string | null>(null);
   const [editLogoRestaurantId, setEditLogoRestaurantId] = useState<string | null>(null);
   
   // Subscription form states (create restaurant)
@@ -145,6 +178,155 @@ export default function SystemAdmin() {
   const [qrToggleDialogOpen, setQrToggleDialogOpen] = useState(false);
   const [qrToggleTarget, setQrToggleTarget] = useState<{id: string; name: string; currentEnabled: boolean} | null>(null);
 
+  // Helper to get subscription for a restaurant
+  const getSubscription = (restaurantId: string) => {
+    return subscriptions.find(s => s.restaurant_id === restaurantId);
+  };
+
+  // Compute summary stats
+  const summaryStats = useMemo(() => {
+    let active = 0;
+    let inactive = 0;
+    let incomplete = 0;
+    let subscriptionIssue = 0;
+
+    restaurants.forEach((r) => {
+      const sub = getSubscription(r.id);
+      const hasValidSub = sub && differenceInDays(new Date(sub.end_date), new Date()) >= 0;
+      const state = getRestaurantOperationalState(r.is_active, !!hasValidSub, !!r.owner_id);
+
+      if (!r.is_active) {
+        inactive++;
+      } else if (state === 'setup_incomplete') {
+        incomplete++;
+      } else {
+        active++;
+      }
+
+      if (!sub || differenceInDays(new Date(sub.end_date), new Date()) < 0) {
+        subscriptionIssue++;
+      }
+    });
+
+    return { total: restaurants.length, active, inactive, incomplete, subscriptionIssue };
+  }, [restaurants, subscriptions]);
+
+  // Filter & Sort restaurants
+  const filteredRestaurants = useMemo(() => {
+    let result = [...restaurants];
+
+    // Summary filter (quick filter from summary bar)
+    if (summaryFilter !== 'all') {
+      result = result.filter((r) => {
+        const sub = getSubscription(r.id);
+        const hasValidSub = sub && differenceInDays(new Date(sub.end_date), new Date()) >= 0;
+        const state = getRestaurantOperationalState(r.is_active, !!hasValidSub, !!r.owner_id);
+
+        switch (summaryFilter) {
+          case 'active':
+            return r.is_active && state === 'ready';
+          case 'inactive':
+            return !r.is_active;
+          case 'incomplete':
+            return r.is_active && state === 'setup_incomplete';
+          case 'subscription_issue':
+            return !sub || differenceInDays(new Date(sub.end_date), new Date()) < 0;
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter((r) => {
+        const owner = owners.find(o => o.user_id === r.owner_id);
+        return (
+          r.name.toLowerCase().includes(q) ||
+          (owner?.email?.toLowerCase().includes(q)) ||
+          (owner?.username?.toLowerCase().includes(q))
+        );
+      });
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      result = result.filter((r) => 
+        statusFilter === 'active' ? r.is_active : !r.is_active
+      );
+    }
+
+    // Subscription filter
+    if (subscriptionFilter !== 'all') {
+      result = result.filter((r) => {
+        const sub = getSubscription(r.id);
+        const isExpired = sub && differenceInDays(new Date(sub.end_date), new Date()) < 0;
+
+        switch (subscriptionFilter) {
+          case 'active':
+            return sub && !isExpired;
+          case 'expired':
+            return sub && isExpired;
+          case 'none':
+            return !sub;
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Feature filters
+    if (activeFeatures.length > 0) {
+      result = result.filter((r) => {
+        const hasQR = qrStatusMap.get(r.id) ?? false;
+        const hasKDS = kdsStatusMap.get(r.id) ?? false;
+        const hasInv = inventoryStatusMap.get(r.id) ?? false;
+
+        return activeFeatures.every((f) => {
+          if (f === 'qr') return hasQR;
+          if (f === 'kds') return hasKDS;
+          if (f === 'inventory') return hasInv;
+          return true;
+        });
+      });
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      switch (sortOption) {
+        case 'newest':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case 'oldest':
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case 'last_activity':
+          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+        case 'expiry_nearest':
+          const subA = getSubscription(a.id);
+          const subB = getSubscription(b.id);
+          const endA = subA ? new Date(subA.end_date).getTime() : Infinity;
+          const endB = subB ? new Date(subB.end_date).getTime() : Infinity;
+          return endA - endB;
+        default:
+          return 0;
+      }
+    });
+
+    return result;
+  }, [restaurants, owners, subscriptions, summaryFilter, searchQuery, statusFilter, subscriptionFilter, activeFeatures, sortOption, qrStatusMap, kdsStatusMap, inventoryStatusMap]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredRestaurants.length / pageSize);
+  const paginatedRestaurants = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredRestaurants.slice(start, start + pageSize);
+  }, [filteredRestaurants, currentPage, pageSize]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, subscriptionFilter, activeFeatures, summaryFilter, pageSize]);
+
   const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -169,7 +351,6 @@ export default function SystemAdmin() {
       .from('restaurant-logos')
       .getPublicUrl(filePath);
     
-    // Add cache-busting timestamp to force browser to reload the image
     return `${urlData.publicUrl}?t=${Date.now()}`;
   };
 
@@ -182,10 +363,8 @@ export default function SystemAdmin() {
     try {
       setUploadingLogo(true);
       
-      // Upload logo first if provided
       let logoUrl: string | null = null;
       if (logoFile) {
-        // Create temporary ID for logo upload
         const tempId = crypto.randomUUID();
         const fileExt = logoFile.name.split('.').pop();
         const filePath = `${tempId}.${fileExt}`;
@@ -202,8 +381,7 @@ export default function SystemAdmin() {
         }
       }
       
-      // Create restaurant with subscription via edge function
-      const result = await createRestaurantWithSub.mutateAsync({ 
+      await createRestaurantWithSub.mutateAsync({ 
         name: restaurantName,
         logoUrl,
         period: subscriptionPeriod,
@@ -251,26 +429,11 @@ export default function SystemAdmin() {
   const openManageDialog = (restaurantId: string, restaurantName: string) => {
     const existingSub = getSubscription(restaurantId);
     setManageTarget({ id: restaurantId, name: restaurantName });
-    setManagePeriod(existingSub?.period || "MONTHLY");
+    setManagePeriod(existingSub?.period as SubscriptionPeriod || "MONTHLY");
     setManageBonusMonths(existingSub?.bonus_months || 0);
-    setManageStartDate(new Date()); // Start from today
+    setManageStartDate(new Date());
     setManageReason(existingSub?.notes || "");
     setManageDialogOpen(true);
-  };
-  
-  // Helper to get subscription for a restaurant
-  const getSubscription = (restaurantId: string) => {
-    return subscriptions.find(s => s.restaurant_id === restaurantId);
-  };
-  
-  // Helper to check if subscription is expiring or expired
-  const isSubscriptionCritical = (restaurantId: string) => {
-    const sub = getSubscription(restaurantId);
-    if (!sub) return true; // No subscription = critical
-    const endDate = new Date(sub.end_date);
-    const now = new Date();
-    const daysLeft = differenceInDays(endDate, now);
-    return daysLeft <= 7;
   };
 
   const handleUpdateLogo = async () => {
@@ -324,10 +487,8 @@ export default function SystemAdmin() {
     }
     await assignOwner.mutateAsync({ restaurantId: selectedRestaurant, ownerId: selectedOwner });
     
-    // Save owner phone to restaurant_settings if provided
     if (assignOwnerPhone.trim()) {
       const phoneValue = assignOwnerPhone.trim();
-      // Check if settings exist
       const { data: existingSettings } = await supabase
         .from('restaurant_settings')
         .select('id')
@@ -354,11 +515,9 @@ export default function SystemAdmin() {
 
   const handleToggleActive = (restaurantId: string, restaurantName: string, currentlyActive: boolean) => {
     if (currentlyActive) {
-      // Show confirmation dialog before deactivating
       setRestaurantToDeactivate({ id: restaurantId, name: restaurantName });
       setDeactivateDialogOpen(true);
     } else {
-      // Activate immediately without confirmation
       toggleActive.mutate({ restaurantId, isActive: true });
     }
   };
@@ -419,6 +578,14 @@ export default function SystemAdmin() {
     }
   };
 
+  const handleFeatureToggle = (feature: FeatureFilter) => {
+    setActiveFeatures(prev => 
+      prev.includes(feature) 
+        ? prev.filter(f => f !== feature)
+        : [...prev, feature]
+    );
+  };
+
   const unassignedRestaurants = restaurants.filter((r) => !r.owner_id);
 
   if (loadingRestaurants || loadingOwners) {
@@ -433,91 +600,26 @@ export default function SystemAdmin() {
 
   return (
     <DashboardLayout title="System Admin">
-      <div className="space-y-8 animate-fade-in">
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-4 animate-fade-in">
+        {/* Stats Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <StatCard title={t('sa_total_restaurants')} value={restaurants.length} icon={Store} />
           <StatCard title={t('sa_total_owners')} value={owners.length} icon={Users} />
         </div>
 
-        {/* Expiring Subscriptions Alert */}
-        {expiringSubscriptions.length > 0 && (
-          <Card className="border-destructive/50 bg-destructive/5">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-destructive">
-                <AlertTriangle className="h-5 w-5" />
-                {t('sub_expiring_count')} ({expiringSubscriptions.length})
-              </CardTitle>
-              <CardDescription>
-                {t('sub_expiring_desc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3">
-                {expiringSubscriptions.map((sub) => {
-                  const restaurant = restaurants.find(r => r.id === sub.restaurant_id);
-                  const endDate = new Date(sub.end_date);
-                  const now = new Date();
-                  const daysLeft = differenceInDays(endDate, now);
-                  const isExpired = daysLeft < 0;
-                  
-                  return (
-                    <div 
-                      key={sub.restaurant_id} 
-                      className="flex items-center justify-between p-3 bg-background rounded-lg border border-destructive/30"
-                    >
-                      <div className="flex items-center gap-3">
-                        {restaurant?.logo_url ? (
-                          <img 
-                            src={restaurant.logo_url} 
-                            alt={`${restaurant?.name} logo`}
-                            className="w-10 h-10 object-contain rounded-lg"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 bg-destructive/10 rounded-lg flex items-center justify-center">
-                            <Store className="h-5 w-5 text-destructive" />
-                          </div>
-                        )}
-                        <div>
-                          <p className="font-medium">{restaurant?.name || t('unknown')}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {isExpired 
-                              ? <span className="text-destructive font-medium">{t('sub_expired_ago').replace('{days}', String(Math.abs(daysLeft)))}</span>
-                              : <span className="text-amber-600 font-medium">{t('sub_expires_in').replace('{days}', String(daysLeft))}</span>
-                            }
-                            {' · '}
-                            {format(endDate, 'MMM d, yyyy')}
-                          </p>
-                        </div>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        onClick={() => openManageDialog(sub.restaurant_id, restaurant?.name || 'Restaurant')}
-                      >
-                        <Pencil className="h-4 w-4 me-1" />
-                        {t('sub_manage')}
-                      </Button>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Actions Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Create Restaurant */}
           <Dialog open={restaurantDialogOpen} onOpenChange={setRestaurantDialogOpen}>
             <DialogTrigger asChild>
               <Card className="cursor-pointer hover:shadow-card-hover transition-shadow">
-                <CardContent className="p-6 flex items-center gap-4">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <Plus className="h-5 w-5 text-primary" />
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <Plus className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-foreground">{t('sa_create_restaurant')}</h3>
-                    <p className="text-sm text-muted-foreground">{t('sa_create_restaurant_desc')}</p>
+                    <h3 className="font-medium text-sm text-foreground">{t('sa_create_restaurant')}</h3>
+                    <p className="text-xs text-muted-foreground">{t('sa_create_restaurant_desc')}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -569,7 +671,6 @@ export default function SystemAdmin() {
                   )}
                 </div>
                 
-                {/* Subscription Settings */}
                 <div className="pt-4 border-t space-y-4">
                   <h4 className="font-medium text-sm flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
@@ -639,13 +740,13 @@ export default function SystemAdmin() {
           <Dialog open={ownerDialogOpen} onOpenChange={setOwnerDialogOpen}>
             <DialogTrigger asChild>
               <Card className="cursor-pointer hover:shadow-card-hover transition-shadow">
-                <CardContent className="p-6 flex items-center gap-4">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <Users className="h-5 w-5 text-primary" />
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <Users className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-foreground">{t('sa_create_owner')}</h3>
-                    <p className="text-sm text-muted-foreground">{t('sa_create_owner_desc')}</p>
+                    <h3 className="font-medium text-sm text-foreground">{t('sa_create_owner')}</h3>
+                    <p className="text-xs text-muted-foreground">{t('sa_create_owner_desc')}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -727,13 +828,13 @@ export default function SystemAdmin() {
           <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
             <DialogTrigger asChild>
               <Card className="cursor-pointer hover:shadow-card-hover transition-shadow">
-                <CardContent className="p-6 flex items-center gap-4">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <Link className="h-5 w-5 text-primary" />
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <Link className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-foreground">{t('sa_assign_owner')}</h3>
-                    <p className="text-sm text-muted-foreground">{t('sa_assign_owner_desc')}</p>
+                    <h3 className="font-medium text-sm text-foreground">{t('sa_assign_owner')}</h3>
+                    <p className="text-xs text-muted-foreground">{t('sa_assign_owner_desc')}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -808,274 +909,118 @@ export default function SystemAdmin() {
           </Dialog>
         </div>
 
-        {/* Restaurants List */}
+        {/* Summary Bar */}
+        <RestaurantSummaryBar
+          total={summaryStats.total}
+          active={summaryStats.active}
+          inactive={summaryStats.inactive}
+          incomplete={summaryStats.incomplete}
+          subscriptionIssue={summaryStats.subscriptionIssue}
+          activeFilter={summaryFilter}
+          onFilterChange={setSummaryFilter}
+        />
+
+        {/* Filter Bar */}
+        <RestaurantFilterBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter}
+          subscriptionFilter={subscriptionFilter}
+          onSubscriptionChange={setSubscriptionFilter}
+          sortOption={sortOption}
+          onSortChange={setSortOption}
+          activeFeatures={activeFeatures}
+          onFeatureToggle={handleFeatureToggle}
+        />
+
+        {/* Restaurant List */}
         <Card className="shadow-card">
-          <CardHeader>
-            <CardTitle>{t('sa_restaurants_title')}</CardTitle>
-            <CardDescription>{t('sa_restaurants_subtitle')}</CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">{t('sa_restaurants_title')}</CardTitle>
+            <CardDescription>
+              {filteredRestaurants.length === restaurants.length 
+                ? t('sa_restaurants_subtitle')
+                : `${filteredRestaurants.length} of ${restaurants.length} restaurants`
+              }
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            {restaurants.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">{t('sa_no_restaurants')}</p>
+          <CardContent className="pt-2">
+            {paginatedRestaurants.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">
+                {restaurants.length === 0 ? t('sa_no_restaurants') : 'No restaurants match filters'}
+              </p>
             ) : (
               <div className="space-y-2">
-                {restaurants.map((restaurant) => {
-                  const inventoryEnabled = inventoryStatusMap.get(restaurant.id) ?? false;
-                  const kdsEnabled = kdsStatusMap.get(restaurant.id) ?? false;
-                  const qrEnabled = qrStatusMap.get(restaurant.id) ?? false;
+                {paginatedRestaurants.map((restaurant) => {
+                  const owner = owners.find(o => o.user_id === restaurant.owner_id);
                   const subscription = getSubscription(restaurant.id);
-                  const subscriptionEndDate = subscription ? new Date(subscription.end_date) : null;
-                  const now = new Date();
-                  const daysLeft = subscriptionEndDate ? differenceInDays(subscriptionEndDate, now) : null;
-                  const isExpired = daysLeft !== null && daysLeft < 0;
-                  const isExpiringSoon = daysLeft !== null && daysLeft >= 0 && daysLeft <= 7;
-                  
-                  // Determine operational state
-                  const hasValidSubscription = subscription !== undefined && !isExpired;
-                  const hasOwner = !!restaurant.owner_id;
-                  const operationalState = getRestaurantOperationalState(restaurant.is_active, hasValidSubscription, hasOwner);
-                  
-                  // Card styling based on operational state (3px border for clear visibility)
-                  const cardStyles = {
-                    inactive: 'bg-card border-[3px] border-red-400 dark:border-red-600',
-                    setup_incomplete: 'bg-card border-[3px] border-amber-400 dark:border-amber-500',
-                    ready: 'bg-card border-[3px] border-green-400 dark:border-green-500',
-                  };
                   
                   return (
-                    <div key={restaurant.id} className={`p-3 rounded-lg space-y-2 ${cardStyles[operationalState]}`}>
-                      {/* Top row: Restaurant info + Status + Actions */}
-                      <div className="flex items-center justify-between">
-                        {/* Restaurant Info */}
-                        <div className="flex items-center gap-3">
-                          {restaurant.logo_url ? (
-                            <img 
-                              src={restaurant.logo_url} 
-                              alt={`${restaurant.name} logo`}
-                              className="w-10 h-10 object-contain rounded-lg"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                              <Store className="h-5 w-5 text-primary" />
-                            </div>
-                          )}
-                          <div className="min-w-0">
-                            <p className="font-medium text-foreground">{restaurant.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {restaurant.owner_id 
-                                ? `${t('sa_owner_label')}: ${owners.find(o => o.user_id === restaurant.owner_id)?.email || restaurant.owner_id.slice(0, 8) + '...'}`
-                                : t('sa_no_owner')}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Status Section */}
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-3">
-                            {/* Operational State Badge (read-only) */}
-                            <RestaurantStatusBadge state={operationalState} />
-                            
-                            {/* Clickable Active/Inactive Toggle */}
-                            <button
-                              onClick={() => handleToggleActive(restaurant.id, restaurant.name, restaurant.is_active)}
-                              disabled={toggleActive.isPending}
-                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed border ${
-                                restaurant.is_active 
-                                  ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/40' 
-                                  : 'bg-red-50 text-red-600 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/40'
-                              }`}
-                            >
-                              {restaurant.is_active ? (
-                                <Power className="h-3 w-3" />
-                              ) : (
-                                <PowerOff className="h-3 w-3" />
-                              )}
-                              {restaurant.is_active ? t('active') : t('inactive')}
-                            </button>
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex items-center gap-1 border-l pl-3">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setEditingRestaurant({ id: restaurant.id, name: restaurant.name });
-                                setNewRestaurantName(restaurant.name);
-                                setEditNameDialogOpen(true);
-                              }}
-                            >
-                              <Pencil className="h-4 w-4 mr-1.5" />
-                              {t('edit')}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setEditLogoRestaurantId(restaurant.id);
-                                setLogoPreview(restaurant.logo_url || null);
-                                setEditLogoDialogOpen(true);
-                              }}
-                            >
-                              <Image className="h-4 w-4 mr-1.5" />
-                              {t('sa_logo')}
-                            </Button>
-                            {restaurant.owner_id && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={async () => {
-                                  const owner = owners.find(o => o.user_id === restaurant.owner_id);
-                                  if (owner) {
-                                    setEditingOwner({ id: owner.user_id, email: owner.email || '', username: owner.username, restaurantId: restaurant.id });
-                                    setNewOwnerEmail(owner.email || '');
-                                    setNewOwnerPassword('');
-                                    setNewOwnerDisplayName(owner.username || '');
-                                    setNewOwnerPhone('');
-                                    setEditOwnerDialogOpen(true);
-                                    
-                                    // Load owner phone from restaurant_settings
-                                    setLoadingOwnerPhone(true);
-                                    const { data: settingsData } = await supabase
-                                      .from('restaurant_settings')
-                                      .select('owner_phone')
-                                      .eq('restaurant_id', restaurant.id)
-                                      .maybeSingle();
-                                    setNewOwnerPhone(settingsData?.owner_phone || '');
-                                    setLoadingOwnerPhone(false);
-                                  }
-                                }}
-                              >
-                                <Key className="h-4 w-4 mr-1.5" />
-                                {t('sa_owner_label')}
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Bottom row: Add-ons/Modules Section */}
-                      <div className="flex flex-wrap items-center gap-2 pt-1.5 border-t border-border/50">
-                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('sa_addons')}</span>
+                    <RestaurantListRow
+                      key={restaurant.id}
+                      restaurant={restaurant}
+                      subscription={subscription}
+                      ownerEmail={owner?.email || null}
+                      ownerUsername={owner?.username || null}
+                      inventoryEnabled={inventoryStatusMap.get(restaurant.id) ?? false}
+                      kdsEnabled={kdsStatusMap.get(restaurant.id) ?? false}
+                      qrEnabled={qrStatusMap.get(restaurant.id) ?? false}
+                      healthData={healthDataMap.get(restaurant.id)}
+                      onToggleActive={handleToggleActive}
+                      onInventoryToggle={handleInventoryToggle}
+                      onKDSToggle={handleKDSToggle}
+                      onQRToggle={handleQRToggle}
+                      onEditName={(id, name) => {
+                        setEditingRestaurant({ id, name });
+                        setNewRestaurantName(name);
+                        setEditNameDialogOpen(true);
+                      }}
+                      onEditLogo={(id, logoUrl) => {
+                        setEditLogoRestaurantId(id);
+                        setLogoPreview(logoUrl);
+                        setEditLogoDialogOpen(true);
+                      }}
+                      onEditOwner={async (ownerId, email, username, restaurantId) => {
+                        setEditingOwner({ id: ownerId, email, username, restaurantId });
+                        setNewOwnerEmail(email);
+                        setNewOwnerPassword('');
+                        setNewOwnerDisplayName(username || '');
+                        setNewOwnerPhone('');
+                        setEditOwnerDialogOpen(true);
                         
-                        {/* Inventory Module - Clickable */}
-                        <button
-                          onClick={() => handleInventoryToggle(restaurant.id, restaurant.name, inventoryEnabled)}
-                          disabled={toggleInventory.isPending}
-                          className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-all cursor-pointer hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${
-                            inventoryEnabled 
-                              ? 'bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-950/60' 
-                              : 'bg-muted/30 hover:bg-muted/50'
-                          }`}
-                        >
-                          <Package className={`h-3.5 w-3.5 shrink-0 ${inventoryEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                          <span className={`text-xs font-semibold ${inventoryEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
-                            {t('sa_addon_inventory')}
-                          </span>
-                          {inventoryEnabled ? (
-                            <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600 dark:text-green-400" strokeWidth={2.5} />
-                          ) : (
-                            <XCircle className="h-4 w-4 shrink-0 text-red-500 dark:text-red-400" strokeWidth={2.5} />
-                          )}
-                        </button>
-
-                        {/* KDS Module - Clickable */}
-                        <button
-                          onClick={() => handleKDSToggle(restaurant.id, restaurant.name, kdsEnabled)}
-                          disabled={toggleKDS.isPending}
-                          className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-all cursor-pointer hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${
-                            kdsEnabled 
-                              ? 'bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-950/60' 
-                              : 'bg-muted/30 hover:bg-muted/50'
-                          }`}
-                        >
-                          <ChefHat className={`h-3.5 w-3.5 shrink-0 ${kdsEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                          <span className={`text-xs font-semibold ${kdsEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
-                            {t('sa_addon_kds')}
-                          </span>
-                          {kdsEnabled ? (
-                            <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600 dark:text-green-400" strokeWidth={2.5} />
-                          ) : (
-                            <XCircle className="h-4 w-4 shrink-0 text-red-500 dark:text-red-400" strokeWidth={2.5} />
-                          )}
-                        </button>
-
-                        {/* QR Order Module - Clickable */}
-                        <button
-                          onClick={() => handleQRToggle(restaurant.id, restaurant.name, qrEnabled)}
-                          disabled={toggleQR.isPending}
-                          className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-all cursor-pointer hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${
-                            qrEnabled 
-                              ? 'bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-950/60' 
-                              : 'bg-muted/30 hover:bg-muted/50'
-                          }`}
-                        >
-                          <QrCode className={`h-3.5 w-3.5 shrink-0 ${qrEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                          <span className={`text-xs font-semibold ${qrEnabled ? 'text-foreground' : 'text-muted-foreground'}`}>
-                            {t('sa_addon_qr')}
-                          </span>
-                          {qrEnabled ? (
-                            <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600 dark:text-green-400" strokeWidth={2.5} />
-                          ) : (
-                            <XCircle className="h-4 w-4 shrink-0 text-red-500 dark:text-red-400" strokeWidth={2.5} />
-                          )}
-                        </button>
-                      </div>
-                      
-                      {/* Subscription Info Row */}
-                      <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-border/50">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('sub_subscription')}</span>
-                          {subscription ? (
-                            <div className="flex items-center gap-2">
-                              <Badge variant={isExpired ? "destructive" : isExpiringSoon ? "outline" : "secondary"} className="text-xs whitespace-nowrap">
-                                {t(`period_${subscription.period.toLowerCase()}` as any)}
-                                {subscription.bonus_months > 0 && (
-                                  <span className="ms-1">
-                                    + {subscription.bonus_months === 1 
-                                      ? t('sub_free_month') 
-                                      : t('sub_free_months').replace('{{count}}', String(subscription.bonus_months))}
-                                  </span>
-                                )}
-                              </Badge>
-                              <span className={`text-sm ${
-                                isExpired ? 'text-destructive font-medium' : 
-                                isExpiringSoon ? 'text-amber-600 font-medium' : 
-                                'text-muted-foreground'
-                              }`}>
-                                {isExpired 
-                                  ? t('sub_expired_ago').replace('{days}', String(Math.abs(daysLeft!)))
-                                  : `${t('sub_expires_on')} ${format(subscriptionEndDate!, 'MMM d, yyyy')} (${daysLeft} ${t('days')})`
-                                }
-                              </span>
-                            </div>
-                          ) : (
-                            <Badge variant="destructive" className="text-xs">{t('sub_no_subscription')}</Badge>
-                          )}
-                        </div>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => openManageDialog(restaurant.id, restaurant.name)}
-                        >
-                          <Pencil className="h-4 w-4 me-1" />
-                          {t('sub_manage')}
-                        </Button>
-                      </div>
-
-                      {/* System Health Snapshot */}
-                      <div className="pt-1.5 border-t border-border/50">
-                        <SystemHealthSnapshot
-                          isActive={restaurant.is_active}
-                          inventoryEnabled={inventoryEnabled}
-                          hasOpenShift={healthDataMap.get(restaurant.id)?.hasOpenShift ?? false}
-                          qrEnabled={qrEnabled}
-                        />
-                      </div>
-                    </div>
+                        setLoadingOwnerPhone(true);
+                        const { data: settingsData } = await supabase
+                          .from('restaurant_settings')
+                          .select('owner_phone')
+                          .eq('restaurant_id', restaurantId)
+                          .maybeSingle();
+                        setNewOwnerPhone(settingsData?.owner_phone || '');
+                        setLoadingOwnerPhone(false);
+                      }}
+                      onManageSubscription={openManageDialog}
+                      togglesPending={{
+                        active: toggleActive.isPending,
+                        inventory: toggleInventory.isPending,
+                        kds: toggleKDS.isPending,
+                        qr: toggleQR.isPending,
+                      }}
+                    />
                   );
                 })}
               </div>
+            )}
+
+            {/* Pagination */}
+            {filteredRestaurants.length > 0 && (
+              <RestaurantListPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                totalItems={filteredRestaurants.length}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={setPageSize}
+              />
             )}
           </CardContent>
         </Card>
@@ -1249,7 +1194,7 @@ export default function SystemAdmin() {
           <DialogContent className="p-4">
             <DialogHeader className="pb-2">
               <DialogTitle>{t('sa_edit_owner_title')}</DialogTitle>
-              <DialogDescription className="text-sm">{t('sa_edit_owner_desc')} {editingOwner?.username || editingOwner?.email}.</DialogDescription>
+              <DialogDescription className="text-sm">{t('sa_edit_owner_desc')} {editingOwner?.email}.</DialogDescription>
             </DialogHeader>
             <div className="space-y-2">
               <div>
@@ -1259,7 +1204,6 @@ export default function SystemAdmin() {
                   className="py-2 px-3 h-9"
                   value={newOwnerDisplayName}
                   onChange={(e) => setNewOwnerDisplayName(e.target.value)}
-                  placeholder="John Doe"
                 />
                 <p className="text-xs text-muted-foreground mt-0.5">{t('sa_display_name_min')}</p>
               </div>
@@ -1271,11 +1215,10 @@ export default function SystemAdmin() {
                   className="py-2 px-3 h-9"
                   value={newOwnerEmail}
                   onChange={(e) => setNewOwnerEmail(e.target.value)}
-                  placeholder="owner@example.com"
                 />
               </div>
               <div>
-                <Label htmlFor="edit-owner-password" className="text-sm mb-1 block">{t('sa_new_password_hint')}</Label>
+                <Label htmlFor="edit-owner-password" className="text-sm mb-1 block">{t('password')}</Label>
                 <Input
                   id="edit-owner-password"
                   type="password"
@@ -1284,6 +1227,7 @@ export default function SystemAdmin() {
                   onChange={(e) => setNewOwnerPassword(e.target.value)}
                   placeholder="••••••••"
                 />
+                <p className="text-xs text-muted-foreground mt-0.5">{t('sa_new_password_hint')}</p>
               </div>
               <div>
                 <Label htmlFor="edit-owner-phone" className="text-sm mb-1 block">
@@ -1296,7 +1240,7 @@ export default function SystemAdmin() {
                   className="py-2 px-3 h-9"
                   value={newOwnerPhone}
                   onChange={(e) => setNewOwnerPhone(e.target.value)}
-                  placeholder="079XXXXXXX"
+                  placeholder="079XXXXXXXX"
                   disabled={loadingOwnerPhone}
                 />
                 <p className="text-xs text-muted-foreground mt-0.5">
@@ -1347,7 +1291,6 @@ export default function SystemAdmin() {
                   }
                   
                   try {
-                    // Update display name if changed
                     if (trimmedDisplayName !== (editingOwner.username || '')) {
                       const { error: nameError } = await supabase.functions.invoke('update-display-name', {
                         body: { 
@@ -1359,7 +1302,6 @@ export default function SystemAdmin() {
                       if (nameError) throw nameError;
                     }
                     
-                    // Update email if changed
                     if (newOwnerEmail !== editingOwner.email) {
                       const { error: emailError } = await supabase.functions.invoke('system-admin-update-email', {
                         body: { user_id: editingOwner.id, new_email: newOwnerEmail },
@@ -1368,7 +1310,6 @@ export default function SystemAdmin() {
                       if (emailError) throw emailError;
                     }
                     
-                    // Update password if provided
                     if (newOwnerPassword) {
                       const { error: passError } = await supabase.functions.invoke('system-admin-reset-password', {
                         body: { user_id: editingOwner.id, new_password: newOwnerPassword },
@@ -1377,10 +1318,8 @@ export default function SystemAdmin() {
                       if (passError) throw passError;
                     }
                     
-                    // Update owner phone in restaurant_settings if restaurantId is available
                     if (editingOwner.restaurantId) {
                       const phoneValue = newOwnerPhone.trim() || null;
-                      // Check if settings exist
                       const { data: existingSettings } = await supabase
                         .from('restaurant_settings')
                         .select('id')
@@ -1503,7 +1442,6 @@ export default function SystemAdmin() {
               </DialogDescription>
             </DialogHeader>
             <div className="flex-1 overflow-y-auto px-5 space-y-3 min-h-0">
-              {/* Subscription Period */}
               <div className="space-y-1.5">
                 <Label htmlFor="manage-period" className="text-sm">{t('sub_period')}</Label>
                 <Select value={managePeriod} onValueChange={(v) => setManagePeriod(v as SubscriptionPeriod)}>
@@ -1519,7 +1457,6 @@ export default function SystemAdmin() {
                 </Select>
               </div>
               
-              {/* Bonus Months */}
               <div className="space-y-1.5">
                 <Label htmlFor="manage-bonus-months" className="text-sm">{t('sub_bonus_months')}</Label>
                 <Input
@@ -1534,7 +1471,6 @@ export default function SystemAdmin() {
                 <p className="text-[11px] text-muted-foreground">{t('sub_bonus_months_max')}</p>
               </div>
               
-              {/* Start Date */}
               <div className="space-y-1.5">
                 <Label className="text-sm">{t('sub_start_date')}</Label>
                 <div className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/50">
@@ -1544,7 +1480,6 @@ export default function SystemAdmin() {
                 <p className="text-[11px] text-muted-foreground">{t('sub_renew_start_note')}</p>
               </div>
               
-              {/* Notes Section - Emphasized */}
               <div className="space-y-1.5 pt-2 border-t border-border/50">
                 <Label htmlFor="manage-reason" className="text-sm flex items-center gap-1.5">
                   📝 {t('sub_note_label')}
@@ -1584,4 +1519,3 @@ export default function SystemAdmin() {
     </DashboardLayout>
   );
 }
-

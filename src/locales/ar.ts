@@ -1839,6 +1839,29 @@ export default {
   sa_update_logo_title: "تحديث شعار المطعم",
   sa_update_logo_desc: "ارفع شعاراً جديداً لهذا المطعم.",
   
+  // Summary Bar
+  sa_summary_total: "الإجمالي",
+  sa_summary_active: "نشط",
+  sa_summary_inactive: "غير نشط",
+  sa_summary_incomplete: "غير مكتمل",
+  sa_summary_sub_issue: "مشكلة اشتراك",
+  
+  // Filter Bar
+  sa_filter_search_placeholder: "ابحث عن مطعم أو مالك...",
+  sa_filter_features: "الميزات",
+  sa_filter_clear: "مسح الفلاتر",
+  sa_sub_active: "اشتراك نشط",
+  sa_sub_expired: "منتهي",
+  sa_sub_none: "بدون اشتراك",
+  sa_sort_by: "ترتيب حسب",
+  sa_sort_newest: "الأحدث أولاً",
+  sa_sort_oldest: "الأقدم أولاً",
+  sa_sort_last_activity: "آخر نشاط",
+  sa_sort_expiry_nearest: "الانتهاء (الأقرب)",
+  
+  // Pagination
+  sa_page_size: "لكل صفحة",
+  
   // Stats
   sa_total_restaurants: "إجمالي المطاعم",
   sa_total_owners: "إجمالي الملاك",
