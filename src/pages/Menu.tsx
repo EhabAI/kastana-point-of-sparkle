@@ -866,7 +866,9 @@ export default function Menu() {
                 className={`overflow-hidden transition-all duration-200 ${
                   isOfferCategory 
                     ? "rounded-2xl border-2 border-primary bg-gradient-to-br from-primary/20 via-primary/10 to-amber-500/10 shadow-lg shadow-primary/20 ring-1 ring-primary/40" 
-                    : "rounded-xl border-[1.5px] border-border/60 bg-card/80 dark:bg-card/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
+                    : isOpen
+                      ? "rounded-xl border-2 border-foreground/20 bg-accent shadow-md -translate-y-0.5"
+                      : "rounded-xl border border-border/40 bg-card/60 dark:bg-card/40 shadow-sm hover:shadow hover:border-border/60"
                 }`}
               >
                 {/* Category Header */}
@@ -876,22 +878,26 @@ export default function Menu() {
                   className={`w-full flex justify-between items-center transition-all duration-150 ${
                     isOfferCategory
                       ? "p-4 bg-gradient-to-r from-primary/25 via-primary/15 to-amber-500/15 hover:from-primary/30 hover:via-primary/20"
-                      : `p-3.5 ${
-                          isOpen 
-                            ? "bg-accent/60 dark:bg-accent/40" 
-                            : "bg-muted/40 dark:bg-muted/20 hover:bg-accent/40 dark:hover:bg-accent/30"
-                        }`
+                      : isOpen
+                        ? "p-3.5 bg-accent"
+                        : "p-3.5 bg-transparent hover:bg-muted/30"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    {/* Icon container - consistent sizing for all non-offer categories */}
-                    <div className={`rounded-xl shadow-sm ${
+                    {/* Icon container - enhanced when expanded */}
+                    <div className={`rounded-xl transition-all duration-150 ${
                       isOfferCategory 
                         ? "p-2.5 bg-primary text-primary-foreground shadow-md" 
-                        : `p-2.5 ${iconInfo.bgColor}`
+                        : isOpen
+                          ? `p-2.5 ${iconInfo.bgColor} shadow-md ring-1 ring-foreground/10`
+                          : `p-2 ${iconInfo.bgColor} shadow-sm`
                     }`}>
-                      <IconComponent className={`${
-                        isOfferCategory ? "h-6 w-6" : "h-[22px] w-[22px]"
+                      <IconComponent className={`transition-all duration-150 ${
+                        isOfferCategory 
+                          ? "h-6 w-6" 
+                          : isOpen 
+                            ? "h-6 w-6" 
+                            : "h-5 w-5"
                       } ${isOfferCategory ? "" : iconInfo.color}`} />
                     </div>
                     
@@ -902,22 +908,24 @@ export default function Menu() {
                           {language === "ar" ? "🔥 عرض خاص" : "🔥 Special Offer"}
                         </span>
                       )}
-                      {/* Category title */}
-                      <span className={`font-semibold ${
+                      {/* Category title - bolder when expanded */}
+                      <span className={`transition-all duration-150 ${
                         isOfferCategory 
                           ? "text-lg font-bold text-primary" 
-                          : "text-base text-foreground"
+                          : isOpen
+                            ? "text-base font-bold text-foreground"
+                            : "text-base font-medium text-foreground/80"
                       }`}>
                         {translateCategoryName(category.name, language)}
                       </span>
                     </div>
                   </div>
                   
-                  {/* Expand indicator */}
+                  {/* Expand indicator - more prominent when open */}
                   <span 
-                    className={`text-xl font-bold transition-transform duration-150 ease-out ${
-                      isOpen ? "rotate-45" : ""
-                    } ${isOfferCategory ? "text-primary" : "text-muted-foreground"}`}
+                    className={`text-xl font-bold transition-all duration-150 ease-out ${
+                      isOpen ? "rotate-45 scale-110" : ""
+                    } ${isOfferCategory ? "text-primary" : isOpen ? "text-foreground" : "text-muted-foreground/60"}`}
                   >
                     +
                   </span>
