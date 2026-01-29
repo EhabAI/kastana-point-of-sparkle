@@ -145,12 +145,12 @@ export default function OwnerAdmin() {
   return (
     <BranchProvider>
       <DashboardLayout title={t("owner_dashboard")}>
-        <div className="space-y-4 animate-fade-in">
+        <div className="space-y-3 animate-fade-in">
 
         {/* Tabbed Navigation - Professional POS-style full-width tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <div className="sticky top-0 z-10 -mx-4 px-4 bg-background border-b border-border">
-            <TabsList className="flex w-full h-12 bg-transparent p-0 gap-0 overflow-x-auto scrollbar-hide">
+          <div className="sticky top-9 z-10 -mx-4 px-4 bg-background border-b border-border">
+            <TabsList className="flex w-full h-10 bg-transparent p-0 gap-0 overflow-x-auto scrollbar-hide">
               <TabsTrigger 
                 value="overview" 
                 className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
