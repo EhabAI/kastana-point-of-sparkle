@@ -867,8 +867,8 @@ export default function Menu() {
                   isOfferCategory 
                     ? "rounded-2xl border-2 border-primary bg-gradient-to-br from-primary/20 via-primary/10 to-amber-500/10 shadow-lg shadow-primary/20 ring-1 ring-primary/40" 
                     : isOpen
-                      ? "rounded-xl border-[1.5px] border-foreground/25 bg-accent/80 shadow-md"
-                      : "rounded-xl border border-border/50 bg-card/70 dark:bg-card/50 shadow-sm hover:border-border hover:shadow-md hover:bg-accent/30"
+                      ? "rounded-xl border-[1.5px] border-foreground/20 bg-accent/70 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.08)]"
+                      : "rounded-xl border border-border/40 bg-card shadow-none hover:border-border/70 hover:shadow-[0_2px_6px_-2px_rgba(0,0,0,0.06)] active:shadow-none"
                 }`}
               >
                 {/* Category Header */}
@@ -879,54 +879,50 @@ export default function Menu() {
                     isOfferCategory
                       ? "p-4 bg-gradient-to-r from-primary/25 via-primary/15 to-amber-500/15 hover:from-primary/30 hover:via-primary/20"
                       : isOpen
-                        ? "p-3.5 bg-accent/60"
-                        : "p-3.5 bg-transparent hover:bg-accent/40 active:bg-accent/50"
+                        ? "p-3.5 bg-accent/50"
+                        : "p-3.5 bg-transparent hover:bg-muted/40 active:bg-muted/50"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    {/* Icon container - consistent sizing with hover enhancement */}
-                    <div className={`flex-shrink-0 rounded-xl transition-all duration-150 ease-out ${
+                    {/* Icon container - consistent sizing, aligned center */}
+                    <div className={`flex-shrink-0 flex items-center justify-center rounded-xl transition-all duration-150 ease-out ${
                       isOfferCategory 
                         ? "p-2.5 bg-primary text-primary-foreground shadow-md" 
                         : isOpen
-                          ? `p-2.5 ${iconInfo.bgColor} shadow-md ring-1 ring-foreground/10`
-                          : `p-2.5 ${iconInfo.bgColor} shadow-sm group-hover:shadow-md`
+                          ? `p-2.5 ${iconInfo.bgColor} shadow-sm`
+                          : `p-2.5 ${iconInfo.bgColor} shadow-sm`
                     }`}>
-                      <IconComponent className={`transition-all duration-150 ease-out ${
-                        isOfferCategory 
-                          ? "h-5 w-5" 
-                          : "h-5 w-5"
-                      } ${isOfferCategory ? "" : iconInfo.color}`} />
+                      <IconComponent className={`h-5 w-5 ${isOfferCategory ? "" : iconInfo.color}`} />
                     </div>
                     
-                    {/* Title container - vertically centered */}
-                    <div className="flex flex-col justify-center items-start min-h-[28px]">
+                    {/* Title container - vertically aligned with icon */}
+                    <div className="flex flex-col justify-center items-start">
                       {/* Special badge - above title for offers */}
                       {isOfferCategory && (
                         <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-amber-500 text-white rounded-full shadow-sm animate-pulse mb-1">
                           {language === "ar" ? "🔥 عرض خاص" : "🔥 Special Offer"}
                         </span>
                       )}
-                      {/* Category title - consistent font-semibold */}
-                      <span className={`leading-tight transition-colors duration-150 ${
+                      {/* Category title - font-semibold for clarity */}
+                      <span className={`leading-snug tracking-tight transition-colors duration-150 ${
                         isOfferCategory 
                           ? "text-lg font-bold text-primary" 
                           : isOpen
-                            ? "text-base font-semibold text-foreground"
-                            : "text-base font-semibold text-foreground/85 group-hover:text-foreground"
+                            ? "text-[15px] font-semibold text-foreground"
+                            : "text-[15px] font-semibold text-foreground/80 group-hover:text-foreground"
                       }`}>
                         {translateCategoryName(category.name, language)}
                       </span>
                     </div>
                   </div>
                   
-                  {/* Expand indicator - consistent size with micro animation */}
+                  {/* Expand indicator - reduced visual weight, secondary */}
                   <span 
-                    className={`flex-shrink-0 w-6 h-6 flex items-center justify-center text-lg font-bold transition-all duration-150 ease-out ${
+                    className={`flex-shrink-0 w-5 h-5 flex items-center justify-center text-base font-medium transition-all duration-150 ease-out ${
                       isOpen 
-                        ? "rotate-45 scale-105" 
-                        : "group-hover:scale-110 group-hover:translate-x-0.5"
-                    } ${isOfferCategory ? "text-primary" : isOpen ? "text-foreground" : "text-muted-foreground group-hover:text-foreground/70"}`}
+                        ? "rotate-45 opacity-80" 
+                        : "opacity-40 group-hover:opacity-60 group-hover:scale-105"
+                    } ${isOfferCategory ? "text-primary opacity-100" : "text-foreground"}`}
                   >
                     +
                   </span>
