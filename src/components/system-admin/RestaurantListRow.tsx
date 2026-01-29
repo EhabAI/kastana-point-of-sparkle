@@ -99,7 +99,7 @@ export function RestaurantListRow({
     const message = language === 'ar'
       ? `مرحباً، معك فريق Kastana. بخصوص مطعم: ${safeName}. كيف نقدر نساعدك؟`
       : `Hello, this is Kastana team regarding: ${safeName}. How can we help?`;
-    return `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(message)}`;
+    return `https://web.whatsapp.com/send?phone=${normalizedPhone}&text=${encodeURIComponent(message)}`;
   };
 
   const handleWhatsAppClick = (e: React.MouseEvent) => {
