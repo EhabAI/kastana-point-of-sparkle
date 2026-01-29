@@ -859,8 +859,6 @@ export default function Menu() {
             const iconInfo = getCategoryIcon(category.name);
             const IconComponent = iconInfo.icon;
             const isOfferCategory = (category as any).isOfferCategory;
-            // Secondary emphasis for Cold Coffee category
-            const isColdCoffeeCategory = category.name === "قهوة باردة" || category.name.toLowerCase() === "cold coffee";
 
             return (
               <div 
@@ -868,39 +866,33 @@ export default function Menu() {
                 className={`overflow-hidden transition-all duration-200 ${
                   isOfferCategory 
                     ? "rounded-2xl border-2 border-primary bg-gradient-to-br from-primary/20 via-primary/10 to-amber-500/10 shadow-lg shadow-primary/20 ring-1 ring-primary/40" 
-                    : isColdCoffeeCategory
-                      ? "rounded-xl border-[1.5px] border-sky-400/40 bg-sky-50/50 dark:bg-sky-950/20 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
-                      : "rounded-xl border border-border shadow-sm"
+                    : "rounded-xl border-[1.5px] border-border/60 bg-card/80 dark:bg-card/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
                 }`}
               >
                 {/* Category Header */}
                 <button
                   type="button"
                   onClick={() => setOpenCategoryId(isOpen ? null : category.id)}
-                  className={`w-full flex justify-between items-center transition-colors ${
+                  className={`w-full flex justify-between items-center transition-all duration-150 ${
                     isOfferCategory
                       ? "p-4 bg-gradient-to-r from-primary/25 via-primary/15 to-amber-500/15 hover:from-primary/30 hover:via-primary/20"
-                      : isColdCoffeeCategory
-                        ? "p-3.5 bg-sky-100/40 dark:bg-sky-900/20 hover:bg-sky-100/60 dark:hover:bg-sky-900/30"
-                        : "p-3.5 bg-muted/50 dark:bg-muted/30 hover:bg-muted/70 dark:hover:bg-muted/45"
+                      : `p-3.5 ${
+                          isOpen 
+                            ? "bg-accent/60 dark:bg-accent/40" 
+                            : "bg-muted/40 dark:bg-muted/20 hover:bg-accent/40 dark:hover:bg-accent/30"
+                        }`
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    {/* Icon container - larger and more prominent for offers, slightly enhanced for cold coffee */}
-                    <div className={`rounded-xl ${
+                    {/* Icon container - consistent sizing for all non-offer categories */}
+                    <div className={`rounded-xl shadow-sm ${
                       isOfferCategory 
                         ? "p-2.5 bg-primary text-primary-foreground shadow-md" 
-                        : isColdCoffeeCategory
-                          ? "p-2.5 bg-sky-100 dark:bg-sky-900/40"
-                          : `p-2 ${iconInfo.bgColor}`
+                        : `p-2.5 ${iconInfo.bgColor}`
                     }`}>
                       <IconComponent className={`${
-                        isOfferCategory 
-                          ? "h-6 w-6" 
-                          : isColdCoffeeCategory 
-                            ? "h-[22px] w-[22px] text-sky-600 dark:text-sky-400" 
-                            : "h-5 w-5"
-                      } ${isOfferCategory ? "" : isColdCoffeeCategory ? "" : iconInfo.color}`} />
+                        isOfferCategory ? "h-6 w-6" : "h-[22px] w-[22px]"
+                      } ${isOfferCategory ? "" : iconInfo.color}`} />
                     </div>
                     
                     <div className="flex flex-col items-start gap-1">
@@ -910,13 +902,11 @@ export default function Menu() {
                           {language === "ar" ? "🔥 عرض خاص" : "🔥 Special Offer"}
                         </span>
                       )}
-                      {/* Category title - larger and bolder for offers */}
+                      {/* Category title */}
                       <span className={`font-semibold ${
                         isOfferCategory 
                           ? "text-lg font-bold text-primary" 
-                          : isColdCoffeeCategory
-                            ? "text-base text-sky-700 dark:text-sky-300"
-                            : "text-base"
+                          : "text-base text-foreground"
                       }`}>
                         {translateCategoryName(category.name, language)}
                       </span>
@@ -927,7 +917,7 @@ export default function Menu() {
                   <span 
                     className={`text-xl font-bold transition-transform duration-150 ease-out ${
                       isOpen ? "rotate-45" : ""
-                    } ${isOfferCategory ? "text-primary" : isColdCoffeeCategory ? "text-sky-500" : "text-muted-foreground"}`}
+                    } ${isOfferCategory ? "text-primary" : "text-muted-foreground"}`}
                   >
                     +
                   </span>
