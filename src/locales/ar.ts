@@ -1894,4 +1894,10 @@ export default {
   item_color_selected: "الصنف المحدد حاليًا",
   item_color_regular: "صنف عادي بالسعر الأساسي",
   item_color_favorite: "صنف مفضل",
+
+  // POS Item Tooltips (per-card hover)
+  item_tooltip_offer: "عرض خاص",
+  item_tooltip_selected: "الصنف المحدد",
+  item_tooltip_regular: "سعر عادي",
+  item_tooltip_favorite: "مفضل",
 } as const;
