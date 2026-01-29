@@ -76,15 +76,17 @@ export function DashboardLayout({
               )}
             </div>
 
-            {/* RIGHT – User Info & Actions */}
-            <div className="flex items-center gap-1">
-              {/* User Context - hidden on mobile */}
+            {/* CENTER – User Context (hidden on mobile) */}
+            <div className="hidden md:flex items-center justify-center flex-1">
               {displayName && (
-                <span className="hidden sm:inline text-[11px] text-blue-700/80 dark:text-blue-200/80 mr-2">
+                <span className="text-[11px] text-blue-700/80 dark:text-blue-200/80">
                   {displayName} {role && `• ${formatRole(role)}`}
                 </span>
               )}
-              
+            </div>
+
+            {/* RIGHT – Actions */}
+            <div className="flex items-center gap-1">
               <ThemeToggle />
               <LanguageToggle />
               
