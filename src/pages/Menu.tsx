@@ -863,84 +863,82 @@ export default function Menu() {
             return (
               <div 
                 key={category.id} 
-                className={`overflow-hidden transition-all duration-200 ${
+                className={`overflow-hidden transition-all duration-200 ease-out group ${
                   isOfferCategory 
                     ? "rounded-2xl border-2 border-primary bg-gradient-to-br from-primary/20 via-primary/10 to-amber-500/10 shadow-lg shadow-primary/20 ring-1 ring-primary/40" 
                     : isOpen
-                      ? "rounded-xl border-2 border-foreground/20 bg-accent shadow-md -translate-y-0.5"
-                      : "rounded-xl border border-border/40 bg-card/60 dark:bg-card/40 shadow-sm hover:shadow hover:border-border/60"
+                      ? "rounded-xl border-[1.5px] border-foreground/25 bg-accent/80 shadow-md"
+                      : "rounded-xl border border-border/50 bg-card/70 dark:bg-card/50 shadow-sm hover:border-border hover:shadow-md hover:bg-accent/30"
                 }`}
               >
                 {/* Category Header */}
                 <button
                   type="button"
                   onClick={() => setOpenCategoryId(isOpen ? null : category.id)}
-                  className={`w-full flex justify-between items-center transition-all duration-150 ${
+                  className={`w-full flex justify-between items-center transition-all duration-150 ease-out ${
                     isOfferCategory
                       ? "p-4 bg-gradient-to-r from-primary/25 via-primary/15 to-amber-500/15 hover:from-primary/30 hover:via-primary/20"
                       : isOpen
-                        ? "p-3.5 bg-accent"
-                        : "p-3.5 bg-transparent hover:bg-muted/30"
+                        ? "p-3.5 bg-accent/60"
+                        : "p-3.5 bg-transparent hover:bg-accent/40 active:bg-accent/50"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    {/* Icon container - enhanced when expanded */}
-                    <div className={`rounded-xl transition-all duration-150 ${
+                    {/* Icon container - consistent sizing with hover enhancement */}
+                    <div className={`flex-shrink-0 rounded-xl transition-all duration-150 ease-out ${
                       isOfferCategory 
                         ? "p-2.5 bg-primary text-primary-foreground shadow-md" 
                         : isOpen
                           ? `p-2.5 ${iconInfo.bgColor} shadow-md ring-1 ring-foreground/10`
-                          : `p-2 ${iconInfo.bgColor} shadow-sm`
+                          : `p-2.5 ${iconInfo.bgColor} shadow-sm group-hover:shadow-md`
                     }`}>
-                      <IconComponent className={`transition-all duration-150 ${
+                      <IconComponent className={`transition-all duration-150 ease-out ${
                         isOfferCategory 
-                          ? "h-6 w-6" 
-                          : isOpen 
-                            ? "h-6 w-6" 
-                            : "h-5 w-5"
+                          ? "h-5 w-5" 
+                          : "h-5 w-5"
                       } ${isOfferCategory ? "" : iconInfo.color}`} />
                     </div>
                     
-                    <div className="flex flex-col items-start gap-1">
+                    {/* Title container - vertically centered */}
+                    <div className="flex flex-col justify-center items-start min-h-[28px]">
                       {/* Special badge - above title for offers */}
                       {isOfferCategory && (
-                        <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-amber-500 text-white rounded-full shadow-sm animate-pulse">
+                        <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-amber-500 text-white rounded-full shadow-sm animate-pulse mb-1">
                           {language === "ar" ? "🔥 عرض خاص" : "🔥 Special Offer"}
                         </span>
                       )}
-                      {/* Category title - bolder when expanded */}
-                      <span className={`transition-all duration-150 ${
+                      {/* Category title - consistent font-semibold */}
+                      <span className={`leading-tight transition-colors duration-150 ${
                         isOfferCategory 
                           ? "text-lg font-bold text-primary" 
                           : isOpen
-                            ? "text-base font-bold text-foreground"
-                            : "text-base font-medium text-foreground/80"
+                            ? "text-base font-semibold text-foreground"
+                            : "text-base font-semibold text-foreground/85 group-hover:text-foreground"
                       }`}>
                         {translateCategoryName(category.name, language)}
                       </span>
                     </div>
                   </div>
                   
-                  {/* Expand indicator - more prominent when open */}
+                  {/* Expand indicator - consistent size with micro animation */}
                   <span 
-                    className={`text-xl font-bold transition-all duration-150 ease-out ${
-                      isOpen ? "rotate-45 scale-110" : ""
-                    } ${isOfferCategory ? "text-primary" : isOpen ? "text-foreground" : "text-muted-foreground/60"}`}
+                    className={`flex-shrink-0 w-6 h-6 flex items-center justify-center text-lg font-bold transition-all duration-150 ease-out ${
+                      isOpen 
+                        ? "rotate-45 scale-105" 
+                        : "group-hover:scale-110 group-hover:translate-x-0.5"
+                    } ${isOfferCategory ? "text-primary" : isOpen ? "text-foreground" : "text-muted-foreground group-hover:text-foreground/70"}`}
                   >
                     +
                   </span>
                 </button>
 
-                {/* Animated Content - Clear slide + fade */}
+                {/* Animated Content - Smooth height + opacity */}
                 <div 
-                  className={`transition-all duration-150 ease-out overflow-hidden ${
+                  className={`transition-all duration-200 ease-out overflow-hidden ${
                     isOpen 
-                      ? "max-h-[1000px] opacity-100" 
+                      ? "max-h-[2000px] opacity-100" 
                       : "max-h-0 opacity-0"
                   }`}
-                  style={{
-                    transform: isOpen ? "translateY(0)" : "translateY(-6px)",
-                  }}
                 >
                   {/* Divider */}
                   <div className={`h-px ${isOfferCategory ? "bg-primary/25" : "bg-border/60"}`} />
