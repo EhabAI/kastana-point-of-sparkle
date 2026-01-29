@@ -1,10 +1,10 @@
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useMenuCategories, computeCategoryPromoStatus, CategoryPromoStatus } from "@/hooks/useMenuCategories";
+import { useMenuCategories, CategoryPromoStatus } from "@/hooks/useMenuCategories";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Target, Flame, CalendarClock, Clock, Ban, HelpCircle } from "lucide-react";
+import { Target, Flame, CalendarClock, Clock, Ban, HelpCircle, CheckCircle, Hourglass, XCircle, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { format, formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 
 interface OffersStatusCardProps {
@@ -26,8 +26,8 @@ export function OffersStatusCard({ restaurantId }: OffersStatusCardProps) {
   if (isLoading) {
     return (
       <Card className="bg-indigo-50/50 dark:bg-indigo-950/10 border-indigo-100 dark:border-indigo-900/30">
-        <CardContent className="p-2.5">
-          <Skeleton className="h-14 w-full" />
+        <CardContent className="p-2">
+          <Skeleton className="h-12 w-full" />
         </CardContent>
       </Card>
     );
@@ -51,82 +51,98 @@ export function OffersStatusCard({ restaurantId }: OffersStatusCardProps) {
 
   const dateLocale = language === "ar" ? ar : enUS;
 
-  // Format dates for display
+  // Format dates as DD/MM/YYYY only
   const formatDate = (date: Date | null) => {
     if (!date) return null;
-    return format(date, "dd/MM/yyyy HH:mm", { locale: dateLocale });
+    return format(date, "dd/MM/yyyy", { locale: dateLocale });
   };
 
-  // Calculate countdown for scheduled offers
-  const getCountdown = () => {
-    if (!promoStart || status !== "scheduled") return null;
-    return formatDistanceToNow(promoStart, { locale: dateLocale, addSuffix: true });
-  };
-
-  // Status configuration
+  // Status configuration with accent colors and icons
   const statusConfig: Record<CategoryPromoStatus | "disabled", {
     label: string;
     icon: typeof Flame;
+    titleIcon: typeof CheckCircle;
     textColor: string;
     bgColor: string;
     borderColor: string;
     cardBg: string;
+    accentColor: string;
+    helperText: string;
   }> = {
     active: {
       label: t("offer_status_active"),
       icon: Flame,
+      titleIcon: CheckCircle,
       textColor: "text-emerald-600 dark:text-emerald-400",
       bgColor: "bg-emerald-100 dark:bg-emerald-900/30",
       borderColor: "border-emerald-200 dark:border-emerald-800",
       cardBg: "bg-emerald-50/50 dark:bg-emerald-950/10 border-emerald-100 dark:border-emerald-900/30",
+      accentColor: "bg-emerald-500",
+      helperText: language === "ar" ? "جميع العروض مفعّلة حاليًا للزبائن" : "All offers are currently active for customers",
     },
     scheduled: {
       label: t("offer_status_scheduled"),
       icon: CalendarClock,
+      titleIcon: Hourglass,
       textColor: "text-blue-600 dark:text-blue-400",
       bgColor: "bg-blue-100 dark:bg-blue-900/30",
       borderColor: "border-blue-200 dark:border-blue-800",
       cardBg: "bg-blue-50/50 dark:bg-blue-950/10 border-blue-100 dark:border-blue-900/30",
+      accentColor: "bg-blue-500",
+      helperText: language === "ar" ? "سيتم تفعيل العروض تلقائيًا عند بدء المدة" : "Offers will be activated automatically when the period starts",
     },
     expired: {
       label: t("offer_status_expired"),
       icon: Clock,
+      titleIcon: XCircle,
       textColor: "text-gray-500 dark:text-gray-400",
       bgColor: "bg-gray-100 dark:bg-gray-800/30",
       borderColor: "border-gray-200 dark:border-gray-700",
       cardBg: "bg-gray-50/50 dark:bg-gray-950/10 border-gray-200 dark:border-gray-800/30",
+      accentColor: "bg-gray-400",
+      helperText: language === "ar" ? "انتهت مدة العروض ولم تعد ظاهرة للزبائن" : "Offer period has ended and is no longer visible to customers",
     },
     none: {
       label: t("offer_status_none"),
       icon: Ban,
+      titleIcon: Info,
       textColor: "text-muted-foreground",
       bgColor: "bg-muted/50",
       borderColor: "border-muted",
       cardBg: "bg-indigo-50/50 dark:bg-indigo-950/10 border-indigo-100 dark:border-indigo-900/30",
+      accentColor: "bg-gray-300 dark:bg-gray-600",
+      helperText: language === "ar" ? "لا توجد عروض مفعّلة حاليًا" : "No offers are currently active",
     },
     disabled: {
       label: t("offer_status_disabled"),
       icon: Ban,
+      titleIcon: Info,
       textColor: "text-muted-foreground",
       bgColor: "bg-muted/50",
       borderColor: "border-muted",
       cardBg: "bg-gray-50/50 dark:bg-gray-950/10 border-gray-200 dark:border-gray-800/30",
+      accentColor: "bg-gray-300 dark:bg-gray-600",
+      helperText: language === "ar" ? "لا توجد عروض مفعّلة حاليًا" : "No offers are currently active",
     },
   };
 
   const currentStatus = statusConfig[status];
   const StatusIcon = currentStatus.icon;
-  const countdown = getCountdown();
+  const TitleIcon = currentStatus.titleIcon;
 
   return (
-    <Card className={currentStatus.cardBg}>
-      <CardHeader className="pb-1 pt-2.5 px-3">
+    <Card className={`${currentStatus.cardBg} relative overflow-hidden`}>
+      {/* Accent bar on the right (RTL) */}
+      <div className={`absolute top-0 end-0 w-1.5 h-full ${currentStatus.accentColor}`} />
+      
+      <CardHeader className="pb-1 pt-2 px-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <Target className="h-3.5 w-3.5 text-indigo-500/70" />
             <CardTitle className="text-xs font-medium text-indigo-700/80 dark:text-indigo-400/80">
               {t("offers_status_title")}
             </CardTitle>
+            <TitleIcon className={`h-3 w-3 ${currentStatus.textColor}`} />
           </div>
           <TooltipProvider>
             <Tooltip>
@@ -140,9 +156,9 @@ export function OffersStatusCard({ restaurantId }: OffersStatusCardProps) {
           </TooltipProvider>
         </div>
       </CardHeader>
-      <CardContent className="px-3 pb-2.5 pt-1">
+      <CardContent className="px-3 pb-2 pt-0.5">
         {/* Status Badge */}
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2 mb-1.5">
           <span
             className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${currentStatus.bgColor} ${currentStatus.textColor} border ${currentStatus.borderColor}`}
           >
@@ -153,14 +169,11 @@ export function OffersStatusCard({ restaurantId }: OffersStatusCardProps) {
 
         {/* Date Details */}
         {status !== "none" && (promoStart || promoEnd) && (
-          <div className="space-y-1 text-xs">
+          <div className="space-y-0.5 text-xs mb-1">
             {promoStart && (
               <div className="flex items-center gap-1.5 text-foreground/60">
                 <span className="text-muted-foreground">{t("starts_from")}:</span>
                 <span className="font-medium tabular-nums">{formatDate(promoStart)}</span>
-                {status === "scheduled" && countdown && (
-                  <span className="text-blue-500 dark:text-blue-400">({countdown})</span>
-                )}
               </div>
             )}
             {promoEnd && (
@@ -172,24 +185,10 @@ export function OffersStatusCard({ restaurantId }: OffersStatusCardProps) {
           </div>
         )}
 
-        {/* Helper Text */}
-        {status === "active" && (
-          <p className="text-[10px] text-muted-foreground/70 mt-1.5 leading-relaxed">
-            {t("offers_auto_visible_hint")}
-          </p>
-        )}
-
-        {status === "none" && !offersCategory && (
-          <p className="text-[10px] text-muted-foreground/70 mt-0.5 leading-relaxed">
-            {t("no_offers_category_hint")}
-          </p>
-        )}
-
-        {status === "none" && offersCategory && !promoStart && !promoEnd && (
-          <p className="text-[10px] text-muted-foreground/70 mt-0.5 leading-relaxed">
-            {t("offers_always_visible_hint")}
-          </p>
-        )}
+        {/* Dynamic Helper Text */}
+        <p className="text-[10px] text-muted-foreground/70 leading-relaxed">
+          {currentStatus.helperText}
+        </p>
       </CardContent>
     </Card>
   );
