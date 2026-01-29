@@ -1910,4 +1910,7 @@ export default {
   // Promo Enable Toggle
   promo_enabled: "تفعيل العرض",
   promo_enabled_desc: "تشغيل أو إيقاف العرض بغض النظر عن الوقت",
+
+  // Promo Visibility Hint
+  promo_visibility_hint: "تظهر العروض تلقائياً حسب التاريخ والحالة. العروض النشطة تظهر في الكاشير وقائمة QR.",
 } as const;
