@@ -77,7 +77,7 @@ export function OffersStatusCard({ restaurantId }: OffersStatusCardProps) {
       icon: CalendarClock,
       accentColor: "bg-cyan-400",
       badgeBg: "bg-cyan-500/90 text-white",
-      helperText: language === "ar" ? "سيتم تفعيل العروض تلقائيًا عند بدء المدة" : "Offers will be activated automatically when the period starts",
+      helperText: language === "ar" ? "سيتم تفعيل العروض تلقائيًا عند بدء المدة وإيقافها تلقائيًا عند انتهائها" : "Offers will be activated automatically when the period starts and deactivated when it ends",
     },
     expired: {
       label: t("offer_status_expired"),
@@ -146,7 +146,10 @@ export function OffersStatusCard({ restaurantId }: OffersStatusCardProps) {
           <div className="text-xs text-white/90 mb-2">
             <span className="text-white/70">{language === "ar" ? "المدة:" : "Period:"}</span>{" "}
             <span className="font-medium tabular-nums">
-              {formatDate(promoStart) || "—"} → {formatDate(promoEnd) || "—"}
+              {language === "ar" 
+                ? `من ${formatDate(promoStart) || "—"} إلى ${formatDate(promoEnd) || "—"}`
+                : `${formatDate(promoStart) || "—"} to ${formatDate(promoEnd) || "—"}`
+              }
             </span>
           </div>
         )}
