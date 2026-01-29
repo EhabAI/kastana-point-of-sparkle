@@ -827,7 +827,7 @@ export default function Menu() {
     <div className="min-h-screen bg-background pb-24" dir={isRTL ? "rtl" : "ltr"}>
       <div className="max-w-3xl mx-auto p-4">
         {/* Header - Polished */}
-        <div className="mb-6 flex justify-between items-center">
+        <div className="mb-5 flex justify-between items-center">
           <div className="flex items-center gap-3">
             {restaurant?.logo_url && (
               <img
@@ -838,8 +838,12 @@ export default function Menu() {
             )}
             <div>
               <h1 className="text-2xl font-bold tracking-tight">{restaurant?.name ?? "Restaurant"}</h1>
-              <p className="text-xs text-muted-foreground/70">
-                {t("menu_table")}: <span className="font-medium">{tableCode}</span>
+              {/* Enhanced Table Identifier with friendly label */}
+              <p className="text-xs text-muted-foreground/80 flex items-center gap-1.5">
+                <span className="opacity-70">{language === "ar" ? "أنت على طاولة" : "You're at table"}</span>
+                <span className="font-semibold text-foreground/80 bg-muted px-1.5 py-0.5 rounded text-[11px]">
+                  {tableCode}
+                </span>
               </p>
             </div>
           </div>
@@ -852,8 +856,8 @@ export default function Menu() {
         </div>
 
 
-        {/* Menu - Polished */}
-        <div className="space-y-4">
+        {/* Menu - Polished with reduced spacing */}
+        <div className="space-y-2.5">
           {categoriesWithItems.map((category) => {
             const isOpen = openCategoryId === category.id;
             const iconInfo = getCategoryIcon(category.name);
@@ -863,99 +867,118 @@ export default function Menu() {
             return (
               <div 
                 key={category.id} 
-                className={`rounded-xl overflow-hidden shadow-sm ${
+                className={`rounded-xl overflow-hidden shadow-sm transition-all duration-150 ${
                   isOfferCategory 
-                    ? "border-2 border-primary/30 ring-1 ring-primary/10" 
+                    ? "border-2 border-primary/40 ring-2 ring-primary/15 bg-gradient-to-br from-primary/[0.04] via-transparent to-primary/[0.02]" 
                     : "border border-border"
                 }`}
               >
-                {/* Category Header - Darker background */}
+                {/* Category Header - Enhanced for offers */}
                 <button
                   type="button"
                   onClick={() => setOpenCategoryId(isOpen ? null : category.id)}
-                  className="w-full flex justify-between items-center p-4 bg-muted/60 dark:bg-muted/40 hover:bg-muted/80 dark:hover:bg-muted/50 transition-colors"
+                  className={`w-full flex justify-between items-center p-3.5 transition-colors ${
+                    isOfferCategory
+                      ? "bg-gradient-to-r from-primary/10 via-primary/5 to-transparent hover:from-primary/15 hover:via-primary/8"
+                      : "bg-muted/60 dark:bg-muted/40 hover:bg-muted/80 dark:hover:bg-muted/50"
+                  }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`p-2.5 rounded-xl ${iconInfo.bgColor}`}>
-                      <IconComponent className={`h-6 w-6 ${iconInfo.color}`} />
+                    <div className={`p-2 rounded-xl ${isOfferCategory ? "bg-primary/15" : iconInfo.bgColor}`}>
+                      <IconComponent className={`h-5 w-5 ${isOfferCategory ? "text-primary" : iconInfo.color}`} />
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-base">{translateCategoryName(category.name, language)}</span>
+                      <span className={`font-semibold text-base ${isOfferCategory ? "text-primary" : ""}`}>
+                        {translateCategoryName(category.name, language)}
+                      </span>
                       {isOfferCategory && (
-                        <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-primary text-primary-foreground rounded-full">
+                        <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-primary text-primary-foreground rounded-full animate-pulse">
                           {language === "ar" ? "عرض" : "Special"}
                         </span>
                       )}
                     </div>
                   </div>
-                  <span className="text-muted-foreground text-sm font-medium">{isOpen ? "−" : "+"}</span>
+                  <span 
+                    className={`text-sm font-medium transition-transform duration-150 ${
+                      isOpen ? "rotate-45" : ""
+                    } ${isOfferCategory ? "text-primary" : "text-muted-foreground"}`}
+                  >
+                    +
+                  </span>
                 </button>
 
-                {/* Divider */}
-                {isOpen && <div className="h-px bg-border/60" />}
-
-                {isOpen && (
-                  <div className="p-4 bg-background">
-                    {category.items.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">{t("menu_no_items")}</p>
-                    ) : (
-                      <div className="space-y-4">
-                        {category.items.map((item) => {
-                          const qty = getItemQuantity(item.id);
-                          return (
-                            <div key={item.id} className="flex justify-between items-center py-2">
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-foreground">
-                                  {translateItemName(item.name, language)}
-                                  {item.is_offer && (
-                                    <span className={`inline-flex items-center ${isRTL ? "mr-2" : "ml-2"}`}>
-                                      <Tag className="h-3 w-3 text-primary" />
-                                    </span>
-                                  )}
-                                </p>
-                                <p className="text-xs text-muted-foreground/80 mt-0.5">
-                                  {formatJOD(item.price)} {t("menu_currency")}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                {qty > 0 ? (
-                                  <>
-                                    <Button
-                                      variant="outline"
+                {/* Animated Content Container */}
+                <div 
+                  className={`grid transition-all duration-150 ease-out ${
+                    isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                  }`}
+                >
+                  <div className="overflow-hidden">
+                    {/* Divider */}
+                    <div className={`h-px ${isOfferCategory ? "bg-primary/20" : "bg-border/60"}`} />
+                    
+                    <div className="p-3.5 bg-background">
+                      {category.items.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">{t("menu_no_items")}</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {category.items.map((item) => {
+                            const qty = getItemQuantity(item.id);
+                            return (
+                              <div key={item.id} className="flex justify-between items-center py-1.5">
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-foreground text-sm">
+                                    {translateItemName(item.name, language)}
+                                    {item.is_offer && (
+                                      <span className={`inline-flex items-center ${isRTL ? "mr-2" : "ml-2"}`}>
+                                        <Tag className="h-3 w-3 text-primary" />
+                                      </span>
+                                    )}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground/80 mt-0.5">
+                                    {formatJOD(item.price)} {t("menu_currency")}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  {qty > 0 ? (
+                                    <>
+                                      <Button
+                                        variant="outline"
+                                        size="icon"
+                                        className="h-8 w-8 rounded-full"
+                                        onClick={() => decrementItem(item.id)}
+                                      >
+                                        <Minus className="h-3.5 w-3.5" />
+                                      </Button>
+                                      <span className="w-5 text-center font-semibold tabular-nums text-sm">{qty}</span>
+                                      <Button
+                                        variant="outline"
+                                        size="icon"
+                                        className="h-8 w-8 rounded-full"
+                                        onClick={() => incrementItem(item)}
+                                      >
+                                        <Plus className="h-3.5 w-3.5" />
+                                      </Button>
+                                    </>
+                                  ) : (
+                                    <Button 
+                                      variant="default" 
                                       size="icon"
-                                      className="h-9 w-9 rounded-full"
-                                      onClick={() => decrementItem(item.id)}
-                                    >
-                                      <Minus className="h-4 w-4" />
-                                    </Button>
-                                    <span className="w-6 text-center font-semibold tabular-nums">{qty}</span>
-                                    <Button
-                                      variant="outline"
-                                      size="icon"
-                                      className="h-9 w-9 rounded-full"
+                                      className="h-8 w-8 rounded-full"
                                       onClick={() => incrementItem(item)}
                                     >
-                                      <Plus className="h-4 w-4" />
+                                      <Plus className="h-3.5 w-3.5" />
                                     </Button>
-                                  </>
-                                ) : (
-                                  <Button 
-                                    variant="default" 
-                                    size="icon"
-                                    className="h-9 w-9 rounded-full"
-                                    onClick={() => incrementItem(item)}
-                                  >
-                                    <Plus className="h-4 w-4" />
-                                  </Button>
-                                )}
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
             );
           })}
