@@ -550,6 +550,34 @@ export const SCREENS_REGISTRY: ScreenEntry[] = [
     related_actions: [],
   },
   {
+    id: "screen_owner_overview",
+    screen_name: { ar: "نظرة عامة", en: "Overview" },
+    route: "/admin",
+    user_roles: ["owner"],
+    main_actions: [],
+    common_states: {
+      ar: ["ملخص اليوم متوفر", "لا توجد عروض نشطة", "عرض نشط", "عرض مجدول", "عرض منتهي"],
+      en: ["Today summary available", "No active offers", "Active offer", "Scheduled offer", "Expired offer"],
+    },
+    common_confusions: {
+      ar: [
+        "شو هذا الكرت؟",
+        "ليش العرض مش شغال؟",
+        "متى ينتهي العرض؟",
+        "هل لازم أعمل شيء؟",
+        "شو يعني مجدول؟",
+      ],
+      en: [
+        "What is this card?",
+        "Why isn't the offer active?",
+        "When does the offer end?",
+        "Do I need to do anything?",
+        "What does scheduled mean?",
+      ],
+    },
+    related_actions: [],
+  },
+  {
     id: "screen_owner_inventory",
     screen_name: { ar: "إدارة المخزون", en: "Inventory Management" },
     route: "/admin",
