@@ -142,6 +142,18 @@
     to { opacity: 1; transform: translateY(0); }
   }
   
+  /* Chair indicator pop animation for table cards */
+  @keyframes chair-pop {
+    from { 
+      opacity: 0; 
+      transform: scale(0.85); 
+    }
+    to { 
+      opacity: 1; 
+      transform: scale(1); 
+    }
+  }
+  
   /* Subtle hover scale for interactive elements */
   .hover-scale {
     transition: transform 0.15s ease;
