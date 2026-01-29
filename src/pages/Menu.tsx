@@ -859,6 +859,8 @@ export default function Menu() {
             const iconInfo = getCategoryIcon(category.name);
             const IconComponent = iconInfo.icon;
             const isOfferCategory = (category as any).isOfferCategory;
+            // Secondary emphasis for Cold Coffee category
+            const isColdCoffeeCategory = category.name === "قهوة باردة" || category.name.toLowerCase() === "cold coffee";
 
             return (
               <div 
@@ -866,7 +868,9 @@ export default function Menu() {
                 className={`overflow-hidden transition-all duration-200 ${
                   isOfferCategory 
                     ? "rounded-2xl border-2 border-primary bg-gradient-to-br from-primary/20 via-primary/10 to-amber-500/10 shadow-lg shadow-primary/20 ring-1 ring-primary/40" 
-                    : "rounded-xl border border-border shadow-sm"
+                    : isColdCoffeeCategory
+                      ? "rounded-xl border-[1.5px] border-sky-400/40 bg-sky-50/50 dark:bg-sky-950/20 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
+                      : "rounded-xl border border-border shadow-sm"
                 }`}
               >
                 {/* Category Header */}
@@ -876,17 +880,27 @@ export default function Menu() {
                   className={`w-full flex justify-between items-center transition-colors ${
                     isOfferCategory
                       ? "p-4 bg-gradient-to-r from-primary/25 via-primary/15 to-amber-500/15 hover:from-primary/30 hover:via-primary/20"
-                      : "p-3.5 bg-muted/50 dark:bg-muted/30 hover:bg-muted/70 dark:hover:bg-muted/45"
+                      : isColdCoffeeCategory
+                        ? "p-3.5 bg-sky-100/40 dark:bg-sky-900/20 hover:bg-sky-100/60 dark:hover:bg-sky-900/30"
+                        : "p-3.5 bg-muted/50 dark:bg-muted/30 hover:bg-muted/70 dark:hover:bg-muted/45"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    {/* Icon container - larger and more prominent for offers */}
+                    {/* Icon container - larger and more prominent for offers, slightly enhanced for cold coffee */}
                     <div className={`rounded-xl ${
                       isOfferCategory 
                         ? "p-2.5 bg-primary text-primary-foreground shadow-md" 
-                        : `p-2 ${iconInfo.bgColor}`
+                        : isColdCoffeeCategory
+                          ? "p-2.5 bg-sky-100 dark:bg-sky-900/40"
+                          : `p-2 ${iconInfo.bgColor}`
                     }`}>
-                      <IconComponent className={`${isOfferCategory ? "h-6 w-6" : "h-5 w-5"} ${isOfferCategory ? "" : iconInfo.color}`} />
+                      <IconComponent className={`${
+                        isOfferCategory 
+                          ? "h-6 w-6" 
+                          : isColdCoffeeCategory 
+                            ? "h-[22px] w-[22px] text-sky-600 dark:text-sky-400" 
+                            : "h-5 w-5"
+                      } ${isOfferCategory ? "" : isColdCoffeeCategory ? "" : iconInfo.color}`} />
                     </div>
                     
                     <div className="flex flex-col items-start gap-1">
@@ -900,7 +914,9 @@ export default function Menu() {
                       <span className={`font-semibold ${
                         isOfferCategory 
                           ? "text-lg font-bold text-primary" 
-                          : "text-base"
+                          : isColdCoffeeCategory
+                            ? "text-base text-sky-700 dark:text-sky-300"
+                            : "text-base"
                       }`}>
                         {translateCategoryName(category.name, language)}
                       </span>
@@ -911,7 +927,7 @@ export default function Menu() {
                   <span 
                     className={`text-xl font-bold transition-transform duration-150 ease-out ${
                       isOpen ? "rotate-45" : ""
-                    } ${isOfferCategory ? "text-primary" : "text-muted-foreground"}`}
+                    } ${isOfferCategory ? "text-primary" : isColdCoffeeCategory ? "text-sky-500" : "text-muted-foreground"}`}
                   >
                     +
                   </span>
