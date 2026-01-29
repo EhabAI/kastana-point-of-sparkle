@@ -255,10 +255,6 @@ export default function OwnerAdmin() {
                     <OffersStatusCard restaurantId={restaurant.id} />
                   </div>
                 </div>
-                {/* Action cards row */}
-                <div className="grid gap-3 grid-cols-1">
-                  <SuggestedNextAction restaurantId={restaurant.id} />
-                </div>
               </div>
             )}
             {role === "owner" && <OperationalInsightsCard restaurantId={restaurant.id} />}
