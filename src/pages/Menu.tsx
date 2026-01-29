@@ -917,15 +917,24 @@ export default function Menu() {
                   </div>
                   
                   {/* Expand indicator - reduced visual weight, secondary */}
-                  <span 
-                    className={`flex-shrink-0 w-5 h-5 flex items-center justify-center text-base font-medium transition-all duration-150 ease-out ${
-                      isOpen 
-                        ? "rotate-45 opacity-80" 
-                        : "opacity-40 group-hover:opacity-60 group-hover:scale-105"
-                    } ${isOfferCategory ? "text-primary opacity-100" : "text-foreground"}`}
-                  >
-                    +
-                  </span>
+                  {/* Expand indicator + helper text container */}
+                  <div className="flex items-center gap-2">
+                    {/* Collapsed helper text */}
+                    {!isOpen && !isOfferCategory && (
+                      <span className="text-[10px] text-muted-foreground/50 hidden sm:inline">
+                        {language === "ar" ? "اضغط للعرض" : "Tap to view"}
+                      </span>
+                    )}
+                    <span 
+                      className={`flex-shrink-0 w-5 h-5 flex items-center justify-center text-base font-medium transition-all duration-150 ease-out ${
+                        isOpen 
+                          ? "rotate-45 opacity-80" 
+                          : "opacity-40 group-hover:opacity-60 group-hover:scale-105"
+                      } ${isOfferCategory ? "text-primary opacity-100" : "text-foreground"}`}
+                    >
+                      +
+                    </span>
+                  </div>
                 </button>
 
                 {/* Animated Content - Smooth height + opacity */}
@@ -939,57 +948,64 @@ export default function Menu() {
                   {/* Divider */}
                   <div className={`h-px ${isOfferCategory ? "bg-primary/25" : "bg-border/60"}`} />
                   
-                  <div className={`p-3.5 ${isOfferCategory ? "bg-primary/[0.02]" : "bg-background"}`}>
+                  <div className={`p-3.5 sm:p-4 ${isOfferCategory ? "bg-primary/[0.02]" : "bg-background"}`}>
                       {category.items.length === 0 ? (
                         <p className="text-sm text-muted-foreground">{t("menu_no_items")}</p>
                       ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-1">
                           {category.items.map((item) => {
                             const qty = getItemQuantity(item.id);
                             return (
-                              <div key={item.id} className="flex justify-between items-center py-1.5">
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-foreground text-sm">
+                              <div 
+                                key={item.id} 
+                                className="group/item flex justify-between items-center min-h-[52px] py-2.5 sm:py-2 px-2 -mx-2 rounded-lg transition-all duration-150 ease-out hover:bg-muted/40 active:bg-muted/50"
+                              >
+                                {/* Item info - primary focus */}
+                                <div className="flex-1 min-w-0 pe-3">
+                                  {/* Item name - semibold, max 2 lines */}
+                                  <p className="font-semibold text-foreground text-[15px] leading-snug line-clamp-2">
                                     {translateItemName(item.name, language)}
                                     {item.is_offer && (
-                                      <span className={`inline-flex items-center ${isRTL ? "mr-2" : "ml-2"}`}>
+                                      <span className={`inline-flex items-center ${isRTL ? "mr-1.5" : "ml-1.5"}`}>
                                         <Tag className="h-3 w-3 text-primary" />
                                       </span>
                                     )}
                                   </p>
-                                  <p className="text-xs text-muted-foreground/80 mt-0.5">
+                                  {/* Price - secondary, muted */}
+                                  <p className="text-[13px] text-muted-foreground mt-0.5 tabular-nums">
                                     {formatJOD(item.price)} {t("menu_currency")}
                                   </p>
                                 </div>
+                                {/* Action buttons - enhanced touch targets */}
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                   {qty > 0 ? (
                                     <>
                                       <Button
                                         variant="outline"
                                         size="icon"
-                                        className="h-8 w-8 rounded-full"
-                                        onClick={() => decrementItem(item.id)}
+                                        className="h-9 w-9 sm:h-8 sm:w-8 rounded-full transition-all duration-150 active:scale-95"
+                                        onClick={(e) => { e.stopPropagation(); decrementItem(item.id); }}
                                       >
-                                        <Minus className="h-3.5 w-3.5" />
+                                        <Minus className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                                       </Button>
-                                      <span className="w-5 text-center font-semibold tabular-nums text-sm">{qty}</span>
+                                      <span className="w-6 text-center font-semibold tabular-nums text-sm">{qty}</span>
                                       <Button
                                         variant="outline"
                                         size="icon"
-                                        className="h-8 w-8 rounded-full"
-                                        onClick={() => incrementItem(item)}
+                                        className="h-9 w-9 sm:h-8 sm:w-8 rounded-full transition-all duration-150 active:scale-95"
+                                        onClick={(e) => { e.stopPropagation(); incrementItem(item); }}
                                       >
-                                        <Plus className="h-3.5 w-3.5" />
+                                        <Plus className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                                       </Button>
                                     </>
                                   ) : (
                                     <Button 
                                       variant="default" 
                                       size="icon"
-                                      className="h-8 w-8 rounded-full"
-                                      onClick={() => incrementItem(item)}
+                                      className="h-9 w-9 sm:h-8 sm:w-8 rounded-full transition-all duration-150 active:scale-95 group-hover/item:shadow-sm"
+                                      onClick={(e) => { e.stopPropagation(); incrementItem(item); }}
                                     >
-                                      <Plus className="h-3.5 w-3.5" />
+                                      <Plus className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                                     </Button>
                                   )}
                                 </div>
