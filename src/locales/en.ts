@@ -1881,4 +1881,12 @@ export default {
   module_desc_tables: "Manage tables and track their status.",
   module_desc_qr_orders: "Receive and review customer QR orders.",
   module_desc_menu: "Manage categories, items, and pricing.",
+
+  // POS Item Color Legend
+  item_color_legend: "Item color meanings",
+  item_color_legend_title: "Item color meanings:",
+  item_color_offer: "Special offer / deal item",
+  item_color_selected: "Currently selected item",
+  item_color_regular: "Regular item",
+  item_color_favorite: "Favorite item",
 } as const;
