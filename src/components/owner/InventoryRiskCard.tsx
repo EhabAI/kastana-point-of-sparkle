@@ -129,8 +129,8 @@ export function InventoryRiskCard({
   if (isLoading) {
     return (
       <Card className="bg-amber-50/50 dark:bg-amber-950/10 border-amber-100 dark:border-amber-900/30">
-        <CardContent className="p-4">
-          <Skeleton className="h-12 w-full" />
+        <CardContent className="p-3">
+          <Skeleton className="h-10 w-full" />
         </CardContent>
       </Card>
     );
@@ -186,7 +186,7 @@ export function InventoryRiskCard({
 
   return (
     <Card className="bg-amber-50/50 dark:bg-amber-950/10 border-amber-100 dark:border-amber-900/30">
-      <CardHeader className="pb-2 pt-4 px-4">
+      <CardHeader className="pb-1.5 pt-3 px-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Package className="h-4 w-4 text-amber-500/70" />
@@ -199,8 +199,8 @@ export function InventoryRiskCard({
           </span>
         </div>
       </CardHeader>
-      <CardContent className="px-4 pb-4 pt-0">
-        <div className="space-y-0.5">
+      <CardContent className="px-3 pb-3 pt-0">
+        <div className="space-y-0">
           <TooltipProvider>
             {rows.map((row, index) => {
               const Icon = row.icon;
@@ -210,7 +210,7 @@ export function InventoryRiskCard({
                     <button
                       onClick={row.onClick}
                       disabled={!row.onClick}
-                      className={`w-full flex items-center justify-between py-1 px-1.5 rounded transition-colors ${
+                      className={`w-full flex items-center justify-between py-0.5 px-1 rounded transition-colors ${
                         row.onClick
                           ? "hover:bg-amber-100/50 dark:hover:bg-amber-900/20 cursor-pointer"
                           : "cursor-default"
@@ -218,7 +218,7 @@ export function InventoryRiskCard({
                     >
                       <div className="flex items-center gap-1.5">
                         <Icon className={`h-3 w-3 ${row.color}`} />
-                        <span className="text-xs text-foreground/70">{row.label}</span>
+                        <span className="text-xs text-foreground/70 leading-snug">{row.label}</span>
                       </div>
                       <span className={`text-[13px] font-medium tabular-nums ${row.color}`}>
                         {row.count}
