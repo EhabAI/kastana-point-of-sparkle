@@ -59,6 +59,7 @@ export function useCashierMenuItems(categoryId: string | undefined) {
           promo_start,
           promo_end,
           promo_label,
+          promo_enabled,
           sort_order,
           menu_item:menu_items!inner(
             id,
@@ -83,8 +84,12 @@ export function useCashierMenuItems(categoryId: string | undefined) {
         const now = new Date();
         const promoStart = item.promo_start ? new Date(item.promo_start) : null;
         const promoEnd = item.promo_end ? new Date(item.promo_end) : null;
+        const promoEnabled = item.promo_enabled !== false; // default true for backward compat
+        
+        // Promo is active only if enabled AND within time range
         const isPromoActive =
           item.promo_price &&
+          promoEnabled &&
           (!promoStart || promoStart <= now) &&
           (!promoEnd || promoEnd >= now);
 
@@ -130,6 +135,7 @@ export function useCashierAllMenuItems() {
           promo_start,
           promo_end,
           promo_label,
+          promo_enabled,
           sort_order,
           menu_item:menu_items!inner(
             id,
@@ -157,8 +163,11 @@ export function useCashierAllMenuItems() {
         const now = new Date();
         const promoStart = item.promo_start ? new Date(item.promo_start) : null;
         const promoEnd = item.promo_end ? new Date(item.promo_end) : null;
+        const promoEnabled = item.promo_enabled !== false;
+        
         const isPromoActive =
           item.promo_price &&
+          promoEnabled &&
           (!promoStart || promoStart <= now) &&
           (!promoEnd || promoEnd >= now);
 
@@ -205,6 +214,7 @@ export function useCashierFavoriteItems() {
           promo_start,
           promo_end,
           promo_label,
+          promo_enabled,
           sort_order,
           menu_item:menu_items!inner(
             id,
@@ -229,8 +239,11 @@ export function useCashierFavoriteItems() {
         const now = new Date();
         const promoStart = item.promo_start ? new Date(item.promo_start) : null;
         const promoEnd = item.promo_end ? new Date(item.promo_end) : null;
+        const promoEnabled = item.promo_enabled !== false;
+        
         const isPromoActive =
           item.promo_price &&
+          promoEnabled &&
           (!promoStart || promoStart <= now) &&
           (!promoEnd || promoEnd >= now);
 

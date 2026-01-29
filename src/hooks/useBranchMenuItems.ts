@@ -15,6 +15,7 @@ export interface BranchMenuItem {
   promo_label: string | null;
   promo_start: string | null;
   promo_end: string | null;
+  promo_enabled: boolean;
   sort_order: number | null;
   created_at: string;
   updated_at: string;
@@ -30,9 +31,12 @@ export interface BranchMenuItem {
   };
 }
 
+export type PromoStatus = 'active' | 'scheduled' | 'expired' | 'disabled' | 'none';
+
 export interface BranchMenuItemWithBase extends BranchMenuItem {
   effective_price: number;
   is_promo_active: boolean;
+  promo_status: PromoStatus;
   base_name: string;
   base_description: string | null;
   category_id: string;
@@ -66,13 +70,30 @@ export function useBranchMenuItems(branchId: string | undefined, categoryId?: st
       // Calculate effective price and promo status
       const now = new Date();
       return validItems.map((item: any): BranchMenuItemWithBase => {
-        const isPromoActive = !!(
-          item.promo_price !== null &&
-          item.promo_start &&
-          item.promo_end &&
-          new Date(item.promo_start) <= now &&
-          new Date(item.promo_end) >= now
-        );
+        const hasPromoPrice = item.promo_price !== null && item.promo_price > 0;
+        const promoStart = item.promo_start ? new Date(item.promo_start) : null;
+        const promoEnd = item.promo_end ? new Date(item.promo_end) : null;
+        const promoEnabled = item.promo_enabled !== false; // default true for backward compat
+
+        // Determine promo status for Owner Dashboard display
+        let promoStatus: PromoStatus = 'none';
+        if (hasPromoPrice) {
+          if (!promoEnabled) {
+            promoStatus = 'disabled';
+          } else if (promoStart && now < promoStart) {
+            promoStatus = 'scheduled';
+          } else if (promoEnd && now > promoEnd) {
+            promoStatus = 'expired';
+          } else if (
+            (!promoStart || promoStart <= now) &&
+            (!promoEnd || promoEnd >= now)
+          ) {
+            promoStatus = 'active';
+          }
+        }
+
+        // Promo is active only if enabled AND within time range
+        const isPromoActive = promoStatus === 'active';
 
         const effectivePrice = isPromoActive
           ? item.promo_price
@@ -82,6 +103,7 @@ export function useBranchMenuItems(branchId: string | undefined, categoryId?: st
           ...item,
           effective_price: effectivePrice,
           is_promo_active: isPromoActive,
+          promo_status: promoStatus,
           base_name: item.menu_item.name,
           base_description: item.menu_item.description,
           category_id: item.menu_item.category_id,
@@ -133,7 +155,7 @@ export function useBulkUpdateBranchMenuItems() {
     }: {
       branchId: string;
       itemIds: string[];
-      updates: Partial<Pick<BranchMenuItem, 'is_available' | 'is_active' | 'promo_price' | 'promo_label' | 'promo_start' | 'promo_end'>>;
+      updates: Partial<Pick<BranchMenuItem, 'is_available' | 'is_active' | 'promo_price' | 'promo_label' | 'promo_start' | 'promo_end' | 'promo_enabled'>>;
     }) => {
       const { data, error } = await supabase
         .from("branch_menu_items")

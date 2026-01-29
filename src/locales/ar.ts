@@ -1900,4 +1900,14 @@ export default {
   item_tooltip_selected: "الصنف المحدد",
   item_tooltip_regular: "سعر عادي",
   item_tooltip_favorite: "مفضل",
+
+  // Promo Status Badges
+  promo_status_active: "نشط",
+  promo_status_scheduled: "مجدول",
+  promo_status_expired: "منتهي",
+  promo_status_disabled: "معطل",
+
+  // Promo Enable Toggle
+  promo_enabled: "تفعيل العرض",
+  promo_enabled_desc: "تشغيل أو إيقاف العرض بغض النظر عن الوقت",
 } as const;

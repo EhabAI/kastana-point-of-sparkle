@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useBranchMenuItems, useUpdateBranchMenuItem, useBulkUpdateBranchMenuItems, useCopyBranchPrices, BranchMenuItemWithBase } from "@/hooks/useBranchMenuItems";
+import { useBranchMenuItems, useUpdateBranchMenuItem, useBulkUpdateBranchMenuItems, useCopyBranchPrices, BranchMenuItemWithBase, PromoStatus } from "@/hooks/useBranchMenuItems";
 import { useBranchContext } from "@/contexts/BranchContext";
 import { useMenuCategories } from "@/hooks/useMenuCategories";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -39,7 +39,10 @@ import {
   Percent,
   DollarSign,
   AlertCircle,
-  Search
+  Search,
+  Clock,
+  Ban,
+  CalendarClock
 } from "lucide-react";
 import { formatJOD } from "@/lib/utils";
 
@@ -74,6 +77,7 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
     promo_label: "",
     promo_start: "",
     promo_end: "",
+    promo_enabled: true,
   });
 
   const [promoFormData, setPromoFormData] = useState({
@@ -81,7 +85,44 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
     promo_label: "",
     promo_start: "",
     promo_end: "",
+    promo_enabled: true,
   });
+
+  // Helper to get promo status badge
+  const getPromoStatusBadge = (status: PromoStatus) => {
+    switch (status) {
+      case 'active':
+        return (
+          <Badge variant="destructive" className="text-xs gap-1">
+            <Flame className="h-3 w-3" />
+            {t("promo_status_active")}
+          </Badge>
+        );
+      case 'scheduled':
+        return (
+          <Badge variant="default" className="text-xs gap-1 bg-blue-500 hover:bg-blue-600">
+            <CalendarClock className="h-3 w-3" />
+            {t("promo_status_scheduled")}
+          </Badge>
+        );
+      case 'expired':
+        return (
+          <Badge variant="secondary" className="text-xs gap-1 text-muted-foreground">
+            <Clock className="h-3 w-3" />
+            {t("promo_status_expired")}
+          </Badge>
+        );
+      case 'disabled':
+        return (
+          <Badge variant="outline" className="text-xs gap-1 text-muted-foreground">
+            <Ban className="h-3 w-3" />
+            {t("promo_status_disabled")}
+          </Badge>
+        );
+      default:
+        return null;
+    }
+  };
 
   // Filter items by search query first, then by category
   const filteredItems = useMemo(() => {
@@ -168,11 +209,12 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
         promo_label: promoFormData.promo_label || null,
         promo_start: promoFormData.promo_start || null,
         promo_end: promoFormData.promo_end || null,
+        promo_enabled: promoFormData.promo_enabled,
       },
     });
     setPromoDialogOpen(false);
     setSelectedItems([]);
-    setPromoFormData({ promo_price: "", promo_label: "", promo_start: "", promo_end: "" });
+    setPromoFormData({ promo_price: "", promo_label: "", promo_start: "", promo_end: "", promo_enabled: true });
   };
 
   const handleCopyPrices = async () => {
@@ -195,6 +237,7 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
       promo_label: item.promo_label || "",
       promo_start: item.promo_start ? new Date(item.promo_start).toISOString().slice(0, 16) : "",
       promo_end: item.promo_end ? new Date(item.promo_end).toISOString().slice(0, 16) : "",
+      promo_enabled: item.promo_enabled !== false,
     });
   };
 
@@ -207,6 +250,7 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
       promo_label: editFormData.promo_label || null,
       promo_start: editFormData.promo_start || null,
       promo_end: editFormData.promo_end || null,
+      promo_enabled: editFormData.promo_enabled,
     });
     setEditingItem(null);
   };
@@ -361,13 +405,11 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                                   onCheckedChange={() => toggleSelectItem(item.menu_item_id)}
                                 />
                                 <div>
-                                  <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2">
                                     <span className="font-medium">{item.base_name}</span>
-                                    {item.is_promo_active && (
-                                      <Badge variant="destructive" className="text-xs">
-                                        <Flame className="h-3 w-3 me-1" />
-                                        {item.promo_label || t("offer")}
-                                      </Badge>
+                                    {getPromoStatusBadge(item.promo_status)}
+                                    {item.promo_status === 'active' && item.promo_label && (
+                                      <span className="text-xs text-muted-foreground">({item.promo_label})</span>
                                     )}
                                   </div>
                                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -443,6 +485,17 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
                 {t("promo_settings")}
               </h4>
               <div className="space-y-3">
+                {/* Promo Enabled Toggle */}
+                <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-medium">{t("promo_enabled")}</Label>
+                    <p className="text-xs text-muted-foreground">{t("promo_enabled_desc")}</p>
+                  </div>
+                  <Switch
+                    checked={editFormData.promo_enabled}
+                    onCheckedChange={(checked) => setEditFormData({ ...editFormData, promo_enabled: checked })}
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label>{t("promo_price")}</Label>
                   <Input
@@ -499,6 +552,17 @@ export function BranchMenuItemsManager({ restaurantId, currency }: BranchMenuIte
             <DialogTitle>{t("apply_promo")} - {selectedItems.length} {t("selected")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {/* Promo Enabled Toggle */}
+            <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-medium">{t("promo_enabled")}</Label>
+                <p className="text-xs text-muted-foreground">{t("promo_enabled_desc")}</p>
+              </div>
+              <Switch
+                checked={promoFormData.promo_enabled}
+                onCheckedChange={(checked) => setPromoFormData({ ...promoFormData, promo_enabled: checked })}
+              />
+            </div>
             <div className="space-y-2">
               <Label>{t("promo_price")}</Label>
               <Input

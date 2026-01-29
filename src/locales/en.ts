@@ -1895,4 +1895,14 @@ export default {
   item_tooltip_selected: "Selected Item",
   item_tooltip_regular: "Regular Price",
   item_tooltip_favorite: "Favorite",
+
+  // Promo Status Badges
+  promo_status_active: "Active",
+  promo_status_scheduled: "Scheduled",
+  promo_status_expired: "Expired",
+  promo_status_disabled: "Disabled",
+
+  // Promo Enable Toggle
+  promo_enabled: "Enable Offer",
+  promo_enabled_desc: "Toggle to enable or disable this offer regardless of time",
 } as const;
