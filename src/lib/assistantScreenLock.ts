@@ -36,6 +36,11 @@ export const SCREEN_BOUNDARIES: Record<ScreenContext, {
     forbiddenTopics: ["pos_actions", "create_order", "payment_processing"],
     mainFeature: { ar: "نظرة عامة على أداء المطعم", en: "Overview of restaurant performance" }
   },
+  owner_overview: {
+    allowedTopics: ["summary", "offers", "offers_status", "cash_differences", "inventory_risk", "changes", "income"],
+    forbiddenTopics: ["pos_actions", "create_order", "payment_processing", "menu_edit", "staff_edit"],
+    mainFeature: { ar: "ملخص اليوم وحالة العروض - للقراءة فقط", en: "Today's summary and offers status - read-only" }
+  },
   owner_menu: {
     allowedTopics: ["menu_items", "categories", "prices", "modifiers", "combos", "availability"],
     forbiddenTopics: ["pos_actions", "shifts", "payments"],
@@ -165,6 +170,7 @@ export function getScreenName(
     pos_open_orders: { ar: "الطلبات المفتوحة", en: "Open Orders" },
     pos_qr_pending: { ar: "طلبات QR", en: "QR Orders" },
     owner_dashboard: { ar: "لوحة التحكم", en: "Dashboard" },
+    owner_overview: { ar: "نظرة عامة", en: "Overview" },
     owner_menu: { ar: "إدارة القائمة", en: "Menu Management" },
     owner_staff: { ar: "إدارة الموظفين", en: "Staff Management" },
     owner_inventory: { ar: "إدارة المخزون", en: "Inventory Management" },
@@ -220,6 +226,13 @@ export function getScreenPrimaryElement(
       description: {
         ar: "يعرض الحالة التشغيلية: المبيعات، الطلبات، الورديات المفتوحة، ودرجة التشغيل.",
         en: "Shows operational status: sales, orders, open shifts, and operational score."
+      }
+    },
+    owner_overview: {
+      name: { ar: "شاشة نظرة عامة", en: "Overview Screen" },
+      description: {
+        ar: "ملخص اليوم، حالة العروض، فروقات النقد، ومخاطر المخزون. للقراءة فقط - لا تحتاج لأي إجراء.",
+        en: "Today summary, offers status, cash differences, and inventory risks. Read-only - no action needed."
       }
     },
     owner_menu: {

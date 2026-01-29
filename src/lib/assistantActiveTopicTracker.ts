@@ -457,6 +457,7 @@ export function getScreenLockedResponse(
     pos_open_orders: { ar: "الطلبات المفتوحة", en: "Open Orders" },
     pos_qr_pending: { ar: "طلبات QR", en: "QR Orders" },
     owner_dashboard: { ar: "لوحة التحكم", en: "Dashboard" },
+    owner_overview: { ar: "نظرة عامة", en: "Overview" },
     owner_menu: { ar: "إدارة القائمة", en: "Menu Management" },
     owner_staff: { ar: "إدارة الموظفين", en: "Staff Management" },
     owner_inventory: { ar: "إدارة المخزون", en: "Inventory Management" },

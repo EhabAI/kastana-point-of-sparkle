@@ -10,6 +10,7 @@ export type ScreenContext =
   | "pos_open_orders"
   | "pos_qr_pending"
   | "owner_dashboard"
+  | "owner_overview"
   | "owner_menu"
   | "owner_staff"
   | "owner_inventory"
@@ -58,8 +59,15 @@ const CONTEXT_HINTS: Record<ScreenContext, ContextHint> = {
   owner_dashboard: {
     title: { ar: "لوحة التحكم", en: "Dashboard" },
     description: { 
-      ar: "نظرة عامة على أداء المطعم. استخدم القائمة الجانبية للتنقل.",
-      en: "Overview of restaurant performance. Use sidebar to navigate."
+      ar: "نظرة عامة على أداء المطعم. استخدم التبويبات للتنقل بين الأقسام.",
+      en: "Overview of restaurant performance. Use tabs to navigate sections."
+    }
+  },
+  owner_overview: {
+    title: { ar: "نظرة عامة", en: "Overview" },
+    description: { 
+      ar: "ملخص اليوم وحالة العروض ومخاطر المخزون. للقراءة فقط.",
+      en: "Today's summary, offers status, and inventory risks. Read-only."
     }
   },
   owner_menu: {

@@ -1,6 +1,6 @@
 {
-  "version": "1.1.0",
-  "lastUpdated": "2026-01-26",
+  "version": "1.2.0",
+  "lastUpdated": "2026-01-29",
   "fallbackResponses": {
     "ar": "أستطيع مساعدتك في نظام Kastana POS. يرجى كتابة سؤالك بشكل واضح حول الطلبات، الدفع، المخزون، التقارير، أو أي ميزة أخرى في النظام.",
     "en": "I can help you with Kastana POS. Please ask your question clearly about orders, payments, inventory, reports, or any other system feature."
@@ -446,14 +446,14 @@
         "en": "Owner Dashboard Screen"
       },
       "content": {
-        "ar": "شاشة صاحب المطعم (Owner Dashboard):\n\n🎯 هدف الشاشة:\nلوحة التحكم الرئيسية لمالك المطعم لمتابعة الأداء وإدارة جميع جوانب العمل.\n\n📋 الأقسام الرئيسية:\n• ملخص اليوم: إجمالي المبيعات، عدد الطلبات، متوسط قيمة الطلب\n• التقارير: تقارير مالية وتشغيلية مفصلة\n• إدارة القائمة: تعديل الأصناف والأسعار والفئات\n• إدارة الموظفين: إضافة كاشيرات وطباخين\n• إدارة الفروع: إضافة وتعديل الفروع\n• إدارة الطاولات: إضافة وتعديل الطاولات\n• المخزون: متابعة المواد والوصفات\n• الإعدادات: إعدادات الضرائب والخصومات وطرق الدفع\n\n✅ ماذا يستطيع المستخدم فعله:\n• مراجعة أداء المبيعات اليومية والأسبوعية\n• تعديل الأسعار وإضافة أصناف جديدة\n• متابعة أداء الكاشيرات وفروقات الكاش\n• تفعيل/إيقاف المخزون وشاشة المطبخ KDS\n• عرض سجلات التدقيق Audit Logs\n\n⚠️ ملاحظات مهمة:\n• هذه الشاشة للمالك فقط (صلاحية Owner)\n• التغييرات في القائمة تظهر فوراً للكاشير\n• يجب مراجعة التقارير بانتظام لمتابعة الأداء",
-        "en": "Owner Dashboard Screen:\n\n🎯 Purpose:\nMain control panel for restaurant owner to monitor performance and manage all business aspects.\n\n📋 Main Sections:\n• Today Summary: Total sales, order count, average order value\n• Reports: Detailed financial and operational reports\n• Menu Management: Edit items, prices, and categories\n• Staff Management: Add cashiers and kitchen staff\n• Branch Management: Add and edit branches\n• Table Management: Add and edit tables\n• Inventory: Monitor materials and recipes\n• Settings: Tax, discount, and payment method settings\n\n✅ What You Can Do:\n• Review daily and weekly sales performance\n• Modify prices and add new menu items\n• Monitor cashier performance and cash differences\n• Enable/disable inventory and KDS\n• View audit logs\n\n⚠️ Important Notes:\n• This screen is for owners only (Owner role)\n• Menu changes appear immediately for cashiers\n• Review reports regularly to monitor performance"
+        "ar": "شاشة صاحب المطعم (Owner Dashboard):\n\n🎯 هدف الشاشة:\nلوحة التحكم الرئيسية لمالك المطعم.\n\n📋 التبويبات:\n• نظرة عامة: ملخص اليوم وحالة العروض (للقراءة فقط)\n• التحليلات: رسوم بيانية وإحصائيات\n• التقارير: تقارير مالية وتشغيلية\n• القائمة: إدارة الأصناف والأسعار\n• الموظفين: إدارة الكاشيرات والمطبخ\n• الفروع: إدارة فروع المطعم\n• الطاولات: إدارة الطاولات\n• المخزون: إدارة المواد والوصفات\n• الإعدادات: إعدادات النظام\n\n✅ ملاحظات:\n• تبويب \"نظرة عامة\" للقراءة فقط\n• الهيدر يُظهر اسم المستخدم والدور\n• اسم المطعم والشعار يظهران بوضوح\n• الشاشة مُحسّنة للعرض بصفحة واحدة",
+        "en": "Owner Dashboard Screen:\n\n🎯 Purpose:\nMain control panel for restaurant owner.\n\n📋 Tabs:\n• Overview: Today's summary and offers status (read-only)\n• Analytics: Charts and statistics\n• Reports: Financial and operational reports\n• Menu: Manage items and prices\n• Staff: Manage cashiers and kitchen\n• Branches: Manage restaurant branches\n• Tables: Manage tables\n• Inventory: Manage materials and recipes\n• Settings: System settings\n\n✅ Notes:\n• Overview tab is read-only\n• Header shows username and role\n• Restaurant name and logo shown clearly\n• Screen optimized for single-page view"
       },
       "metadata": {
         "feature_id": "screen_owner_dashboard",
         "affected_screens": ["Owner", "Admin", "Dashboard"],
         "user_roles": ["owner"],
-        "sections": ["branches", "staff", "menu", "reports", "inventory", "settings"]
+        "sections": ["overview", "analytics", "reports", "menu", "staff", "branches", "tables", "inventory", "settings"]
       }
     },
     "section_owner_branches": {
@@ -1687,6 +1687,75 @@
         "user_roles": ["cashier", "owner", "kitchen"],
         "tags": ["assistant-rules", "navigation", "routing"],
         "is_internal_rule": true
+      }
+    },
+    "owner_dashboard_overview": {
+      "id": "owner_dashboard_overview",
+      "intent": ["screen_explanation", "explain_screen", "overview_screen"],
+      "keywords": {
+        "ar": ["نظرة عامة", "شاشة نظرة عامة", "ملخص اليوم", "اشرحلي نظرة عامة", "شاشة Overview", "تبويب نظرة عامة", "الشاشة الرئيسية للمالك"],
+        "en": ["overview", "overview screen", "today summary", "explain overview", "overview tab", "main owner screen"]
+      },
+      "title": {
+        "ar": "شاشة نظرة عامة (Owner Overview)",
+        "en": "Owner Dashboard Overview Screen"
+      },
+      "content": {
+        "ar": "شاشة نظرة عامة للمالك:\n\n🎯 هدف الشاشة:\nعرض ملخص سريع للحالة التشغيلية اليومية - للقراءة فقط.\n\n📋 البطاقات الموجودة:\n\n1️⃣ ملخص اليوم:\n• إجمالي المبيعات والطلبات\n• متوسط قيمة الطلب\n• للقراءة فقط\n\n2️⃣ فروقات النقد - اليوم:\n• يُظهر فروقات الصندوق إن وجدت\n• أو \"لا توجد فروقات\"\n\n3️⃣ ما الذي تغير منذ أمس؟:\n• تغييرات مهمة (أصناف جديدة، موظفين، مرتجعات)\n• إذا لم يتغير شيء، يظهر \"لا توجد تغييرات\"\n\n4️⃣ مخاطر المخزون:\n• عدد المواد منخفضة المخزون\n• مختصر - أرقام فقط\n\n5️⃣ حالة العروض:\n• تعكس حالة تصنيف \"العروض\"\n• الحالات: لا يوجد عرض، عرض مجدول، عرض نشط، عرض منتهي\n• التاريخ يظهر في سطر واحد\n• النظام يُفعّل وينهي العرض تلقائياً\n\n⚠️ مهم:\n• جميع البطاقات للقراءة فقط\n• لا يوجد إجراءات مطلوبة\n• الشاشة مُحسّنة لتظهر في صفحة واحدة",
+        "en": "Owner Dashboard Overview Screen:\n\n🎯 Purpose:\nQuick summary of daily operational status - read-only.\n\n📋 Cards Available:\n\n1️⃣ Today's Summary:\n• Total sales and orders\n• Average order value\n• Read-only\n\n2️⃣ Cash Differences - Today:\n• Shows drawer differences if any\n• Or \"No differences\"\n\n3️⃣ What Changed Since Yesterday?:\n• Important changes (new items, staff, refunds)\n• If nothing changed, shows \"No changes\"\n\n4️⃣ Inventory Risk:\n• Count of low-stock items\n• Compact - numbers only\n\n5️⃣ Offers Status:\n• Reflects the \"Offers\" category status\n• States: No offer, Scheduled, Active, Expired\n• Date shown in single line\n• System activates and ends offers automatically\n\n⚠️ Important:\n• All cards are read-only\n• No actions required\n• Screen optimized to fit in one page"
+      },
+      "metadata": {
+        "feature_id": "owner_dashboard_overview",
+        "affected_screens": ["Owner", "Admin", "Dashboard", "Overview"],
+        "user_roles": ["owner"],
+        "parent_screen": "screen_owner_dashboard",
+        "section_key": "overview"
+      }
+    },
+    "offers_status_card": {
+      "id": "offers_status_card",
+      "intent": ["explain_card", "offers", "promotions"],
+      "keywords": {
+        "ar": ["حالة العروض", "العروض", "عرض", "كرت العروض", "شو هذا الكرت", "العرض مش شغال", "متى ينتهي العرض", "عرض مجدول", "عرض نشط", "عرض منتهي", "تفعيل العرض"],
+        "en": ["offers status", "offers", "offer", "offers card", "what is this card", "offer not working", "when does offer end", "scheduled offer", "active offer", "expired offer", "activate offer"]
+      },
+      "title": {
+        "ar": "بطاقة حالة العروض",
+        "en": "Offers Status Card"
+      },
+      "content": {
+        "ar": "بطاقة حالة العروض:\n\n🎯 ماذا تعرض:\nهذه البطاقة تعكس حالة تصنيف \"العروض\" في القائمة.\n\n📋 الحالات الممكنة:\n\n• لا يوجد عرض:\nلا يوجد تصنيف عروض مفعّل أو لم يتم تحديد مدة.\n\n• عرض مجدول:\nتم تحديد تاريخ بدء مستقبلي. سيتم تفعيله تلقائياً عند حلول الموعد.\n\n• عرض نشط:\nالعرض يظهر حالياً للزبائن في القائمة وشاشة QR.\n\n• عرض منتهي:\nانتهت مدة العرض. لم يعد يظهر للزبائن.\n\n⏰ كيف يعمل النظام:\n• العروض تُحدد على مستوى التصنيف (ليس الصنف الواحد)\n• عرض واحد فقط يمكن أن يكون نشطاً\n• النظام يُفعّل ويُنهي العرض تلقائياً حسب التاريخ\n• المدة تظهر: \"من [تاريخ البدء] إلى [تاريخ الانتهاء]\"\n\n✅ هل تحتاج لعمل شيء؟\nلا! هذه البطاقة للمعلومات فقط.\nإعداد العروض يتم من تبويب القائمة → تعديل تصنيف العروض.",
+        "en": "Offers Status Card:\n\n🎯 What it shows:\nThis card reflects the status of the \"Offers\" category in the menu.\n\n📋 Possible States:\n\n• No Offer:\nNo offers category enabled or no date range set.\n\n• Scheduled:\nFuture start date set. Will be activated automatically when the time comes.\n\n• Active:\nOffer is currently visible to customers in menu and QR screen.\n\n• Expired:\nOffer period has ended. No longer visible to customers.\n\n⏰ How the system works:\n• Offers are set at CATEGORY level (not per item)\n• Only ONE offer can be active at a time\n• System activates and ends offer automatically based on dates\n• Period shown as: \"From [start date] to [end date]\"\n\n✅ Do you need to do anything?\nNo! This card is for information only.\nTo set up offers, go to Menu tab → Edit Offers category."
+      },
+      "metadata": {
+        "feature_id": "offers_status_card",
+        "affected_screens": ["Owner", "Overview"],
+        "user_roles": ["owner"],
+        "parent_screen": "owner_dashboard_overview",
+        "section_key": "offers_status",
+        "tags": ["offers", "promotions", "scheduling", "category-level"]
+      }
+    },
+    "offers_timing_logic": {
+      "id": "offers_timing_logic",
+      "intent": ["explain_feature", "offers_automation"],
+      "keywords": {
+        "ar": ["ليش العرض مش شغال", "العرض لسا ما بلش", "متى يبدأ العرض", "العرض ما ظهر", "العرض مش ظاهر", "تفعيل تلقائي", "إنهاء تلقائي"],
+        "en": ["why offer not working", "offer not started", "when does offer start", "offer not showing", "auto activation", "auto end"]
+      },
+      "title": {
+        "ar": "منطق توقيت العروض",
+        "en": "Offers Timing Logic"
+      },
+      "content": {
+        "ar": "منطق توقيت العروض:\n\n🔄 كيف يعمل التفعيل التلقائي:\n\n1️⃣ تحديد المدة:\n• المالك يحدد تاريخ بدء وانتهاء من تعديل تصنيف العروض\n• لا حاجة لضغط زر تفعيل\n\n2️⃣ قبل تاريخ البدء:\n• الحالة: \"مجدول\"\n• العرض لا يظهر للزبائن\n• النظام ينتظر الموعد\n\n3️⃣ عند تاريخ البدء:\n• النظام يُفعّل العرض تلقائياً\n• الحالة: \"نشط\"\n• يظهر للزبائن في القائمة و QR\n\n4️⃣ عند تاريخ الانتهاء:\n• النظام يُنهي العرض تلقائياً\n• الحالة: \"منتهي\"\n• لا يظهر للزبائن\n\n⚠️ ملاحظات مهمة:\n• التفعيل والإنهاء يحدثان تلقائياً - لا حاجة لتدخل\n• إذا أردت إيقاف العرض مبكراً، عدّل تاريخ الانتهاء\n• الأصناف داخل تصنيف العروض لها تحكم إضافي (تفعيل/إيقاف)\n• إيقاف التصنيف نفسه يُلغي جميع العروض",
+        "en": "Offers Timing Logic:\n\n🔄 How auto-activation works:\n\n1️⃣ Setting the period:\n• Owner sets start and end date from Edit Offers category\n• No need to press an activation button\n\n2️⃣ Before start date:\n• Status: \"Scheduled\"\n• Offer not visible to customers\n• System waits for the time\n\n3️⃣ At start date:\n• System activates offer automatically\n• Status: \"Active\"\n• Visible to customers in menu and QR\n\n4️⃣ At end date:\n• System ends offer automatically\n• Status: \"Expired\"\n• Not visible to customers\n\n⚠️ Important notes:\n• Activation and ending happen automatically - no intervention needed\n• To end early, modify the end date\n• Items inside Offers category have additional toggle (enable/disable)\n• Disabling the category itself cancels all offers"
+      },
+      "metadata": {
+        "feature_id": "offers_timing_logic",
+        "affected_screens": ["Owner", "Overview", "Menu"],
+        "user_roles": ["owner"],
+        "tags": ["offers", "automation", "scheduling"]
       }
     }
   }
