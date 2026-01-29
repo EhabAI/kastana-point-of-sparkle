@@ -1834,6 +1834,29 @@ export default {
   sa_update_logo_title: "Update Restaurant Logo",
   sa_update_logo_desc: "Upload a new logo for this restaurant.",
   
+  // Summary Bar
+  sa_summary_total: "Total",
+  sa_summary_active: "Active",
+  sa_summary_inactive: "Inactive",
+  sa_summary_incomplete: "Incomplete",
+  sa_summary_sub_issue: "Sub. Issue",
+  
+  // Filter Bar
+  sa_filter_search_placeholder: "Search restaurant or owner...",
+  sa_filter_features: "Features",
+  sa_filter_clear: "Clear filters",
+  sa_sub_active: "Active Sub",
+  sa_sub_expired: "Expired",
+  sa_sub_none: "No Sub",
+  sa_sort_by: "Sort by",
+  sa_sort_newest: "Newest first",
+  sa_sort_oldest: "Oldest first",
+  sa_sort_last_activity: "Last activity",
+  sa_sort_expiry_nearest: "Expiry (nearest)",
+  
+  // Pagination
+  sa_page_size: "Per page",
+  
   // Stats
   sa_total_restaurants: "Total Restaurants",
   sa_total_owners: "Total Owners",
