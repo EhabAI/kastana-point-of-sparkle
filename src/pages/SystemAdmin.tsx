@@ -35,6 +35,7 @@ import { useAllRestaurantsInventoryStatus, useToggleInventoryModule } from "@/ho
 import { useAllRestaurantsKDSStatus, useToggleKDSModule } from "@/hooks/useKDSModuleToggle";
 import { useAllRestaurantsQRStatus, useToggleQRModule } from "@/hooks/useQRModuleToggle";
 import { useAllRestaurantsHealthData } from "@/hooks/useSystemHealthSnapshot";
+import { useAllOwnerPhones } from "@/hooks/useAllOwnerPhones";
 import { 
   RestaurantSummaryBar, 
   RestaurantFilterBar, 
@@ -77,6 +78,7 @@ export default function SystemAdmin() {
   const { data: kdsStatusMap = new Map() } = useAllRestaurantsKDSStatus();
   const { data: qrStatusMap = new Map() } = useAllRestaurantsQRStatus();
   const { data: healthDataMap = new Map() } = useAllRestaurantsHealthData();
+  const { data: ownerPhoneMap = new Map() } = useAllOwnerPhones();
   const { data: subscriptions = [] } = useRestaurantSubscriptions();
   const { data: expiringSubscriptions = [] } = useExpiringSubscriptions();
   const createRestaurantWithSub = useCreateRestaurantWithSubscription();
@@ -963,6 +965,7 @@ export default function SystemAdmin() {
                       subscription={subscription}
                       ownerEmail={owner?.email || null}
                       ownerUsername={owner?.username || null}
+                      ownerPhone={ownerPhoneMap.get(restaurant.id) || null}
                       inventoryEnabled={inventoryStatusMap.get(restaurant.id) ?? false}
                       kdsEnabled={kdsStatusMap.get(restaurant.id) ?? false}
                       qrEnabled={qrStatusMap.get(restaurant.id) ?? false}

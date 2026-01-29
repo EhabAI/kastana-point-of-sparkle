@@ -1791,6 +1791,12 @@ export default {
   sa_logo: "الشعار",
   sa_change_logo: "تغيير الشعار",
   sa_upload_logo: "رفع الشعار",
+  
+  // WhatsApp Contact
+  wa_contact: "واتساب",
+  wa_contact_tooltip: "تواصل عبر واتساب",
+  wa_no_number: "لا يوجد واتساب",
+  wa_no_number_hint: "لا يوجد رقم هاتف متاح لهذا المالك",
   sa_status_on: "تشغيل",
   sa_status_off: "إيقاف",
   sa_addons: "الإضافات",

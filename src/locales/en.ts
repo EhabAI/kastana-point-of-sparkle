@@ -1786,6 +1786,12 @@ export default {
   sa_logo: "Logo",
   sa_change_logo: "Change Logo",
   sa_upload_logo: "Upload Logo",
+  
+  // WhatsApp Contact
+  wa_contact: "WhatsApp",
+  wa_contact_tooltip: "Contact on WhatsApp",
+  wa_no_number: "No WhatsApp",
+  wa_no_number_hint: "No phone number available for this owner",
   sa_status_on: "ON",
   sa_status_off: "OFF",
   sa_addons: "Add-ons",
