@@ -1084,7 +1084,7 @@ export default function Menu() {
 
             {/* Customer phone input - calmer styling */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+              <label className="text-xs font-semibold text-foreground/90 flex items-center gap-1.5">
                 <Phone className="h-3.5 w-3.5" />
                 {t("menu_phone_label") || "Phone Number (Optional)"}
               </label>
@@ -1108,7 +1108,7 @@ export default function Menu() {
 
             {/* Order-level notes - reduced placeholder opacity */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">{t("menu_order_notes")}</label>
+              <label className="text-xs font-semibold text-foreground/90">{t("menu_order_notes")}</label>
               <Textarea
                 value={orderNotes}
                 onChange={(e) => setOrderNotes(e.target.value.slice(0, 250))}
@@ -1123,7 +1123,7 @@ export default function Menu() {
             {/* Total Section - Emphasized with separation */}
             <div className="pt-3 mt-2 border-t-2 border-foreground/10 bg-muted/30 -mx-4 px-4 py-3 rounded-b-lg">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-muted-foreground">{t("total")}</span>
+                <span className="text-sm font-semibold text-foreground/90">{t("total")}</span>
                 <span className="text-xl font-bold text-foreground tabular-nums">
                   {formatJOD(cartTotal)} <span className="text-sm font-medium">{t("menu_currency")}</span>
                 </span>
