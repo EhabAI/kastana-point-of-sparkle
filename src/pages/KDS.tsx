@@ -1,13 +1,11 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useKitchenSession } from "@/hooks/kds/useKitchenSession";
 import { useKDSEnabled } from "@/hooks/useKDSEnabled";
 import { useKDSAuditLog } from "@/hooks/kds/useKDSAuditLog";
-import { useRestaurantActiveStatus } from "@/hooks/useRestaurantActiveStatus";
 import { useAuth } from "@/contexts/AuthContext";
 import { KDSLayout } from "@/components/kds/KDSLayout";
 import { KDSDisabledScreen } from "@/components/kds/KDSDisabledScreen";
-import { Loader2 } from "lucide-react";
 
 /**
  * KDS Page - Kitchen Display System
@@ -19,7 +17,12 @@ import { Loader2 } from "lucide-react";
  * - Owner operates with kitchen-level permissions only (no owner powers)
  */
 export default function KDS() {
-  const { role, restaurantId: ownerRestaurantId, loading: authLoading } = useAuth();
+  const {
+    role,
+    restaurantId: ownerRestaurantId,
+    isRestaurantActive: authRestaurantActive,
+    loading: authLoading,
+  } = useAuth();
   
   // SECURITY: Explicitly check allowed roles
   const isOwner = role === "owner";
@@ -33,45 +36,64 @@ export default function KDS() {
   const { 
     restaurantId: kitchenRestaurantId, 
     branchId: kitchenBranchId, 
-    isLoading: kitchenSessionLoading 
+    isFetched: kitchenSessionFetched,
   } = useKitchenSession();
   
   // Use appropriate restaurant/branch based on role
   // SECURITY: Kitchen users can only see their assigned branch
   const restaurantId = isOwner ? ownerRestaurantId : kitchenRestaurantId;
   const branchId = isOwner ? null : kitchenBranchId; // Owners see all branches
-  const sessionLoading = isOwner ? false : kitchenSessionLoading;
+  const sessionFetched = isOwner ? true : kitchenSessionFetched;
   
   // SECURITY: Check if KDS add-on is enabled
-  const { data: kdsEnabled, isLoading: kdsLoading, isFetched: kdsFetched } = useKDSEnabled(restaurantId);
-  
-  // SECURITY: Check if restaurant is active
-  const { data: isRestaurantActive, isLoading: restaurantActiveLoading, isFetched: restaurantActiveFetched } = useRestaurantActiveStatus(restaurantId);
+  const {
+    data: kdsEnabled,
+    isLoading: kdsLoading,
+    isFetched: kdsFetched,
+  } = useKDSEnabled(restaurantId);
   
   const auditLog = useKDSAuditLog();
 
+  // HARD DECISION GATE (prevents first-load false-negative "KDS disabled")
+  // We do not render *any* enabled/disabled decision until:
+  // - auth role is resolved
+  // - kitchen session is resolved (for kitchen role)
+  // - restaurantId is resolved (can be null, but must be resolved)
+  // - kds_enabled has been fetched and confirmed (only when restaurantId exists)
+  const roleResolved = !authLoading && role !== null;
+  const sessionResolved = isOwner ? true : sessionFetched;
+  const restaurantIdResolved = roleResolved && sessionResolved;
+  const hasRestaurantId = typeof restaurantId === "string" && restaurantId.length > 0;
+  const kdsFlagResolved = !hasRestaurantId
+    ? true
+    : kdsFetched && !kdsLoading && typeof kdsEnabled === "boolean";
+  const dataReady = restaurantIdResolved && kdsFlagResolved;
+
+  // IMPORTANT: Never show "disabled" while data is incomplete.
+  if (!roleResolved) {
+    return null;
+  }
+
+  // SECURITY: Redirect denied roles as soon as role is known (no feature-flag decisions needed)
+  if (isDeniedRole) {
+    if (role === "cashier") return <Navigate to="/pos" replace />;
+    if (role === "system_admin") return <Navigate to="/system-admin" replace />;
+    return <Navigate to="/login" replace />;
+  }
+
+  // SECURITY: Require a valid allowed role
+  if (!isAllowedRole) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Wait for kitchen session + flags before making any enabled/disabled decision.
+  if (!dataReady) {
+    return null;
+  }
+
   // SECURITY: Log access violations
   useEffect(() => {
-    // Wait for all data to be loaded before logging
-    const isSettingsLoading = authLoading || sessionLoading || kdsLoading || restaurantActiveLoading;
-    const isDataReady = kdsFetched && restaurantActiveFetched;
-    if (isSettingsLoading || !isDataReady) return;
-    
-    // Log denied role access attempt
-    if (isDeniedRole && restaurantId) {
-      auditLog.mutate({
-        action: "KDS_UNAUTHORIZED_ACCESS_ATTEMPT",
-        entityType: "kds",
-        entityId: restaurantId,
-        restaurantId,
-        details: { 
-          attempted_at: new Date().toISOString(), 
-          role,
-          reason: "denied_role"
-        },
-      });
-      return;
-    }
+    if (!dataReady) return;
     
     // Log KDS disabled access attempt
     if (isAllowedRole && restaurantId && kdsEnabled === false) {
@@ -89,7 +111,7 @@ export default function KDS() {
     }
     
     // Log inactive restaurant access attempt
-    if (isAllowedRole && restaurantId && !isRestaurantActive) {
+    if (isAllowedRole && restaurantId && !authRestaurantActive) {
       auditLog.mutate({
         action: "KDS_INACTIVE_RESTAURANT_ACCESS",
         entityType: "kds",
@@ -103,52 +125,14 @@ export default function KDS() {
       });
     }
   }, [
-    authLoading,
-    sessionLoading,
-    kdsLoading,
-    restaurantActiveLoading,
-    kdsFetched,
-    restaurantActiveFetched,
+    dataReady,
     kdsEnabled, 
-    isRestaurantActive,
+    authRestaurantActive,
     restaurantId, 
     role, 
     isAllowedRole, 
-    isDeniedRole,
     auditLog
   ]);
-
-  // Determine if we're still in a loading state
-  // IMPORTANT: Must wait for all data to be fetched before evaluating feature flags
-  const isSettingsLoading = authLoading || sessionLoading || kdsLoading || restaurantActiveLoading;
-  const isWaitingForData = !isSettingsLoading && restaurantId && (!kdsFetched || !restaurantActiveFetched);
-  const isLoading = isSettingsLoading || isWaitingForData;
-
-  // Show loading state - MUST render before any feature flag checks
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  // SECURITY: Redirect denied roles to their appropriate screens
-  // This is defense-in-depth (ProtectedRoute should catch this first)
-  if (isDeniedRole) {
-    if (role === "cashier") {
-      return <Navigate to="/pos" replace />;
-    }
-    if (role === "system_admin") {
-      return <Navigate to="/system-admin" replace />;
-    }
-    return <Navigate to="/login" replace />;
-  }
-
-  // SECURITY: Require a valid allowed role
-  if (!isAllowedRole) {
-    return <Navigate to="/login" replace />;
-  }
 
   // SECURITY: Require a valid restaurant ID
   if (!restaurantId) {
@@ -156,7 +140,7 @@ export default function KDS() {
   }
 
   // SECURITY: Require restaurant to be active
-  if (!isRestaurantActive) {
+  if (!authRestaurantActive) {
     return <KDSDisabledScreen />;
   }
 
