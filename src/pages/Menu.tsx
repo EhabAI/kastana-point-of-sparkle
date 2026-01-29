@@ -863,39 +863,53 @@ export default function Menu() {
             return (
               <div 
                 key={category.id} 
-                className={`rounded-xl overflow-hidden transition-shadow duration-150 ${
+                className={`overflow-hidden transition-all duration-200 ${
                   isOfferCategory 
-                    ? "border-[1.5px] border-primary/30 bg-primary/[0.06] shadow-md shadow-primary/10" 
-                    : "border border-border shadow-sm"
+                    ? "rounded-2xl border-2 border-primary bg-gradient-to-br from-primary/20 via-primary/10 to-amber-500/10 shadow-lg shadow-primary/20 ring-1 ring-primary/40" 
+                    : "rounded-xl border border-border shadow-sm"
                 }`}
               >
-                {/* Category Header - Prominent for offers */}
+                {/* Category Header */}
                 <button
                   type="button"
                   onClick={() => setOpenCategoryId(isOpen ? null : category.id)}
-                  className={`w-full flex justify-between items-center p-3.5 transition-colors ${
+                  className={`w-full flex justify-between items-center transition-colors ${
                     isOfferCategory
-                      ? "bg-gradient-to-r from-primary/15 via-primary/8 to-primary/[0.03] hover:from-primary/20 hover:via-primary/12"
-                      : "bg-muted/50 dark:bg-muted/30 hover:bg-muted/70 dark:hover:bg-muted/45"
+                      ? "p-4 bg-gradient-to-r from-primary/25 via-primary/15 to-amber-500/15 hover:from-primary/30 hover:via-primary/20"
+                      : "p-3.5 bg-muted/50 dark:bg-muted/30 hover:bg-muted/70 dark:hover:bg-muted/45"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl ${isOfferCategory ? "bg-primary/20 ring-1 ring-primary/30" : iconInfo.bgColor}`}>
-                      <IconComponent className={`h-5 w-5 ${isOfferCategory ? "text-primary" : iconInfo.color}`} />
+                    {/* Icon container - larger and more prominent for offers */}
+                    <div className={`rounded-xl ${
+                      isOfferCategory 
+                        ? "p-2.5 bg-primary text-primary-foreground shadow-md" 
+                        : `p-2 ${iconInfo.bgColor}`
+                    }`}>
+                      <IconComponent className={`${isOfferCategory ? "h-6 w-6" : "h-5 w-5"} ${isOfferCategory ? "" : iconInfo.color}`} />
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`font-semibold text-base ${isOfferCategory ? "text-primary" : ""}`}>
-                        {translateCategoryName(category.name, language)}
-                      </span>
+                    
+                    <div className="flex flex-col items-start gap-1">
+                      {/* Special badge - above title for offers */}
                       {isOfferCategory && (
-                        <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-primary text-primary-foreground rounded-full shadow-sm">
-                          {language === "ar" ? "عرض" : "Special"}
+                        <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-amber-500 text-white rounded-full shadow-sm animate-pulse">
+                          {language === "ar" ? "🔥 عرض خاص" : "🔥 Special Offer"}
                         </span>
                       )}
+                      {/* Category title - larger and bolder for offers */}
+                      <span className={`font-semibold ${
+                        isOfferCategory 
+                          ? "text-lg font-bold text-primary" 
+                          : "text-base"
+                      }`}>
+                        {translateCategoryName(category.name, language)}
+                      </span>
                     </div>
                   </div>
+                  
+                  {/* Expand indicator */}
                   <span 
-                    className={`text-lg font-medium transition-transform duration-150 ease-out ${
+                    className={`text-xl font-bold transition-transform duration-150 ease-out ${
                       isOpen ? "rotate-45" : ""
                     } ${isOfferCategory ? "text-primary" : "text-muted-foreground"}`}
                   >
