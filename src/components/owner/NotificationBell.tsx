@@ -127,8 +127,8 @@ export function NotificationBell() {
                   <button
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
-                    className={`w-full text-start p-3 hover:bg-muted/50 transition-colors ${
-                      !notification.is_read ? 'bg-primary/5' : ''
+                    className={`w-full text-start p-3 hover:bg-green-100/70 dark:hover:bg-green-900/30 ${
+                      !notification.is_read ? 'bg-green-50 dark:bg-green-900/20' : 'bg-green-50/50 dark:bg-green-950/10'
                     }`}
                   >
                     <div className="flex gap-3">
