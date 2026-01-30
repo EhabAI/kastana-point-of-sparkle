@@ -824,10 +824,6 @@ export default function SystemAdmin() {
                     />
                   </div>
                 </div>
-                
-                <p className="text-xs text-muted-foreground pt-1">
-                  <span className="text-destructive">*</span> {t('required_fields_note')}
-                </p>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => {
