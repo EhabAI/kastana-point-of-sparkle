@@ -1453,91 +1453,92 @@ export default function SystemAdmin() {
             setManageReason("");
           }
         }}>
-          <DialogContent className="max-h-[80vh] flex flex-col p-0">
-            <DialogHeader className="px-5 pt-5 pb-3 flex-shrink-0">
-              <DialogTitle>{t('sub_manage_title')}</DialogTitle>
-              <DialogDescription>
+          <DialogContent className="max-w-md p-4">
+            <DialogHeader className="pb-2">
+              <DialogTitle className="text-base">{t('sub_manage_title')}</DialogTitle>
+              <DialogDescription className="text-sm">
                 {t('sub_manage_desc')} <strong>{manageTarget?.name}</strong>
               </DialogDescription>
             </DialogHeader>
-            <div className="flex-1 overflow-y-auto px-5 space-y-3 min-h-0">
-              <div className="space-y-1.5">
-                <Label htmlFor="manage-period" className="text-sm">{t('sub_period')}</Label>
-                <Select value={managePeriod} onValueChange={(v) => setManagePeriod(v as SubscriptionPeriod)}>
-                  <SelectTrigger id="manage-period" className="h-9">
-                    <SelectValue placeholder={t('sub_period')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="MONTHLY">{t('period_monthly')}</SelectItem>
-                    <SelectItem value="QUARTERLY">{t('period_quarterly')}</SelectItem>
-                    <SelectItem value="SEMI_ANNUAL">{t('period_semi_annual')}</SelectItem>
-                    <SelectItem value="ANNUAL">{t('period_annual')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-1.5">
-                <Label htmlFor="manage-bonus-months" className="text-sm">{t('sub_bonus_months')}</Label>
-                <Input
-                  id="manage-bonus-months"
-                  type="number"
-                  min={0}
-                  max={6}
-                  value={manageBonusMonths}
-                  onChange={(e) => setManageBonusMonths(Math.min(Math.max(0, parseInt(e.target.value) || 0), 6))}
-                  className="h-9"
-                />
-                <p className="text-[11px] text-muted-foreground">{t('sub_bonus_months_max')}</p>
-              </div>
-              
-              <div className="space-y-1.5">
-                <Label className="text-sm">{t('sub_start_date')}</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal h-9",
-                        !manageStartDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarDays className="mr-2 h-4 w-4" />
-                      {manageStartDate ? format(manageStartDate, 'PPP') : <span>{t('sub_pick_date')}</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={manageStartDate}
-                      onSelect={(date) => date && setManageStartDate(date)}
-                      initialFocus
-                      className="p-3 pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-                <p className="text-[11px] text-muted-foreground">{t('sub_start_date_helper')}</p>
-              </div>
-              
-              {/* End Date Preview */}
-              <div className="space-y-1.5">
-                <Label className="text-sm">{t('sub_end_date')}</Label>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/50">
-                  <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="text-sm">
-                    {format(
-                      addMonths(
-                        manageStartDate,
-                        (managePeriod === 'MONTHLY' ? 1 : managePeriod === 'QUARTERLY' ? 3 : managePeriod === 'SEMI_ANNUAL' ? 6 : 12) + manageBonusMonths
-                      ),
-                      'PPP'
-                    )}
-                  </span>
+            <div className="space-y-3">
+              {/* Row 1: Duration + Bonus Months */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="manage-period" className="text-xs font-medium">{t('sub_period')}</Label>
+                  <Select value={managePeriod} onValueChange={(v) => setManagePeriod(v as SubscriptionPeriod)}>
+                    <SelectTrigger id="manage-period" className="h-8 text-sm">
+                      <SelectValue placeholder={t('sub_period')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="MONTHLY">{t('period_monthly')}</SelectItem>
+                      <SelectItem value="QUARTERLY">{t('period_quarterly')}</SelectItem>
+                      <SelectItem value="SEMI_ANNUAL">{t('period_semi_annual')}</SelectItem>
+                      <SelectItem value="ANNUAL">{t('period_annual')}</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <p className="text-[11px] text-muted-foreground">{t('sub_end_date_helper')}</p>
+                <div className="space-y-1">
+                  <Label htmlFor="manage-bonus-months" className="text-xs font-medium">{t('sub_bonus_months')}</Label>
+                  <Input
+                    id="manage-bonus-months"
+                    type="number"
+                    min={0}
+                    max={6}
+                    value={manageBonusMonths}
+                    onChange={(e) => setManageBonusMonths(Math.min(Math.max(0, parseInt(e.target.value) || 0), 6))}
+                    className="h-8 text-sm"
+                  />
+                </div>
               </div>
               
-              <div className="space-y-1.5 pt-2 border-t border-border/50">
-                <Label htmlFor="manage-reason" className="text-sm flex items-center gap-1.5">
+              {/* Row 2: Start Date + End Date */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium">{t('sub_start_date')}</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal h-8 text-sm",
+                          !manageStartDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarDays className="mr-1.5 h-3.5 w-3.5" />
+                        {manageStartDate ? format(manageStartDate, 'PP') : <span>{t('sub_pick_date')}</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={manageStartDate}
+                        onSelect={(date) => date && setManageStartDate(date)}
+                        initialFocus
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium">{t('sub_end_date')}</Label>
+                  <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-md border bg-muted/50 h-8">
+                    <Calendar className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="text-sm">
+                      {format(
+                        addMonths(
+                          manageStartDate,
+                          (managePeriod === 'MONTHLY' ? 1 : managePeriod === 'QUARTERLY' ? 3 : managePeriod === 'SEMI_ANNUAL' ? 6 : 12) + manageBonusMonths
+                        ),
+                        'PP'
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Notes Field */}
+              <div className="space-y-1 pt-1 border-t border-border/50">
+                <Label htmlFor="manage-reason" className="text-xs font-medium flex items-center gap-1">
                   📝 {t('sub_note_label')}
                 </Label>
                 <Textarea
@@ -1545,15 +1546,12 @@ export default function SystemAdmin() {
                   value={manageReason}
                   onChange={(e) => setManageReason(e.target.value)}
                   placeholder={t('sub_reason_renew_placeholder')}
-                  rows={3}
-                  className="resize-none"
+                  rows={2}
+                  className="resize-none text-sm"
                 />
-                <p className="text-[11px] text-muted-foreground">
-                  {t('sub_note_helper')}
-                </p>
               </div>
               
-              {/* Renewal Reminder Section */}
+              {/* Renewal Reminder Section - Compact */}
               {manageTarget && (() => {
                 const restaurant = restaurants.find(r => r.id === manageTarget.id);
                 const subscription = getSubscription(manageTarget.id);
@@ -1562,131 +1560,124 @@ export default function SystemAdmin() {
                 const canSend = canSendReminder(lastSentStage, applicableStage) && !!restaurant?.owner_id;
                 
                 return (
-                  <div className="space-y-2 pt-3 border-t border-border/50">
-                    <div className="flex items-center gap-2">
-                      <Label className="text-sm flex items-center gap-1.5">
-                        <Mail className="h-4 w-4" />
-                        {t('reminder_section_title')}
-                      </Label>
+                  <div className="space-y-2 pt-2 border-t border-border/50">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                        <Label className="text-xs font-medium">{t('reminder_section_title')}</Label>
+                        
+                        {/* Smart Tooltip */}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
+                              <Info className="h-3.5 w-3.5" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs p-2">
+                            <div className="space-y-1 text-xs">
+                              <p className="font-semibold">{t('reminder_tooltip_title')}</p>
+                              {applicableStage === '7_DAYS' && <p>{t('reminder_tooltip_7_days')}</p>}
+                              {applicableStage === '1_DAY' && <p>{t('reminder_tooltip_1_day')}</p>}
+                              {applicableStage === 'EXPIRED' && <p>{t('reminder_tooltip_expired')}</p>}
+                              {!applicableStage && <p>{t('reminder_tooltip_not_applicable')}</p>}
+                              <p className="text-muted-foreground border-t pt-1 mt-1 text-[10px]">
+                                {t('reminder_tooltip_duplicate')}
+                              </p>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                       
-                      {/* Smart Tooltip with contextual guidance */}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
-                            <Info className="h-4 w-4" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-xs p-3">
-                          <div className="space-y-2 text-xs">
-                            <p className="font-semibold">{t('reminder_tooltip_title')}</p>
-                            {applicableStage === '7_DAYS' && (
-                              <p>{t('reminder_tooltip_7_days')}</p>
-                            )}
-                            {applicableStage === '1_DAY' && (
-                              <p>{t('reminder_tooltip_1_day')}</p>
-                            )}
-                            {applicableStage === 'EXPIRED' && (
-                              <p>{t('reminder_tooltip_expired')}</p>
-                            )}
-                            {!applicableStage && (
-                              <p>{t('reminder_tooltip_not_applicable')}</p>
-                            )}
-                            <p className="text-muted-foreground border-t pt-1 mt-1">
-                              {t('reminder_tooltip_duplicate')}
-                            </p>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    
-                    {/* Status Badge */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {!applicableStage && (
-                        <Badge variant="outline" className="text-muted-foreground">
-                          {t('reminder_status_not_applicable')}
-                        </Badge>
-                      )}
-                      
-                      {applicableStage && (
-                        <>
+                      {/* Status Badge - Inline */}
+                      <div className="flex items-center gap-1.5">
+                        {!applicableStage && (
+                          <Badge variant="outline" className="text-muted-foreground text-[10px] py-0 h-5">
+                            {t('reminder_status_not_applicable')}
+                          </Badge>
+                        )}
+                        {applicableStage && (
                           <Badge 
                             variant={applicableStage === 'EXPIRED' ? 'destructive' : applicableStage === '1_DAY' ? 'default' : 'secondary'}
-                            className="flex items-center gap-1"
+                            className="text-[10px] py-0 h-5 flex items-center gap-0.5"
                           >
-                            {applicableStage === 'EXPIRED' && <AlertCircle className="h-3 w-3" />}
+                            {applicableStage === 'EXPIRED' && <AlertCircle className="h-2.5 w-2.5" />}
                             {getReminderStageLabel(applicableStage, t)}
                           </Badge>
-                          
-                          {lastSentStage === applicableStage && (
-                            <Badge variant="outline" className="text-green-600 border-green-300 flex items-center gap-1">
-                              <CheckCircle2 className="h-3 w-3" />
-                              {t('reminder_status_already_sent')}
-                            </Badge>
-                          )}
-                        </>
-                      )}
-                      
-                      {lastSentStage && lastSentStage !== applicableStage && (
-                        <span className="text-xs text-muted-foreground">
-                          {t('reminder_last_sent')}: {getReminderStageLabel(lastSentStage as ReminderStage, t)}
-                        </span>
-                      )}
+                        )}
+                        {lastSentStage === applicableStage && applicableStage && (
+                          <Badge variant="outline" className="text-green-600 border-green-300 text-[10px] py-0 h-5 flex items-center gap-0.5">
+                            <CheckCircle2 className="h-2.5 w-2.5" />
+                            {t('reminder_status_already_sent')}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     
-                    {/* No Owner Warning */}
-                    {!restaurant?.owner_id && applicableStage && (
-                      <p className="text-xs text-destructive flex items-center gap-1">
-                        <AlertCircle className="h-3 w-3" />
-                        {t('reminder_no_owner')}
-                      </p>
+                    {/* Send Button Row */}
+                    {applicableStage && (
+                      <div className="flex items-center gap-2">
+                        {/* No Owner Warning */}
+                        {!restaurant?.owner_id && (
+                          <p className="text-[10px] text-destructive flex items-center gap-0.5 flex-1">
+                            <AlertCircle className="h-2.5 w-2.5" />
+                            {t('reminder_no_owner')}
+                          </p>
+                        )}
+                        
+                        {restaurant?.owner_id && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    if (canSend && applicableStage) {
+                                      sendReminder.mutate({
+                                        restaurantId: manageTarget.id,
+                                        stage: applicableStage,
+                                      });
+                                    }
+                                  }}
+                                  disabled={!canSend || sendReminder.isPending}
+                                  className="w-full h-7 text-xs"
+                                >
+                                  {sendReminder.isPending ? (
+                                    <>
+                                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                      {t('reminder_sending')}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Mail className="h-3 w-3 mr-1" />
+                                      {t('reminder_send_button')}
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            </TooltipTrigger>
+                            {!canSend && lastSentStage === applicableStage && (
+                              <TooltipContent>
+                                <p className="text-xs">{t('reminder_duplicate_warning')}</p>
+                              </TooltipContent>
+                            )}
+                          </Tooltip>
+                        )}
+                      </div>
                     )}
                     
-                    {/* Send Button */}
-                    {applicableStage && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                if (canSend && applicableStage) {
-                                  sendReminder.mutate({
-                                    restaurantId: manageTarget.id,
-                                    stage: applicableStage,
-                                  });
-                                }
-                              }}
-                              disabled={!canSend || sendReminder.isPending}
-                              className="w-full"
-                            >
-                              {sendReminder.isPending ? (
-                                <>
-                                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                  {t('reminder_sending')}
-                                </>
-                              ) : (
-                                <>
-                                  <Mail className="h-4 w-4 mr-2" />
-                                  {t('reminder_send_button')}
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        </TooltipTrigger>
-                        {!canSend && lastSentStage === applicableStage && (
-                          <TooltipContent>
-                            <p>{t('reminder_duplicate_warning')}</p>
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
+                    {/* Last Sent Info */}
+                    {lastSentStage && lastSentStage !== applicableStage && (
+                      <p className="text-[10px] text-muted-foreground">
+                        {t('reminder_last_sent')}: {getReminderStageLabel(lastSentStage as ReminderStage, t)}
+                      </p>
                     )}
                   </div>
                 );
               })()}
             </div>
-            <DialogFooter className="px-5 py-4 flex-shrink-0 border-t">
-              <Button variant="outline" size="sm" onClick={() => {
+            <DialogFooter className="px-4 py-3 border-t gap-2">
+              <Button variant="outline" size="sm" className="h-8" onClick={() => {
                 setManageDialogOpen(false);
                 setManageTarget(null);
                 setManagePeriod("MONTHLY");
@@ -1696,8 +1687,8 @@ export default function SystemAdmin() {
               }}>
                 {t('cancel')}
               </Button>
-              <Button size="sm" onClick={handleManageSubscription} disabled={renewSubscription.isPending}>
-                {renewSubscription.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              <Button size="sm" className="h-8" onClick={handleManageSubscription} disabled={renewSubscription.isPending}>
+                {renewSubscription.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : null}
                 {t('sub_save_changes')}
               </Button>
             </DialogFooter>
