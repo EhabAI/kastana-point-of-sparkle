@@ -1,5 +1,5 @@
 import { useKitchenPerformance } from "@/hooks/useKitchenPerformance";
-import { useOwnerRestaurant } from "@/hooks/useRestaurants";
+import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
 import { useBranchContext } from "@/contexts/BranchContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useKDSEnabled } from "@/hooks/useKDSEnabled";
@@ -16,7 +16,7 @@ function formatHour(hour: number | null, language: string): string {
 
 export function KitchenPerformance() {
   const { t, language } = useLanguage();
-  const { data: restaurant } = useOwnerRestaurant();
+  const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
   const { selectedBranch } = useBranchContext();
   const { data: kdsEnabled } = useKDSEnabled(restaurant?.id);
   const { data, isLoading } = useKitchenPerformance(restaurant?.id, selectedBranch?.id);

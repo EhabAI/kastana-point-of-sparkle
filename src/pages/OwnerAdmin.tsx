@@ -24,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useOwnerRestaurant } from "@/hooks/useRestaurants";
+import { useRestaurantContext } from "@/contexts/RestaurantContext";
 import { useMenuCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from "@/hooks/useMenuCategories";
 import { useMenuItems, useAllMenuItems, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, MenuItem } from "@/hooks/useMenuItems";
 import { 
@@ -57,7 +57,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { BranchProvider } from "@/contexts/BranchContext";
+import { BranchProvider, useBranchContext } from "@/contexts/BranchContext";
 import { CSVUpload } from "@/components/owner/CSVUpload";
 import { TableManagement } from "@/components/owner/TableManagement";
 import { ComboItemsDialog } from "@/components/owner/ComboItemsDialog";
@@ -102,7 +102,7 @@ import { formatJOD } from "@/lib/utils";
 export default function OwnerAdmin() {
   const { role } = useAuth();
   const { t } = useLanguage();
-  const { data: restaurant, isLoading: loadingRestaurant } = useOwnerRestaurant();
+  const { selectedRestaurant: restaurant, isLoading: loadingRestaurant } = useRestaurantContext();
   const { data: categories = [], isLoading: loadingCategories } = useMenuCategories(restaurant?.id);
   const { data: tables = [] } = useRestaurantTables(restaurant?.id);
   const { data: cashiers = [] } = useCashiers(restaurant?.id);
@@ -114,184 +114,178 @@ export default function OwnerAdmin() {
 
   if (loadingRestaurant) {
     return (
-      <BranchProvider>
-        <DashboardLayout title={t("owner_dashboard")}>
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        </DashboardLayout>
-      </BranchProvider>
+      <DashboardLayout title={t("owner_dashboard")}>
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
     );
   }
 
   if (!restaurant) {
     return (
-      <BranchProvider>
-        <DashboardLayout title={t("owner_dashboard")}>
-          <Card className="shadow-card">
-            <CardContent className="p-12 text-center">
-              <Store className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-foreground mb-2">{t("no_restaurant")}</h2>
-              <p className="text-muted-foreground">
-                {t("no_restaurant_desc")}
-              </p>
-            </CardContent>
-          </Card>
-        </DashboardLayout>
-      </BranchProvider>
+      <DashboardLayout title={t("owner_dashboard")}>
+        <Card className="shadow-card">
+          <CardContent className="p-12 text-center">
+            <Store className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-foreground mb-2">{t("no_restaurant")}</h2>
+            <p className="text-muted-foreground">
+              {t("no_restaurant_desc")}
+            </p>
+          </CardContent>
+        </Card>
+      </DashboardLayout>
     );
   }
 
   return (
-    <BranchProvider>
-      <DashboardLayout title={t("owner_dashboard")}>
-        <div className="space-y-3 animate-fade-in">
+    <DashboardLayout title={t("owner_dashboard")}>
+      <div className="space-y-3 animate-fade-in">
 
-        {/* Tabbed Navigation - Professional POS-style full-width tabs */}
-        <Tabs defaultValue="overview" className="w-full">
-          <div className="sticky top-9 z-10 -mx-4 px-4 bg-background border-b border-border">
-            <TabsList className="flex w-full h-10 bg-transparent p-0 gap-0 overflow-x-auto scrollbar-hide">
+      {/* Tabbed Navigation - Professional POS-style full-width tabs */}
+      <Tabs defaultValue="overview" className="w-full">
+        <div className="sticky top-9 z-10 -mx-4 px-4 bg-background border-b border-border">
+          <TabsList className="flex w-full h-10 bg-transparent p-0 gap-0 overflow-x-auto scrollbar-hide">
+            <TabsTrigger 
+              value="overview" 
+              className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
+            >
+              <LayoutDashboard className="h-5 w-5 shrink-0" />
+              <span className="hidden sm:inline">{t("overview")}</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="analytics" 
+              className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
+            >
+              <BarChart3 className="h-5 w-5 shrink-0" />
+              <span className="hidden sm:inline">{t("analytics")}</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="reports" 
+              className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
+            >
+              <FileText className="h-5 w-5 shrink-0" />
+              <span className="hidden sm:inline">{t("reports")}</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="menu" 
+              className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
+            >
+              <UtensilsCrossed className="h-5 w-5 shrink-0" />
+              <span className="hidden sm:inline">{t("menu")}</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="management" 
+              className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
+            >
+              <Users className="h-5 w-5 shrink-0" />
+              <span className="hidden sm:inline">{t("manage")}</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="branches" 
+              className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
+            >
+              <Building2 className="h-5 w-5 shrink-0" />
+              <span className="hidden sm:inline">{t("branches")}</span>
+            </TabsTrigger>
+            {inventoryEnabled && (
               <TabsTrigger 
-                value="overview" 
+                value="inventory" 
                 className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
               >
-                <LayoutDashboard className="h-5 w-5 shrink-0" />
-                <span className="hidden sm:inline">{t("overview")}</span>
+                <Package className="h-5 w-5 shrink-0" />
+                <span className="hidden sm:inline">{t("inventory")}</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="analytics" 
-                className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
-              >
-                <BarChart3 className="h-5 w-5 shrink-0" />
-                <span className="hidden sm:inline">{t("analytics")}</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="reports" 
-                className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
-              >
-                <FileText className="h-5 w-5 shrink-0" />
-                <span className="hidden sm:inline">{t("reports")}</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="menu" 
-                className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
-              >
-                <UtensilsCrossed className="h-5 w-5 shrink-0" />
-                <span className="hidden sm:inline">{t("menu")}</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="management" 
-                className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
-              >
-                <Users className="h-5 w-5 shrink-0" />
-                <span className="hidden sm:inline">{t("manage")}</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="branches" 
-                className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
-              >
-                <Building2 className="h-5 w-5 shrink-0" />
-                <span className="hidden sm:inline">{t("branches")}</span>
-              </TabsTrigger>
-              {inventoryEnabled && (
-                <TabsTrigger 
-                  value="inventory" 
-                  className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
-                >
-                  <Package className="h-5 w-5 shrink-0" />
-                  <span className="hidden sm:inline">{t("inventory")}</span>
-                </TabsTrigger>
-              )}
-              <TabsTrigger 
-                value="settings" 
-                className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
-              >
-                <Settings className="h-5 w-5 shrink-0" />
-                <span className="hidden sm:inline">{t("settings")}</span>
-              </TabsTrigger>
-            </TabsList>
-          </div>
+            )}
+            <TabsTrigger 
+              value="settings" 
+              className="flex-1 min-w-[100px] h-full inline-flex items-center justify-center gap-2 px-4 text-sm font-medium text-muted-foreground bg-muted/40 border-b-[3px] border-transparent rounded-none transition-all duration-200 ease-out hover:bg-primary/10 hover:text-primary hover:border-primary/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-primary data-[state=active]:hover:bg-primary"
+            >
+              <Settings className="h-5 w-5 shrink-0" />
+              <span className="hidden sm:inline">{t("settings")}</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-          {/* Overview Tab - Compact vertical rhythm with reduced spacing */}
-          <TabsContent value="overview" className="space-y-2 mt-1.5">
-            {/* Owner Changes Banner - informational only */}
-            {role === "owner" && <OwnerChangesBanner restaurantId={restaurant.id} />}
-            {/* Smart Features Row */}
-            {role === "owner" && (
-              <div className="space-y-2">
-                {/* Main dashboard grid: Daily Summary left, Cash + Inventory stacked right */}
-                <div className="grid gap-2 grid-cols-1 lg:grid-cols-2">
-                  <DailySummaryCard restaurantId={restaurant.id} currency={currency} />
-                  <div className="flex flex-col gap-1.5">
-                    <CashDifferencesCard restaurantId={restaurant.id} currency={currency} compact />
-                    <WhatChangedCard restaurantId={restaurant.id} />
-                    <InventoryRiskCard 
-                      restaurantId={restaurant.id} 
-                      inventoryEnabled={inventoryEnabled}
-                    />
-                    <OffersStatusCard restaurantId={restaurant.id} />
-                  </div>
+        {/* Overview Tab - Compact vertical rhythm with reduced spacing */}
+        <TabsContent value="overview" className="space-y-2 mt-1.5">
+          {/* Owner Changes Banner - informational only */}
+          {role === "owner" && <OwnerChangesBanner restaurantId={restaurant.id} />}
+          {/* Smart Features Row */}
+          {role === "owner" && (
+            <div className="space-y-2">
+              {/* Main dashboard grid: Daily Summary left, Cash + Inventory stacked right */}
+              <div className="grid gap-2 grid-cols-1 lg:grid-cols-2">
+                <DailySummaryCard restaurantId={restaurant.id} currency={currency} />
+                <div className="flex flex-col gap-1.5">
+                  <CashDifferencesCard restaurantId={restaurant.id} currency={currency} compact />
+                  <WhatChangedCard restaurantId={restaurant.id} />
+                  <InventoryRiskCard 
+                    restaurantId={restaurant.id} 
+                    inventoryEnabled={inventoryEnabled}
+                  />
+                  <OffersStatusCard restaurantId={restaurant.id} />
                 </div>
               </div>
-            )}
-            {role === "owner" && <OperationalInsightsCard restaurantId={restaurant.id} />}
-            {role === "owner" && <MistakePatternDetector restaurantId={restaurant.id} />}
-            {role === "owner" && <NotificationsAlerts />}
-            {role === "owner" && <RefundVoidInsights />}
-          </TabsContent>
-
-          {/* Analytics Tab */}
-          <TabsContent value="analytics" className="space-y-6 mt-6">
-            {role === "owner" && <KitchenPerformance />}
-            {role === "owner" && <AnalyticsCharts />}
-            {role === "owner" && <BestWorstSellers />}
-            {role === "owner" && <CashierPerformance />}
-          </TabsContent>
-
-          {/* Reports Tab */}
-          <TabsContent value="reports" className="mt-4">
-            {role === "owner" && <ReportsModule />}
-            {role === "owner" && <AuditLogViewer />}
-          </TabsContent>
-
-          {/* Menu Tab */}
-          <TabsContent value="menu" className="space-y-6 mt-6">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <BranchSelector />
             </div>
-            {role === "owner" && <CSVUpload restaurantId={restaurant.id} />}
-            <CategoriesSection restaurantId={restaurant.id} categories={categories} isLoading={loadingCategories} />
-            <MenuItemsSection restaurantId={restaurant.id} categories={categories} currency={currency} />
-            <BranchMenuItemsManager restaurantId={restaurant.id} currency={currency} />
-          </TabsContent>
+          )}
+          {role === "owner" && <OperationalInsightsCard restaurantId={restaurant.id} />}
+          {role === "owner" && <MistakePatternDetector restaurantId={restaurant.id} />}
+          {role === "owner" && <NotificationsAlerts />}
+          {role === "owner" && <RefundVoidInsights />}
+        </TabsContent>
 
-          {/* Management Tab */}
-          <TabsContent value="management" className="space-y-6 mt-6">
-            {role === "owner" && <TableManagement restaurantId={restaurant.id} tableCount={tables.length} />}
-            {role === "owner" && <StaffManagement restaurantId={restaurant.id} staffCount={cashiers.length} />}
-          </TabsContent>
+        {/* Analytics Tab */}
+        <TabsContent value="analytics" className="space-y-6 mt-6">
+          {role === "owner" && <KitchenPerformance />}
+          {role === "owner" && <AnalyticsCharts />}
+          {role === "owner" && <BestWorstSellers />}
+          {role === "owner" && <CashierPerformance />}
+        </TabsContent>
 
-          {/* Branches Tab */}
-          <TabsContent value="branches" className="space-y-6 mt-6">
-            {role === "owner" && <BranchManagement restaurantId={restaurant.id} />}
-          </TabsContent>
+        {/* Reports Tab */}
+        <TabsContent value="reports" className="mt-4">
+          {role === "owner" && <ReportsModule />}
+          {role === "owner" && <AuditLogViewer />}
+        </TabsContent>
 
-          {/* Inventory Tab */}
-          <TabsContent value="inventory" className="space-y-6 mt-6">
-            {role === "owner" && inventoryEnabled && <InventoryDashboard restaurantId={restaurant.id} currency={currency} />}
-            {role === "owner" && !inventoryEnabled && <InventoryDisabledCard />}
-          </TabsContent>
+        {/* Menu Tab */}
+        <TabsContent value="menu" className="space-y-6 mt-6">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <BranchSelector />
+          </div>
+          {role === "owner" && <CSVUpload restaurantId={restaurant.id} />}
+          <CategoriesSection restaurantId={restaurant.id} categories={categories} isLoading={loadingCategories} />
+          <MenuItemsSection restaurantId={restaurant.id} categories={categories} currency={currency} />
+          <BranchMenuItemsManager restaurantId={restaurant.id} currency={currency} />
+        </TabsContent>
 
-          {/* Settings Tab */}
-          <TabsContent value="settings" className="space-y-6 mt-6">
-            {role === "owner" && <RestaurantSettings />}
-            {role === "owner" && <PaymentMethodsSettings restaurantId={restaurant.id} />}
-            {role === "owner" && <DiscountSettings />}
-          </TabsContent>
-        </Tabs>
-        </div>
-      </DashboardLayout>
-    </BranchProvider>
+        {/* Management Tab */}
+        <TabsContent value="management" className="space-y-6 mt-6">
+          {role === "owner" && <TableManagement restaurantId={restaurant.id} tableCount={tables.length} />}
+          {role === "owner" && <StaffManagement restaurantId={restaurant.id} staffCount={cashiers.length} />}
+        </TabsContent>
+
+        {/* Branches Tab */}
+        <TabsContent value="branches" className="space-y-6 mt-6">
+          {role === "owner" && <BranchManagement restaurantId={restaurant.id} />}
+        </TabsContent>
+
+        {/* Inventory Tab */}
+        <TabsContent value="inventory" className="space-y-6 mt-6">
+          {role === "owner" && inventoryEnabled && <InventoryDashboard restaurantId={restaurant.id} currency={currency} />}
+          {role === "owner" && !inventoryEnabled && <InventoryDisabledCard />}
+        </TabsContent>
+
+        {/* Settings Tab */}
+        <TabsContent value="settings" className="space-y-6 mt-6">
+          {role === "owner" && <RestaurantSettings />}
+          {role === "owner" && <PaymentMethodsSettings restaurantId={restaurant.id} />}
+          {role === "owner" && <DiscountSettings />}
+        </TabsContent>
+      </Tabs>
+      </div>
+    </DashboardLayout>
   );
 }
 

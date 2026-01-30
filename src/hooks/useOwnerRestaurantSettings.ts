@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useOwnerRestaurant } from "@/hooks/useRestaurants";
+import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOwnerErrorMessage } from "@/lib/ownerErrorHandler";
@@ -44,7 +44,7 @@ const DEFAULT_BUSINESS_HOURS: BusinessHours = {
 };
 
 export function useOwnerRestaurantSettings() {
-  const { data: restaurant } = useOwnerRestaurant();
+  const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
 
   return useQuery({
     queryKey: ["owner-restaurant-settings", restaurant?.id],
@@ -73,7 +73,7 @@ export function useOwnerRestaurantSettings() {
 }
 
 export function useUpdateOwnerRestaurantSettings() {
-  const { data: restaurant } = useOwnerRestaurant();
+  const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { t } = useLanguage();

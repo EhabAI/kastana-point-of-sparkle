@@ -1,7 +1,7 @@
 import { ChevronDown, ReceiptText, Ban, Loader2, AlertTriangle, User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useOwnerRestaurant } from "@/hooks/useRestaurants";
+import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { startOfDay, endOfDay } from "date-fns";
 import { useState, forwardRef } from "react";
@@ -23,7 +23,7 @@ interface VoidReasonData {
 }
 
 export const RefundVoidInsights = forwardRef<HTMLDivElement, object>(function RefundVoidInsights(_, ref) {
-  const { data: restaurant } = useOwnerRestaurant();
+  const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
   const { data: settings } = useOwnerRestaurantSettings();
   const { t, language } = useLanguage();
   const currencySymbol = language === "ar" ? "د.أ" : "JOD";

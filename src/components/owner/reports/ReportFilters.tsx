@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useBranches } from "@/hooks/useBranches";
 import { useCashiers } from "@/hooks/useCashiers";
-import { useOwnerRestaurant } from "@/hooks/useRestaurants";
+import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
 import { Download, Printer, X } from "lucide-react";
 
 export interface ReportFilterValues {
@@ -35,7 +35,7 @@ export function ReportFilters({
   onPrint,
 }: ReportFiltersProps) {
   const { t } = useLanguage();
-  const { data: restaurant } = useOwnerRestaurant();
+  const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
   const { data: branches = [] } = useBranches(restaurant?.id);
   const { data: cashiers = [] } = useCashiers(restaurant?.id);
 

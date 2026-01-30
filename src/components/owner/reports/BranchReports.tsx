@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useOwnerRestaurant } from "@/hooks/useRestaurants";
+import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { useBranches } from "@/hooks/useBranches";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -30,7 +30,7 @@ interface BranchData {
 
 export function BranchReports({ dateRange }: BranchReportsProps) {
   const { t, language } = useLanguage();
-  const { data: restaurant } = useOwnerRestaurant();
+  const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
   const { data: branches = [] } = useBranches(restaurant?.id);
   const { data: settings } = useOwnerRestaurantSettings();
   const currencySymbol = language === "ar" ? "د.أ" : "JOD";

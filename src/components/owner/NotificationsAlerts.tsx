@@ -2,7 +2,7 @@ import { useState, forwardRef } from "react";
 import { ChevronDown, Bell, AlertTriangle, AlertCircle, Info, CheckCircle, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useOwnerRestaurant } from "@/hooks/useRestaurants";
+import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { useBranches } from "@/hooks/useBranches";
 import { startOfDay, endOfDay, subDays, format, differenceInMinutes, differenceInHours } from "date-fns";
@@ -27,7 +27,7 @@ const THRESHOLDS = {
 };
 
 export const NotificationsAlerts = forwardRef<HTMLDivElement>(function NotificationsAlerts(_, ref) {
-  const { data: restaurant } = useOwnerRestaurant();
+  const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
   const { data: settings } = useOwnerRestaurantSettings();
   const { data: branches = [] } = useBranches(restaurant?.id);
   const { t, language } = useLanguage();

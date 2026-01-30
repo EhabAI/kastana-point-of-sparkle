@@ -6,7 +6,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useOwnerRestaurant } from '@/hooks/useRestaurants';
+import { useRestaurantContextSafe } from '@/contexts/RestaurantContext';
+import { RestaurantSwitcher } from '@/components/owner/RestaurantSwitcher';
 import kastanaLogo from '@/assets/pos-logo-new.png';
 
 interface DashboardLayoutProps {
@@ -20,11 +21,12 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
   const { signOut, displayName, role } = useAuth();
   const { t, language } = useLanguage();
-  const { data: restaurant } = useOwnerRestaurant();
+  const { selectedRestaurant } = useRestaurantContextSafe();
   const navigate = useNavigate();
   const location = useLocation();
   
   const isSystemAdmin = location.pathname === '/system-admin';
+  const isOwner = role === 'owner';
 
   const formatRole = (roleValue: string | null) => {
     if (!roleValue) return '';
@@ -64,26 +66,28 @@ export function DashboardLayout({
                   alt="Kastana POS" 
                   className="h-6 object-contain"
                 />
+              ) : isOwner ? (
+                <RestaurantSwitcher />
               ) : (
                 <>
-                  {restaurant?.logo_url ? (
+                  {selectedRestaurant?.logo_url ? (
                     <img 
-                      src={restaurant.logo_url} 
-                      alt={restaurant.name} 
+                      src={selectedRestaurant.logo_url} 
+                      alt={selectedRestaurant.name} 
                       className="h-6 w-6 object-contain rounded-md"
                     />
-                  ) : restaurant?.name ? (
+                  ) : selectedRestaurant?.name ? (
                     <div className="h-6 w-6 rounded-md bg-blue-600 dark:bg-blue-500 flex items-center justify-center">
                       <span className="text-[9px] font-bold text-white">
-                        {getInitials(restaurant.name)}
+                        {getInitials(selectedRestaurant.name)}
                       </span>
                     </div>
                   ) : (
                     <div className="h-6 w-6 rounded-md bg-blue-200 dark:bg-blue-800" />
                   )}
-                  {restaurant?.name && (
+                  {selectedRestaurant?.name && (
                     <span className="text-xs font-semibold text-blue-900 dark:text-blue-100 truncate max-w-[120px] sm:max-w-[200px]">
-                      {restaurant.name}
+                      {selectedRestaurant.name}
                     </span>
                   )}
                 </>

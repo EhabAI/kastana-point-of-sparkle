@@ -70,7 +70,7 @@ import { AIAssistantAlert } from "@/components/AIAssistantAlert";
 import { AIAssistantTrainingCard } from "@/components/AIAssistantTrainingCard";
 import { TrainerCoachTab, TrainerCurriculumTab, TrainerExplainTab } from "@/components/trainer";
 import { useRestaurantInventoryStatus } from "@/hooks/useInventoryModuleToggle";
-import { useOwnerRestaurant } from "@/hooks/useRestaurants";
+import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
 import { useCashierRestaurant } from "@/hooks/pos/useCashierRestaurant";
 import { useTrainer } from "@/contexts/TrainerContext";
 
@@ -96,7 +96,7 @@ export function AIAssistantBubble() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Get restaurant ID based on role
-  const { data: ownerRestaurant } = useOwnerRestaurant();
+  const { selectedRestaurant: ownerRestaurant } = useRestaurantContextSafe();
   const { data: cashierRestaurant } = useCashierRestaurant();
   const restaurantId = role === "owner" ? ownerRestaurant?.id : role === "cashier" ? cashierRestaurant?.id : undefined;
   
