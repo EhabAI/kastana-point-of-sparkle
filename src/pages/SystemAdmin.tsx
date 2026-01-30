@@ -795,6 +795,7 @@ export default function SystemAdmin() {
                           <SelectItem value="ANNUAL">{t('period_annual')}</SelectItem>
                         </SelectContent>
                       </Select>
+                      <p className="text-[11px] text-muted-foreground">{t('sub_period_hint')}</p>
                     </div>
                     
                     <div className="space-y-1">
@@ -803,14 +804,14 @@ export default function SystemAdmin() {
                         id="bonus-months"
                         type="number"
                         min={0}
-                        max={6}
+                        max={3}
                         value={bonusMonths}
-                        onChange={(e) => setBonusMonths(Math.min(Math.max(0, parseInt(e.target.value) || 0), 6))}
+                        onChange={(e) => setBonusMonths(Math.min(Math.max(0, parseInt(e.target.value) || 0), 3))}
                         className="h-9"
                       />
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">{t('sub_bonus_months_max')}</p>
+                  <p className="text-xs text-muted-foreground">{t('sub_bonus_months_hint')}</p>
                   
                   <div className="space-y-1">
                     <Label htmlFor="subscription-reason" className="text-sm">{t('sub_reason')} ({t('optional')})</Label>
