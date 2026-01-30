@@ -8,6 +8,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRestaurantContextSafe } from '@/contexts/RestaurantContext';
 import { RestaurantSwitcher } from '@/components/owner/RestaurantSwitcher';
+import { NotificationBell } from '@/components/owner/NotificationBell';
 import kastanaLogo from '@/assets/pos-logo-new.png';
 
 interface DashboardLayoutProps {
@@ -105,6 +106,9 @@ export function DashboardLayout({
 
             {/* RIGHT – Actions */}
             <div className="flex items-center gap-1">
+              {/* Notification Bell for Owners */}
+              {isOwner && <NotificationBell />}
+              
               <ThemeToggle />
               <LanguageToggle />
               

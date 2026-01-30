@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_notifications: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          is_read: boolean
+          message: string
+          read_at: string | null
+          restaurant_id: string
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          is_read?: boolean
+          message: string
+          read_at?: string | null
+          restaurant_id: string
+          title: string
+          type?: Database["public"]["Enums"]["notification_type"]
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          read_at?: string | null
+          restaurant_id?: string
+          title?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_notifications_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -1970,6 +2014,7 @@ export type Database = {
         | "addon"
         | "service"
         | "combo"
+      notification_type: "subscription" | "welcome" | "technical" | "custom"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2106,6 +2151,7 @@ export const Constants = {
         "service",
         "combo",
       ],
+      notification_type: ["subscription", "welcome", "technical", "custom"],
     },
   },
 } as const

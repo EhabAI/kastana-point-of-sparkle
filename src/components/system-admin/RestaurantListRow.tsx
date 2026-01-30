@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Store, ChevronDown, ChevronUp, Package, ChefHat, QrCode, 
-  CheckCircle2, XCircle, Power, PowerOff, Pencil, Image, Key, Calendar, MessagesSquare, RotateCcw
+  CheckCircle2, XCircle, Power, PowerOff, Pencil, Image, Key, Calendar, MessagesSquare, RotateCcw, Bell
 } from "lucide-react";
 import { RestaurantStatusBadge, getRestaurantOperationalState, RestaurantOperationalState } from "./RestaurantStatusBadge";
 import { SystemHealthSnapshot } from "./SystemHealthSnapshot";
@@ -33,6 +33,7 @@ interface RestaurantListRowProps {
   onManageSubscription: (id: string, name: string) => void;
   onRenewSubscription: (id: string, name: string) => void;
   onContactRestaurant: () => void;
+  onSendNotification: () => void;
   togglesPending: {
     active: boolean;
     inventory: boolean;
@@ -62,6 +63,7 @@ export function RestaurantListRow({
   onManageSubscription,
   onRenewSubscription,
   onContactRestaurant,
+  onSendNotification,
   togglesPending,
 }: RestaurantListRowProps) {
   const { t, language } = useLanguage();
@@ -278,6 +280,20 @@ export function RestaurantListRow({
             >
               <MessagesSquare className="h-3.5 w-3.5 me-1.5" />
               {t('contact_button')}
+            </Button>
+            
+            {/* Send In-App Notification Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSendNotification();
+              }}
+            >
+              <Bell className="h-3.5 w-3.5 me-1.5" />
+              {t('send_notification_button') || 'إرسال إشعار'}
             </Button>
           </div>
 

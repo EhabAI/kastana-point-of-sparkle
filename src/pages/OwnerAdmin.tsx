@@ -89,7 +89,7 @@ import { MistakePatternDetector } from "@/components/owner/MistakePatternDetecto
 import { OperationalInsightsCard } from "@/components/owner/OperationalInsightsCard";
 import { OwnerChangesBanner } from "@/components/owner/OwnerChangesBanner";
 import { WhatChangedCard } from "@/components/owner/WhatChangedCard";
-
+import { OwnerNotificationsCard } from "@/components/owner/OwnerNotificationsCard";
 
 import { InventoryRiskCard } from "@/components/owner/InventoryRiskCard";
 import { OffersStatusCard } from "@/components/owner/OffersStatusCard";
@@ -209,6 +209,8 @@ export default function OwnerAdmin() {
 
         {/* Overview Tab - Compact vertical rhythm with reduced spacing */}
         <TabsContent value="overview" className="space-y-2 mt-1.5">
+          {/* Owner Notifications Card - Important notifications from System Admin */}
+          {role === "owner" && <OwnerNotificationsCard />}
           {/* Owner Changes Banner - informational only */}
           {role === "owner" && <OwnerChangesBanner restaurantId={restaurant.id} />}
           {/* Smart Features Row */}

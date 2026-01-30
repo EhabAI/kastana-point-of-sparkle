@@ -51,6 +51,7 @@ import {
   SortOption,
   FeatureFilter,
   ContactRestaurantDialog,
+  SendNotificationDialog,
 } from "@/components/system-admin";
 import { 
   useExpiringSubscriptions, 
@@ -257,6 +258,13 @@ export default function SystemAdmin() {
     subscription: ReturnType<typeof getSubscription>;
     ownerEmail: string | null;
     ownerPhone: string | null;
+  } | null>(null);
+
+  // Send notification dialog
+  const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
+  const [notificationTarget, setNotificationTarget] = useState<{
+    restaurant: { id: string; name: string };
+    subscription: ReturnType<typeof getSubscription>;
   } | null>(null);
 
   // Helper to get subscription for a restaurant
@@ -1180,6 +1188,13 @@ export default function SystemAdmin() {
                         });
                         setContactDialogOpen(true);
                       }}
+                      onSendNotification={() => {
+                        setNotificationTarget({
+                          restaurant: { id: restaurant.id, name: restaurant.name },
+                          subscription,
+                        });
+                        setNotificationDialogOpen(true);
+                      }}
                       togglesPending={{
                         active: toggleActive.isPending,
                         inventory: toggleInventory.isPending,
@@ -2023,6 +2038,14 @@ export default function SystemAdmin() {
           subscription={contactTarget?.subscription}
           ownerEmail={contactTarget?.ownerEmail || null}
           ownerPhone={contactTarget?.ownerPhone || null}
+        />
+
+        {/* Send Notification Dialog */}
+        <SendNotificationDialog
+          open={notificationDialogOpen}
+          onOpenChange={setNotificationDialogOpen}
+          restaurant={notificationTarget?.restaurant || null}
+          subscription={notificationTarget?.subscription}
         />
       </div>
     </DashboardLayout>

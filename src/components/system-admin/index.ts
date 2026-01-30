@@ -8,3 +8,4 @@ export type { StatusFilter, SubscriptionFilter, SortOption, FeatureFilter } from
 export { RestaurantListRow } from './RestaurantListRow';
 export { RestaurantListPagination } from './RestaurantListPagination';
 export { ContactRestaurantDialog } from './ContactRestaurantDialog';
+export { SendNotificationDialog } from './SendNotificationDialog';
