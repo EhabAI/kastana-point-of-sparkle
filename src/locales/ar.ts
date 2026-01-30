@@ -2004,4 +2004,10 @@ export default {
   reminder_confirm_title: "إرسال تذكير التجديد؟",
   reminder_confirm_desc: "سيتم إرسال بريد إلكتروني لصاحب المطعم حول حالة اشتراكه.",
   reminder_last_sent: "آخر تذكير أُرسل",
+  reminder_tooltip_title: "حول تذكيرات التجديد",
+  reminder_tooltip_7_days: "أرسل عندما يتبقى ٧ أيام. يمنح المالك وقتاً للتخطيط للتجديد دون استعجال.",
+  reminder_tooltip_1_day: "أرسل عندما يتبقى يوم واحد. يخلق إلحاحاً لمنع انقطاع الخدمة.",
+  reminder_tooltip_expired: "أرسل بعد انتهاء الاشتراك. يُعلم المالك بأن الوصول للنظام محظور حتى التجديد.",
+  reminder_tooltip_not_applicable: "لا حاجة للتذكير. الاشتراك لديه أكثر من ٧ أيام متبقية.",
+  reminder_tooltip_duplicate: "يمكن إرسال كل مرحلة مرة واحدة فقط لتجنب إزعاج المالك.",
 } as const;

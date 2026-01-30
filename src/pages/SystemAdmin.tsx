@@ -62,7 +62,7 @@ import {
   canSendReminder,
   type ReminderStage,
 } from "@/hooks/useSubscriptionReminder";
-import { Store, Users, Plus, Link, Loader2, Upload, Calendar, Mail, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Store, Users, Plus, Link, Loader2, Upload, Calendar, Mail, AlertCircle, CheckCircle2, Info } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -1519,10 +1519,41 @@ export default function SystemAdmin() {
                 
                 return (
                   <div className="space-y-2 pt-3 border-t border-border/50">
-                    <Label className="text-sm flex items-center gap-1.5">
-                      <Mail className="h-4 w-4" />
-                      {t('reminder_section_title')}
-                    </Label>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm flex items-center gap-1.5">
+                        <Mail className="h-4 w-4" />
+                        {t('reminder_section_title')}
+                      </Label>
+                      
+                      {/* Smart Tooltip with contextual guidance */}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
+                            <Info className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs p-3">
+                          <div className="space-y-2 text-xs">
+                            <p className="font-semibold">{t('reminder_tooltip_title')}</p>
+                            {applicableStage === '7_DAYS' && (
+                              <p>{t('reminder_tooltip_7_days')}</p>
+                            )}
+                            {applicableStage === '1_DAY' && (
+                              <p>{t('reminder_tooltip_1_day')}</p>
+                            )}
+                            {applicableStage === 'EXPIRED' && (
+                              <p>{t('reminder_tooltip_expired')}</p>
+                            )}
+                            {!applicableStage && (
+                              <p>{t('reminder_tooltip_not_applicable')}</p>
+                            )}
+                            <p className="text-muted-foreground border-t pt-1 mt-1">
+                              {t('reminder_tooltip_duplicate')}
+                            </p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     
                     {/* Status Badge */}
                     <div className="flex items-center gap-2 flex-wrap">
