@@ -182,11 +182,11 @@ export function SendNotificationDialog({
       <DialogContent className="max-w-lg p-0">
         <DialogHeader className="px-4 pt-4 pb-2 flex-shrink-0">
           <DialogTitle className="text-base flex items-center gap-2">
-            <Bell className="h-4 w-4 text-primary" />
-            {language === 'ar' ? 'التواصل مع صاحب المطعم' : 'Contact Restaurant Owner'}
+            <Bell className="h-4 w-4 text-amber-500" />
+            {language === 'ar' ? 'إرسال إشعار داخل النظام' : 'Send In-App Notification'}
           </DialogTitle>
           <DialogDescription className="text-sm">
-            {restaurant?.name}
+            {language === 'ar' ? 'إشعار داخلي لـ' : 'Internal notification for'} {restaurant?.name}
           </DialogDescription>
         </DialogHeader>
 

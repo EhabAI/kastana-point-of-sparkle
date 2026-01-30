@@ -1,5 +1,15 @@
 // English translations for Kastana POS
 export default {
+  // Internal Notification System
+  send_internal_notification: 'Send In-App Notification',
+  system_notifications: 'System Notifications',
+  no_new_notifications: 'No new notifications',
+  notification_read: 'Read',
+  notification_sent_success: 'Notification sent to restaurant owner successfully',
+  notification_type_system: 'System',
+  notification_type_subscription: 'Subscription',
+  notification_type_warning: 'Warning',
+  notification_type_info: 'Info',
   // Restaurant Operational States
   status_inactive: "Inactive",
   status_setup_incomplete: "Active – Setup Incomplete",
@@ -2073,14 +2083,12 @@ export default {
   contact_confirm_send: "Send",
   contact_button: "Contact Restaurant",
   
-  // In-App Notifications (System Admin → Owner)
+  // In-App Notifications (System Admin → Owner) - Extended
   send_notification_button: "Send Notification",
-  notification_sent_success: "Notification sent successfully",
   notification_sent_error: "Failed to send notification",
   notifications_title: "Notifications",
   notifications_mark_all_read: "Mark all read",
   notifications_empty: "No notifications",
-  notification_type_subscription: "Subscription",
   notification_type_welcome: "Welcome",
   notification_type_technical: "Technical",
   notification_type_custom: "General",

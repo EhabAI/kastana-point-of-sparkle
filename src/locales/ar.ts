@@ -1,5 +1,15 @@
 // Arabic translations for Kastana POS
 export default {
+  // Internal Notification System
+  send_internal_notification: 'إرسال إشعار داخل النظام',
+  system_notifications: 'إشعارات النظام',
+  no_new_notifications: 'لا توجد إشعارات جديدة',
+  notification_read: 'تمت القراءة',
+  notification_sent_success: 'تم إرسال الإشعار لصاحب المطعم بنجاح',
+  notification_type_system: 'إشعار نظام',
+  notification_type_subscription: 'اشتراك',
+  notification_type_warning: 'تحذير',
+  notification_type_info: 'معلومات',
   // Restaurant Operational States
   status_inactive: "غير نشط",
   status_setup_incomplete: "نشط – إعداد غير مكتمل",
@@ -2078,14 +2088,12 @@ export default {
   contact_confirm_send: "إرسال",
   contact_button: "تواصل مع المطعم",
   
-  // In-App Notifications (System Admin → Owner)
+  // In-App Notifications (System Admin → Owner) - Extended
   send_notification_button: "إرسال إشعار",
-  notification_sent_success: "تم إرسال الإشعار بنجاح",
   notification_sent_error: "فشل إرسال الإشعار",
   notifications_title: "الإشعارات",
   notifications_mark_all_read: "قراءة الكل",
   notifications_empty: "لا توجد إشعارات",
-  notification_type_subscription: "اشتراك",
   notification_type_welcome: "ترحيب",
   notification_type_technical: "تقني",
   notification_type_custom: "عام",
