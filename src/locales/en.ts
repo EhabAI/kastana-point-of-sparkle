@@ -1,5 +1,9 @@
 // English translations for Kastana POS
 export default {
+  // Brand name - centralized localization
+  brandName: 'Kastana',
+  brandNameFull: 'Kastana POS',
+  
   // Internal Notification System
   send_internal_notification: 'Send In-App Notification',
   system_notifications: 'System Notifications',

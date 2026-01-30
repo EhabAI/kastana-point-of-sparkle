@@ -1,5 +1,9 @@
 // Arabic translations for Kastana POS
 export default {
+  // Brand name - centralized localization
+  brandName: 'كاستنا',
+  brandNameFull: 'كاستنا POS',
+  
   // Internal Notification System
   send_internal_notification: 'إرسال إشعار داخل النظام',
   system_notifications: 'إشعارات النظام',

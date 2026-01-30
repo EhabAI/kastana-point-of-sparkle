@@ -227,22 +227,26 @@ function detectIntent(message: string): AssistantIntent {
 
 /**
  * Get the out-of-scope rejection message
+ * Brand name is localized based on language
  */
 export function getOutOfScopeMessage(language: "ar" | "en"): string {
+  const brandName = language === "ar" ? "كاستنا" : "Kastana";
   if (language === "ar") {
-    return "أنا مخصص لمساعدتك داخل نظام Kastana POS فقط. يمكنني مساعدتك في:\n\n• شرح كيفية استخدام النظام\n• توضيح التقارير والإحصائيات\n• حل المشاكل التقنية\n• شرح سبب تعطل بعض الميزات\n\nكيف يمكنني مساعدتك في نظام Kastana؟";
+    return `أنا مخصص لمساعدتك داخل نظام ${brandName} POS فقط. يمكنني مساعدتك في:\n\n• شرح كيفية استخدام النظام\n• توضيح التقارير والإحصائيات\n• حل المشاكل التقنية\n• شرح سبب تعطل بعض الميزات\n\nكيف يمكنني مساعدتك في نظام ${brandName}؟`;
   }
-  return "I'm designed to help you only within the Kastana POS system. I can assist you with:\n\n• Explaining how to use the system\n• Clarifying reports and statistics\n• Troubleshooting technical issues\n• Explaining why certain features are disabled\n\nHow can I help you with Kastana?";
+  return `I'm designed to help you only within the ${brandName} POS system. I can assist you with:\n\n• Explaining how to use the system\n• Clarifying reports and statistics\n• Troubleshooting technical issues\n• Explaining why certain features are disabled\n\nHow can I help you with ${brandName}?`;
 }
 
 /**
  * Get a greeting response
+ * Brand name is localized based on language
  */
 export function getGreetingMessage(language: "ar" | "en"): string {
+  const brandName = language === "ar" ? "كاستنا" : "Kastana";
   if (language === "ar") {
-    return "مرحباً! أنا مساعد Kastana الذكي. كيف يمكنني مساعدتك اليوم في نظام نقاط البيع؟\n\nيمكنني مساعدتك في:\n• شرح كيفية تنفيذ المهام\n• توضيح التقارير\n• حل المشاكل\n• شرح الميزات المعطلة";
+    return `مرحباً! أنا مساعد ${brandName} الذكي. كيف يمكنني مساعدتك اليوم في نظام نقاط البيع؟\n\nيمكنني مساعدتك في:\n• شرح كيفية تنفيذ المهام\n• توضيح التقارير\n• حل المشاكل\n• شرح الميزات المعطلة`;
   }
-  return "Hello! I'm Kastana AI Assistant. How can I help you today with the POS system?\n\nI can help you with:\n• Explaining how to perform tasks\n• Clarifying reports\n• Troubleshooting issues\n• Explaining disabled features";
+  return `Hello! I'm ${brandName} AI Assistant. How can I help you today with the POS system?\n\nI can help you with:\n• Explaining how to perform tasks\n• Clarifying reports\n• Troubleshooting issues\n• Explaining disabled features`;
 }
 
 /**
@@ -272,6 +276,6 @@ export function getIntentContext(intent: AssistantIntent): string {
     case "inventory_variance_explain":
       return "User wants to understand inventory variance. Explain difference between expected and actual counts.";
     default:
-      return "Provide helpful guidance about Kastana POS.";
+      return "Provide helpful guidance about the POS system.";
   }
 }

@@ -103,7 +103,7 @@ const SUGGESTED_MESSAGES: Record<NotifType, SuggestedMessage[]> = {
       key: 'friendly_followup', 
       labelAr: 'متابعة ودية', 
       labelEn: 'Friendly Follow-up',
-      titleAr: 'مرحباً من فريق Kastana',
+      titleAr: 'مرحباً من فريق كاستنا',
       titleEn: 'Hello from Kastana Team',
       messageAr: 'نتمنى أن تكونوا بخير! نتواصل معكم للاطمئنان ومعرفة إذا كنتم بحاجة لأي مساعدة.',
       messageEn: 'We hope you are doing well! We are reaching out to check in and see if you need any assistance.'

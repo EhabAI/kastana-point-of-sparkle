@@ -17,6 +17,10 @@ interface ReminderRequest {
 }
 
 // Email templates (bilingual)
+// Brand name is localized: Arabic = "كاستنا", English = "Kastana"
+const BRAND_NAME_AR = "كاستنا";
+const BRAND_NAME_EN = "Kastana";
+
 const getEmailContent = (stage: ReminderStage, restaurantName: string) => {
   const templates: Record<ReminderStage, { subject: string; html: string }> = {
     "7_DAYS": {
@@ -24,7 +28,7 @@ const getEmailContent = (stage: ReminderStage, restaurantName: string) => {
       html: `
         <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background-color: #f9fafb; border-radius: 12px;">
           <div style="background: linear-gradient(135deg, #3b82f6, #1e40af); padding: 20px 30px; border-radius: 10px 10px 0 0; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 24px;">Kastana POS</h1>
+            <h1 style="color: white; margin: 0; font-size: 24px;">${BRAND_NAME_AR} POS</h1>
           </div>
           <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px;">
             <h2 style="color: #1e40af; margin-top: 0;">تذكير بتجديد الاشتراك</h2>
@@ -32,7 +36,7 @@ const getEmailContent = (stage: ReminderStage, restaurantName: string) => {
               عزيزنا صاحب <strong>${restaurantName}</strong>،
             </p>
             <p style="color: #374151; line-height: 1.8; font-size: 16px;">
-              نود تذكيركم بأن اشتراككم في نظام <strong>Kastana POS</strong> سينتهي خلال <strong>٧ أيام</strong>.
+              نود تذكيركم بأن اشتراككم في نظام <strong>${BRAND_NAME_AR} POS</strong> سينتهي خلال <strong>٧ أيام</strong>.
             </p>
             <p style="color: #374151; line-height: 1.8; font-size: 16px;">
               للحفاظ على استمرارية خدماتكم دون انقطاع، يرجى التواصل معنا لتجديد الاشتراك.
@@ -44,7 +48,7 @@ const getEmailContent = (stage: ReminderStage, restaurantName: string) => {
                 Dear <strong>${restaurantName}</strong> owner,
               </p>
               <p style="color: #374151; line-height: 1.8; font-size: 16px;">
-                Your <strong>Kastana POS</strong> subscription will expire in <strong>7 days</strong>.
+                Your <strong>${BRAND_NAME_EN} POS</strong> subscription will expire in <strong>7 days</strong>.
               </p>
               <p style="color: #374151; line-height: 1.8; font-size: 16px;">
                 To ensure uninterrupted service, please contact us to renew your subscription.
@@ -52,7 +56,7 @@ const getEmailContent = (stage: ReminderStage, restaurantName: string) => {
             </div>
             <div style="text-align: center; margin-top: 30px; padding: 15px; background-color: #f0f9ff; border-radius: 8px;">
               <p style="color: #0369a1; margin: 0; font-size: 14px;">
-                فريق Kastana POS | Kastana POS Team
+                فريق ${BRAND_NAME_AR} POS | ${BRAND_NAME_EN} POS Team
               </p>
             </div>
           </div>
@@ -64,7 +68,7 @@ const getEmailContent = (stage: ReminderStage, restaurantName: string) => {
       html: `
         <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background-color: #fef2f2; border-radius: 12px;">
           <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 20px 30px; border-radius: 10px 10px 0 0; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 24px;">⚠️ Kastana POS</h1>
+            <h1 style="color: white; margin: 0; font-size: 24px;">⚠️ ${BRAND_NAME_AR} POS</h1>
           </div>
           <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px;">
             <h2 style="color: #d97706; margin-top: 0;">تنبيه عاجل - الاشتراك ينتهي غداً</h2>
@@ -72,7 +76,7 @@ const getEmailContent = (stage: ReminderStage, restaurantName: string) => {
               عزيزنا صاحب <strong>${restaurantName}</strong>،
             </p>
             <p style="color: #374151; line-height: 1.8; font-size: 16px;">
-              اشتراككم في نظام <strong>Kastana POS</strong> سينتهي <strong>غداً</strong>.
+              اشتراككم في نظام <strong>${BRAND_NAME_AR} POS</strong> سينتهي <strong>غداً</strong>.
             </p>
             <p style="color: #374151; line-height: 1.8; font-size: 16px;">
               بعد انتهاء الاشتراك، لن تتمكنوا من استخدام النظام. يرجى التواصل معنا فوراً لتجنب أي انقطاع في الخدمة.
@@ -84,7 +88,7 @@ const getEmailContent = (stage: ReminderStage, restaurantName: string) => {
                 Dear <strong>${restaurantName}</strong> owner,
               </p>
               <p style="color: #374151; line-height: 1.8; font-size: 16px;">
-                Your <strong>Kastana POS</strong> subscription expires <strong>tomorrow</strong>.
+                Your <strong>${BRAND_NAME_EN} POS</strong> subscription expires <strong>tomorrow</strong>.
               </p>
               <p style="color: #374151; line-height: 1.8; font-size: 16px;">
                 After expiration, you will not be able to use the system. Please contact us immediately to avoid service interruption.
@@ -92,7 +96,7 @@ const getEmailContent = (stage: ReminderStage, restaurantName: string) => {
             </div>
             <div style="text-align: center; margin-top: 30px; padding: 15px; background-color: #fef3c7; border-radius: 8px;">
               <p style="color: #92400e; margin: 0; font-size: 14px;">
-                فريق Kastana POS | Kastana POS Team
+                فريق ${BRAND_NAME_AR} POS | ${BRAND_NAME_EN} POS Team
               </p>
             </div>
           </div>
@@ -104,7 +108,7 @@ const getEmailContent = (stage: ReminderStage, restaurantName: string) => {
       html: `
         <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background-color: #fef2f2; border-radius: 12px;">
           <div style="background: linear-gradient(135deg, #ef4444, #b91c1c); padding: 20px 30px; border-radius: 10px 10px 0 0; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 24px;">🔴 Kastana POS</h1>
+            <h1 style="color: white; margin: 0; font-size: 24px;">🔴 ${BRAND_NAME_AR} POS</h1>
           </div>
           <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px;">
             <h2 style="color: #b91c1c; margin-top: 0;">انتهى الاشتراك</h2>
@@ -112,7 +116,7 @@ const getEmailContent = (stage: ReminderStage, restaurantName: string) => {
               عزيزنا صاحب <strong>${restaurantName}</strong>،
             </p>
             <p style="color: #374151; line-height: 1.8; font-size: 16px;">
-              نود إعلامكم بأن اشتراككم في نظام <strong>Kastana POS</strong> قد <strong>انتهى</strong>.
+              نود إعلامكم بأن اشتراككم في نظام <strong>${BRAND_NAME_AR} POS</strong> قد <strong>انتهى</strong>.
             </p>
             <p style="color: #374151; line-height: 1.8; font-size: 16px;">
               النظام غير متاح حالياً. للعودة للاستخدام الفوري، يرجى التواصل معنا لتجديد اشتراككم.
@@ -124,7 +128,7 @@ const getEmailContent = (stage: ReminderStage, restaurantName: string) => {
                 Dear <strong>${restaurantName}</strong> owner,
               </p>
               <p style="color: #374151; line-height: 1.8; font-size: 16px;">
-                Your <strong>Kastana POS</strong> subscription has <strong>expired</strong>.
+                Your <strong>${BRAND_NAME_EN} POS</strong> subscription has <strong>expired</strong>.
               </p>
               <p style="color: #374151; line-height: 1.8; font-size: 16px;">
                 The system is currently unavailable. To resume using the service, please contact us to renew your subscription.
@@ -132,7 +136,7 @@ const getEmailContent = (stage: ReminderStage, restaurantName: string) => {
             </div>
             <div style="text-align: center; margin-top: 30px; padding: 15px; background-color: #fee2e2; border-radius: 8px;">
               <p style="color: #991b1b; margin: 0; font-size: 14px;">
-                فريق Kastana POS | Kastana POS Team
+                فريق ${BRAND_NAME_AR} POS | ${BRAND_NAME_EN} POS Team
               </p>
             </div>
           </div>

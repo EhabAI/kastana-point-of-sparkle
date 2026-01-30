@@ -64,7 +64,7 @@ export function DashboardLayout({
               {isSystemAdmin ? (
                 <img 
                   src={kastanaLogo} 
-                  alt="Kastana POS" 
+                  alt={t("brandNameFull")} 
                   className="h-6 object-contain"
                 />
               ) : isOwner ? (
