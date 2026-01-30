@@ -2014,4 +2014,23 @@ export default {
   reminder_tooltip_expired: "أرسل بعد انتهاء الاشتراك. يُعلم المالك بأن الوصول للنظام محظور حتى التجديد.",
   reminder_tooltip_not_applicable: "لا حاجة للتذكير. الاشتراك لديه أكثر من ٧ أيام متبقية.",
   reminder_tooltip_duplicate: "يمكن إرسال كل مرحلة مرة واحدة فقط لتجنب إزعاج المالك.",
+  
+  // Contact Restaurant Dialog
+  contact_dialog_title: "تواصل مع المطعم",
+  contact_method_label: "طريقة التواصل",
+  contact_method_email: "بريد إلكتروني",
+  contact_method_whatsapp: "واتساب (نسخ)",
+  contact_template_label: "قالب الرسالة",
+  contact_template_expiring: "الاشتراك ينتهي قريباً",
+  contact_template_expired: "الاشتراك منتهي",
+  contact_template_follow_up: "متابعة ودية",
+  contact_message_label: "معاينة الرسالة",
+  contact_send_email: "إرسال البريد",
+  contact_copy_whatsapp: "نسخ رسالة واتساب",
+  contact_no_email: "لا يوجد بريد إلكتروني للمالك",
+  contact_email_template_warning: "قالب 'المتابعة الودية' غير مدعوم للبريد. يرجى اختيار قالب آخر.",
+  contact_confirm_title: "تأكيد إرسال البريد",
+  contact_confirm_desc: "سيتم إرسال البريد إلى:",
+  contact_confirm_send: "إرسال",
+  contact_button: "تواصل مع المطعم",
 } as const;

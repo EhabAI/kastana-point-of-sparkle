@@ -4,12 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Store, ChevronDown, ChevronUp, Package, ChefHat, QrCode, 
-  CheckCircle2, XCircle, Power, PowerOff, Pencil, Image, Key, Calendar, MessageCircle, Copy
+  CheckCircle2, XCircle, Power, PowerOff, Pencil, Image, Key, Calendar, MessagesSquare
 } from "lucide-react";
 import { RestaurantStatusBadge, getRestaurantOperationalState, RestaurantOperationalState } from "./RestaurantStatusBadge";
 import { SystemHealthSnapshot } from "./SystemHealthSnapshot";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useToast } from "@/hooks/use-toast";
 import { format, differenceInDays } from "date-fns";
 import { Restaurant } from "@/hooks/useRestaurants";
 import { RestaurantSubscription } from "@/hooks/useRestaurantSubscriptions";
@@ -32,6 +31,7 @@ interface RestaurantListRowProps {
   onEditLogo: (id: string, logoUrl: string | null) => void;
   onEditOwner: (ownerId: string, email: string, username: string | undefined, restaurantId: string) => void;
   onManageSubscription: (id: string, name: string) => void;
+  onContactRestaurant: () => void;
   togglesPending: {
     active: boolean;
     inventory: boolean;
@@ -40,31 +40,6 @@ interface RestaurantListRowProps {
   };
 }
 
-// Normalize phone for WhatsApp (Jordan format)
-function normalizePhoneForWhatsApp(phone: string): string | null {
-  if (!phone) return null;
-  
-  // Remove spaces, dashes, parentheses
-  let cleaned = phone.replace(/[\s\-\(\)]/g, '');
-  
-  // If starts with +, keep it but remove the +
-  if (cleaned.startsWith('+')) {
-    cleaned = cleaned.substring(1);
-  } 
-  // If starts with 0 and looks like Jordan mobile (079, 078, 077, etc.)
-  else if (cleaned.startsWith('0') && cleaned.length === 10 && /^07[789]/.test(cleaned)) {
-    cleaned = '962' + cleaned.substring(1);
-  }
-  // If starts with 7 and is 9 digits (Jordan mobile without prefix)
-  else if (cleaned.startsWith('7') && cleaned.length === 9 && /^7[789]/.test(cleaned)) {
-    cleaned = '962' + cleaned;
-  }
-  
-  // Validate: should be numeric and reasonable length
-  if (!/^\d{10,15}$/.test(cleaned)) return null;
-  
-  return cleaned;
-}
 
 export function RestaurantListRow({
   restaurant,
@@ -84,71 +59,11 @@ export function RestaurantListRow({
   onEditLogo,
   onEditOwner,
   onManageSubscription,
+  onContactRestaurant,
   togglesPending,
 }: RestaurantListRowProps) {
   const { t, language } = useLanguage();
-  const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
-
-  // WhatsApp link generation
-  const normalizedPhone = normalizePhoneForWhatsApp(ownerPhone || '');
-  const hasWhatsApp = !!normalizedPhone;
-  
-  const getWhatsAppMessage = () => {
-    // Sanitize restaurant name to prevent any injection (strip control chars)
-    const safeName = restaurant.name.replace(/[\x00-\x1F\x7F]/g, '').trim();
-    return language === 'ar'
-      ? `مرحباً، معك فريق Kastana. بخصوص مطعم: ${safeName}. كيف نقدر نساعدك؟`
-      : `Hello, this is Kastana team regarding: ${safeName}. How can we help?`;
-  };
-
-  const getWhatsAppUrl = () => {
-    if (!normalizedPhone) return '';
-    return `https://web.whatsapp.com/send?phone=${normalizedPhone}&text=${encodeURIComponent(getWhatsAppMessage())}`;
-  };
-
-  const handleWhatsAppClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!hasWhatsApp) return;
-    
-    try {
-      const newWindow = window.open(getWhatsAppUrl(), '_blank', 'noopener,noreferrer');
-      if (!newWindow) {
-        // Popup blocked or failed - show toast with copy fallback
-        toast({
-          title: t('wa_open_failed'),
-          description: t('wa_open_failed_desc'),
-          variant: "destructive",
-        });
-      }
-    } catch {
-      // Browser blocked the action
-      toast({
-        title: t('wa_open_failed'),
-        description: t('wa_open_failed_desc'),
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleCopyWhatsAppMessage = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!normalizedPhone) return;
-    
-    const textToCopy = `+${normalizedPhone}\n\n${getWhatsAppMessage()}`;
-    try {
-      await navigator.clipboard.writeText(textToCopy);
-      toast({
-        title: t('wa_copied'),
-        description: t('wa_copied_desc'),
-      });
-    } catch {
-      toast({
-        title: t('wa_copy_failed'),
-        variant: "destructive",
-      });
-    }
-  };
 
   // Subscription status calculations
   const hasSubscription = !!subscription;
@@ -234,45 +149,27 @@ export function RestaurantListRow({
           )}
         </div>
 
-        {/* WhatsApp Buttons - Only show if phone exists */}
-        {hasWhatsApp && (
-          <div className="flex items-center gap-0.5">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800 hover:bg-green-50 dark:hover:bg-green-950/40 rounded-e-none border-e-0"
-                    onClick={handleWhatsAppClick}
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{t('wa_contact_tooltip')}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0 text-muted-foreground border-green-200 dark:border-green-800 hover:bg-muted/50 rounded-s-none"
-                    onClick={handleCopyWhatsAppMessage}
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{t('wa_copy_tooltip')}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        )}
+        {/* Contact Button - Unified entry point */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0 text-primary border-primary/30 hover:bg-primary/10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onContactRestaurant();
+                }}
+              >
+                <MessagesSquare className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t('contact_button')}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
         {/* Manage Button */}
         <Button
@@ -352,51 +249,19 @@ export function RestaurantListRow({
               </Button>
             )}
             
-            {/* WhatsApp Buttons in Expanded Section */}
-            {hasWhatsApp ? (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/40"
-                  onClick={handleWhatsAppClick}
-                >
-                  <MessageCircle className="h-3.5 w-3.5 me-1.5" />
-                  {t('wa_contact')}
-                </Button>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 text-muted-foreground hover:bg-muted/50"
-                        onClick={handleCopyWhatsAppMessage}
-                      >
-                        <Copy className="h-3.5 w-3.5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{t('wa_copy_tooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </>
-            ) : (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground opacity-60">
-                      <MessageCircle className="h-3.5 w-3.5" />
-                      {t('wa_no_number')}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t('wa_no_number_hint')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
+            {/* Unified Contact Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 text-primary hover:bg-primary/10"
+              onClick={(e) => {
+                e.stopPropagation();
+                onContactRestaurant();
+              }}
+            >
+              <MessagesSquare className="h-3.5 w-3.5 me-1.5" />
+              {t('contact_button')}
+            </Button>
           </div>
 
           {/* Add-ons Row */}

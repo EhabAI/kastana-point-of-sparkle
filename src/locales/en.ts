@@ -2009,4 +2009,23 @@ export default {
   reminder_tooltip_expired: "Send after expiry. Notifies owner that system access is blocked until renewal.",
   reminder_tooltip_not_applicable: "No reminder needed. Subscription has more than 7 days remaining.",
   reminder_tooltip_duplicate: "Each stage can only be sent once to prevent spamming the owner.",
+  
+  // Contact Restaurant Dialog
+  contact_dialog_title: "Contact Restaurant",
+  contact_method_label: "Communication Method",
+  contact_method_email: "Email",
+  contact_method_whatsapp: "WhatsApp (Copy)",
+  contact_template_label: "Message Template",
+  contact_template_expiring: "Subscription Expiring Soon",
+  contact_template_expired: "Subscription Expired",
+  contact_template_follow_up: "Friendly Follow-up",
+  contact_message_label: "Message Preview",
+  contact_send_email: "Send Email",
+  contact_copy_whatsapp: "Copy WhatsApp Message",
+  contact_no_email: "No owner email available",
+  contact_email_template_warning: "'Follow-up' template is not supported for email. Please select another template.",
+  contact_confirm_title: "Confirm Email Send",
+  contact_confirm_desc: "Email will be sent to:",
+  contact_confirm_send: "Send",
+  contact_button: "Contact Restaurant",
 } as const;
