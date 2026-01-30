@@ -189,6 +189,69 @@ export const SYSTEM_INVARIANTS: SystemInvariant[] = [
     category: "restaurant",
     severity: "blocking",
   },
+  {
+    id: "inv_subscription_manual_only",
+    rule: {
+      ar: "إدارة الاشتراكات يدوية بالكامل. لا يوجد تجديد تلقائي أو جدولة خلفية.",
+      en: "Subscription management is fully manual. No automatic renewals or background scheduling.",
+    },
+    category: "restaurant",
+    severity: "blocking",
+  },
+  {
+    id: "inv_subscription_bonus_max",
+    rule: {
+      ar: "الحد الأقصى للشهور الإضافية 3 شهور. تُضاف لتاريخ الانتهاء فقط.",
+      en: "Maximum bonus months is 3. Added to end date only, never changes start date.",
+    },
+    category: "restaurant",
+    severity: "warning",
+  },
+  {
+    id: "inv_subscription_duration_max",
+    rule: {
+      ar: "الحد الأقصى لمدة الاشتراك 12 شهر.",
+      en: "Maximum subscription duration is 12 months.",
+    },
+    category: "restaurant",
+    severity: "warning",
+  },
+  {
+    id: "inv_reminders_manual_only",
+    rule: {
+      ar: "التذكيرات يدوية فقط. لا يوجد إرسال تلقائي لواتساب أو SMS أو إيميل.",
+      en: "Reminders are manual only. No automatic WhatsApp, SMS, or email sending.",
+    },
+    category: "restaurant",
+    severity: "blocking",
+  },
+  {
+    id: "inv_owner_assignment_admin_only",
+    rule: {
+      ar: "تعيين أو تغيير صاحب المطعم يتم من قبل مدير النظام فقط.",
+      en: "Owner assignment or change can only be done by System Admin.",
+    },
+    category: "auth",
+    severity: "blocking",
+  },
+  {
+    id: "inv_owner_change_immediate",
+    rule: {
+      ar: "عند تغيير المالك، يفقد السابق الصلاحية فوراً ويحصل الجديد عليها فوراً.",
+      en: "When owner changes, previous loses access immediately and new gains access immediately.",
+    },
+    category: "auth",
+    severity: "blocking",
+  },
+  {
+    id: "inv_multi_restaurant_isolation",
+    rule: {
+      ar: "كل مطعم له بيانات منفصلة تماماً. لا تختلط البيانات بين المطاعم.",
+      en: "Each restaurant has completely separate data. Data never mixes between restaurants.",
+    },
+    category: "restaurant",
+    severity: "blocking",
+  },
 ];
 
 // ============================================
@@ -408,6 +471,98 @@ export const ACTIONS_REGISTRY: ActionEntry[] = [
     },
     side_effects: { audit_log: true, inventory: true },
     related_invariants: ["inv_inventory_module_check", "inv_recipe_required_deduction"],
+  },
+
+  // === SYSTEM ADMIN ACTIONS ===
+  {
+    id: "action_create_restaurant",
+    action_name: { ar: "إنشاء مطعم", en: "Create Restaurant" },
+    allowed_roles: ["system_admin"],
+    preconditions: {
+      ar: ["اسم المطعم محدد", "مدة الاشتراك محددة"],
+      en: ["Restaurant name specified", "Subscription period specified"],
+    },
+    postconditions: {
+      ar: ["مطعم جديد يُنشأ", "اشتراك يُنشأ", "الحالة: غير مكتمل (بدون مالك)"],
+      en: ["New restaurant created", "Subscription created", "Status: Incomplete (no owner)"],
+    },
+    side_effects: { audit_log: true },
+    related_invariants: [],
+  },
+  {
+    id: "action_create_owner",
+    action_name: { ar: "إنشاء صاحب مطعم", en: "Create Owner" },
+    allowed_roles: ["system_admin"],
+    preconditions: {
+      ar: ["البريد الإلكتروني محدد", "كلمة المرور محددة"],
+      en: ["Email specified", "Password specified"],
+    },
+    postconditions: {
+      ar: ["حساب مالك جديد يُنشأ", "غير مرتبط بمطعم بعد"],
+      en: ["New owner account created", "Not linked to restaurant yet"],
+    },
+    side_effects: { audit_log: true },
+    related_invariants: [],
+  },
+  {
+    id: "action_assign_owner",
+    action_name: { ar: "تعيين مالك للمطعم", en: "Assign Owner to Restaurant" },
+    allowed_roles: ["system_admin"],
+    preconditions: {
+      ar: ["المطعم موجود", "المالك موجود"],
+      en: ["Restaurant exists", "Owner exists"],
+    },
+    postconditions: {
+      ar: ["المالك مرتبط بالمطعم", "حالة المطعم: جاهز"],
+      en: ["Owner linked to restaurant", "Restaurant status: Ready"],
+    },
+    side_effects: { audit_log: true },
+    related_invariants: ["inv_owner_assignment_admin_only", "inv_owner_change_immediate"],
+  },
+  {
+    id: "action_renew_subscription",
+    action_name: { ar: "تجديد الاشتراك", en: "Renew Subscription" },
+    allowed_roles: ["system_admin"],
+    preconditions: {
+      ar: ["المطعم موجود", "مدة التجديد محددة"],
+      en: ["Restaurant exists", "Renewal period specified"],
+    },
+    postconditions: {
+      ar: ["تاريخ الانتهاء يتحدث", "الحالة: نشط"],
+      en: ["End date updated", "Status: Active"],
+    },
+    side_effects: { audit_log: true },
+    related_invariants: ["inv_subscription_manual_only", "inv_subscription_bonus_max", "inv_subscription_duration_max"],
+  },
+  {
+    id: "action_send_reminder",
+    action_name: { ar: "إرسال تذكير", en: "Send Reminder" },
+    allowed_roles: ["system_admin"],
+    preconditions: {
+      ar: ["المطعم قريب الانتهاء أو منتهي", "التذكير لم يُرسل لهذه المرحلة"],
+      en: ["Restaurant near expiry or expired", "Reminder not sent for this stage"],
+    },
+    postconditions: {
+      ar: ["الرسالة جاهزة للنسخ أو الإرسال اليدوي"],
+      en: ["Message ready to copy or manual send"],
+    },
+    side_effects: { audit_log: true },
+    related_invariants: ["inv_reminders_manual_only"],
+  },
+  {
+    id: "action_toggle_restaurant_active",
+    action_name: { ar: "تفعيل/تعطيل المطعم", en: "Toggle Restaurant Active" },
+    allowed_roles: ["system_admin"],
+    preconditions: {
+      ar: ["المطعم موجود"],
+      en: ["Restaurant exists"],
+    },
+    postconditions: {
+      ar: ["حالة التفعيل تتغير", "يؤثر على وصول المطعم"],
+      en: ["Active status changes", "Affects restaurant access"],
+    },
+    side_effects: { audit_log: true },
+    related_invariants: ["inv_restaurant_inactive"],
   },
 ];
 
@@ -648,6 +803,38 @@ export const SCREENS_REGISTRY: ScreenEntry[] = [
       ],
     },
     related_actions: ["action_open_shift", "action_close_shift"],
+  },
+  {
+    id: "screen_system_admin",
+    screen_name: { ar: "إدارة النظام", en: "System Administration" },
+    route: "/admin",
+    user_roles: ["system_admin"],
+    main_actions: ["action_create_restaurant", "action_create_owner", "action_assign_owner", "action_renew_subscription", "action_send_reminder", "action_toggle_restaurant_active"],
+    common_states: {
+      ar: ["مطاعم نشطة", "مطاعم منتهية الاشتراك", "مطاعم غير مكتملة", "اشتراكات قريبة الانتهاء"],
+      en: ["Active restaurants", "Expired subscription restaurants", "Incomplete restaurants", "Near-expiry subscriptions"],
+    },
+    common_confusions: {
+      ar: [
+        "شو الفرق بين منتهي وغير مكتمل؟",
+        "كيف أجدد الاشتراك؟",
+        "ليش المطعم مش شغال؟",
+        "كيف أرسل تذكير؟",
+        "شو تعني الألوان؟",
+        "كيف أغير صاحب المطعم؟",
+        "شو الشهور الإضافية؟",
+      ],
+      en: [
+        "What's the difference between expired and incomplete?",
+        "How to renew subscription?",
+        "Why is restaurant not working?",
+        "How to send reminder?",
+        "What do colors mean?",
+        "How to change restaurant owner?",
+        "What are bonus months?",
+      ],
+    },
+    related_actions: ["action_create_restaurant", "action_create_owner", "action_assign_owner", "action_renew_subscription", "action_send_reminder", "action_toggle_restaurant_active"],
   },
 ];
 
@@ -976,6 +1163,154 @@ export const FLOW_DIAGNOSTICS: FlowDiagnostic[] = [
     },
     related_invariants: ["inv_shift_one_active", "inv_shift_close_open_orders"],
   },
+  // === SYSTEM ADMIN FLOWS ===
+  {
+    id: "flow_create_restaurant_full",
+    flow_name: { ar: "إنشاء مطعم كامل", en: "Full Restaurant Creation" },
+    expected_sequence: [
+      "Create restaurant (name, logo, subscription)",
+      "Restaurant created with status: Incomplete",
+      "Create owner account (email, password)",
+      "Assign owner to restaurant",
+      "Restaurant status: Ready",
+    ],
+    common_failure_points: {
+      ar: [
+        "المطعم يظهر 'غير مكتمل'",
+        "صاحب المطعم لا يستطيع الدخول",
+        "الاشتراك لم يُنشأ",
+      ],
+      en: [
+        "Restaurant shows 'Incomplete'",
+        "Owner cannot login",
+        "Subscription not created",
+      ],
+    },
+    diagnostic_questions: {
+      ar: [
+        "هل تم إنشاء صاحب المطعم؟",
+        "هل تم ربط المالك بالمطعم؟",
+        "هل تم تحديد مدة الاشتراك؟",
+      ],
+      en: [
+        "Was owner account created?",
+        "Was owner assigned to restaurant?",
+        "Was subscription period specified?",
+      ],
+    },
+    most_likely_causes: {
+      ar: [
+        "لم يتم إنشاء صاحب المطعم",
+        "لم يتم ربط المالك",
+        "نسيت تحديد الاشتراك",
+      ],
+      en: [
+        "Owner account not created",
+        "Owner not assigned",
+        "Forgot to specify subscription",
+      ],
+    },
+    related_invariants: ["inv_owner_assignment_admin_only"],
+  },
+  {
+    id: "flow_subscription_renewal",
+    flow_name: { ar: "تجديد الاشتراك", en: "Subscription Renewal" },
+    expected_sequence: [
+      "Find restaurant in list",
+      "Click renew subscription",
+      "Select duration (1-12 months)",
+      "Optional: Add bonus months (max 3)",
+      "Optional: Set custom start date",
+      "Confirm renewal",
+      "Subscription updated",
+    ],
+    common_failure_points: {
+      ar: [
+        "التجديد لم يعمل",
+        "تاريخ الانتهاء خاطئ",
+        "الشهور الإضافية لم تُضاف",
+      ],
+      en: [
+        "Renewal didn't work",
+        "End date is wrong",
+        "Bonus months not added",
+      ],
+    },
+    diagnostic_questions: {
+      ar: [
+        "ما هي المدة المختارة؟",
+        "ما هو تاريخ البدء؟",
+        "هل أضفت شهور إضافية؟",
+      ],
+      en: [
+        "What duration was selected?",
+        "What is the start date?",
+        "Did you add bonus months?",
+      ],
+    },
+    most_likely_causes: {
+      ar: [
+        "تاريخ البدء غير صحيح",
+        "الشهور الإضافية تجاوزت الحد (3)",
+        "خطأ في الحساب",
+      ],
+      en: [
+        "Wrong start date",
+        "Bonus months exceeded limit (3)",
+        "Calculation error",
+      ],
+    },
+    related_invariants: ["inv_subscription_manual_only", "inv_subscription_bonus_max", "inv_subscription_duration_max"],
+  },
+  {
+    id: "flow_send_reminder",
+    flow_name: { ar: "إرسال تذكير تجديد", en: "Send Renewal Reminder" },
+    expected_sequence: [
+      "Find restaurant with expiring/expired subscription",
+      "Open reminder dialog",
+      "Select reminder stage (7 days, 1 day, expired)",
+      "Copy WhatsApp message OR send email",
+      "Send manually",
+      "Reminder marked as sent",
+    ],
+    common_failure_points: {
+      ar: [
+        "لا يمكن إرسال التذكير",
+        "الرسالة لم تُرسل",
+        "التذكير مرسل مسبقاً",
+      ],
+      en: [
+        "Cannot send reminder",
+        "Message not sent",
+        "Reminder already sent",
+      ],
+    },
+    diagnostic_questions: {
+      ar: [
+        "هل التذكير أُرسل لهذه المرحلة من قبل؟",
+        "هل رقم الهاتف موجود؟",
+        "هل البريد الإلكتروني موجود؟",
+      ],
+      en: [
+        "Was reminder sent for this stage before?",
+        "Is phone number available?",
+        "Is email available?",
+      ],
+    },
+    most_likely_causes: {
+      ar: [
+        "التذكير أُرسل مسبقاً",
+        "لا يوجد رقم هاتف للمالك",
+        "خطأ في إعدادات البريد",
+      ],
+      en: [
+        "Reminder already sent",
+        "No owner phone number",
+        "Email configuration error",
+      ],
+    },
+    related_invariants: ["inv_reminders_manual_only"],
+  },
 ];
 
 // ============================================
@@ -1171,6 +1506,67 @@ export const ARABIC_MARKET_CONTEXT: ArabicPhraseMeaning[] = [
     phrase: "كيف أدمج طلبين",
     variants: ["دمج الطلبات", "جمع الطلبات"],
     intent: "how_to_merge_orders",
+    category: "how_to",
+  },
+
+  // === System Admin Phrases ===
+  {
+    phrase: "شو الفرق بين منتهي وغير مكتمل",
+    variants: ["منتهي وغير مكتمل", "الفرق بين الحالات", "شو يعني غير مكتمل"],
+    intent: "explain_subscription_statuses",
+    category: "what_is",
+    diagnostic_action: "Explain: expired = subscription ended, incomplete = missing owner or settings",
+  },
+  {
+    phrase: "ليش المطعم مش شغال",
+    variants: ["المطعم معطل", "لا يعمل", "المطعم متوقف"],
+    intent: "troubleshoot_restaurant_blocked",
+    category: "troubleshoot",
+    diagnostic_action: "Check inv_restaurant_inactive, inv_subscription_expired",
+  },
+  {
+    phrase: "كيف أجدد الاشتراك",
+    variants: ["تجديد الاشتراك", "تمديد الاشتراك", "طريقة التجديد"],
+    intent: "how_to_renew_subscription",
+    category: "how_to",
+  },
+  {
+    phrase: "شو الشهور الإضافية",
+    variants: ["bonus months", "شهور مجانية", "شهور هدية"],
+    intent: "explain_bonus_months",
+    category: "what_is",
+    diagnostic_action: "Explain: max 3 months, added to end date only",
+  },
+  {
+    phrase: "كيف أرسل تذكير",
+    variants: ["إرسال تذكير", "تنبيه التجديد", "رسالة تذكير"],
+    intent: "how_to_send_reminder",
+    category: "how_to",
+  },
+  {
+    phrase: "كيف أغير صاحب المطعم",
+    variants: ["تغيير المالك", "نقل الملكية", "تعيين مالك جديد"],
+    intent: "how_to_change_owner",
+    category: "how_to",
+  },
+  {
+    phrase: "شو تعني الألوان",
+    variants: ["ألوان الشارات", "اللون الأخضر", "اللون الأحمر", "اللون البرتقالي"],
+    intent: "explain_status_colors",
+    category: "what_is",
+    diagnostic_action: "Explain: green=healthy, orange=attention, red=blocked",
+  },
+  {
+    phrase: "ليش التذكير ما اتبعت",
+    variants: ["التذكير لم يُرسل", "الرسالة ما راحت"],
+    intent: "troubleshoot_reminder_failed",
+    category: "troubleshoot",
+    diagnostic_action: "Check inv_reminders_manual_only - reminders are not automatic",
+  },
+  {
+    phrase: "كيف أبدل بين المطاعم",
+    variants: ["تبديل المطعم", "اختيار مطعم آخر", "التنقل بين المطاعم"],
+    intent: "how_to_switch_restaurant",
     category: "how_to",
   },
 ];
