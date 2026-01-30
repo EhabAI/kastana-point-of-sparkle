@@ -47,6 +47,7 @@ export function RestaurantSummaryBar({
       icon: Store,
       colorClass: 'text-slate-600 dark:text-slate-400',
       bgClass: 'bg-slate-100 dark:bg-slate-800',
+      tooltip: t('sa_summary_total_tooltip'),
     },
     {
       key: 'active',
@@ -55,6 +56,7 @@ export function RestaurantSummaryBar({
       icon: CheckCircle2,
       colorClass: 'text-green-600 dark:text-green-400',
       bgClass: 'bg-green-50 dark:bg-green-950/40',
+      tooltip: t('sa_summary_active_tooltip'),
     },
     {
       key: 'inactive',
@@ -63,6 +65,7 @@ export function RestaurantSummaryBar({
       icon: XCircle,
       colorClass: 'text-red-600 dark:text-red-400',
       bgClass: 'bg-red-50 dark:bg-red-950/40',
+      tooltip: t('sa_summary_inactive_tooltip'),
     },
     {
       key: 'incomplete',
@@ -71,6 +74,7 @@ export function RestaurantSummaryBar({
       icon: AlertTriangle,
       colorClass: 'text-amber-600 dark:text-amber-400',
       bgClass: 'bg-amber-50 dark:bg-amber-950/40',
+      tooltip: t('sa_summary_incomplete_tooltip'),
     },
     {
       key: 'near_expiry',
@@ -97,6 +101,7 @@ export function RestaurantSummaryBar({
       icon: CreditCard,
       colorClass: 'text-purple-600 dark:text-purple-400',
       bgClass: 'bg-purple-50 dark:bg-purple-950/40',
+      tooltip: t('sa_summary_sub_issue_tooltip'),
     },
   ];
 
@@ -106,46 +111,37 @@ export function RestaurantSummaryBar({
         const Icon = item.icon;
         const isSelected = activeFilter === item.key;
         
-        const buttonContent = (
-          <button
-            key={item.key}
-            onClick={() => onFilterChange(item.key)}
-            className={`
-              flex items-center gap-2 px-2.5 py-1.5 rounded-lg border transition-all w-full
-              ${isSelected 
-                ? `${item.bgClass} border-current ring-2 ring-offset-1 ring-current/20` 
-                : 'bg-card border-border/60 hover:border-border hover:bg-muted/30'
-              }
-            `}
-          >
-            <div className={`p-1 rounded-md ${item.bgClass}`}>
-              <Icon className={`h-3.5 w-3.5 ${item.colorClass}`} strokeWidth={2} />
-            </div>
-            <div className="flex flex-col items-start min-w-0">
-              <span className={`text-base font-bold leading-tight ${item.colorClass}`}>
-                {item.count}
-              </span>
-              <span className="text-[9px] text-muted-foreground truncate">
-                {item.label}
-              </span>
-            </div>
-          </button>
+        return (
+          <Tooltip key={item.key}>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => onFilterChange(item.key)}
+                className={`
+                  flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-all w-full
+                  ${isSelected 
+                    ? `${item.bgClass} border-current ring-2 ring-offset-1 ring-current/20` 
+                    : 'bg-card border-border/60 hover:border-border hover:bg-muted/30'
+                  }
+                `}
+              >
+                <div className={`p-1.5 rounded-md ${item.bgClass}`}>
+                  <Icon className={`h-4 w-4 ${item.colorClass}`} strokeWidth={2.5} />
+                </div>
+                <div className="flex flex-col items-start min-w-0">
+                  <span className={`text-lg font-extrabold leading-tight ${item.colorClass}`}>
+                    {item.count}
+                  </span>
+                  <span className="text-[10px] font-medium text-muted-foreground truncate">
+                    {item.label}
+                  </span>
+                </div>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs max-w-[220px] leading-relaxed">
+              {item.tooltip}
+            </TooltipContent>
+          </Tooltip>
         );
-
-        if (item.tooltip) {
-          return (
-            <Tooltip key={item.key}>
-              <TooltipTrigger asChild>
-                {buttonContent}
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="text-xs max-w-[200px]">
-                {item.tooltip}
-              </TooltipContent>
-            </Tooltip>
-          );
-        }
-
-        return buttonContent;
       })}
     </div>
   );
