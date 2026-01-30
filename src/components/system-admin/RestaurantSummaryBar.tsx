@@ -1,7 +1,8 @@
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Store, CheckCircle2, XCircle, AlertTriangle, CreditCard } from "lucide-react";
+import { Store, CheckCircle2, XCircle, AlertTriangle, CreditCard, Clock, CalendarX2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-export type SummaryFilter = 'all' | 'active' | 'inactive' | 'incomplete' | 'subscription_issue';
+export type SummaryFilter = 'all' | 'active' | 'inactive' | 'incomplete' | 'subscription_issue' | 'near_expiry' | 'expired_sub';
 
 interface SummaryItem {
   key: SummaryFilter;
@@ -10,6 +11,7 @@ interface SummaryItem {
   icon: React.ElementType;
   colorClass: string;
   bgClass: string;
+  tooltip?: string;
 }
 
 interface RestaurantSummaryBarProps {
@@ -18,6 +20,8 @@ interface RestaurantSummaryBarProps {
   inactive: number;
   incomplete: number;
   subscriptionIssue: number;
+  nearExpiry: number;
+  expiredSub: number;
   activeFilter: SummaryFilter;
   onFilterChange: (filter: SummaryFilter) => void;
 }
@@ -28,6 +32,8 @@ export function RestaurantSummaryBar({
   inactive,
   incomplete,
   subscriptionIssue,
+  nearExpiry,
+  expiredSub,
   activeFilter,
   onFilterChange,
 }: RestaurantSummaryBarProps) {
@@ -67,46 +73,79 @@ export function RestaurantSummaryBar({
       bgClass: 'bg-amber-50 dark:bg-amber-950/40',
     },
     {
+      key: 'near_expiry',
+      label: t('sa_summary_near_expiry'),
+      count: nearExpiry,
+      icon: Clock,
+      colorClass: 'text-orange-600 dark:text-orange-400',
+      bgClass: 'bg-orange-50 dark:bg-orange-950/40',
+      tooltip: t('sa_summary_near_expiry_tooltip'),
+    },
+    {
+      key: 'expired_sub',
+      label: t('sa_summary_expired_sub'),
+      count: expiredSub,
+      icon: CalendarX2,
+      colorClass: 'text-rose-600 dark:text-rose-400',
+      bgClass: 'bg-rose-50 dark:bg-rose-950/40',
+      tooltip: t('sa_summary_expired_sub_tooltip'),
+    },
+    {
       key: 'subscription_issue',
       label: t('sa_summary_sub_issue'),
       count: subscriptionIssue,
       icon: CreditCard,
-      colorClass: 'text-rose-600 dark:text-rose-400',
-      bgClass: 'bg-rose-50 dark:bg-rose-950/40',
+      colorClass: 'text-purple-600 dark:text-purple-400',
+      bgClass: 'bg-purple-50 dark:bg-purple-950/40',
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
       {items.map((item) => {
         const Icon = item.icon;
         const isSelected = activeFilter === item.key;
         
-        return (
+        const buttonContent = (
           <button
             key={item.key}
             onClick={() => onFilterChange(item.key)}
             className={`
-              flex items-center gap-2 px-3 py-2 rounded-lg border transition-all
+              flex items-center gap-2 px-2.5 py-1.5 rounded-lg border transition-all w-full
               ${isSelected 
                 ? `${item.bgClass} border-current ring-2 ring-offset-1 ring-current/20` 
                 : 'bg-card border-border/60 hover:border-border hover:bg-muted/30'
               }
             `}
           >
-            <div className={`p-1.5 rounded-md ${item.bgClass}`}>
-              <Icon className={`h-4 w-4 ${item.colorClass}`} strokeWidth={2} />
+            <div className={`p-1 rounded-md ${item.bgClass}`}>
+              <Icon className={`h-3.5 w-3.5 ${item.colorClass}`} strokeWidth={2} />
             </div>
             <div className="flex flex-col items-start min-w-0">
-              <span className={`text-lg font-bold leading-tight ${item.colorClass}`}>
+              <span className={`text-base font-bold leading-tight ${item.colorClass}`}>
                 {item.count}
               </span>
-              <span className="text-[10px] text-muted-foreground truncate">
+              <span className="text-[9px] text-muted-foreground truncate">
                 {item.label}
               </span>
             </div>
           </button>
         );
+
+        if (item.tooltip) {
+          return (
+            <Tooltip key={item.key}>
+              <TooltipTrigger asChild>
+                {buttonContent}
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs max-w-[200px]">
+                {item.tooltip}
+              </TooltipContent>
+            </Tooltip>
+          );
+        }
+
+        return buttonContent;
       })}
     </div>
   );

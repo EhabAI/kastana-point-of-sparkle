@@ -1860,6 +1860,10 @@ export default {
   sa_summary_active: "نشط",
   sa_summary_inactive: "غير نشط",
   sa_summary_incomplete: "غير مكتمل",
+  sa_summary_near_expiry: "قرب الانتهاء",
+  sa_summary_near_expiry_tooltip: "مطاعم سينتهي اشتراكها خلال 7 أيام",
+  sa_summary_expired_sub: "منتهي",
+  sa_summary_expired_sub_tooltip: "مطاعم انتهى اشتراكها وتحتاج متابعة",
   sa_summary_sub_issue: "مشكلة اشتراك",
   
   // Filter Bar
