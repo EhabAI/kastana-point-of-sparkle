@@ -1852,14 +1852,19 @@ export default {
   
   // Summary Bar
   sa_summary_total: "Total",
+  sa_summary_total_tooltip: "Total number of restaurants registered in the system",
   sa_summary_active: "Active",
+  sa_summary_active_tooltip: "Restaurants with active subscriptions operating normally",
   sa_summary_inactive: "Inactive",
+  sa_summary_inactive_tooltip: "Restaurants that have been deactivated and cannot operate",
   sa_summary_incomplete: "Incomplete",
+  sa_summary_incomplete_tooltip: "Restaurants with valid subscriptions but incomplete system setup",
   sa_summary_near_expiry: "Near Expiry",
-  sa_summary_near_expiry_tooltip: "Restaurants expiring within 7 days",
+  sa_summary_near_expiry_tooltip: "Restaurants expiring within 7 days - recommended to contact before expiry",
   sa_summary_expired_sub: "Expired",
-  sa_summary_expired_sub_tooltip: "Restaurants with expired subscriptions needing follow-up",
+  sa_summary_expired_sub_tooltip: "Restaurants with expired subscriptions needing immediate renewal",
   sa_summary_sub_issue: "Sub. Issue",
+  sa_summary_sub_issue_tooltip: "Restaurants with subscription problems: expired, missing, or invalid",
   
   // Filter Bar
   sa_filter_search_placeholder: "Search restaurant or owner...",

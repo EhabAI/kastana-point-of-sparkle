@@ -1857,14 +1857,19 @@ export default {
   
   // Summary Bar
   sa_summary_total: "الإجمالي",
+  sa_summary_total_tooltip: "إجمالي عدد المطاعم المسجلة في النظام",
   sa_summary_active: "نشط",
+  sa_summary_active_tooltip: "مطاعم اشتراكها نشط والنظام يعمل بشكل طبيعي",
   sa_summary_inactive: "غير نشط",
+  sa_summary_inactive_tooltip: "مطاعم تم إيقافها ولا يمكنها العمل حالياً",
   sa_summary_incomplete: "غير مكتمل",
+  sa_summary_incomplete_tooltip: "مطاعم اشتراكها سليم لكن إعداد النظام غير مكتمل بعد",
   sa_summary_near_expiry: "قرب الانتهاء",
-  sa_summary_near_expiry_tooltip: "مطاعم سينتهي اشتراكها خلال 7 أيام",
+  sa_summary_near_expiry_tooltip: "مطاعم سينتهي اشتراكها خلال 7 أيام ويُنصح بالتواصل معها قبل الانتهاء",
   sa_summary_expired_sub: "منتهي",
-  sa_summary_expired_sub_tooltip: "مطاعم انتهى اشتراكها وتحتاج متابعة",
+  sa_summary_expired_sub_tooltip: "مطاعم انتهى اشتراكها بالفعل وتحتاج تجديد فوري",
   sa_summary_sub_issue: "مشكلة اشتراك",
+  sa_summary_sub_issue_tooltip: "مطاعم لديها مشكلة في الاشتراك مثل: اشتراك منتهي، غير موجود، أو غير صالح للتشغيل",
   
   // Filter Bar
   sa_filter_search_placeholder: "ابحث عن مطعم أو مالك...",
