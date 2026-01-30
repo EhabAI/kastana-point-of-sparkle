@@ -564,6 +564,51 @@ export const ACTIONS_REGISTRY: ActionEntry[] = [
     side_effects: { audit_log: true },
     related_invariants: ["inv_restaurant_inactive"],
   },
+  {
+    id: "action_send_internal_notification",
+    action_name: { ar: "إرسال إشعار داخلي", en: "Send Internal Notification" },
+    allowed_roles: ["system_admin"],
+    preconditions: {
+      ar: ["المطعم موجود", "عنوان ومحتوى الإشعار محددان"],
+      en: ["Restaurant exists", "Notification title and content specified"],
+    },
+    postconditions: {
+      ar: ["إشعار يظهر لصاحب المطعم في الجرس", "يُسجل في قاعدة البيانات"],
+      en: ["Notification appears for owner in bell", "Recorded in database"],
+    },
+    side_effects: { audit_log: true, notifications: true },
+    related_invariants: [],
+  },
+  {
+    id: "action_toggle_addon",
+    action_name: { ar: "تفعيل/تعطيل إضافة", en: "Toggle Add-on" },
+    allowed_roles: ["system_admin"],
+    preconditions: {
+      ar: ["المطعم موجود", "الإضافة محددة (مخزون/KDS/QR)"],
+      en: ["Restaurant exists", "Add-on specified (Inventory/KDS/QR)"],
+    },
+    postconditions: {
+      ar: ["حالة الإضافة تتغير", "يؤثر على الميزات المتاحة"],
+      en: ["Add-on status changes", "Affects available features"],
+    },
+    side_effects: { audit_log: true },
+    related_invariants: ["inv_inventory_module_check", "inv_kds_module_check", "inv_qr_module_check"],
+  },
+  {
+    id: "action_change_owner",
+    action_name: { ar: "تغيير مالك المطعم", en: "Change Restaurant Owner" },
+    allowed_roles: ["system_admin"],
+    preconditions: {
+      ar: ["المطعم موجود", "المالك الجديد موجود"],
+      en: ["Restaurant exists", "New owner exists"],
+    },
+    postconditions: {
+      ar: ["المالك السابق يفقد الصلاحية فوراً", "المالك الجديد يحصل على الصلاحية فوراً", "بيانات المطعم لا تتأثر"],
+      en: ["Previous owner loses access immediately", "New owner gains access immediately", "Restaurant data unaffected"],
+    },
+    side_effects: { audit_log: true },
+    related_invariants: ["inv_owner_assignment_admin_only", "inv_owner_change_immediate"],
+  },
 ];
 
 // ============================================
