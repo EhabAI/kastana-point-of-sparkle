@@ -273,7 +273,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email
     const { data: emailResult, error: emailError } = await resend.emails.send({
-      from: "Kastana POS <noreply@kastana.app>",
+      from: "Kastana POS <onboarding@resend.dev>",
       to: [ownerEmail],
       subject: emailContent.subject,
       html: emailContent.html,
