@@ -188,10 +188,12 @@ function checkKnowledgeKeywords(message: string): string[] {
 
 /**
  * Get domain refusal message in the specified language
+ * Brand name is localized based on language
  */
 export function getDomainRefusal(language: "ar" | "en"): string {
+  const brandName = language === "ar" ? "كاستنا" : "Kastana";
   if (language === "ar") {
-    return `أنا مخصص لمساعدتك داخل نظام Kastana POS فقط.
+    return `أنا مخصص لمساعدتك داخل نظام ${brandName} POS فقط.
 
 يمكنني مساعدتك في:
 • شرح كيفية استخدام شاشات النظام
@@ -199,10 +201,10 @@ export function getDomainRefusal(language: "ar" | "en"): string {
 • حل المشاكل التقنية في النظام
 • شرح سبب تعطل بعض الميزات
 
-كيف يمكنني مساعدتك في نظام Kastana؟`;
+كيف يمكنني مساعدتك في نظام ${brandName}؟`;
   }
   
-  return `I'm designed to help you only within the Kastana POS system.
+  return `I'm designed to help you only within the ${brandName} POS system.
 
 I can assist you with:
 • Explaining how to use system screens
@@ -210,7 +212,7 @@ I can assist you with:
 • Troubleshooting technical issues
 • Explaining why certain features are disabled
 
-How can I help you with Kastana?`;
+How can I help you with ${brandName}?`;
 }
 
 /**

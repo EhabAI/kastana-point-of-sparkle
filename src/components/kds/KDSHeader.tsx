@@ -96,12 +96,12 @@ export function KDSHeader({
           <div className="flex items-center gap-2">
             <img 
               src={restaurantLogo || posLogoNew} 
-              alt={restaurantName || "Kastana POS"}
+              alt={restaurantName || t("brandNameFull")}
               className="h-6 sm:h-7 w-auto object-contain rounded-lg"
             />
             <div className="flex flex-col">
               <span className="text-xs font-semibold text-blue-900 dark:text-blue-100 leading-tight">
-                {restaurantName || "Kastana POS"}
+                {restaurantName || t("brandNameFull")}
               </span>
               <span className="text-[10px] text-blue-700 dark:text-blue-300 leading-tight">
                 {t("kitchen_display")}
