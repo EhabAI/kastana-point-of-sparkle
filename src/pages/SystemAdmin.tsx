@@ -721,23 +721,26 @@ export default function SystemAdmin() {
                 </CardContent>
               </Card>
             </DialogTrigger>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>{t('create')} {t('restaurant_name')}</DialogTitle>
                 <DialogDescription>{t('sub_create_desc')}</DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
-                <div className="space-y-2">
-                  <Label htmlFor="restaurant-name">{t('restaurant_name')}</Label>
+              <div className="space-y-3 py-2">
+                <div className="space-y-1">
+                  <Label htmlFor="restaurant-name" className="text-sm">
+                    {t('restaurant_name')} <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     id="restaurant-name"
                     value={restaurantName}
                     onChange={(e) => setRestaurantName(e.target.value)}
                     placeholder={t('restaurant_name')}
+                    className="h-9"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>{t('upload_logo')} ({t('optional')})</Label>
+                <div className="space-y-1">
+                  <Label className="text-sm">{t('upload_logo')} ({t('optional')})</Label>
                   <input
                     type="file"
                     accept="image/*"
@@ -746,11 +749,12 @@ export default function SystemAdmin() {
                     className="hidden"
                   />
                   {logoPreview ? (
-                    <div className="flex items-center gap-4">
-                      <img src={logoPreview} alt="Logo preview" className="w-16 h-16 object-contain rounded-lg border" />
+                    <div className="flex items-center gap-3">
+                      <img src={logoPreview} alt="Logo preview" className="w-12 h-12 object-contain rounded-lg border" />
                       <Button 
                         variant="outline" 
                         size="sm"
+                        className="h-8"
                         onClick={() => { setLogoFile(null); setLogoPreview(null); }}
                       >
                         {t('remove')}
@@ -759,8 +763,9 @@ export default function SystemAdmin() {
                   ) : (
                     <Button
                       variant="outline"
+                      size="sm"
                       onClick={() => logoInputRef.current?.click()}
-                      className="w-full"
+                      className="w-full h-9"
                     >
                       <Upload className="h-4 w-4 mr-2" />
                       {t('upload_logo')}
@@ -768,51 +773,61 @@ export default function SystemAdmin() {
                   )}
                 </div>
                 
-                <div className="pt-4 border-t space-y-4">
+                <div className="pt-3 border-t space-y-3">
                   <h4 className="font-medium text-sm flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
                     {t('sub_subscription_settings')}
                   </h4>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="subscription-period">{t('sub_period')}</Label>
-                    <Select value={subscriptionPeriod} onValueChange={(v) => setSubscriptionPeriod(v as SubscriptionPeriod)}>
-                      <SelectTrigger id="subscription-period">
-                        <SelectValue placeholder={t('sub_period')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="MONTHLY">{t('period_monthly')}</SelectItem>
-                        <SelectItem value="QUARTERLY">{t('period_quarterly')}</SelectItem>
-                        <SelectItem value="SEMI_ANNUAL">{t('period_semi_annual')}</SelectItem>
-                        <SelectItem value="ANNUAL">{t('period_annual')}</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="subscription-period" className="text-sm">
+                        {t('sub_period')} <span className="text-destructive">*</span>
+                      </Label>
+                      <Select value={subscriptionPeriod} onValueChange={(v) => setSubscriptionPeriod(v as SubscriptionPeriod)}>
+                        <SelectTrigger id="subscription-period" className="h-9">
+                          <SelectValue placeholder={t('sub_period')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="MONTHLY">{t('period_monthly')}</SelectItem>
+                          <SelectItem value="QUARTERLY">{t('period_quarterly')}</SelectItem>
+                          <SelectItem value="SEMI_ANNUAL">{t('period_semi_annual')}</SelectItem>
+                          <SelectItem value="ANNUAL">{t('period_annual')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <Label htmlFor="bonus-months" className="text-sm">{t('sub_bonus_months')}</Label>
+                      <Input
+                        id="bonus-months"
+                        type="number"
+                        min={0}
+                        max={6}
+                        value={bonusMonths}
+                        onChange={(e) => setBonusMonths(Math.min(Math.max(0, parseInt(e.target.value) || 0), 6))}
+                        className="h-9"
+                      />
+                    </div>
                   </div>
+                  <p className="text-xs text-muted-foreground">{t('sub_bonus_months_max')}</p>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="bonus-months">{t('sub_bonus_months')}</Label>
-                    <Input
-                      id="bonus-months"
-                      type="number"
-                      min={0}
-                      max={6}
-                      value={bonusMonths}
-                      onChange={(e) => setBonusMonths(Math.min(Math.max(0, parseInt(e.target.value) || 0), 6))}
-                    />
-                    <p className="text-xs text-muted-foreground">{t('sub_bonus_months_max')}</p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="subscription-reason">{t('sub_reason')} ({t('optional')})</Label>
+                  <div className="space-y-1">
+                    <Label htmlFor="subscription-reason" className="text-sm">{t('sub_reason')} ({t('optional')})</Label>
                     <Textarea
                       id="subscription-reason"
                       value={subscriptionReason}
                       onChange={(e) => setSubscriptionReason(e.target.value)}
                       placeholder={t('sub_reason_placeholder')}
                       rows={2}
+                      className="resize-none"
                     />
                   </div>
                 </div>
+                
+                <p className="text-xs text-muted-foreground pt-1">
+                  <span className="text-destructive">*</span> {t('required_fields_note')}
+                </p>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => {

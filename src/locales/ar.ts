@@ -1786,6 +1786,7 @@ export default {
   sa_no_restaurants: "لا توجد مطاعم بعد. أنشئ واحداً للبدء.",
   sa_create_restaurant: "إنشاء مطعم",
   sa_create_restaurant_desc: "إضافة مطعم جديد",
+  required_fields_note: "الحقول المعلّمة مطلوبة",
   sa_create_owner: "إنشاء مالك",
   sa_create_owner_desc: "إضافة حساب مالك جديد",
   sa_assign_owner: "تعيين مالك",
