@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
 
     // Parse request body
     const body = await req.json();
-    const { restaurant_id, period, bonus_months = 0, reason, notes } = body;
+    const { restaurant_id, period, bonus_months = 0, start_date, reason, notes } = body;
 
     // Validate required fields
     if (!restaurant_id || typeof restaurant_id !== "string") {
@@ -82,8 +82,8 @@ Deno.serve(async (req) => {
 
     const bonusMonthsNum = Math.min(Math.max(Math.floor(Number(bonus_months) || 0), 0), 6);
 
-    // Calculate dates
-    const startDateValue = new Date();
+    // Calculate dates - use provided start_date or default to now
+    const startDateValue = start_date ? new Date(start_date) : new Date();
     const totalMonths = PERIOD_MONTHS[period] + bonusMonthsNum;
     const endDateValue = new Date(startDateValue);
     endDateValue.setMonth(endDateValue.getMonth() + totalMonths);

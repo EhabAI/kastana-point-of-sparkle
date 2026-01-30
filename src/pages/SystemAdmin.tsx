@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Dialog,
   DialogContent,
@@ -53,7 +55,8 @@ import {
   useCreateRestaurantWithSubscription, 
   useRenewSubscription,
   useRestaurantSubscriptions,
-  SubscriptionPeriod 
+  SubscriptionPeriod,
+  PERIOD_LABELS,
 } from "@/hooks/useRestaurantSubscriptions";
 import {
   useSendSubscriptionReminder,
@@ -62,13 +65,15 @@ import {
   canSendReminder,
   type ReminderStage,
 } from "@/hooks/useSubscriptionReminder";
-import { Store, Users, Plus, Link, Loader2, Upload, Calendar, Mail, AlertCircle, CheckCircle2, Info } from "lucide-react";
+import { Store, Users, Plus, Link, Loader2, Upload, Calendar, Mail, AlertCircle, CheckCircle2, Info, CalendarDays } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { format, differenceInDays } from "date-fns";
+import { format, differenceInDays, addMonths } from "date-fns";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+
 
 const emailSchema = z.string().email("Please enter a valid email");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -422,6 +427,7 @@ export default function SystemAdmin() {
         restaurantId: manageTarget.id,
         period: managePeriod,
         bonusMonths: manageBonusMonths,
+        startDate: manageStartDate,
         reason: manageReason || undefined,
         notes: manageReason || undefined,
       });
@@ -442,7 +448,8 @@ export default function SystemAdmin() {
     setManageTarget({ id: restaurantId, name: restaurantName });
     setManagePeriod(existingSub?.period as SubscriptionPeriod || "MONTHLY");
     setManageBonusMonths(existingSub?.bonus_months || 0);
-    setManageStartDate(new Date());
+    // Use existing start_date if available, otherwise default to today
+    setManageStartDate(existingSub?.start_date ? new Date(existingSub.start_date) : new Date());
     setManageReason(existingSub?.notes || "");
     setManageDialogOpen(true);
   };
@@ -1485,11 +1492,48 @@ export default function SystemAdmin() {
               
               <div className="space-y-1.5">
                 <Label className="text-sm">{t('sub_start_date')}</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal h-9",
+                        !manageStartDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarDays className="mr-2 h-4 w-4" />
+                      {manageStartDate ? format(manageStartDate, 'PPP') : <span>{t('sub_pick_date')}</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={manageStartDate}
+                      onSelect={(date) => date && setManageStartDate(date)}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+                <p className="text-[11px] text-muted-foreground">{t('sub_start_date_helper')}</p>
+              </div>
+              
+              {/* End Date Preview */}
+              <div className="space-y-1.5">
+                <Label className="text-sm">{t('sub_end_date')}</Label>
                 <div className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/50">
                   <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="text-sm">{format(manageStartDate, 'PPP')}</span>
+                  <span className="text-sm">
+                    {format(
+                      addMonths(
+                        manageStartDate,
+                        (managePeriod === 'MONTHLY' ? 1 : managePeriod === 'QUARTERLY' ? 3 : managePeriod === 'SEMI_ANNUAL' ? 6 : 12) + manageBonusMonths
+                      ),
+                      'PPP'
+                    )}
+                  </span>
                 </div>
-                <p className="text-[11px] text-muted-foreground">{t('sub_renew_start_note')}</p>
+                <p className="text-[11px] text-muted-foreground">{t('sub_end_date_helper')}</p>
               </div>
               
               <div className="space-y-1.5 pt-2 border-t border-border/50">
