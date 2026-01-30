@@ -1986,4 +1986,22 @@ export default {
   qr_notes_placeholder: "مثال: بدون سكر – قليل الثلج – تغليف سفري",
   qr_add_item_first: "أضف صنفًا أولًا",
   qr_language_changed: "تم تغيير اللغة",
+  
+  // Subscription Renewal Reminders
+  reminder_section_title: "تذكير التجديد",
+  reminder_stage_7_days: "قبل ٧ أيام من الانتهاء",
+  reminder_stage_1_day: "قبل يوم واحد من الانتهاء",
+  reminder_stage_expired: "انتهى الاشتراك",
+  reminder_status_not_applicable: "غير متاح",
+  reminder_status_already_sent: "تم الإرسال",
+  reminder_status_ready: "جاهز للإرسال",
+  reminder_send_button: "إرسال التذكير",
+  reminder_sending: "جارٍ الإرسال...",
+  reminder_no_owner: "لم يتم تعيين مالك",
+  reminder_sent_success: "تم إرسال التذكير بنجاح",
+  reminder_sent_to: "أُرسل إلى",
+  reminder_duplicate_warning: "تم إرسال هذه المرحلة من التذكير مسبقاً",
+  reminder_confirm_title: "إرسال تذكير التجديد؟",
+  reminder_confirm_desc: "سيتم إرسال بريد إلكتروني لصاحب المطعم حول حالة اشتراكه.",
+  reminder_last_sent: "آخر تذكير أُرسل",
 } as const;
