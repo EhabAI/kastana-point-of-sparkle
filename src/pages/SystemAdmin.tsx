@@ -987,29 +987,9 @@ export default function SystemAdmin() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <Label htmlFor="assign-owner-phone" className="text-sm mb-1 block">
-                    رقم موبايل صاحب المطعم (اختياري)
-                  </Label>
-                  <Input
-                    id="assign-owner-phone"
-                    type="tel"
-                    dir="ltr"
-                    className="py-2 px-3 h-9"
-                    value={assignOwnerPhone}
-                    onChange={(e) => setAssignOwnerPhone(e.target.value)}
-                    placeholder="079XXXXXXXX"
-                  />
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    معلومة تشغيلية – لا يتم الإرسال حاليًا
-                  </p>
-                </div>
               </div>
               <DialogFooter className="pt-2">
-                <Button variant="outline" onClick={() => {
-                  setAssignDialogOpen(false);
-                  setAssignOwnerPhone("");
-                }}>
+                <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>
                   {t('cancel')}
                 </Button>
                 <Button onClick={handleAssignOwner} disabled={assignOwner.isPending}>
