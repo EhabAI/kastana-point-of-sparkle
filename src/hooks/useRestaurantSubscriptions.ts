@@ -120,12 +120,14 @@ export function useRenewSubscription() {
       restaurantId,
       period,
       bonusMonths = 0,
+      startDate,
       reason,
       notes,
     }: {
       restaurantId: string;
       period: SubscriptionPeriod;
       bonusMonths?: number;
+      startDate?: Date;
       reason?: string;
       notes?: string;
     }) => {
@@ -137,6 +139,7 @@ export function useRenewSubscription() {
           restaurant_id: restaurantId,
           period,
           bonus_months: bonusMonths,
+          start_date: startDate?.toISOString() || null,
           reason: reason || null,
           notes: notes || null,
         },
