@@ -66,7 +66,7 @@ import {
   canSendReminder,
   type ReminderStage,
 } from "@/hooks/useSubscriptionReminder";
-import { Store, Users, Plus, Link, Loader2, Upload, Calendar, Mail, AlertCircle, CheckCircle2, Info, CalendarDays, X } from "lucide-react";
+import { Store, Users, Plus, Link, Loader2, Upload, Calendar, Mail, AlertCircle, CheckCircle2, Info, CalendarDays, X, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -214,6 +214,7 @@ export default function SystemAdmin() {
   const [editingOwner, setEditingOwner] = useState<{id: string; email: string; username?: string; restaurantId?: string} | null>(null);
   const [newOwnerEmail, setNewOwnerEmail] = useState("");
   const [newOwnerPassword, setNewOwnerPassword] = useState("");
+  const [showEditOwnerPassword, setShowEditOwnerPassword] = useState(false);
   const [newOwnerDisplayName, setNewOwnerDisplayName] = useState("");
   const [newOwnerPhone, setNewOwnerPhone] = useState("");
   const [loadingOwnerPhone, setLoadingOwnerPhone] = useState(false);
@@ -1323,14 +1324,24 @@ export default function SystemAdmin() {
               </div>
               <div>
                 <Label htmlFor="edit-owner-password" className="text-sm mb-1 block">{t('password')}</Label>
-                <Input
-                  id="edit-owner-password"
-                  type="password"
-                  className="py-2 px-3 h-9"
-                  value={newOwnerPassword}
-                  onChange={(e) => setNewOwnerPassword(e.target.value)}
-                  placeholder="••••••••"
-                />
+                <div className="relative">
+                  <Input
+                    id="edit-owner-password"
+                    type={showEditOwnerPassword ? "text" : "password"}
+                    className="py-2 px-3 h-9 pl-10"
+                    value={newOwnerPassword}
+                    onChange={(e) => setNewOwnerPassword(e.target.value)}
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => setShowEditOwnerPassword(!showEditOwnerPassword)}
+                    tabIndex={-1}
+                  >
+                    {showEditOwnerPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
                 <p className="text-xs text-muted-foreground mt-0.5">{t('sa_new_password_hint')}</p>
               </div>
               <div>
@@ -1360,6 +1371,7 @@ export default function SystemAdmin() {
                 setNewOwnerPassword("");
                 setNewOwnerDisplayName("");
                 setNewOwnerPhone("");
+                setShowEditOwnerPassword(false);
               }}>
                 {t('cancel')}
               </Button>
@@ -1450,6 +1462,7 @@ export default function SystemAdmin() {
                     setNewOwnerPassword("");
                     setNewOwnerDisplayName("");
                     setNewOwnerPhone("");
+                    setShowEditOwnerPassword(false);
                   } catch (error: any) {
                     toast({ title: "Error updating owner", description: error.message, variant: "destructive" });
                   } finally {
