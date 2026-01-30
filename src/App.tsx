@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
+import { RestaurantProvider } from "@/contexts/RestaurantContext";
 import { BranchProvider } from "@/contexts/BranchContext";
 import { AssistantContextProvider } from "@/contexts/AssistantContext";
 import { ErrorContextProvider } from "@/contexts/ErrorContext";
@@ -77,9 +78,11 @@ const App = () => (
                         path="/admin"
                         element={
                           <ProtectedRoute allowedRoles={['owner']}>
-                            <BranchProvider>
-                              <OwnerAdmin />
-                            </BranchProvider>
+                            <RestaurantProvider>
+                              <BranchProvider>
+                                <OwnerAdmin />
+                              </BranchProvider>
+                            </RestaurantProvider>
                           </ProtectedRoute>
                         }
                       />

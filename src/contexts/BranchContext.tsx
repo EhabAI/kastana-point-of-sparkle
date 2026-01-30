@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useBranches, useDefaultBranch, Branch } from "@/hooks/useBranches";
-import { useOwnerRestaurant } from "@/hooks/useRestaurants";
+import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
 
 interface BranchContextType {
   branches: Branch[];
@@ -16,7 +16,8 @@ const BranchContext = createContext<BranchContextType | undefined>(undefined);
 const getStorageKey = (restaurantId: string) => `kastana:${restaurantId}:selectedBranchId`;
 
 export function BranchProvider({ children }: { children: ReactNode }) {
-  const { data: restaurant } = useOwnerRestaurant();
+  const { selectedRestaurant } = useRestaurantContextSafe();
+  const restaurant = selectedRestaurant;
   const { data: branches = [], isLoading: branchesLoading } = useBranches(restaurant?.id);
   const { data: defaultBranch, isLoading: defaultLoading } = useDefaultBranch(restaurant?.id);
   

@@ -4,7 +4,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ChevronDown, Users, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useOwnerRestaurant } from "@/hooks/useRestaurants";
+import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { DateRangeFilter, DateRange, DateRangePreset, getDateRangeForPreset } from "./DateRangeFilter";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +24,7 @@ interface CashierMetrics {
 }
 
 export function CashierPerformance() {
-  const { data: restaurant } = useOwnerRestaurant();
+  const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
   const { data: settings } = useOwnerRestaurantSettings();
   const { t } = useLanguage();
   const currency = settings?.currency || "JOD";

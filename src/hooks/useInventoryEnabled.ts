@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useOwnerRestaurant } from "@/hooks/useRestaurants";
+import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
 
 /**
  * Hook to check if inventory module is enabled for the current owner's restaurant
  * Returns { isEnabled, isLoading } for UI guards
  */
 export function useInventoryEnabled() {
-  const { data: restaurant } = useOwnerRestaurant();
+  const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
 
   const query = useQuery({
     queryKey: ["inventory-enabled", restaurant?.id],

@@ -4,7 +4,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ChevronDown, LineChart, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useOwnerRestaurant } from "@/hooks/useRestaurants";
+import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { DateRangeFilter, DateRange, DateRangePreset, getDateRangeForPreset } from "./DateRangeFilter";
 import { format, eachDayOfInterval, startOfDay, endOfDay } from "date-fns";
@@ -37,7 +37,7 @@ const CHART_COLORS = [
 
 export function AnalyticsCharts() {
   const { t, language } = useLanguage();
-  const { data: restaurant } = useOwnerRestaurant();
+  const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
   const { data: settings } = useOwnerRestaurantSettings();
   const currencySymbol = language === "ar" ? "د.أ" : "JOD";
   

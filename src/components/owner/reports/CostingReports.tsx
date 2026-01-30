@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useOwnerRestaurant } from "@/hooks/useRestaurants";
+import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatJOD } from "@/lib/utils";
 import { DateRange } from "../DateRangeFilter";
@@ -53,7 +53,7 @@ interface BranchProfit {
 
 export function CostingReports({ dateRange }: CostingReportsProps) {
   const { t, language } = useLanguage();
-  const { data: restaurant } = useOwnerRestaurant();
+  const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
   const currencySymbol = language === "ar" ? "د.أ" : "JOD";
 
   const [filters, setFilters] = useState<ReportFilterValues>({});

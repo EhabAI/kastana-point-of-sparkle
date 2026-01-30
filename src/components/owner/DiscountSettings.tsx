@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Percent, Loader2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useOwnerRestaurant } from "@/hooks/useRestaurants";
+import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -19,7 +19,7 @@ interface DiscountSettingsData {
 }
 
 export function DiscountSettings() {
-  const { data: restaurant } = useOwnerRestaurant();
+  const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { t } = useLanguage();

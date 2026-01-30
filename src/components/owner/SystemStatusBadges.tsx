@@ -2,7 +2,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Check, X, Package, ChefHat, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useInventoryEnabled } from "@/hooks/useInventoryEnabled";
-import { useOwnerRestaurant } from "@/hooks/useRestaurants";
+import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -15,7 +15,7 @@ import {
 export function SystemStatusBadges() {
   const { t } = useLanguage();
   const { isEnabled: inventoryEnabled } = useInventoryEnabled();
-  const { data: restaurant } = useOwnerRestaurant();
+  const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
 
   // Fetch KDS enabled status
   const { data: kdsEnabled } = useQuery({
