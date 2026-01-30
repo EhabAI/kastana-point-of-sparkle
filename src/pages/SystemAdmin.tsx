@@ -49,6 +49,7 @@ import {
   SubscriptionFilter,
   SortOption,
   FeatureFilter,
+  ContactRestaurantDialog,
 } from "@/components/system-admin";
 import { 
   useExpiringSubscriptions, 
@@ -193,6 +194,15 @@ export default function SystemAdmin() {
   // QR Order toggle confirmation dialog
   const [qrToggleDialogOpen, setQrToggleDialogOpen] = useState(false);
   const [qrToggleTarget, setQrToggleTarget] = useState<{id: string; name: string; currentEnabled: boolean} | null>(null);
+
+  // Contact restaurant dialog
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [contactTarget, setContactTarget] = useState<{
+    restaurant: { id: string; name: string; owner_id: string | null };
+    subscription: ReturnType<typeof getSubscription>;
+    ownerEmail: string | null;
+    ownerPhone: string | null;
+  } | null>(null);
 
   // Helper to get subscription for a restaurant
   const getSubscription = (restaurantId: string) => {
@@ -1018,6 +1028,15 @@ export default function SystemAdmin() {
                         setLoadingOwnerPhone(false);
                       }}
                       onManageSubscription={openManageDialog}
+                      onContactRestaurant={() => {
+                        setContactTarget({
+                          restaurant: { id: restaurant.id, name: restaurant.name, owner_id: restaurant.owner_id },
+                          subscription,
+                          ownerEmail: owner?.email || null,
+                          ownerPhone: ownerPhoneMap.get(restaurant.id) || null,
+                        });
+                        setContactDialogOpen(true);
+                      }}
                       togglesPending={{
                         active: toggleActive.isPending,
                         inventory: toggleInventory.isPending,
@@ -1694,6 +1713,16 @@ export default function SystemAdmin() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Contact Restaurant Dialog */}
+        <ContactRestaurantDialog
+          open={contactDialogOpen}
+          onOpenChange={setContactDialogOpen}
+          restaurant={contactTarget?.restaurant || null}
+          subscription={contactTarget?.subscription}
+          ownerEmail={contactTarget?.ownerEmail || null}
+          ownerPhone={contactTarget?.ownerPhone || null}
+        />
       </div>
     </DashboardLayout>
   );

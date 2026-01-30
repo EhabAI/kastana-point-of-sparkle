@@ -7,3 +7,4 @@ export { RestaurantFilterBar } from './RestaurantFilterBar';
 export type { StatusFilter, SubscriptionFilter, SortOption, FeatureFilter } from './RestaurantFilterBar';
 export { RestaurantListRow } from './RestaurantListRow';
 export { RestaurantListPagination } from './RestaurantListPagination';
+export { ContactRestaurantDialog } from './ContactRestaurantDialog';
