@@ -1745,7 +1745,7 @@ export default {
   sub_period_hint: "المدة المدفوعة للاشتراك",
   sub_bonus_months: "أشهر مجانية",
   sub_bonus_months_max: "الحد الأقصى 3 أشهر",
-  sub_bonus_months_hint: "تُضاف على تاريخ الانتهاء فقط (حد أقصى 3 أشهر)",
+  sub_bonus_months_hint: "تُضاف الفترة المجانية على تاريخ الانتهاء فقط (حد أقصى 3 أشهر)",
   sub_reason: "السبب / ملاحظات",
   sub_reason_placeholder: "مثال: عرض ترويجي، خصم المشتركين الأوائل...",
   sub_reason_renew_placeholder: "مثال: خصم تجديد، عميل مخلص...",
