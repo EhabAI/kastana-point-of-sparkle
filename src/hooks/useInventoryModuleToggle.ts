@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
 interface RestaurantInventoryStatus {
   restaurantId: string;
@@ -59,12 +58,17 @@ export function useAllRestaurantsInventoryStatus() {
   });
 }
 
+interface ToggleInventoryCallbacks {
+  onSuccessCallback?: (enabled: boolean) => void;
+  onErrorCallback?: (error: Error) => void;
+}
+
 /**
  * Toggle inventory module for a restaurant (System Admin only)
+ * Toast messages should be handled by the caller for proper localization
  */
-export function useToggleInventoryModule() {
+export function useToggleInventoryModule(callbacks?: ToggleInventoryCallbacks) {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async ({ restaurantId, enabled }: { restaurantId: string; enabled: boolean }) => {
@@ -80,24 +84,17 @@ export function useToggleInventoryModule() {
         throw new Error(data?.error || "Failed to toggle inventory module");
       }
 
-      return data;
+      return { ...data, enabled };
     },
     onSuccess: (data, variables) => {
       // Invalidate queries to refresh the UI
       queryClient.invalidateQueries({ queryKey: ["restaurant-inventory-status", variables.restaurantId] });
       queryClient.invalidateQueries({ queryKey: ["all-restaurants-inventory-status"] });
 
-      toast({
-        title: variables.enabled ? "Inventory Module Enabled" : "Inventory Module Disabled",
-        description: data.message || `Inventory module has been ${variables.enabled ? "enabled" : "disabled"}.`,
-      });
+      callbacks?.onSuccessCallback?.(variables.enabled);
     },
     onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      callbacks?.onErrorCallback?.(error);
     },
   });
 }

@@ -1,6 +1,5 @@
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
 // Hook to get all restaurants' QR Order status
 export function useAllRestaurantsQRStatus() {
@@ -70,10 +69,17 @@ export function usePublicQROrderEnabled(restaurantId: string | undefined) {
   });
 }
 
-// Hook to toggle QR Order module for a restaurant (System Admin only)
-export function useToggleQRModule() {
+interface ToggleQRCallbacks {
+  onSuccessCallback?: (enabled: boolean) => void;
+  onErrorCallback?: (error: Error) => void;
+}
+
+/**
+ * Toggle QR Order module for a restaurant (System Admin only)
+ * Toast messages should be handled by the caller for proper localization
+ */
+export function useToggleQRModule(callbacks?: ToggleQRCallbacks) {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async ({ restaurantId, enabled }: { restaurantId: string; enabled: boolean }) => {
@@ -84,25 +90,18 @@ export function useToggleQRModule() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      return data;
+      return { ...data, enabled };
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["all-restaurants-qr-status"] });
       queryClient.invalidateQueries({ queryKey: ["qr-order-enabled"] });
       queryClient.invalidateQueries({ queryKey: ["public-qr-order-enabled"] });
       queryClient.invalidateQueries({ queryKey: ["restaurant-settings"] });
-      toast({
-        title: variables.enabled ? "QR Order Enabled" : "QR Order Disabled",
-        description: `QR Order module has been ${variables.enabled ? "activated" : "deactivated"}.`,
-      });
+      callbacks?.onSuccessCallback?.(variables.enabled);
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error("Toggle QR module error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update QR Order setting.",
-        variant: "destructive",
-      });
+      callbacks?.onErrorCallback?.(error);
     },
   });
 }

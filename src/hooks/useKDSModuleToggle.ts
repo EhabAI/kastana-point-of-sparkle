@@ -1,7 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
 // Hook to get all restaurants' KDS status
 export function useAllRestaurantsKDSStatus() {
@@ -24,10 +23,17 @@ export function useAllRestaurantsKDSStatus() {
   });
 }
 
-// Hook to toggle KDS module for a restaurant
-export function useToggleKDSModule() {
+interface ToggleKDSCallbacks {
+  onSuccessCallback?: (enabled: boolean) => void;
+  onErrorCallback?: (error: Error) => void;
+}
+
+/**
+ * Toggle KDS module for a restaurant
+ * Toast messages should be handled by the caller for proper localization
+ */
+export function useToggleKDSModule(callbacks?: ToggleKDSCallbacks) {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async ({ restaurantId, enabled }: { restaurantId: string; enabled: boolean }) => {
@@ -60,17 +66,10 @@ export function useToggleKDSModule() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["all-restaurants-kds-status"] });
       queryClient.invalidateQueries({ queryKey: ["kds-enabled"] });
-      toast({
-        title: variables.enabled ? "KDS Enabled" : "KDS Disabled",
-        description: `Kitchen Display System has been ${variables.enabled ? "activated" : "deactivated"}.`,
-      });
+      callbacks?.onSuccessCallback?.(variables.enabled);
     },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update KDS setting.",
-        variant: "destructive",
-      });
+    onError: (error: Error) => {
+      callbacks?.onErrorCallback?.(error);
     },
   });
 }
