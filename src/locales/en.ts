@@ -2072,4 +2072,16 @@ export default {
   contact_confirm_desc: "Email will be sent to:",
   contact_confirm_send: "Send",
   contact_button: "Contact Restaurant",
+  
+  // In-App Notifications (System Admin → Owner)
+  send_notification_button: "Send Notification",
+  notification_sent_success: "Notification sent successfully",
+  notification_sent_error: "Failed to send notification",
+  notifications_title: "Notifications",
+  notifications_mark_all_read: "Mark all read",
+  notifications_empty: "No notifications",
+  notification_type_subscription: "Subscription",
+  notification_type_welcome: "Welcome",
+  notification_type_technical: "Technical",
+  notification_type_custom: "General",
 } as const;

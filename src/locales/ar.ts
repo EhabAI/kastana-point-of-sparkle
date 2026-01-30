@@ -2077,4 +2077,16 @@ export default {
   contact_confirm_desc: "سيتم إرسال البريد إلى:",
   contact_confirm_send: "إرسال",
   contact_button: "تواصل مع المطعم",
+  
+  // In-App Notifications (System Admin → Owner)
+  send_notification_button: "إرسال إشعار",
+  notification_sent_success: "تم إرسال الإشعار بنجاح",
+  notification_sent_error: "فشل إرسال الإشعار",
+  notifications_title: "الإشعارات",
+  notifications_mark_all_read: "قراءة الكل",
+  notifications_empty: "لا توجد إشعارات",
+  notification_type_subscription: "اشتراك",
+  notification_type_welcome: "ترحيب",
+  notification_type_technical: "تقني",
+  notification_type_custom: "عام",
 } as const;
