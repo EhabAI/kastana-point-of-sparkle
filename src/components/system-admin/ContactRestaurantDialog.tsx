@@ -31,6 +31,7 @@ import { RestaurantSubscription } from "@/hooks/useRestaurantSubscriptions";
 
 type CommunicationMethod = "email" | "whatsapp";
 type MessageTemplate = "expiring_soon" | "expired" | "follow_up";
+type SuggestedTemplate = "subscription_reminder" | "action_required" | "setup_incomplete" | "admin_note" | "friendly_followup" | "custom";
 
 interface ContactRestaurantDialogProps {
   open: boolean;
@@ -81,8 +82,167 @@ export function ContactRestaurantDialog({
 
   const [method, setMethod] = useState<CommunicationMethod>("email");
   const [template, setTemplate] = useState<MessageTemplate>("follow_up");
+  const [suggestedTemplate, setSuggestedTemplate] = useState<SuggestedTemplate>("custom");
   const [messageContent, setMessageContent] = useState("");
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+
+  // Suggested templates based on communication method
+  const getSuggestedTemplates = (): { value: SuggestedTemplate; label: string }[] => {
+    const templates: { value: SuggestedTemplate; label: string }[] = [
+      { value: "custom", label: isArabic ? "رسالة مخصصة" : "Custom Message" },
+      { value: "subscription_reminder", label: isArabic ? "تذكير بالاشتراك" : "Subscription Reminder" },
+      { value: "action_required", label: isArabic ? "إجراء مطلوب" : "Action Required" },
+      { value: "setup_incomplete", label: isArabic ? "إعداد غير مكتمل" : "Setup Incomplete" },
+      { value: "admin_note", label: isArabic ? "ملاحظة إدارية" : "Administrative Note" },
+      { value: "friendly_followup", label: isArabic ? "متابعة ودية" : "Friendly Follow-up" },
+    ];
+    return templates;
+  };
+
+  // Generate suggested template content
+  const generateSuggestedMessage = (templateType: SuggestedTemplate): string => {
+    const restaurantName = restaurant?.name || '';
+    const endDateStr = subscriptionEndDate ? format(subscriptionEndDate, 'yyyy-MM-dd') : '';
+    const daysRemaining = daysLeft ?? 0;
+
+    if (isArabic) {
+      switch (templateType) {
+        case "subscription_reminder":
+          return `مرحباً،
+
+نود تذكيركم بأن اشتراك مطعم "${restaurantName}" في Kastana POS ${isExpired ? 'قد انتهى' : 'سينتهي قريباً'}.
+
+${subscriptionEndDate ? `تاريخ انتهاء الاشتراك: ${endDateStr}` : ''}
+${!isExpired && daysRemaining > 0 ? `المتبقي: ${daysRemaining} يوم` : ''}
+
+يرجى التواصل معنا لتجديد الاشتراك.
+
+فريق Kastana`;
+
+        case "action_required":
+          return `مرحباً،
+
+نحتاج منكم اتخاذ إجراء بخصوص مطعم "${restaurantName}".
+
+[يرجى توضيح الإجراء المطلوب هنا]
+
+نرجو الاستجابة في أقرب وقت ممكن.
+
+فريق Kastana`;
+
+        case "setup_incomplete":
+          return `مرحباً،
+
+لاحظنا أن إعداد مطعم "${restaurantName}" في Kastana POS غير مكتمل.
+
+لضمان أفضل تجربة استخدام، يرجى إكمال الخطوات التالية:
+• [الخطوة الأولى]
+• [الخطوة الثانية]
+
+إذا احتجتم للمساعدة، لا تترددوا في التواصل معنا.
+
+فريق Kastana`;
+
+        case "admin_note":
+          return `مرحباً،
+
+ملاحظة إدارية بخصوص مطعم "${restaurantName}":
+
+[نص الملاحظة هنا]
+
+للاستفسارات، يرجى التواصل معنا.
+
+فريق Kastana`;
+
+        case "friendly_followup":
+          return `مرحباً،
+
+نتمنى أن تكونوا بخير!
+
+نتواصل معكم للاطمئنان على سير العمل في مطعم "${restaurantName}" ومعرفة إذا كنتم بحاجة لأي مساعدة.
+
+نحن دائماً سعداء بخدمتكم.
+
+فريق Kastana`;
+
+        case "custom":
+        default:
+          return messageContent;
+      }
+    } else {
+      switch (templateType) {
+        case "subscription_reminder":
+          return `Hello,
+
+This is a reminder that the Kastana POS subscription for "${restaurantName}" ${isExpired ? 'has expired' : 'is expiring soon'}.
+
+${subscriptionEndDate ? `Expiration date: ${endDateStr}` : ''}
+${!isExpired && daysRemaining > 0 ? `Days remaining: ${daysRemaining}` : ''}
+
+Please contact us to renew your subscription.
+
+Kastana Team`;
+
+        case "action_required":
+          return `Hello,
+
+We need you to take action regarding "${restaurantName}".
+
+[Please specify the required action here]
+
+We kindly request your prompt response.
+
+Kastana Team`;
+
+        case "setup_incomplete":
+          return `Hello,
+
+We noticed that the setup for "${restaurantName}" in Kastana POS is incomplete.
+
+To ensure the best experience, please complete the following steps:
+• [Step 1]
+• [Step 2]
+
+If you need assistance, don't hesitate to contact us.
+
+Kastana Team`;
+
+        case "admin_note":
+          return `Hello,
+
+Administrative note regarding "${restaurantName}":
+
+[Note content here]
+
+For inquiries, please contact us.
+
+Kastana Team`;
+
+        case "friendly_followup":
+          return `Hello,
+
+We hope you're doing well!
+
+We're reaching out to check how things are going at "${restaurantName}" and to see if you need any assistance.
+
+We're always happy to help.
+
+Kastana Team`;
+
+        case "custom":
+        default:
+          return messageContent;
+      }
+    }
+  };
+
+  // Handle suggested template change
+  const handleSuggestedTemplateChange = (value: SuggestedTemplate) => {
+    setSuggestedTemplate(value);
+    if (value !== "custom") {
+      setMessageContent(generateSuggestedMessage(value));
+    }
+  };
 
   // Subscription status calculations
   const subscriptionEndDate = subscription ? new Date(subscription.end_date) : null;
@@ -196,10 +356,13 @@ Kastana Team`;
       // Auto-select best template based on subscription state
       if (isExpired) {
         setTemplate("expired");
+        setSuggestedTemplate("subscription_reminder");
       } else if (isExpiringSoon) {
         setTemplate("expiring_soon");
+        setSuggestedTemplate("subscription_reminder");
       } else {
         setTemplate("follow_up");
+        setSuggestedTemplate("custom");
       }
       
       // Auto-select method based on availability
@@ -342,12 +505,37 @@ Kastana Team`;
               </Select>
             </div>
 
+            {/* Suggested Template Selection */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">
+                {isArabic ? 'النص المقترح' : 'Suggested Text'}
+              </Label>
+              <Select 
+                value={suggestedTemplate} 
+                onValueChange={(v) => handleSuggestedTemplateChange(v as SuggestedTemplate)}
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {getSuggestedTemplates().map((tmpl) => (
+                    <SelectItem key={tmpl.value} value={tmpl.value}>
+                      {tmpl.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Message Preview */}
             <div className="space-y-2">
               <Label className="text-xs font-medium">{t('contact_message_label')}</Label>
               <Textarea
                 value={messageContent}
-                onChange={(e) => setMessageContent(e.target.value)}
+                onChange={(e) => {
+                  setMessageContent(e.target.value);
+                  setSuggestedTemplate("custom");
+                }}
                 className="min-h-[140px] text-sm resize-none"
                 dir={isArabic ? "rtl" : "ltr"}
               />
