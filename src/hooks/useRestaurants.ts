@@ -10,6 +10,7 @@ export interface Restaurant {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  last_renewal_reminder_stage: string | null;
 }
 
 export function useRestaurants() {

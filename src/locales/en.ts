@@ -1981,4 +1981,22 @@ export default {
   qr_notes_placeholder: "e.g. No sugar – Less ice – Takeaway packaging",
   qr_add_item_first: "Add an item first",
   qr_language_changed: "Language changed",
+  
+  // Subscription Renewal Reminders
+  reminder_section_title: "Renewal Reminder",
+  reminder_stage_7_days: "7 Days Before Expiry",
+  reminder_stage_1_day: "1 Day Before Expiry",
+  reminder_stage_expired: "Subscription Expired",
+  reminder_status_not_applicable: "Not Applicable",
+  reminder_status_already_sent: "Already Sent",
+  reminder_status_ready: "Ready to Send",
+  reminder_send_button: "Send Reminder",
+  reminder_sending: "Sending...",
+  reminder_no_owner: "No owner assigned",
+  reminder_sent_success: "Reminder sent successfully",
+  reminder_sent_to: "Sent to",
+  reminder_duplicate_warning: "This reminder stage has already been sent",
+  reminder_confirm_title: "Send Renewal Reminder?",
+  reminder_confirm_desc: "This will send an email notification to the restaurant owner about their subscription status.",
+  reminder_last_sent: "Last reminder sent",
 } as const;

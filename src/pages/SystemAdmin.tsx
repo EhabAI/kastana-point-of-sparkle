@@ -55,12 +55,20 @@ import {
   useRestaurantSubscriptions,
   SubscriptionPeriod 
 } from "@/hooks/useRestaurantSubscriptions";
-import { Store, Users, Plus, Link, Loader2, Upload, Calendar } from "lucide-react";
+import {
+  useSendSubscriptionReminder,
+  getApplicableReminderStage,
+  getReminderStageLabel,
+  canSendReminder,
+  type ReminderStage,
+} from "@/hooks/useSubscriptionReminder";
+import { Store, Users, Plus, Link, Loader2, Upload, Calendar, Mail, AlertCircle, CheckCircle2 } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { format, differenceInDays } from "date-fns";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const emailSchema = z.string().email("Please enter a valid email");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -83,6 +91,7 @@ export default function SystemAdmin() {
   const { data: expiringSubscriptions = [] } = useExpiringSubscriptions();
   const createRestaurantWithSub = useCreateRestaurantWithSubscription();
   const renewSubscription = useRenewSubscription();
+  const sendReminder = useSendSubscriptionReminder();
   const updateRestaurant = useUpdateRestaurant();
   const createOwner = useCreateOwner();
   const assignOwner = useAssignOwner();
@@ -1499,6 +1508,107 @@ export default function SystemAdmin() {
                   {t('sub_note_helper')}
                 </p>
               </div>
+              
+              {/* Renewal Reminder Section */}
+              {manageTarget && (() => {
+                const restaurant = restaurants.find(r => r.id === manageTarget.id);
+                const subscription = getSubscription(manageTarget.id);
+                const applicableStage = getApplicableReminderStage(subscription?.end_date);
+                const lastSentStage = restaurant?.last_renewal_reminder_stage;
+                const canSend = canSendReminder(lastSentStage, applicableStage) && !!restaurant?.owner_id;
+                
+                return (
+                  <div className="space-y-2 pt-3 border-t border-border/50">
+                    <Label className="text-sm flex items-center gap-1.5">
+                      <Mail className="h-4 w-4" />
+                      {t('reminder_section_title')}
+                    </Label>
+                    
+                    {/* Status Badge */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {!applicableStage && (
+                        <Badge variant="outline" className="text-muted-foreground">
+                          {t('reminder_status_not_applicable')}
+                        </Badge>
+                      )}
+                      
+                      {applicableStage && (
+                        <>
+                          <Badge 
+                            variant={applicableStage === 'EXPIRED' ? 'destructive' : applicableStage === '1_DAY' ? 'default' : 'secondary'}
+                            className="flex items-center gap-1"
+                          >
+                            {applicableStage === 'EXPIRED' && <AlertCircle className="h-3 w-3" />}
+                            {getReminderStageLabel(applicableStage, t)}
+                          </Badge>
+                          
+                          {lastSentStage === applicableStage && (
+                            <Badge variant="outline" className="text-green-600 border-green-300 flex items-center gap-1">
+                              <CheckCircle2 className="h-3 w-3" />
+                              {t('reminder_status_already_sent')}
+                            </Badge>
+                          )}
+                        </>
+                      )}
+                      
+                      {lastSentStage && lastSentStage !== applicableStage && (
+                        <span className="text-xs text-muted-foreground">
+                          {t('reminder_last_sent')}: {getReminderStageLabel(lastSentStage as ReminderStage, t)}
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* No Owner Warning */}
+                    {!restaurant?.owner_id && applicableStage && (
+                      <p className="text-xs text-destructive flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {t('reminder_no_owner')}
+                      </p>
+                    )}
+                    
+                    {/* Send Button */}
+                    {applicableStage && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                if (canSend && applicableStage) {
+                                  sendReminder.mutate({
+                                    restaurantId: manageTarget.id,
+                                    stage: applicableStage,
+                                  });
+                                }
+                              }}
+                              disabled={!canSend || sendReminder.isPending}
+                              className="w-full"
+                            >
+                              {sendReminder.isPending ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                  {t('reminder_sending')}
+                                </>
+                              ) : (
+                                <>
+                                  <Mail className="h-4 w-4 mr-2" />
+                                  {t('reminder_send_button')}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </TooltipTrigger>
+                        {!canSend && lastSentStage === applicableStage && (
+                          <TooltipContent>
+                            <p>{t('reminder_duplicate_warning')}</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
             <DialogFooter className="px-5 py-4 flex-shrink-0 border-t">
               <Button variant="outline" size="sm" onClick={() => {
