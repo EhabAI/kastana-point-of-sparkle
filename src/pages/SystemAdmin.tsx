@@ -66,7 +66,7 @@ import {
   canSendReminder,
   type ReminderStage,
 } from "@/hooks/useSubscriptionReminder";
-import { Store, Users, Plus, Link, Loader2, Upload, Calendar, Mail, AlertCircle, CheckCircle2, Info, CalendarDays } from "lucide-react";
+import { Store, Users, Plus, Link, Loader2, Upload, Calendar, Mail, AlertCircle, CheckCircle2, Info, CalendarDays, X } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -727,50 +727,51 @@ export default function SystemAdmin() {
                 <DialogDescription>{t('sub_create_desc')}</DialogDescription>
               </DialogHeader>
               <div className="space-y-3 py-2">
-                <div className="space-y-1">
-                  <Label htmlFor="restaurant-name" className="text-sm">
-                    {t('restaurant_name')} <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="restaurant-name"
-                    value={restaurantName}
-                    onChange={(e) => setRestaurantName(e.target.value)}
-                    placeholder={t('restaurant_name')}
-                    className="h-9"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-sm">{t('upload_logo')} ({t('optional')})</Label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    ref={logoInputRef}
-                    onChange={handleLogoSelect}
-                    className="hidden"
-                  />
-                  {logoPreview ? (
-                    <div className="flex items-center gap-3">
-                      <img src={logoPreview} alt="Logo preview" className="w-12 h-12 object-contain rounded-lg border" />
-                      <Button 
-                        variant="outline" 
+                <div className="flex gap-3 items-end">
+                  <div className="flex-1 space-y-1">
+                    <Label htmlFor="restaurant-name" className="text-sm">
+                      {t('restaurant_name')} <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="restaurant-name"
+                      value={restaurantName}
+                      onChange={(e) => setRestaurantName(e.target.value)}
+                      placeholder={t('restaurant_name')}
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="w-[30%] min-w-[100px] space-y-1">
+                    <Label className="text-sm text-muted-foreground">{t('upload_logo')}</Label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={logoInputRef}
+                      onChange={handleLogoSelect}
+                      className="hidden"
+                    />
+                    {logoPreview ? (
+                      <div className="flex items-center gap-2">
+                        <img src={logoPreview} alt="Logo preview" className="w-9 h-9 object-contain rounded border" />
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="h-9 px-2"
+                          onClick={() => { setLogoFile(null); setLogoPreview(null); }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="outline"
                         size="sm"
-                        className="h-8"
-                        onClick={() => { setLogoFile(null); setLogoPreview(null); }}
+                        onClick={() => logoInputRef.current?.click()}
+                        className="w-full h-9"
                       >
-                        {t('remove')}
+                        <Upload className="h-4 w-4" />
                       </Button>
-                    </div>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => logoInputRef.current?.click()}
-                      className="w-full h-9"
-                    >
-                      <Upload className="h-4 w-4 mr-2" />
-                      {t('upload_logo')}
-                    </Button>
-                  )}
+                    )}
+                  </div>
                 </div>
                 
                 <div className="pt-3 border-t space-y-3">
