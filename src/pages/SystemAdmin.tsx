@@ -102,10 +102,56 @@ export default function SystemAdmin() {
   const createOwner = useCreateOwner();
   const assignOwner = useAssignOwner();
   const toggleActive = useToggleRestaurantActive();
-  const toggleInventory = useToggleInventoryModule();
-  const toggleKDS = useToggleKDSModule();
-  const toggleQR = useToggleQRModule();
   const { toast } = useToast();
+  
+  // Module toggles with localized toast callbacks
+  const toggleInventory = useToggleInventoryModule({
+    onSuccessCallback: (enabled) => {
+      toast({
+        title: enabled ? t('toast_inv_enabled_title') : t('toast_inv_disabled_title'),
+        description: enabled ? t('toast_inv_enabled_desc') : t('toast_inv_disabled_desc'),
+      });
+    },
+    onErrorCallback: () => {
+      toast({
+        title: t('toast_module_error_title'),
+        description: t('toast_module_error_desc'),
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const toggleKDS = useToggleKDSModule({
+    onSuccessCallback: (enabled) => {
+      toast({
+        title: enabled ? t('toast_kds_enabled_title') : t('toast_kds_disabled_title'),
+        description: enabled ? t('toast_kds_enabled_desc') : t('toast_kds_disabled_desc'),
+      });
+    },
+    onErrorCallback: () => {
+      toast({
+        title: t('toast_module_error_title'),
+        description: t('toast_module_error_desc'),
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const toggleQR = useToggleQRModule({
+    onSuccessCallback: (enabled) => {
+      toast({
+        title: enabled ? t('toast_qr_enabled_title') : t('toast_qr_disabled_title'),
+        description: enabled ? t('toast_qr_enabled_desc') : t('toast_qr_disabled_desc'),
+      });
+    },
+    onErrorCallback: () => {
+      toast({
+        title: t('toast_module_error_title'),
+        description: t('toast_module_error_desc'),
+        variant: "destructive",
+      });
+    },
+  });
   const queryClient = useQueryClient();
   const logoInputRef = useRef<HTMLInputElement>(null);
 
