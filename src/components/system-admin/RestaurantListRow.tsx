@@ -125,28 +125,43 @@ export function RestaurantListRow({
 
         {/* Feature Chips - Desktop */}
         <div className="hidden md:flex items-center gap-1.5">
-          <FeatureChip enabled={qrEnabled} icon={QrCode} label="QR" />
-          <FeatureChip enabled={kdsEnabled} icon={ChefHat} label="KDS" />
-          <FeatureChip enabled={inventoryEnabled} icon={Package} label="INV" />
+          <FeatureChip enabled={qrEnabled} icon={QrCode} label="QR" tooltipEnabled={t('qr_enabled_tooltip')} tooltipDisabled={t('qr_disabled_tooltip')} />
+          <FeatureChip enabled={kdsEnabled} icon={ChefHat} label="KDS" tooltipEnabled={t('kds_enabled_tooltip')} tooltipDisabled={t('kds_disabled_tooltip')} />
+          <FeatureChip enabled={inventoryEnabled} icon={Package} label="INV" tooltipEnabled={t('inv_enabled_tooltip')} tooltipDisabled={t('inv_disabled_tooltip')} />
         </div>
 
         {/* Subscription Badge */}
         <div className="hidden sm:block">
-          {hasSubscription ? (
-            <Badge 
-              variant={isExpired ? "destructive" : isExpiringSoon ? "outline" : "secondary"}
-              className="text-[10px] whitespace-nowrap"
-            >
-              {isExpired 
-                ? t('sa_sub_expired') 
-                : `${daysLeft}d`
-              }
-            </Badge>
-          ) : (
-            <Badge variant="destructive" className="text-[10px]">
-              {t('sa_sub_none')}
-            </Badge>
-          )}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                {hasSubscription ? (
+                  <Badge 
+                    variant={isExpired ? "destructive" : isExpiringSoon ? "outline" : "secondary"}
+                    className={`text-[10px] whitespace-nowrap cursor-default ${
+                      !isExpired && !isExpiringSoon && daysLeft !== null && daysLeft > 7
+                        ? 'bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-950/50'
+                        : isExpiringSoon
+                        ? 'border-amber-400 text-amber-600 dark:text-amber-400'
+                        : ''
+                    }`}
+                  >
+                    {isExpired 
+                      ? t('sa_sub_expired') 
+                      : `${daysLeft}d`
+                    }
+                  </Badge>
+                ) : (
+                  <Badge variant="destructive" className="text-[10px] cursor-default">
+                    {t('sa_sub_none')}
+                  </Badge>
+                )}
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">{t('days_remaining_tooltip')}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
         {/* Contact Button - Unified entry point */}
@@ -356,18 +371,39 @@ export function RestaurantListRow({
 }
 
 // Small helper components
-function FeatureChip({ enabled, icon: Icon, label }: { enabled: boolean; icon: React.ElementType; label: string }) {
+function FeatureChip({ 
+  enabled, 
+  icon: Icon, 
+  label, 
+  tooltipEnabled, 
+  tooltipDisabled 
+}: { 
+  enabled: boolean; 
+  icon: React.ElementType; 
+  label: string;
+  tooltipEnabled: string;
+  tooltipDisabled: string;
+}) {
   return (
-    <div className={`
-      flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium
-      ${enabled 
-        ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-300' 
-        : 'bg-muted text-muted-foreground'
-      }
-    `}>
-      <Icon className="h-3 w-3" />
-      {label}
-    </div>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className={`
+            flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium cursor-default
+            ${enabled 
+              ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-300' 
+              : 'bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400'
+            }
+          `}>
+            <Icon className="h-3 w-3" />
+            {label}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p className="text-xs">{enabled ? tooltipEnabled : tooltipDisabled}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
