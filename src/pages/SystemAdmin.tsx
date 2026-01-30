@@ -819,8 +819,8 @@ export default function SystemAdmin() {
                       value={subscriptionReason}
                       onChange={(e) => setSubscriptionReason(e.target.value)}
                       placeholder={t('sub_reason_placeholder')}
-                      rows={2}
-                      className="resize-none"
+                      rows={1}
+                      className="resize-none min-h-[36px]"
                     />
                   </div>
                 </div>
