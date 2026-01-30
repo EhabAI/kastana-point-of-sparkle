@@ -1,5 +1,4 @@
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Bell, CreditCard, MessageSquare, AlertCircle, Info, ChevronRight } from "lucide-react";
@@ -63,48 +62,54 @@ export function OwnerNotificationsCard() {
 
   return (
     <>
-      <Card className="border-primary/20 bg-primary/5">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Bell className="h-4 w-4 text-primary" />
-              <CardTitle className="text-sm">
-                {language === 'ar' ? 'إشعارات جديدة' : 'New Notifications'}
-              </CardTitle>
-            </div>
-            <Badge variant="secondary" className="text-xs">
-              {displayNotifications.length}
-            </Badge>
+      <div className="rounded-xl bg-[#F5F7FB] dark:bg-[#1F2937] border border-black/5 dark:border-white/[0.06] p-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Bell className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground/90">
+              {language === 'ar' ? 'إشعارات جديدة' : 'New Notifications'}
+            </h3>
           </div>
-        </CardHeader>
-        <CardContent className="pt-0 space-y-2">
+          <Badge variant="secondary" className="text-xs">
+            {displayNotifications.length}
+          </Badge>
+        </div>
+        
+        {/* Notifications List */}
+        <div className="space-y-2">
           {displayNotifications.map((notification) => (
             <button
               key={notification.id}
               onClick={() => handleNotificationClick(notification)}
-              className="w-full text-start p-2.5 rounded-md bg-background hover:bg-muted/50 transition-colors border"
+              className="w-full text-start p-3 rounded-xl bg-background/60 dark:bg-background/40 border border-black/[0.03] dark:border-white/[0.04] hover:bg-background/80 dark:hover:bg-background/60 relative overflow-hidden"
             >
-              <div className="flex items-start gap-3">
+              {/* Unread indicator - thin side line */}
+              {!notification.is_read && (
+                <div className="absolute ltr:left-0 rtl:right-0 top-2 bottom-2 w-[3px] bg-primary rounded-full" />
+              )}
+              
+              <div className="flex items-start gap-3 ltr:pl-2 rtl:pr-2">
                 <div className="flex-shrink-0 mt-0.5">
                   {getNotificationIcon(notification.type)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium line-clamp-1">
+                  <p className="text-sm font-semibold text-foreground/85 line-clamp-1">
                     {notification.title}
                   </p>
-                  <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                  <p className="text-xs text-muted-foreground/80 line-clamp-1 mt-0.5 leading-relaxed">
                     {notification.message}
                   </p>
-                  <p className="text-[10px] text-muted-foreground/70 mt-1">
+                  <p className="text-[10px] text-muted-foreground/60 mt-1.5">
                     {formatRelativeTime(notification.created_at)}
                   </p>
                 </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground/50 flex-shrink-0" />
               </div>
             </button>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Full Notification Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
