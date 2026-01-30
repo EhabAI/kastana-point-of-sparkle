@@ -1,5 +1,5 @@
 {
-  "version": "2.0.0",
+  "version": "2.3.0",
   "lastUpdated": "2026-01-30",
   "fallbackResponses": {
     "ar": "أستطيع مساعدتك في نظام Kastana POS. يرجى كتابة سؤالك بشكل واضح حول الطلبات، الدفع، المخزون، التقارير، أو أي ميزة أخرى في النظام.",
@@ -1977,6 +1977,160 @@
         "user_roles": ["cashier", "owner", "system_admin", "kitchen"],
         "tags": ["rules", "behavior", "policy"],
         "is_internal_rule": true
+      }
+    },
+    "internal_notifications_system": {
+      "id": "internal_notifications_system",
+      "intent": ["internal_notification", "send_notification", "owner_notification"],
+      "keywords": {
+        "ar": ["إشعار داخلي", "إرسال إشعار", "إشعارات المالك", "جرس الإشعارات", "إشعار للمطعم", "تنبيه داخلي"],
+        "en": ["internal notification", "send notification", "owner notification", "notification bell", "notify restaurant", "internal alert"]
+      },
+      "title": {
+        "ar": "نظام الإشعارات الداخلية",
+        "en": "Internal Notifications System"
+      },
+      "content": {
+        "ar": "نظام الإشعارات الداخلية:\n\n📋 ما هو؟\nنظام يتيح لمدير النظام إرسال إشعارات لأصحاب المطاعم داخل النظام.\n\n🔔 أين تظهر؟\n• في جرس الإشعارات (أعلى يمين لوحة التحكم)\n• في بطاقة الإشعارات على لوحة التحكم\n\n📝 أنواع الإشعارات:\n• معلومة (Info): للإعلانات والأخبار العامة\n• تنبيه (Warning): لأمور تتطلب انتباه\n• إجراء مطلوب (Action Required): لأمور تتطلب تصرف فوري\n\n✨ الميزات:\n• إشعارات فورية في الوقت الحقيقي\n• قوالب رسائل مقترحة\n• تتبع حالة القراءة\n• تسجيل في سجل التدقيق\n\n⚠️ مهم:\n• الإشعارات داخلية فقط (ليست SMS أو إيميل)\n• تظهر فقط للمطعم المحدد\n• لا تختفي تلقائياً - تبقى للقراءة",
+        "en": "Internal Notifications System:\n\n📋 What is it?\nA system that allows System Admin to send notifications to restaurant owners within the app.\n\n🔔 Where do they appear?\n• In the notification bell (top-right of dashboard)\n• In the notifications card on dashboard\n\n📝 Notification Types:\n• Info: For announcements and general news\n• Warning: For matters requiring attention\n• Action Required: For matters requiring immediate action\n\n✨ Features:\n• Real-time instant notifications\n• Suggested message templates\n• Read status tracking\n• Audit log recording\n\n⚠️ Important:\n• Notifications are internal only (not SMS or email)\n• Only visible to the specified restaurant\n• Don't auto-dismiss - remain readable"
+      },
+      "metadata": {
+        "feature_id": "internal_notifications",
+        "affected_screens": ["SystemAdmin", "Owner", "Dashboard"],
+        "user_roles": ["system_admin", "owner"],
+        "tags": ["notifications", "communication", "internal"]
+      }
+    },
+    "suggested_message_templates": {
+      "id": "suggested_message_templates",
+      "intent": ["message_template", "suggested_message", "communication_template"],
+      "keywords": {
+        "ar": ["قالب رسالة", "رسالة مقترحة", "نص مقترح", "قوالب", "رسائل جاهزة", "تذكير اشتراك", "متابعة"],
+        "en": ["message template", "suggested message", "suggested text", "templates", "ready messages", "subscription reminder", "follow-up"]
+      },
+      "title": {
+        "ar": "قوالب الرسائل المقترحة",
+        "en": "Suggested Message Templates"
+      },
+      "content": {
+        "ar": "قوالب الرسائل المقترحة:\n\n📋 ما هي؟\nرسائل جاهزة يمكن لمدير النظام اختيارها عند التواصل مع المطاعم.\n\n📝 القوالب المتاحة:\n• تذكير اشتراك: لتنبيه بقرب انتهاء أو انتهاء الاشتراك\n• إجراء مطلوب: لطلب تصرف معين من المالك\n• إعداد ناقص: للتنبيه بأن إعدادات المطعم غير مكتملة\n• ملاحظة إدارية: لإرسال معلومات عامة\n• متابعة ودية: للاطمئنان والتواصل الدوري\n\n✨ كيف تعمل؟\n1. اختر القالب من القائمة المنسدلة\n2. العنوان والمحتوى يتم ملؤهما تلقائياً\n3. يمكنك تعديل النص قبل الإرسال\n4. القوالب تتغير حسب نوع الإشعار أو قناة التواصل\n\n⚠️ مهم:\n• القوالب للتسهيل فقط - ليست إلزامية\n• المحتوى لا يؤثر على منطق النظام\n• يمكن كتابة رسالة مخصصة بالكامل",
+        "en": "Suggested Message Templates:\n\n📋 What are they?\nReady-made messages that System Admin can select when communicating with restaurants.\n\n📝 Available Templates:\n• Subscription Reminder: To alert about near or expired subscription\n• Action Required: To request specific action from owner\n• Setup Incomplete: To alert that restaurant settings are incomplete\n• Administrative Note: To send general information\n• Friendly Follow-up: For check-ins and periodic communication\n\n✨ How they work?\n1. Select template from dropdown\n2. Title and content auto-fill\n3. You can edit text before sending\n4. Templates change based on notification type or communication channel\n\n⚠️ Important:\n• Templates are for convenience only - not mandatory\n• Content does not affect system logic\n• Can write fully custom message"
+      },
+      "metadata": {
+        "feature_id": "message_templates",
+        "affected_screens": ["SystemAdmin"],
+        "user_roles": ["system_admin"],
+        "tags": ["templates", "communication", "messages"]
+      }
+    },
+    "notification_ui_styling": {
+      "id": "notification_ui_styling",
+      "intent": ["notification_design", "notification_look", "ui_change"],
+      "keywords": {
+        "ar": ["شكل الإشعارات", "تصميم الإشعارات", "لون الإشعارات", "خلفية الإشعارات", "ليش الإشعارات مختلفة", "تغير شكل"],
+        "en": ["notification design", "notification style", "notification color", "notification background", "why notifications different", "look changed"]
+      },
+      "title": {
+        "ar": "تصميم الإشعارات الجديد",
+        "en": "New Notification Design"
+      },
+      "content": {
+        "ar": "تصميم الإشعارات الجديد:\n\n🎨 ما الذي تغير؟\nتم تحسين شكل الإشعارات لتصميم أكثر راحة للعين.\n\n📋 التغييرات:\n• خلفية ناعمة بدلاً من الأبيض:\n  - الوضع الفاتح: #F5F7FB\n  - الوضع الداكن: #1F2937\n• حدود ناعمة بدون ظلال ثقيلة\n• زوايا مستديرة 12px\n• مؤشر للإشعار غير المقروء (خط جانبي ملون)\n\n⚠️ مهم:\n• هذا تغيير شكلي فقط\n• لا يؤثر على المنطق أو السلوك\n• الإشعارات تعمل بنفس الطريقة",
+        "en": "New Notification Design:\n\n🎨 What changed?\nNotifications got a visual refresh for a more comfortable look.\n\n📋 Changes:\n• Soft background instead of white:\n  - Light mode: #F5F7FB\n  - Dark mode: #1F2937\n• Soft borders without heavy shadows\n• Rounded corners 12px\n• Unread indicator (colored side line)\n\n⚠️ Important:\n• This is a visual change only\n• Does not affect logic or behavior\n• Notifications work the same way"
+      },
+      "metadata": {
+        "feature_id": "notification_ui",
+        "affected_screens": ["Owner", "Dashboard"],
+        "user_roles": ["owner"],
+        "tags": ["ui", "design", "notifications"]
+      }
+    },
+    "multi_restaurant_ownership": {
+      "id": "multi_restaurant_ownership",
+      "intent": ["multi_restaurant", "multiple_restaurants", "switch_restaurant"],
+      "keywords": {
+        "ar": ["مطاعم متعددة", "أكثر من مطعم", "تبديل المطعم", "اختيار المطعم", "مالك لعدة مطاعم", "قائمة المطاعم"],
+        "en": ["multiple restaurants", "more than one restaurant", "switch restaurant", "select restaurant", "owner multiple restaurants", "restaurant list"]
+      },
+      "title": {
+        "ar": "إدارة مطاعم متعددة",
+        "en": "Multi-Restaurant Management"
+      },
+      "content": {
+        "ar": "إدارة مطاعم متعددة:\n\n📋 ما هي الميزة؟\nالمالك الواحد يمكن أن يكون مسؤولاً عن أكثر من مطعم بنفس الحساب.\n\n🔄 كيف يعمل التبديل؟\n• قائمة منسدلة في أعلى يسار الشاشة\n• اختر المطعم المراد إدارته\n• جميع البيانات تتحدث فوراً للمطعم الجديد\n\n📊 عزل البيانات:\n• كل مطعم له بيانات منفصلة تماماً\n• الطلبات، المخزون، الموظفون، التقارير - كلها مستقلة\n• لا تختلط البيانات بين المطاعم أبداً\n\n⚠️ مهم:\n• إذا كان لديك مطعم واحد فقط، القائمة المنسدلة لا تظهر\n• التبديل فوري بدون إعادة تحميل الصفحة\n• الاختيار يُحفظ ويبقى عند تسجيل الدخول التالي",
+        "en": "Multi-Restaurant Management:\n\n📋 What is this feature?\nA single owner can be responsible for more than one restaurant with the same account.\n\n🔄 How does switching work?\n• Dropdown menu at top-left of screen\n• Select the restaurant to manage\n• All data updates immediately for the new restaurant\n\n📊 Data Isolation:\n• Each restaurant has completely separate data\n• Orders, inventory, staff, reports - all independent\n• Data never mixes between restaurants\n\n⚠️ Important:\n• If you have only one restaurant, dropdown doesn't appear\n• Switching is instant without page reload\n• Selection is saved and persists on next login"
+      },
+      "metadata": {
+        "feature_id": "multi_restaurant",
+        "affected_screens": ["Owner", "Dashboard", "All"],
+        "user_roles": ["owner"],
+        "tags": ["multi-restaurant", "ownership", "switching"]
+      }
+    },
+    "subscription_renewal_logic": {
+      "id": "subscription_renewal_logic",
+      "intent": ["renewal", "renew_subscription", "extend_subscription"],
+      "keywords": {
+        "ar": ["تجديد الاشتراك", "تمديد", "متى يبدأ التجديد", "تاريخ التجديد", "بعد الانتهاء"],
+        "en": ["subscription renewal", "extend", "when renewal starts", "renewal date", "after expiry"]
+      },
+      "title": {
+        "ar": "منطق تجديد الاشتراك",
+        "en": "Subscription Renewal Logic"
+      },
+      "content": {
+        "ar": "منطق تجديد الاشتراك:\n\n📅 متى يبدأ التجديد؟\n• إذا الاشتراك نشط: التجديد يبدأ من اليوم التالي لتاريخ الانتهاء الحالي\n• إذا الاشتراك منتهي: التجديد يبدأ من اليوم الحالي\n\n📋 مثال:\n• الاشتراك ينتهي: 15 فبراير\n• التجديد لمدة 3 شهور\n• تاريخ البدء الجديد: 16 فبراير\n• تاريخ الانتهاء الجديد: 16 مايو\n\n✨ معاينة التواريخ:\n• قبل التأكيد، يُعرض تاريخ البدء والانتهاء المتوقع\n• يمكن مراجعة التفاصيل قبل الحفظ\n\n📝 ملاحظات إدارية:\n• يمكن إضافة ملاحظة مع كل تجديد\n• الملاحظات تُحفظ وتظهر عند فتح التفاصيل لاحقاً",
+        "en": "Subscription Renewal Logic:\n\n📅 When does renewal start?\n• If subscription is active: Renewal starts from the day AFTER current end date\n• If subscription is expired: Renewal starts from TODAY\n\n📋 Example:\n• Subscription ends: Feb 15\n• Renewal for 3 months\n• New start date: Feb 16\n• New end date: May 16\n\n✨ Date Preview:\n• Before confirming, expected start and end dates are shown\n• Can review details before saving\n\n📝 Admin Notes:\n• Can add a note with each renewal\n• Notes are saved and shown when opening details later"
+      },
+      "metadata": {
+        "feature_id": "renewal_logic",
+        "affected_screens": ["SystemAdmin"],
+        "user_roles": ["system_admin"],
+        "tags": ["subscription", "renewal", "dates"]
+      }
+    },
+    "system_admin_addons_management": {
+      "id": "system_admin_addons_management",
+      "intent": ["addons", "modules", "enable_disable"],
+      "keywords": {
+        "ar": ["إضافات", "موديولات", "تفعيل المخزون", "تفعيل KDS", "تفعيل QR", "تعطيل إضافة"],
+        "en": ["addons", "modules", "enable inventory", "enable KDS", "enable QR", "disable addon"]
+      },
+      "title": {
+        "ar": "إدارة إضافات المطعم",
+        "en": "Restaurant Add-ons Management"
+      },
+      "content": {
+        "ar": "إدارة إضافات المطعم:\n\n📋 الإضافات المتاحة:\n• المخزون (Inventory): تتبع المواد والوصفات والجرد\n• شاشة المطبخ (KDS): عرض الطلبات للتحضير\n• طلبات QR: السماح للزبائن بالطلب عبر QR\n\n🔧 كيفية التحكم:\n• مدير النظام فقط يمكنه تفعيل أو تعطيل الإضافات\n• التغيير فوري ويؤثر على المطعم مباشرة\n• كل تغيير يُسجل في سجل التدقيق\n\n🎨 المؤشرات:\n• أخضر: الإضافة مفعلة\n• أحمر: الإضافة معطلة\n\n⚠️ تأثير التعطيل:\n• المخزون: لا خصم تلقائي، لا وصفات\n• KDS: لا إرسال للمطبخ\n• QR: لا طلبات من الزبائن عبر الجوال",
+        "en": "Restaurant Add-ons Management:\n\n📋 Available Add-ons:\n• Inventory: Track materials, recipes, and stock counts\n• Kitchen Display (KDS): Show orders for preparation\n• QR Orders: Allow customers to order via QR\n\n🔧 How to control:\n• Only System Admin can enable or disable add-ons\n• Change is immediate and affects restaurant directly\n• Each change is recorded in audit log\n\n🎨 Indicators:\n• Green: Add-on enabled\n• Red: Add-on disabled\n\n⚠️ Effect of disabling:\n• Inventory: No auto-deduction, no recipes\n• KDS: No sending to kitchen\n• QR: No orders from customers via mobile"
+      },
+      "metadata": {
+        "feature_id": "addons_management",
+        "affected_screens": ["SystemAdmin"],
+        "user_roles": ["system_admin"],
+        "tags": ["addons", "modules", "configuration"]
+      }
+    },
+    "owner_change_process": {
+      "id": "owner_change_process",
+      "intent": ["change_owner", "assign_owner", "transfer_ownership"],
+      "keywords": {
+        "ar": ["تغيير المالك", "تعيين مالك جديد", "نقل الملكية", "تبديل المالك"],
+        "en": ["change owner", "assign new owner", "transfer ownership", "switch owner"]
+      },
+      "title": {
+        "ar": "تغيير مالك المطعم",
+        "en": "Change Restaurant Owner"
+      },
+      "content": {
+        "ar": "تغيير مالك المطعم:\n\n📋 من يمكنه التغيير؟\nمدير النظام فقط.\n\n🔄 ماذا يحدث عند التغيير؟\n• المالك السابق يفقد الصلاحية فوراً\n• المالك الجديد يحصل على الصلاحية فوراً\n• بيانات المطعم لا تتأثر (طلبات، مخزون، تقارير)\n\n📝 الخطوات:\n1. اختر المطعم\n2. اضغط على تغيير المالك\n3. اختر المالك الجديد من القائمة\n4. أكد التغيير\n\n⚠️ مهم:\n• التغيير فوري ولا يمكن التراجع عنه تلقائياً\n• يُسجل في سجل التدقيق\n• المالك السابق يظل موجوداً كحساب (قد يُعين لمطعم آخر)",
+        "en": "Change Restaurant Owner:\n\n📋 Who can change?\nSystem Admin only.\n\n🔄 What happens on change?\n• Previous owner loses access immediately\n• New owner gains access immediately\n• Restaurant data unaffected (orders, inventory, reports)\n\n📝 Steps:\n1. Select restaurant\n2. Click change owner\n3. Select new owner from list\n4. Confirm change\n\n⚠️ Important:\n• Change is immediate and cannot be automatically undone\n• Recorded in audit log\n• Previous owner remains as account (may be assigned to another restaurant)"
+      },
+      "metadata": {
+        "feature_id": "owner_change",
+        "affected_screens": ["SystemAdmin"],
+        "user_roles": ["system_admin"],
+        "tags": ["ownership", "assignment", "transfer"]
       }
     }
   }

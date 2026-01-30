@@ -16,6 +16,82 @@ export interface ChangelogEntry {
 
 // Changelog data - add new entries at the top
 const CHANGELOG: ChangelogEntry[] = [
+  // === VERSION 2.3.0 - System Admin Subscription & Communication Enhancements ===
+  {
+    id: "system_admin_subscription_enhancements",
+    version: "2.3.0",
+    date: "2026-01-30",
+    title: { 
+      ar: "تحسينات اشتراكات مدير النظام", 
+      en: "System Admin Subscription Enhancements" 
+    },
+    description: { 
+      ar: "تجديد الاشتراكات مع معاينة التواريخ، شهور إضافية حتى 3، وملاحظات إدارية.",
+      en: "Subscription renewal with date preview, bonus months up to 3, and admin notes."
+    },
+    roles: ["system_admin"],
+    knowledgeId: "system_admin_subscription_management"
+  },
+  {
+    id: "internal_notifications_system",
+    version: "2.3.0",
+    date: "2026-01-30",
+    title: { 
+      ar: "نظام الإشعارات الداخلية", 
+      en: "Internal Notifications System" 
+    },
+    description: { 
+      ar: "مدير النظام يمكنه إرسال إشعارات داخلية لأصحاب المطاعم تظهر في جرس الإشعارات.",
+      en: "System Admin can send internal notifications to owners, appearing in the notification bell."
+    },
+    roles: ["system_admin", "owner"],
+    knowledgeId: "internal_notifications_system"
+  },
+  {
+    id: "notification_ui_enhancement",
+    version: "2.3.0",
+    date: "2026-01-30",
+    title: { 
+      ar: "تحسين واجهة الإشعارات", 
+      en: "Notification UI Enhancement" 
+    },
+    description: { 
+      ar: "تصميم جديد للإشعارات بخلفية ناعمة ومؤشر للغير مقروء.",
+      en: "New notification design with soft background and unread indicator."
+    },
+    roles: ["owner"],
+    knowledgeId: "notification_ui_styling"
+  },
+  {
+    id: "suggested_message_templates",
+    version: "2.3.0",
+    date: "2026-01-30",
+    title: { 
+      ar: "قوالب الرسائل المقترحة", 
+      en: "Suggested Message Templates" 
+    },
+    description: { 
+      ar: "قوالب جاهزة للتواصل مع المطاعم: تذكير اشتراك، إجراء مطلوب، متابعة ودية.",
+      en: "Ready templates for restaurant communication: subscription reminder, action required, friendly follow-up."
+    },
+    roles: ["system_admin"],
+    knowledgeId: "suggested_message_templates"
+  },
+  {
+    id: "multi_restaurant_ownership",
+    version: "2.3.0",
+    date: "2026-01-30",
+    title: { 
+      ar: "دعم المطاعم المتعددة", 
+      en: "Multi-Restaurant Ownership" 
+    },
+    description: { 
+      ar: "المالك الواحد يمكن أن يدير عدة مطاعم مع التبديل السريع من القائمة.",
+      en: "Single owner can manage multiple restaurants with quick switching from dropdown."
+    },
+    roles: ["owner"],
+    knowledgeId: "multi_restaurant_ownership"
+  },
   // === VERSION 2.2.0 - QR Order Stabilization ===
   {
     id: "qr_order_addon_stable",
