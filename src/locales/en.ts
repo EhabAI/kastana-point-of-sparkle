@@ -1855,6 +1855,10 @@ export default {
   sa_summary_active: "Active",
   sa_summary_inactive: "Inactive",
   sa_summary_incomplete: "Incomplete",
+  sa_summary_near_expiry: "Near Expiry",
+  sa_summary_near_expiry_tooltip: "Restaurants expiring within 7 days",
+  sa_summary_expired_sub: "Expired",
+  sa_summary_expired_sub_tooltip: "Restaurants with expired subscriptions needing follow-up",
   sa_summary_sub_issue: "Sub. Issue",
   
   // Filter Bar

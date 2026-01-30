@@ -215,10 +215,15 @@ export default function SystemAdmin() {
     let inactive = 0;
     let incomplete = 0;
     let subscriptionIssue = 0;
+    let nearExpiry = 0;
+    let expiredSub = 0;
+
+    const now = new Date();
 
     restaurants.forEach((r) => {
       const sub = getSubscription(r.id);
-      const hasValidSub = sub && differenceInDays(new Date(sub.end_date), new Date()) >= 0;
+      const daysUntilExpiry = sub ? differenceInDays(new Date(sub.end_date), now) : -1;
+      const hasValidSub = sub && daysUntilExpiry >= 0;
       const state = getRestaurantOperationalState(r.is_active, !!hasValidSub, !!r.owner_id);
 
       if (!r.is_active) {
@@ -229,12 +234,23 @@ export default function SystemAdmin() {
         active++;
       }
 
-      if (!sub || differenceInDays(new Date(sub.end_date), new Date()) < 0) {
+      // Subscription issue: no sub or expired
+      if (!sub || daysUntilExpiry < 0) {
         subscriptionIssue++;
+      }
+
+      // Near expiry: within 7 days but not expired
+      if (sub && daysUntilExpiry >= 0 && daysUntilExpiry <= 7) {
+        nearExpiry++;
+      }
+
+      // Expired subscription
+      if (sub && daysUntilExpiry < 0) {
+        expiredSub++;
       }
     });
 
-    return { total: restaurants.length, active, inactive, incomplete, subscriptionIssue };
+    return { total: restaurants.length, active, inactive, incomplete, subscriptionIssue, nearExpiry, expiredSub };
   }, [restaurants, subscriptions]);
 
   // Filter & Sort restaurants
@@ -243,9 +259,11 @@ export default function SystemAdmin() {
 
     // Summary filter (quick filter from summary bar)
     if (summaryFilter !== 'all') {
+      const now = new Date();
       result = result.filter((r) => {
         const sub = getSubscription(r.id);
-        const hasValidSub = sub && differenceInDays(new Date(sub.end_date), new Date()) >= 0;
+        const daysUntilExpiry = sub ? differenceInDays(new Date(sub.end_date), now) : -1;
+        const hasValidSub = sub && daysUntilExpiry >= 0;
         const state = getRestaurantOperationalState(r.is_active, !!hasValidSub, !!r.owner_id);
 
         switch (summaryFilter) {
@@ -256,7 +274,11 @@ export default function SystemAdmin() {
           case 'incomplete':
             return r.is_active && state === 'setup_incomplete';
           case 'subscription_issue':
-            return !sub || differenceInDays(new Date(sub.end_date), new Date()) < 0;
+            return !sub || daysUntilExpiry < 0;
+          case 'near_expiry':
+            return sub && daysUntilExpiry >= 0 && daysUntilExpiry <= 7;
+          case 'expired_sub':
+            return sub && daysUntilExpiry < 0;
           default:
             return true;
         }
@@ -944,6 +966,8 @@ export default function SystemAdmin() {
           inactive={summaryStats.inactive}
           incomplete={summaryStats.incomplete}
           subscriptionIssue={summaryStats.subscriptionIssue}
+          nearExpiry={summaryStats.nearExpiry}
+          expiredSub={summaryStats.expiredSub}
           activeFilter={summaryFilter}
           onFilterChange={setSummaryFilter}
         />
