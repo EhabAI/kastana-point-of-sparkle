@@ -1781,6 +1781,7 @@ export default {
   sa_no_restaurants: "No restaurants yet. Create one to get started.",
   sa_create_restaurant: "Create Restaurant",
   sa_create_restaurant_desc: "Add a new restaurant",
+  required_fields_note: "Required fields",
   sa_create_owner: "Create Owner",
   sa_create_owner_desc: "Add a new owner account",
   sa_assign_owner: "Assign Owner",
