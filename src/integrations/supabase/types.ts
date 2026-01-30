@@ -2014,7 +2014,14 @@ export type Database = {
         | "addon"
         | "service"
         | "combo"
-      notification_type: "subscription" | "welcome" | "technical" | "custom"
+      notification_type:
+        | "subscription"
+        | "welcome"
+        | "technical"
+        | "custom"
+        | "info"
+        | "warning"
+        | "action_required"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2151,7 +2158,15 @@ export const Constants = {
         "service",
         "combo",
       ],
-      notification_type: ["subscription", "welcome", "technical", "custom"],
+      notification_type: [
+        "subscription",
+        "welcome",
+        "technical",
+        "custom",
+        "info",
+        "warning",
+        "action_required",
+      ],
     },
   },
 } as const

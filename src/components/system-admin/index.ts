@@ -9,3 +9,4 @@ export { RestaurantListRow } from './RestaurantListRow';
 export { RestaurantListPagination } from './RestaurantListPagination';
 export { ContactRestaurantDialog } from './ContactRestaurantDialog';
 export { SendNotificationDialog } from './SendNotificationDialog';
+export { InternalNotificationDialog } from './InternalNotificationDialog';

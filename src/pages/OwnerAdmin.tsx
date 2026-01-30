@@ -90,6 +90,7 @@ import { OperationalInsightsCard } from "@/components/owner/OperationalInsightsC
 import { OwnerChangesBanner } from "@/components/owner/OwnerChangesBanner";
 import { WhatChangedCard } from "@/components/owner/WhatChangedCard";
 import { OwnerNotificationsCard } from "@/components/owner/OwnerNotificationsCard";
+import { OwnerNotificationToasts } from "@/components/owner/OwnerNotificationToasts";
 
 import { InventoryRiskCard } from "@/components/owner/InventoryRiskCard";
 import { OffersStatusCard } from "@/components/owner/OffersStatusCard";
@@ -140,6 +141,8 @@ export default function OwnerAdmin() {
 
   return (
     <DashboardLayout title={t("owner_dashboard")}>
+      {/* Toast notifications listener for owner */}
+      <OwnerNotificationToasts />
       <div className="space-y-3 animate-fade-in">
 
       {/* Tabbed Navigation - Professional POS-style full-width tabs */}

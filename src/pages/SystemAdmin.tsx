@@ -52,6 +52,7 @@ import {
   FeatureFilter,
   ContactRestaurantDialog,
   SendNotificationDialog,
+  InternalNotificationDialog,
 } from "@/components/system-admin";
 import { 
   useExpiringSubscriptions, 
@@ -260,11 +261,18 @@ export default function SystemAdmin() {
     ownerPhone: string | null;
   } | null>(null);
 
-  // Send notification dialog
+  // Send notification dialog (with templates)
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
   const [notificationTarget, setNotificationTarget] = useState<{
     restaurant: { id: string; name: string };
     subscription: ReturnType<typeof getSubscription>;
+  } | null>(null);
+
+  // Internal notification dialog (simple)
+  const [internalNotifDialogOpen, setInternalNotifDialogOpen] = useState(false);
+  const [internalNotifTarget, setInternalNotifTarget] = useState<{
+    restaurant: { id: string; name: string };
+    ownerEmail: string | null;
   } | null>(null);
 
   // Helper to get subscription for a restaurant
@@ -1189,11 +1197,11 @@ export default function SystemAdmin() {
                         setContactDialogOpen(true);
                       }}
                       onSendNotification={() => {
-                        setNotificationTarget({
+                        setInternalNotifTarget({
                           restaurant: { id: restaurant.id, name: restaurant.name },
-                          subscription,
+                          ownerEmail: owner?.email || null,
                         });
-                        setNotificationDialogOpen(true);
+                        setInternalNotifDialogOpen(true);
                       }}
                       togglesPending={{
                         active: toggleActive.isPending,
@@ -2040,12 +2048,20 @@ export default function SystemAdmin() {
           ownerPhone={contactTarget?.ownerPhone || null}
         />
 
-        {/* Send Notification Dialog */}
+        {/* Send Notification Dialog (with templates) */}
         <SendNotificationDialog
           open={notificationDialogOpen}
           onOpenChange={setNotificationDialogOpen}
           restaurant={notificationTarget?.restaurant || null}
           subscription={notificationTarget?.subscription}
+        />
+
+        {/* Internal Notification Dialog (simple) */}
+        <InternalNotificationDialog
+          open={internalNotifDialogOpen}
+          onOpenChange={setInternalNotifDialogOpen}
+          restaurant={internalNotifTarget?.restaurant || null}
+          ownerEmail={internalNotifTarget?.ownerEmail}
         />
       </div>
     </DashboardLayout>

@@ -282,7 +282,7 @@ export function RestaurantListRow({
               {t('contact_button')}
             </Button>
             
-            {/* Send In-App Notification Button - Separate from Contact */}
+            {/* Send In-App Notification Button */}
             <Button
               variant="ghost"
               size="sm"
@@ -293,7 +293,7 @@ export function RestaurantListRow({
               }}
             >
               <Bell className="h-3.5 w-3.5 me-1.5" />
-              {t('send_internal_notification') || 'إرسال إشعار داخل النظام'}
+              {t('send_notification_button')}
             </Button>
           </div>
 
