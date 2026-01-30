@@ -721,7 +721,7 @@ export default function SystemAdmin() {
                 </CardContent>
               </Card>
             </DialogTrigger>
-            <DialogContent className="max-w-md !top-[5vh] !translate-y-0">
+            <DialogContent className="max-w-md !top-[3vh] !translate-y-0">
               <DialogHeader>
                 <DialogTitle>{t('create')} {t('restaurant_name')}</DialogTitle>
                 <DialogDescription>{t('sub_create_desc')}</DialogDescription>
