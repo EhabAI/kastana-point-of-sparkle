@@ -1575,6 +1575,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          last_renewal_reminder_stage: string | null
           logo_url: string | null
           name: string
           owner_id: string | null
@@ -1584,6 +1585,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          last_renewal_reminder_stage?: string | null
           logo_url?: string | null
           name: string
           owner_id?: string | null
@@ -1593,6 +1595,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          last_renewal_reminder_stage?: string | null
           logo_url?: string | null
           name?: string
           owner_id?: string | null
