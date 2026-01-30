@@ -1999,4 +1999,10 @@ export default {
   reminder_confirm_title: "Send Renewal Reminder?",
   reminder_confirm_desc: "This will send an email notification to the restaurant owner about their subscription status.",
   reminder_last_sent: "Last reminder sent",
+  reminder_tooltip_title: "About Renewal Reminders",
+  reminder_tooltip_7_days: "Send when 7 days remain. Gives owner time to plan renewal without urgency.",
+  reminder_tooltip_1_day: "Send when 1 day remains. Creates urgency to prevent service interruption.",
+  reminder_tooltip_expired: "Send after expiry. Notifies owner that system access is blocked until renewal.",
+  reminder_tooltip_not_applicable: "No reminder needed. Subscription has more than 7 days remaining.",
+  reminder_tooltip_duplicate: "Each stage can only be sent once to prevent spamming the owner.",
 } as const;
