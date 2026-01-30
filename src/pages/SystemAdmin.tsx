@@ -662,7 +662,7 @@ export default function SystemAdmin() {
           {/* Create Restaurant */}
           <Dialog open={restaurantDialogOpen} onOpenChange={setRestaurantDialogOpen}>
             <DialogTrigger asChild>
-              <Card className="cursor-pointer hover:shadow-card-hover transition-shadow">
+              <Card className="cursor-pointer hover:shadow-card-hover transition-shadow relative overflow-hidden">
                 <CardContent className="p-4 flex items-center gap-3">
                   <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
                     <Plus className="h-4 w-4 text-primary" />
@@ -671,6 +671,7 @@ export default function SystemAdmin() {
                     <h3 className="font-medium text-sm text-foreground">{t('sa_create_restaurant')}</h3>
                     <p className="text-xs text-muted-foreground">{t('sa_create_restaurant_desc')}</p>
                   </div>
+                  <span className="absolute bottom-1 end-3 text-4xl font-bold text-muted-foreground/15 select-none pointer-events-none">1</span>
                 </CardContent>
               </Card>
             </DialogTrigger>
@@ -789,7 +790,7 @@ export default function SystemAdmin() {
           {/* Create Owner */}
           <Dialog open={ownerDialogOpen} onOpenChange={setOwnerDialogOpen}>
             <DialogTrigger asChild>
-              <Card className="cursor-pointer hover:shadow-card-hover transition-shadow">
+              <Card className="cursor-pointer hover:shadow-card-hover transition-shadow relative overflow-hidden">
                 <CardContent className="p-4 flex items-center gap-3">
                   <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
                     <Users className="h-4 w-4 text-primary" />
@@ -798,6 +799,7 @@ export default function SystemAdmin() {
                     <h3 className="font-medium text-sm text-foreground">{t('sa_create_owner')}</h3>
                     <p className="text-xs text-muted-foreground">{t('sa_create_owner_desc')}</p>
                   </div>
+                  <span className="absolute bottom-1 end-3 text-4xl font-bold text-muted-foreground/15 select-none pointer-events-none">2</span>
                 </CardContent>
               </Card>
             </DialogTrigger>
@@ -877,7 +879,7 @@ export default function SystemAdmin() {
           {/* Assign Owner */}
           <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
             <DialogTrigger asChild>
-              <Card className="cursor-pointer hover:shadow-card-hover transition-shadow">
+              <Card className="cursor-pointer hover:shadow-card-hover transition-shadow relative overflow-hidden">
                 <CardContent className="p-4 flex items-center gap-3">
                   <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
                     <Link className="h-4 w-4 text-primary" />
@@ -886,6 +888,7 @@ export default function SystemAdmin() {
                     <h3 className="font-medium text-sm text-foreground">{t('sa_assign_owner')}</h3>
                     <p className="text-xs text-muted-foreground">{t('sa_assign_owner_desc')}</p>
                   </div>
+                  <span className="absolute bottom-1 end-3 text-4xl font-bold text-muted-foreground/15 select-none pointer-events-none">3</span>
                 </CardContent>
               </Card>
             </DialogTrigger>
