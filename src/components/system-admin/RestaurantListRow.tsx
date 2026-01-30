@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Store, ChevronDown, ChevronUp, Package, ChefHat, QrCode, 
-  CheckCircle2, XCircle, Power, PowerOff, Pencil, Image, Key, Calendar, MessagesSquare
+  CheckCircle2, XCircle, Power, PowerOff, Pencil, Image, Key, Calendar, MessagesSquare, RotateCcw
 } from "lucide-react";
 import { RestaurantStatusBadge, getRestaurantOperationalState, RestaurantOperationalState } from "./RestaurantStatusBadge";
 import { SystemHealthSnapshot } from "./SystemHealthSnapshot";
@@ -31,6 +31,7 @@ interface RestaurantListRowProps {
   onEditLogo: (id: string, logoUrl: string | null) => void;
   onEditOwner: (ownerId: string, email: string, username: string | undefined, restaurantId: string) => void;
   onManageSubscription: (id: string, name: string) => void;
+  onRenewSubscription: (id: string, name: string) => void;
   onContactRestaurant: () => void;
   togglesPending: {
     active: boolean;
@@ -59,6 +60,7 @@ export function RestaurantListRow({
   onEditLogo,
   onEditOwner,
   onManageSubscription,
+  onRenewSubscription,
   onContactRestaurant,
   togglesPending,
 }: RestaurantListRowProps) {
@@ -344,15 +346,29 @@ export function RestaurantListRow({
                 <Badge variant="destructive" className="text-xs">{t('sub_no_subscription')}</Badge>
               )}
             </div>
-            <Button 
-              size="sm" 
-              variant="outline"
-              className="h-7 text-xs"
-              onClick={() => onManageSubscription(restaurant.id, restaurant.name)}
-            >
-              <Calendar className="h-3.5 w-3.5 me-1" />
-              {t('sub_manage')}
-            </Button>
+            <div className="flex items-center gap-2">
+              {/* Renew Button - Show for active, near-expiry, or expired subscriptions */}
+              {subscription && (
+                <Button 
+                  size="sm" 
+                  variant={isExpired || isExpiringSoon ? "default" : "outline"}
+                  className={`h-7 text-xs ${isExpired || isExpiringSoon ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                  onClick={() => onRenewSubscription(restaurant.id, restaurant.name)}
+                >
+                  <RotateCcw className="h-3.5 w-3.5 me-1" />
+                  {t('sub_renew')}
+                </Button>
+              )}
+              <Button 
+                size="sm" 
+                variant="outline"
+                className="h-7 text-xs"
+                onClick={() => onManageSubscription(restaurant.id, restaurant.name)}
+              >
+                <Calendar className="h-3.5 w-3.5 me-1" />
+                {t('sub_manage')}
+              </Button>
+            </div>
           </div>
 
           {/* Health Snapshot */}
