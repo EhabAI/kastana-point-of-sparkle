@@ -26,12 +26,99 @@ interface InternalNotificationDialogProps {
 }
 
 type NotifType = 'info' | 'warning' | 'action_required';
+type SuggestedMessageKey = 'custom' | 'subscription_reminder' | 'action_needed' | 'setup_incomplete' | 'admin_note' | 'friendly_followup';
+
+interface SuggestedMessage {
+  key: SuggestedMessageKey;
+  labelAr: string;
+  labelEn: string;
+  titleAr: string;
+  titleEn: string;
+  messageAr: string;
+  messageEn: string;
+}
 
 const NOTIFICATION_TYPES: { value: NotifType; labelAr: string; labelEn: string; icon: React.ElementType; color: string }[] = [
   { value: 'info', labelAr: 'معلومات', labelEn: 'Info', icon: Info, color: 'text-blue-500' },
   { value: 'warning', labelAr: 'تنبيه', labelEn: 'Warning', icon: AlertTriangle, color: 'text-amber-500' },
   { value: 'action_required', labelAr: 'إجراء مطلوب', labelEn: 'Action Required', icon: AlertCircle, color: 'text-red-500' },
 ];
+
+// Suggested messages per notification type
+const SUGGESTED_MESSAGES: Record<NotifType, SuggestedMessage[]> = {
+  action_required: [
+    { key: 'custom', labelAr: 'رسالة مخصصة', labelEn: 'Custom Message', titleAr: '', titleEn: '', messageAr: '', messageEn: '' },
+    { 
+      key: 'subscription_reminder', 
+      labelAr: 'تجديد الاشتراك', 
+      labelEn: 'Subscription Renewal',
+      titleAr: 'تجديد الاشتراك مطلوب',
+      titleEn: 'Subscription Renewal Required',
+      messageAr: 'يرجى تجديد اشتراككم في أقرب وقت لضمان استمرار الخدمة.',
+      messageEn: 'Please renew your subscription soon to ensure service continuity.'
+    },
+    { 
+      key: 'action_needed', 
+      labelAr: 'إجراء مطلوب', 
+      labelEn: 'Action Needed',
+      titleAr: 'مطلوب اتخاذ إجراء',
+      titleEn: 'Action Required',
+      messageAr: 'نحتاج منكم اتخاذ إجراء بخصوص حسابكم. يرجى التواصل معنا.',
+      messageEn: 'We need you to take action regarding your account. Please contact us.'
+    },
+    { 
+      key: 'setup_incomplete', 
+      labelAr: 'إكمال الإعداد', 
+      labelEn: 'Complete Setup',
+      titleAr: 'إعداد النظام غير مكتمل',
+      titleEn: 'System Setup Incomplete',
+      messageAr: 'لاحظنا أن إعداد النظام غير مكتمل. يرجى إكمال الخطوات المتبقية.',
+      messageEn: 'We noticed your system setup is incomplete. Please complete the remaining steps.'
+    },
+  ],
+  warning: [
+    { key: 'custom', labelAr: 'رسالة مخصصة', labelEn: 'Custom Message', titleAr: '', titleEn: '', messageAr: '', messageEn: '' },
+    { 
+      key: 'subscription_reminder', 
+      labelAr: 'انتهاء الاشتراك قريباً', 
+      labelEn: 'Subscription Expiring Soon',
+      titleAr: 'تنبيه: اشتراككم ينتهي قريباً',
+      titleEn: 'Warning: Subscription Expiring Soon',
+      messageAr: 'اشتراككم سينتهي خلال الأيام القادمة. يرجى التجديد لتجنب انقطاع الخدمة.',
+      messageEn: 'Your subscription will expire in the coming days. Please renew to avoid service interruption.'
+    },
+    { 
+      key: 'admin_note', 
+      labelAr: 'ملاحظة هامة', 
+      labelEn: 'Important Note',
+      titleAr: 'ملاحظة هامة من الإدارة',
+      titleEn: 'Important Administrative Note',
+      messageAr: 'نود لفت انتباهكم إلى ملاحظة هامة تتعلق بحسابكم.',
+      messageEn: 'We would like to bring an important note to your attention regarding your account.'
+    },
+  ],
+  info: [
+    { key: 'custom', labelAr: 'رسالة مخصصة', labelEn: 'Custom Message', titleAr: '', titleEn: '', messageAr: '', messageEn: '' },
+    { 
+      key: 'friendly_followup', 
+      labelAr: 'متابعة ودية', 
+      labelEn: 'Friendly Follow-up',
+      titleAr: 'مرحباً من فريق Kastana',
+      titleEn: 'Hello from Kastana Team',
+      messageAr: 'نتمنى أن تكونوا بخير! نتواصل معكم للاطمئنان ومعرفة إذا كنتم بحاجة لأي مساعدة.',
+      messageEn: 'We hope you are doing well! We are reaching out to check in and see if you need any assistance.'
+    },
+    { 
+      key: 'admin_note', 
+      labelAr: 'ملاحظة إدارية', 
+      labelEn: 'Administrative Note',
+      titleAr: 'ملاحظة من الإدارة',
+      titleEn: 'Note from Administration',
+      messageAr: 'نود إبلاغكم بملاحظة إدارية تخص حسابكم.',
+      messageEn: 'We would like to inform you of an administrative note regarding your account.'
+    },
+  ],
+};
 
 export function InternalNotificationDialog({
   open,
@@ -44,12 +131,33 @@ export function InternalNotificationDialog({
   const sendNotification = useSendAdminNotification();
 
   const [notifType, setNotifType] = useState<NotifType>('info');
+  const [suggestedKey, setSuggestedKey] = useState<SuggestedMessageKey>('custom');
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
+
+  // Get available suggested messages for current notification type
+  const availableSuggestions = SUGGESTED_MESSAGES[notifType];
+
+  // Handle notification type change - reset suggested key
+  const handleNotifTypeChange = (newType: NotifType) => {
+    setNotifType(newType);
+    setSuggestedKey('custom');
+  };
+
+  // Handle suggested message selection
+  const handleSuggestedChange = (key: SuggestedMessageKey) => {
+    setSuggestedKey(key);
+    const suggestion = availableSuggestions.find(s => s.key === key);
+    if (suggestion && key !== 'custom') {
+      setTitle(language === 'ar' ? suggestion.titleAr : suggestion.titleEn);
+      setMessage(language === 'ar' ? suggestion.messageAr : suggestion.messageEn);
+    }
+  };
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
       setNotifType('info');
+      setSuggestedKey('custom');
       setTitle('');
       setMessage('');
     }
@@ -111,7 +219,7 @@ export function InternalNotificationDialog({
             <Label htmlFor="notif-type" className="text-xs font-medium">
               {language === 'ar' ? 'نوع الإشعار' : 'Notification Type'}
             </Label>
-            <Select value={notifType} onValueChange={(val) => setNotifType(val as NotifType)}>
+            <Select value={notifType} onValueChange={(val) => handleNotifTypeChange(val as NotifType)}>
               <SelectTrigger id="notif-type" className="h-9">
                 <SelectValue />
               </SelectTrigger>
@@ -131,6 +239,25 @@ export function InternalNotificationDialog({
             </Select>
           </div>
 
+          {/* Suggested Message - NEW DROPDOWN */}
+          <div className="space-y-1.5">
+            <Label htmlFor="suggested-msg" className="text-xs font-medium">
+              {language === 'ar' ? 'النص المقترح' : 'Suggested Text'}
+            </Label>
+            <Select value={suggestedKey} onValueChange={(val) => handleSuggestedChange(val as SuggestedMessageKey)}>
+              <SelectTrigger id="suggested-msg" className="h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {availableSuggestions.map((suggestion) => (
+                  <SelectItem key={suggestion.key} value={suggestion.key}>
+                    {language === 'ar' ? suggestion.labelAr : suggestion.labelEn}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Title Input */}
           <div className="space-y-1.5">
             <Label htmlFor="notif-title" className="text-xs font-medium">
@@ -139,7 +266,10 @@ export function InternalNotificationDialog({
             <Input
               id="notif-title"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (suggestedKey !== 'custom') setSuggestedKey('custom');
+              }}
               placeholder={language === 'ar' ? 'عنوان قصير...' : 'Short title...'}
               className="h-9"
               maxLength={100}
@@ -154,7 +284,10 @@ export function InternalNotificationDialog({
             <Textarea
               id="notif-message"
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) => {
+                setMessage(e.target.value);
+                if (suggestedKey !== 'custom') setSuggestedKey('custom');
+              }}
               placeholder={language === 'ar' ? 'نص الإشعار...' : 'Notification message...'}
               rows={3}
               className="resize-none text-sm"
