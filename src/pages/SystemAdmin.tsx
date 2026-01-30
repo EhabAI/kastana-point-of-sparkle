@@ -66,7 +66,7 @@ import {
   canSendReminder,
   type ReminderStage,
 } from "@/hooks/useSubscriptionReminder";
-import { Store, Users, Plus, Link, Loader2, Upload, Calendar, Mail, AlertCircle, CheckCircle2, Info, CalendarDays, X, Eye, EyeOff } from "lucide-react";
+import { Store, Users, Plus, Link, Loader2, Upload, Calendar, Mail, AlertCircle, CheckCircle2, Info, CalendarDays, X, Eye, EyeOff, RotateCcw } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -203,6 +203,13 @@ export default function SystemAdmin() {
   const [manageBonusMonths, setManageBonusMonths] = useState(0);
   const [manageStartDate, setManageStartDate] = useState<Date>(new Date());
   const [manageReason, setManageReason] = useState("");
+  
+  // Renew subscription dialog states
+  const [renewDialogOpen, setRenewDialogOpen] = useState(false);
+  const [renewTarget, setRenewTarget] = useState<{id: string; name: string; currentEndDate?: Date; isExpired: boolean} | null>(null);
+  const [renewPeriod, setRenewPeriod] = useState<SubscriptionPeriod>("MONTHLY");
+  const [renewBonusMonths, setRenewBonusMonths] = useState(0);
+  const [renewNotes, setRenewNotes] = useState("");
   
   // Edit restaurant name states
   const [editNameDialogOpen, setEditNameDialogOpen] = useState(false);
@@ -531,6 +538,73 @@ export default function SystemAdmin() {
     setManageStartDate(existingSub?.start_date ? new Date(existingSub.start_date) : new Date());
     setManageReason(existingSub?.notes || "");
     setManageDialogOpen(true);
+  };
+
+  // Calculate renewal start date based on subscription status
+  const calculateRenewalStartDate = (existingSub: ReturnType<typeof getSubscription>): Date => {
+    if (!existingSub) return new Date();
+    
+    const endDate = new Date(existingSub.end_date);
+    const now = new Date();
+    const isExpired = differenceInDays(endDate, now) < 0;
+    
+    if (isExpired) {
+      // Expired subscription: start from today
+      return now;
+    } else {
+      // Active subscription: start from day after current end date
+      const nextDay = new Date(endDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      return nextDay;
+    }
+  };
+
+  const openRenewDialog = (restaurantId: string, restaurantName: string) => {
+    const existingSub = getSubscription(restaurantId);
+    const endDate = existingSub ? new Date(existingSub.end_date) : undefined;
+    const isExpired = existingSub ? differenceInDays(endDate!, new Date()) < 0 : true;
+    
+    setRenewTarget({ 
+      id: restaurantId, 
+      name: restaurantName, 
+      currentEndDate: endDate,
+      isExpired 
+    });
+    setRenewPeriod("MONTHLY");
+    setRenewBonusMonths(0);
+    setRenewNotes("");
+    setRenewDialogOpen(true);
+  };
+
+  const handleRenewSubscription = async () => {
+    if (!renewTarget) return;
+    
+    const existingSub = getSubscription(renewTarget.id);
+    const startDate = calculateRenewalStartDate(existingSub);
+    
+    try {
+      await renewSubscription.mutateAsync({
+        restaurantId: renewTarget.id,
+        period: renewPeriod,
+        bonusMonths: renewBonusMonths,
+        startDate,
+        reason: renewNotes || undefined,
+        notes: renewNotes || undefined,
+      });
+      
+      toast({
+        title: t('sub_renew_success_title'),
+        description: t('sub_renew_success_desc'),
+      });
+      
+      setRenewDialogOpen(false);
+      setRenewTarget(null);
+      setRenewPeriod("MONTHLY");
+      setRenewBonusMonths(0);
+      setRenewNotes("");
+    } catch (error) {
+      // Error already handled by hook
+    }
   };
 
   const handleUpdateLogo = async () => {
@@ -1095,6 +1169,7 @@ export default function SystemAdmin() {
                         setLoadingOwnerPhone(false);
                       }}
                       onManageSubscription={openManageDialog}
+                      onRenewSubscription={openRenewDialog}
                       onContactRestaurant={() => {
                         setContactTarget({
                           restaurant: { id: restaurant.id, name: restaurant.name, owner_id: restaurant.owner_id },
@@ -1788,6 +1863,150 @@ export default function SystemAdmin() {
               <Button size="sm" className="h-8" onClick={handleManageSubscription} disabled={renewSubscription.isPending}>
                 {renewSubscription.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : null}
                 {t('sub_save_changes')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Renew Subscription Dialog */}
+        <Dialog open={renewDialogOpen} onOpenChange={(open) => {
+          setRenewDialogOpen(open);
+          if (!open) {
+            setRenewTarget(null);
+            setRenewPeriod("MONTHLY");
+            setRenewBonusMonths(0);
+            setRenewNotes("");
+          }
+        }}>
+          <DialogContent className="max-w-md p-4">
+            <DialogHeader className="pb-2">
+              <DialogTitle className="text-base flex items-center gap-2">
+                <RotateCcw className="h-4 w-4 text-green-600" />
+                {t('sub_renew_title')}
+              </DialogTitle>
+              <DialogDescription className="text-sm">
+                {t('sub_renew_desc')} <strong>{renewTarget?.name}</strong>
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-3">
+              {/* Current Subscription Status */}
+              {renewTarget && (
+                <div className="p-2.5 rounded-md bg-muted/50 border">
+                  <div className="flex items-center justify-between gap-2 text-sm">
+                    <span className="text-muted-foreground">{t('sub_current_status')}:</span>
+                    <Badge 
+                      variant={renewTarget.isExpired ? "destructive" : "secondary"}
+                      className="text-xs"
+                    >
+                      {renewTarget.isExpired ? t('sa_sub_expired') : t('sub_active')}
+                    </Badge>
+                  </div>
+                  {renewTarget.currentEndDate && (
+                    <div className="flex items-center justify-between gap-2 text-sm mt-1.5">
+                      <span className="text-muted-foreground">{t('sub_current_end')}:</span>
+                      <span className={renewTarget.isExpired ? 'text-destructive' : ''}>
+                        {format(renewTarget.currentEndDate, 'PPP')}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Row 1: Duration + Bonus Months */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="renew-period" className="text-xs font-medium">{t('sub_period')}</Label>
+                  <Select value={renewPeriod} onValueChange={(v) => setRenewPeriod(v as SubscriptionPeriod)}>
+                    <SelectTrigger id="renew-period" className="h-8 text-sm">
+                      <SelectValue placeholder={t('sub_period')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="MONTHLY">{t('period_monthly')}</SelectItem>
+                      <SelectItem value="QUARTERLY">{t('period_quarterly')}</SelectItem>
+                      <SelectItem value="SEMI_ANNUAL">{t('period_semi_annual')}</SelectItem>
+                      <SelectItem value="ANNUAL">{t('period_annual')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="renew-bonus-months" className="text-xs font-medium">{t('sub_bonus_months')}</Label>
+                  <Input
+                    id="renew-bonus-months"
+                    type="number"
+                    min={0}
+                    max={3}
+                    value={renewBonusMonths}
+                    onChange={(e) => setRenewBonusMonths(Math.min(Math.max(0, parseInt(e.target.value) || 0), 3))}
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground">{t('sub_bonus_months_hint')}</p>
+              
+              {/* New Period Preview */}
+              {renewTarget && (() => {
+                const existingSub = getSubscription(renewTarget.id);
+                const startDate = calculateRenewalStartDate(existingSub);
+                const periodMonths = renewPeriod === 'MONTHLY' ? 1 : renewPeriod === 'QUARTERLY' ? 3 : renewPeriod === 'SEMI_ANNUAL' ? 6 : 12;
+                const endDate = addMonths(startDate, periodMonths + renewBonusMonths);
+                
+                return (
+                  <div className="p-2.5 rounded-md bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900">
+                    <p className="text-xs font-medium text-green-800 dark:text-green-300 mb-2">
+                      {t('sub_renew_preview')}
+                    </p>
+                    <div className="space-y-1.5 text-sm">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted-foreground">{t('sub_renew_new_start')}:</span>
+                        <span className="font-medium">{format(startDate, 'PPP')}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted-foreground">{t('sub_renew_new_end')}:</span>
+                        <span className="font-semibold text-green-700 dark:text-green-400">{format(endDate, 'PPP')}</span>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-2 pt-2 border-t border-green-200 dark:border-green-900">
+                      {renewTarget.isExpired ? t('sub_renew_expired_note') : t('sub_renew_active_note')}
+                    </p>
+                  </div>
+                );
+              })()}
+              
+              {/* Notes Field */}
+              <div className="space-y-1 pt-1 border-t border-border/50">
+                <Label htmlFor="renew-notes" className="text-xs font-medium flex items-center gap-1">
+                  📝 {t('sub_note_label')}
+                </Label>
+                <Textarea
+                  id="renew-notes"
+                  value={renewNotes}
+                  onChange={(e) => setRenewNotes(e.target.value)}
+                  placeholder={t('sub_reason_renew_placeholder')}
+                  rows={2}
+                  className="resize-none text-sm"
+                />
+              </div>
+            </div>
+            
+            <DialogFooter className="px-4 py-3 border-t gap-2">
+              <Button variant="outline" size="sm" className="h-8" onClick={() => {
+                setRenewDialogOpen(false);
+                setRenewTarget(null);
+                setRenewPeriod("MONTHLY");
+                setRenewBonusMonths(0);
+                setRenewNotes("");
+              }}>
+                {t('cancel')}
+              </Button>
+              <Button 
+                size="sm" 
+                className="h-8 bg-green-600 hover:bg-green-700" 
+                onClick={handleRenewSubscription} 
+                disabled={renewSubscription.isPending}
+              >
+                {renewSubscription.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <RotateCcw className="h-3.5 w-3.5 mr-1.5" />}
+                {t('sub_renew_button')}
               </Button>
             </DialogFooter>
           </DialogContent>
