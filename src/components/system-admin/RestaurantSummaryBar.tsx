@@ -128,10 +128,10 @@ export function RestaurantSummaryBar({
                   <Icon className={`h-4 w-4 ${item.colorClass}`} strokeWidth={2.5} />
                 </div>
                 <div className="flex flex-col items-start min-w-0">
-                  <span className={`text-lg font-extrabold leading-tight ${item.colorClass}`}>
+                  <span className={`text-xl font-bold leading-none ${item.colorClass}`}>
                     {item.count}
                   </span>
-                  <span className="text-[10px] font-medium text-muted-foreground truncate">
+                  <span className="text-[11px] font-semibold text-muted-foreground truncate mt-0.5">
                     {item.label}
                   </span>
                 </div>
