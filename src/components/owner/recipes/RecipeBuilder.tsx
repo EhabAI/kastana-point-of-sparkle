@@ -625,6 +625,51 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
     return matchesSearch && matchesRecipeFilter;
   });
 
+  // Get menu items without recipes for export (food and drink items only)
+  const menuItemsWithoutRecipes = menuItems.filter(
+    (item) => !menuItemsWithRecipes.has(item.id) && 
+    (item.item_type === "food" || item.item_type === "drink")
+  );
+  
+  // Export menu items without recipes as a recipe template CSV
+  const handleExportItemsWithoutRecipes = useCallback(() => {
+    // Apply current search filter to export only filtered items without recipes
+    const itemsToExport = menuItemsWithoutRecipes.filter((item) =>
+      item.name.toLowerCase().includes(menuSearch.toLowerCase())
+    );
+    
+    if (itemsToExport.length === 0) return;
+    
+    // CSV headers matching recipe import format: menu_item_name, ingredient, quantity, unit
+    const csvRows: string[] = [];
+    csvRows.push("menu_item_name,ingredient,quantity,unit");
+    
+    const escapeCSV = (val: string) => {
+      if (val.includes(",") || val.includes('"') || val.includes("\n")) {
+        return `"${val.replace(/"/g, '""')}"`;
+      }
+      return val;
+    };
+    
+    // Generate template rows with empty ingredient, quantity, unit
+    itemsToExport.forEach((item) => {
+      csvRows.push([
+        escapeCSV(item.name),
+        "", // ingredient - empty for template
+        "", // quantity - empty for template
+        ""  // unit - empty for template
+      ].join(","));
+    });
+    
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `items_without_recipes_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }, [menuItemsWithoutRecipes, menuSearch]);
+
   // Load existing recipe when menu item changes
   useEffect(() => {
     if (existingRecipe) {
@@ -1150,22 +1195,25 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
           <div className="space-y-3">
             <Label>{t("select_menu_item")}</Label>
             
-            {/* Search and Filter Row */}
+            {/* Search, Filter and Export Row */}
             <div className="flex flex-col sm:flex-row gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <div className="relative w-full sm:w-[60%]">
+                <Search className={cn(
+                  "absolute top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground",
+                  isRTL ? "right-3" : "left-3"
+                )} />
                 <Input
                   placeholder={t("search_menu_items")}
                   value={menuSearch}
                   onChange={(e) => setMenuSearch(e.target.value)}
-                  className="pl-10"
+                  className={isRTL ? "pr-10" : "pl-10"}
                 />
               </div>
               <Select 
                 value={recipeFilter} 
                 onValueChange={(value: "all" | "with_recipe" | "without_recipe") => setRecipeFilter(value)}
               >
-                <SelectTrigger className="w-full sm:w-[200px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
                   <SelectValue />
                 </SelectTrigger>
@@ -1181,6 +1229,28 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
                   </SelectItem>
                 </SelectContent>
               </Select>
+              {/* Export items without recipes button */}
+              {menuItemsWithoutRecipes.length > 0 && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="default"
+                        size="default"
+                        onClick={handleExportItemsWithoutRecipes}
+                        className="gap-2 shrink-0"
+                      >
+                        <Download className="h-4 w-4" />
+                        <span className="hidden lg:inline">{t("export_items_without_recipes")}</span>
+                        <span className="lg:hidden">{language === "ar" ? "تصدير" : "Export"}</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t("export_items_without_recipes_tooltip")}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
 
             {/* Menu Items List - Always visible */}
