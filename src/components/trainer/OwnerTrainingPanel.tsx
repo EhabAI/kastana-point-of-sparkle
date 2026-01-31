@@ -204,7 +204,7 @@ export function OwnerTrainingPanel({
     } else if (progress < 65) {
       return { ar: "إدارة الطاولات", en: "Table Management" };
     } else if (progress < 80) {
-      return { ar: "الكاشيير", en: "POS Operation" };
+      return { ar: "التشغيل اليومي", en: "Daily Operation" };
     } else if (progress < 90) {
       return { ar: "المتابعة اليومية", en: "Daily Monitoring" };
     } else if (progress < 95) {

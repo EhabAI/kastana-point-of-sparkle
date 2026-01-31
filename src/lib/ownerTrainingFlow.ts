@@ -308,7 +308,7 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
     },
 
     // ============================================
-    // STAGE 6 - POS Operation (65% → 80%)
+    // STAGE 6 - Daily Operation Overview (65% → 80%) - Explanation only
     // ============================================
     {
       id: "gs_pos_intro",
@@ -316,8 +316,8 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
       progressStart: 65,
       progressEnd: 68,
       message: {
-        ar: "الآن ننتقل للتشغيل الفعلي 💳",
-        en: "Now let's move to actual operation 💳"
+        ar: "التشغيل اليومي يتم من خلال الكاشيير 💳",
+        en: "Daily operations are handled through the POS 💳"
       },
       actions: [
         { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
@@ -329,11 +329,12 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
       progressStart: 68,
       progressEnd: 75,
       message: {
-        ar: "• فتح وردية\n• إنشاء الطلبات\n• استلام الدفع\n• إغلاق الوردية",
-        en: "• Open a shift\n• Create orders\n• Receive payment\n• Close the shift"
+        ar: "الكاشيير هو المسؤول عن:\n• فتح الوردية\n• استقبال الطلبات\n• استلام الدفع\n\nأما أنت كصاحب مطعم:\n• تتابع المبيعات\n• تراجع الأداء\n• تشاهد أي فروقات نقدية إن وُجدت",
+        en: "The cashier is responsible for:\n• Opening the shift\n• Receiving orders\n• Collecting payment\n\nAs a restaurant owner:\n• You monitor sales\n• Review performance\n• View cash differences if any"
       },
       actions: [
-        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+        { id: "go_pos_view", label: { ar: "الانتقال إلى شاشة الكاشيير (عرض فقط)", en: "Go to POS (view only)" }, type: "navigate", navigateTo: "pos" },
+        { id: "skip_pos", label: { ar: "تخطي الآن", en: "Skip for now" }, type: "next" }
       ]
     },
     {
@@ -342,8 +343,8 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
       progressStart: 75,
       progressEnd: 80,
       message: {
-        ar: "ممتاز! 👍\n\nالكاشيير جاهز للعمل.\nكل موظف يسجل الدخول بحسابه الخاص.",
-        en: "Excellent! 👍\n\nThe POS is ready.\nEach employee logs in with their own account."
+        ar: "ممتاز! 👍\n\nالآن تعرف كيف يعمل الكاشيير.\nدورك كصاحب مطعم هو المتابعة والمراجعة.",
+        en: "Excellent! 👍\n\nNow you understand how the POS works.\nYour role as owner is to monitor and review."
       },
       actions: [
         { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
