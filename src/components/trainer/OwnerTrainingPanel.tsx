@@ -1,48 +1,73 @@
-// Owner Training Panel - Inline training guidance for owners
-// Non-blocking, lightweight step-by-step guidance
-// Shows inside the Smart Trainer panel
+// Owner Training Panel - Multi-Track Training UI
+// Non-blocking, progressive guidance through multiple training phases
 
 import { useEffect, useState, useCallback } from "react";
-import { ChevronRight, Settings, SkipForward, CheckCircle2, Sparkles, Play } from "lucide-react";
+import { 
+  ChevronRight, Settings, SkipForward, CheckCircle2, Sparkles, 
+  Play, Pause, BookOpen, Layers, BarChart3, Building2, ArrowRight
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import {
-  type OwnerTrainingStep,
-  type OwnerTrainingAction,
-  getCurrentOwnerStep,
+  type TrainingStep,
+  type TrainingAction,
+  type TrackId,
+  type TrainingTrack,
+  getCurrentStep,
+  getCurrentTrack,
+  getTrack,
+  startTrack,
   startOwnerTraining,
   resumeOwnerTraining,
-  nextOwnerStep,
+  nextStep,
   pauseOwnerTraining,
-  completeOwnerTraining,
+  completeCurrentTrack,
   goToSettingsStep,
-  getOwnerProgressPercent,
+  getOverallProgress,
+  getTrackProgress,
   isOwnerTrainingActive,
   isOwnerTrainingPaused,
   isOwnerTrainingCompleted,
+  isTrackCompleted,
   ownerNeedsTraining,
+  getCompletedTracks,
+  getAvailableTracks,
+  getNextRecommendedTrack,
+  TRAINING_TRACKS,
+  recordFirstLogin,
 } from "@/lib/ownerTrainingFlow";
 
 interface OwnerTrainingPanelProps {
   language: "ar" | "en";
   onNavigateToSettings?: () => void;
+  onNavigateToTab?: (tab: string) => void;
   onTrainingStateChange?: (active: boolean) => void;
 }
 
 export function OwnerTrainingPanel({ 
   language, 
   onNavigateToSettings,
+  onNavigateToTab,
   onTrainingStateChange 
 }: OwnerTrainingPanelProps) {
-  const [currentStep, setCurrentStep] = useState<OwnerTrainingStep | null>(null);
-  const [progress, setProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState<TrainingStep | null>(null);
+  const [currentTrack, setCurrentTrack] = useState<TrainingTrack | null>(null);
+  const [overallProgress, setOverallProgress] = useState(0);
+  const [trackProgress, setTrackProgress] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [showTrackList, setShowTrackList] = useState(false);
 
   // Load initial state
   useEffect(() => {
+    refreshState();
+    // Record first login for trigger tracking
+    recordFirstLogin();
+  }, []);
+
+  const refreshState = useCallback(() => {
     const active = isOwnerTrainingActive();
     const paused = isOwnerTrainingPaused();
     const completed = isOwnerTrainingCompleted();
@@ -50,10 +75,19 @@ export function OwnerTrainingPanel({
     setIsActive(active);
     setIsPaused(paused);
     setIsCompleted(completed);
-    setProgress(getOwnerProgressPercent());
+    setOverallProgress(getOverallProgress());
     
     if (active) {
-      setCurrentStep(getCurrentOwnerStep());
+      const step = getCurrentStep();
+      const track = getCurrentTrack();
+      setCurrentStep(step);
+      setCurrentTrack(track);
+      if (track) {
+        setTrackProgress(getTrackProgress(track.id));
+      }
+    } else {
+      setCurrentStep(null);
+      setCurrentTrack(null);
     }
   }, []);
 
@@ -65,81 +99,110 @@ export function OwnerTrainingPanel({
   // Handle starting training
   const handleStart = useCallback(() => {
     const step = startOwnerTraining();
-    setCurrentStep(step);
-    setProgress(step.progressEnd);
-    setIsActive(true);
-    setIsPaused(false);
-  }, []);
+    if (step) {
+      refreshState();
+    }
+  }, [refreshState]);
+
+  // Handle starting a specific track
+  const handleStartTrack = useCallback((trackId: TrackId) => {
+    const step = startTrack(trackId);
+    if (step) {
+      refreshState();
+      setShowTrackList(false);
+    }
+  }, [refreshState]);
 
   // Handle resuming training
   const handleResume = useCallback(() => {
     const step = resumeOwnerTraining();
     if (step) {
-      setCurrentStep(step);
-      setProgress(getOwnerProgressPercent());
-      setIsActive(true);
-      setIsPaused(false);
+      refreshState();
     }
-  }, []);
+  }, [refreshState]);
+
+  // Handle pausing training
+  const handlePause = useCallback(() => {
+    pauseOwnerTraining();
+    refreshState();
+  }, [refreshState]);
 
   // Handle action button clicks
-  const handleAction = useCallback((action: OwnerTrainingAction) => {
+  const handleAction = useCallback((action: TrainingAction) => {
     switch (action.type) {
       case "next": {
-        const nextStep = nextOwnerStep();
-        if (nextStep) {
-          setCurrentStep(nextStep);
-          setProgress(nextStep.progressEnd);
+        const next = nextStep();
+        if (next) {
+          refreshState();
         } else {
-          // Training completed
-          setIsActive(false);
-          setIsCompleted(true);
+          // End of track
+          completeCurrentTrack();
+          refreshState();
         }
         break;
       }
       
       case "navigate": {
-        // Navigate to settings and update step
-        const settingsStep = goToSettingsStep();
-        setCurrentStep(settingsStep);
-        setProgress(settingsStep.progressEnd);
-        onNavigateToSettings?.();
+        // Navigate to the specified tab
+        if (action.navigateTo === "settings") {
+          goToSettingsStep();
+          onNavigateToSettings?.();
+        } else if (action.navigateTo) {
+          onNavigateToTab?.(action.navigateTo);
+        }
+        const next = nextStep();
+        if (next) {
+          refreshState();
+        }
         break;
       }
       
       case "skip": {
         pauseOwnerTraining();
-        setCurrentStep(null);
-        setIsActive(false);
-        setIsPaused(true);
+        refreshState();
         break;
       }
       
-      case "finish": {
-        completeOwnerTraining();
-        setCurrentStep(null);
-        setIsActive(false);
-        setIsCompleted(true);
-        setProgress(20);
+      case "finish_track": {
+        completeCurrentTrack();
+        refreshState();
         break;
       }
     }
-  }, [onNavigateToSettings]);
+  }, [refreshState, onNavigateToSettings, onNavigateToTab]);
 
   const labels = {
     title: language === "ar" ? "🎓 تدريب المالك" : "🎓 Owner Training",
     startTraining: language === "ar" ? "ابدأ" : "Start",
-    resumeTraining: language === "ar" ? "استأنف التدريب" : "Resume Training",
+    resumeTraining: language === "ar" ? "إكمال التدريب" : "Continue Training",
+    pauseTraining: language === "ar" ? "إيقاف مؤقت" : "Pause",
     trainingPaused: language === "ar" ? "التدريب متوقف مؤقتاً" : "Training Paused",
-    trainingComplete: language === "ar" ? "تم إكمال التدريب ✓" : "Training Complete ✓",
-    progress: language === "ar" ? "التقدم" : "Progress",
+    trainingComplete: language === "ar" ? "تم إكمال جميع المراحل ✓" : "All Tracks Complete ✓",
+    overallProgress: language === "ar" ? "التقدم الكلي" : "Overall Progress",
+    trackProgress: language === "ar" ? "تقدم المرحلة" : "Track Progress",
     needsTraining: language === "ar" 
-      ? "ابدأ جولة سريعة للتعرف على لوحة التحكم" 
-      : "Start a quick tour to learn the dashboard"
+      ? "ابدأ جولة سريعة للتعرف على النظام" 
+      : "Start a quick tour to learn the system",
+    viewAllTracks: language === "ar" ? "عرض المراحل" : "View Tracks",
+    completedTracks: language === "ar" ? "مراحل مكتملة" : "Completed Tracks",
+    availableTracks: language === "ar" ? "مراحل متاحة" : "Available Tracks",
+    startTrack: language === "ar" ? "ابدأ" : "Start",
+    completed: language === "ar" ? "مكتمل" : "Completed",
+    recommended: language === "ar" ? "موصى به" : "Recommended",
+  };
+
+  const getTrackIcon = (trackId: TrackId) => {
+    switch (trackId) {
+      case "getting_started": return <Sparkles className="h-4 w-4" />;
+      case "daily_operations": return <BookOpen className="h-4 w-4" />;
+      case "insights_reports": return <BarChart3 className="h-4 w-4" />;
+      case "management_expansion": return <Building2 className="h-4 w-4" />;
+      default: return <Layers className="h-4 w-4" />;
+    }
   };
 
   // Get action button variant and icon
-  const getActionButton = (action: OwnerTrainingAction) => {
+  const getActionButton = (action: TrainingAction) => {
     switch (action.type) {
       case "navigate":
         return {
@@ -151,7 +214,7 @@ export function OwnerTrainingPanel({
           variant: "ghost" as const,
           icon: <SkipForward className="h-3.5 w-3.5" />
         };
-      case "finish":
+      case "finish_track":
         return {
           variant: "default" as const,
           icon: <CheckCircle2 className="h-3.5 w-3.5" />
@@ -165,7 +228,7 @@ export function OwnerTrainingPanel({
     }
   };
 
-  // Show completed state
+  // Show all tracks completed state
   if (isCompleted) {
     return (
       <div className="p-4 bg-green-50/50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800/50">
@@ -175,7 +238,137 @@ export function OwnerTrainingPanel({
             {labels.trainingComplete}
           </span>
         </div>
-        <Progress value={progress} className="h-1.5" />
+        <Progress value={100} className="h-1.5" />
+        
+        {/* Show completed tracks */}
+        <div className="mt-3 pt-3 border-t border-green-200 dark:border-green-800/50">
+          <div className="text-xs text-green-600 dark:text-green-400 mb-2">{labels.completedTracks}:</div>
+          <div className="flex flex-wrap gap-1.5">
+            {TRAINING_TRACKS.map(track => (
+              <div 
+                key={track.id}
+                className="flex items-center gap-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded-full"
+              >
+                {getTrackIcon(track.id)}
+                <span>{track.name[language]}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show track list view
+  if (showTrackList) {
+    const completedTracks = getCompletedTracks();
+    const availableTracks = getAvailableTracks();
+    const recommendedTrack = getNextRecommendedTrack();
+
+    return (
+      <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Layers className="h-5 w-5 text-primary" />
+            <span className="font-medium text-primary text-sm">{labels.title}</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 text-xs"
+            onClick={() => setShowTrackList(false)}
+          >
+            ✕
+          </Button>
+        </div>
+
+        {/* Overall progress */}
+        <div className="mb-4">
+          <div className="flex justify-between text-xs text-muted-foreground mb-1">
+            <span>{labels.overallProgress}</span>
+            <span>{overallProgress}%</span>
+          </div>
+          <Progress value={overallProgress} className="h-1.5" />
+        </div>
+
+        {/* Completed tracks */}
+        {completedTracks.length > 0 && (
+          <div className="mb-4">
+            <div className="text-xs text-muted-foreground mb-2">{labels.completedTracks}</div>
+            <div className="space-y-1.5">
+              {completedTracks.map(trackId => {
+                const track = getTrack(trackId);
+                if (!track) return null;
+                return (
+                  <div 
+                    key={trackId}
+                    className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-950/20 rounded-md"
+                  >
+                    <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <span className="text-xs text-green-700 dark:text-green-300 flex-1">
+                      {track.name[language]}
+                    </span>
+                    <span className="text-xs text-green-600 dark:text-green-400">
+                      {labels.completed}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Available tracks */}
+        {availableTracks.length > 0 && (
+          <div>
+            <div className="text-xs text-muted-foreground mb-2">{labels.availableTracks}</div>
+            <div className="space-y-1.5">
+              {availableTracks.map(track => {
+                const isRecommended = recommendedTrack?.id === track.id;
+                return (
+                  <div 
+                    key={track.id}
+                    className={cn(
+                      "flex items-center gap-2 p-2 rounded-md border",
+                      isRecommended 
+                        ? "bg-primary/5 border-primary/30" 
+                        : "bg-card border-border"
+                    )}
+                  >
+                    <div className={cn(
+                      "p-1.5 rounded-md",
+                      isRecommended ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                    )}>
+                      {getTrackIcon(track.id)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-medium truncate">{track.name[language]}</span>
+                        {isRecommended && (
+                          <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full">
+                            {labels.recommended}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground truncate">
+                        {track.description[language]}
+                      </p>
+                    </div>
+                    <Button
+                      variant={isRecommended ? "default" : "outline"}
+                      size="sm"
+                      className="h-7 text-xs shrink-0"
+                      onClick={() => handleStartTrack(track.id)}
+                    >
+                      {labels.startTrack}
+                      <ArrowRight className="h-3 w-3 ltr:ml-1 rtl:mr-1" />
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -185,27 +378,37 @@ export function OwnerTrainingPanel({
     return (
       <div className="p-4 bg-amber-50/50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800/50">
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+          <Pause className="h-5 w-5 text-amber-600 dark:text-amber-400" />
           <span className="font-medium text-amber-700 dark:text-amber-300 text-sm">
             {labels.trainingPaused}
           </span>
         </div>
         <div className="mb-3">
           <div className="flex justify-between text-xs text-muted-foreground mb-1">
-            <span>{labels.progress}</span>
-            <span>{progress}%</span>
+            <span>{labels.overallProgress}</span>
+            <span>{overallProgress}%</span>
           </div>
-          <Progress value={progress} className="h-1.5" />
+          <Progress value={overallProgress} className="h-1.5" />
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full h-8 text-xs"
-          onClick={handleResume}
-        >
-          <Play className="h-3.5 w-3.5 ltr:mr-1.5 rtl:ml-1.5" />
-          {labels.resumeTraining}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 h-8 text-xs"
+            onClick={handleResume}
+          >
+            <Play className="h-3.5 w-3.5 ltr:mr-1.5 rtl:ml-1.5" />
+            {labels.resumeTraining}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => setShowTrackList(true)}
+          >
+            <Layers className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       </div>
     );
   }
@@ -219,39 +422,72 @@ export function OwnerTrainingPanel({
           <span className="font-medium text-primary text-sm">{labels.title}</span>
         </div>
         <p className="text-xs text-muted-foreground mb-3">{labels.needsTraining}</p>
-        <Button
-          variant="default"
-          size="sm"
-          className="w-full h-8 text-xs"
-          onClick={handleStart}
-        >
-          <Play className="h-3.5 w-3.5 ltr:mr-1.5 rtl:ml-1.5" />
-          {labels.startTraining}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="default"
+            size="sm"
+            className="flex-1 h-8 text-xs"
+            onClick={handleStart}
+          >
+            <Play className="h-3.5 w-3.5 ltr:mr-1.5 rtl:ml-1.5" />
+            {labels.startTraining}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => setShowTrackList(true)}
+          >
+            <Layers className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       </div>
     );
   }
 
   // Show active training step
-  if (!currentStep) return null;
+  if (!currentStep || !currentTrack) return null;
 
   return (
     <div className="p-4 bg-blue-50/50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800/50">
-      {/* Header with progress */}
-      <div className="flex items-center justify-between mb-3">
+      {/* Header with track info */}
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          {getTrackIcon(currentTrack.id)}
           <span className="font-medium text-blue-700 dark:text-blue-300 text-sm">
-            {labels.title}
+            {currentTrack.name[language]}
           </span>
         </div>
-        <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-          {progress}%
-        </span>
+        <div className="flex items-center gap-1.5">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+            onClick={() => setShowTrackList(true)}
+            title={labels.viewAllTracks}
+          >
+            <Layers className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+            onClick={handlePause}
+            title={labels.pauseTraining}
+          >
+            <Pause className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       </div>
       
-      {/* Progress bar */}
-      <Progress value={progress} className="h-1.5 mb-4" />
+      {/* Track progress bar */}
+      <div className="mb-4">
+        <div className="flex justify-between text-xs text-blue-600 dark:text-blue-400 mb-1">
+          <span>{labels.trackProgress}</span>
+          <span>{trackProgress}%</span>
+        </div>
+        <Progress value={trackProgress} className="h-1.5" />
+      </div>
       
       {/* Message content */}
       <div className="mb-4">
@@ -295,6 +531,14 @@ export function OwnerTrainingPanel({
           })}
         </div>
       )}
+
+      {/* Overall progress indicator */}
+      <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800/50">
+        <div className="flex justify-between text-[10px] text-blue-500 dark:text-blue-400">
+          <span>{labels.overallProgress}: {overallProgress}%</span>
+          <span>{getCompletedTracks().length}/{TRAINING_TRACKS.length} {language === "ar" ? "مراحل" : "tracks"}</span>
+        </div>
+      </div>
     </div>
   );
 }
