@@ -129,9 +129,9 @@ export default function Login() {
           <div className="w-full lg:w-1/2 p-8 sm:p-10 lg:p-12">
             {/* Logo */}
             <div className="flex items-center gap-4 mb-3">
-              <img alt={t("brandName")} className="h-20 w-auto object-contain" src={posLogoNew} />
+              <img alt="Kastana" className="h-20 w-auto object-contain" src={posLogoNew} />
               <div>
-                <h1 className="font-bold text-foreground tracking-tight text-5xl">{t("brandName")}</h1>
+                <h1 className="font-bold text-foreground tracking-tight text-5xl">Kastana</h1>
                 <p className="text-lg text-muted-foreground">POS System</p>
               </div>
             </div>
@@ -193,7 +193,7 @@ export default function Login() {
       {/* Attribution Footer */}
       <footer className="mt-6 text-center">
         <a href="https://www.kastana.net/home" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">
-          © 2025 Done by {t("brandName")}
+          © 2025 Done by Kastana
         </a>
       </footer>
     </div>;
