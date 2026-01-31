@@ -3,6 +3,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOwnerErrorMessage } from "@/lib/ownerErrorHandler";
+import { getActiveTraining } from "@/lib/trainerEngine";
+
+// Helper to determine if user is in training mode
+function isInTrainingMode(): boolean {
+  const activeTraining = getActiveTraining();
+  return activeTraining !== null;
+}
 
 export interface MenuCategory {
   id: string;
@@ -117,7 +124,11 @@ export function useCreateCategory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['menu-categories'] });
-      toast({ title: t("category_created") || 'Category created successfully' });
+      const inTraining = isInTrainingMode();
+      const message = inTraining 
+        ? t("category_created_training") 
+        : t("category_created_success");
+      toast({ title: message });
     },
     onError: (error: Error) => {
       const msg = getOwnerErrorMessage(error, t);
@@ -163,7 +174,11 @@ export function useUpdateCategory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['menu-categories'] });
-      toast({ title: t("category_updated") || 'Category updated successfully' });
+      const inTraining = isInTrainingMode();
+      const message = inTraining 
+        ? t("category_updated_training") 
+        : t("category_updated_success");
+      toast({ title: message });
     },
     onError: (error: Error) => {
       const msg = getOwnerErrorMessage(error, t);
@@ -188,7 +203,11 @@ export function useDeleteCategory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['menu-categories'] });
-      toast({ title: t("category_deleted") || 'Category deleted successfully' });
+      const inTraining = isInTrainingMode();
+      const message = inTraining 
+        ? t("category_deleted_training") 
+        : t("category_deleted_success");
+      toast({ title: message });
     },
     onError: (error: Error) => {
       const msg = getOwnerErrorMessage(error, t);

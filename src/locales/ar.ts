@@ -637,6 +637,14 @@ export default {
   choose_category: "اختر فئة",
   mark_as_offer: "تحديد كعرض",
   description_optional: "الوصف (اختياري)",
+  
+  // Category CRUD Messages
+  category_created_success: "تم إنشاء الفئة بنجاح",
+  category_updated_success: "تم تحديث الفئة بنجاح",
+  category_deleted_success: "تم حذف الفئة بنجاح",
+  category_created_training: "🎓 ممتاز! تم إنشاء الفئة",
+  category_updated_training: "🎓 ممتاز! تم تحديث الفئة",
+  category_deleted_training: "🎓 ممتاز! تم حذف الفئة",
 
   // Item Type Classification
   item_type: "نوع الصنف",
