@@ -20,9 +20,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { RecipeHowItWorksHint } from "./RecipeHowItWorksHint";
+import { useOwnerContext } from "@/hooks/useOwnerContext";
+import { OwnerContextGuard, OwnerContextIndicator } from "@/components/owner/OwnerContextGuard";
+import { parseEdgeFunctionError } from "@/lib/ownerErrorHandler";
 
 interface RecipeBuilderProps {
   restaurantId: string;
+  branchId?: string; // Optional prop, will use context if not provided
   currency?: string;
 }
 
@@ -60,9 +64,13 @@ interface ImportResult {
 
 const REQUIRED_HEADERS = ["menu_item_name", "inventory_item_name", "quantity", "unit"];
 
-export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderProps) {
+export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency = "JOD" }: RecipeBuilderProps) {
   const { t, language } = useLanguage();
   const isRTL = language === "ar";
+  
+  // Use owner context for branch validation
+  const ownerContext = useOwnerContext();
+  const effectiveBranchId = propBranchId || ownerContext.branchId;
 
   const [selectedMenuItemId, setSelectedMenuItemId] = useState<string>("");
   const [menuSearch, setMenuSearch] = useState("");
@@ -226,6 +234,15 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
 
   const handleImport = async () => {
     if (parsedRows.length === 0 || isImporting) return;
+    
+    // Validate context before import
+    if (!effectiveBranchId) {
+      toast({
+        title: language === "ar" ? "يرجى اختيار فرع أولاً" : "Please select a branch first",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsImporting(true);
 
@@ -246,18 +263,33 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
       const response = await supabase.functions.invoke("recipe-csv-import", {
         body: {
           restaurant_id: restaurantId,
+          branch_id: effectiveBranchId,
           rows: rowsToImport,
         },
       });
 
       if (response.error) {
-        throw new Error(response.error.message || t("csv_import_failed"));
+        // Try to parse bilingual error
+        const parsed = parseEdgeFunctionError(response.error, language as "ar" | "en");
+        throw new Error(parsed?.title || response.error.message || t("csv_import_failed"));
       }
 
       const result: ImportResult = response.data;
+      
+      // Check for API-level errors with bilingual messages
+      if (!result.success && response.data?.message_en) {
+        const errorMsg = language === "ar" ? response.data.message_ar : response.data.message_en;
+        throw new Error(errorMsg);
+      }
+      
       setImportResult(result);
       setShowPreview(false);
       setShowResult(true);
+
+      // Invalidate recipes query to refresh data
+      queryClient.invalidateQueries({ queryKey: ["recipes", restaurantId] });
+      queryClient.invalidateQueries({ queryKey: ["recipe"] });
+      queryClient.invalidateQueries({ queryKey: ["all-recipes-menu-items", restaurantId] });
 
       // Invalidate recipes query to refresh data
       queryClient.invalidateQueries({ queryKey: ["recipes", restaurantId] });
@@ -432,8 +464,19 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
 
   const selectedMenuItem = menuItems.find((m) => m.id === selectedMenuItemId);
 
+  // Block rendering if context is not ready
+  if (!effectiveBranchId && !propBranchId) {
+    return (
+      <div className="space-y-6" dir={isRTL ? "rtl" : "ltr"}>
+        <OwnerContextGuard contextMissing={ownerContext.contextMissing} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6" dir={isRTL ? "rtl" : "ltr"}>
+      {/* Branch Context Indicator for CSV Import */}
+      
       {/* CSV Import Modal */}
       <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
         <DialogContent className={cn("sm:max-w-md", showPreview && "sm:max-w-4xl")}>
@@ -443,6 +486,16 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
               {t("import_recipes_from_csv")}
             </DialogTitle>
           </DialogHeader>
+          
+          {/* Show branch context indicator */}
+          {!showResult && !showPreview && ownerContext.restaurantName && ownerContext.branchName && (
+            <div className="px-1">
+              <OwnerContextIndicator 
+                restaurantName={ownerContext.restaurantName} 
+                branchName={ownerContext.branchName} 
+              />
+            </div>
+          )}
 
           {showResult && importResult ? (
             // Result View - After Import

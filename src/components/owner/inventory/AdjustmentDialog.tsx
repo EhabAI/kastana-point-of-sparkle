@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +24,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useBranches } from "@/hooks/useBranches";
 import { useInventoryItems } from "@/hooks/useInventoryItems";
 import { useToast } from "@/hooks/use-toast";
+import { useOwnerContext } from "@/hooks/useOwnerContext";
 import { supabase } from "@/integrations/supabase/client";
+import { parseEdgeFunctionError } from "@/lib/ownerErrorHandler";
 import { Loader2, ArrowUpDown, TrendingUp, TrendingDown } from "lucide-react";
 
 interface AdjustmentDialogProps {
@@ -42,12 +44,21 @@ const ADJUSTMENT_REASONS = [
 ];
 
 export function AdjustmentDialog({ restaurantId, open, onOpenChange }: AdjustmentDialogProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toast } = useToast();
   const { data: branches = [] } = useBranches(restaurantId);
   const { data: items = [] } = useInventoryItems(restaurantId);
+  const ownerContext = useOwnerContext();
 
-  const [selectedBranch, setSelectedBranch] = useState("");
+  // Auto-select branch from context
+  const [selectedBranch, setSelectedBranch] = useState(ownerContext.branchId || "");
+  
+  // Sync with context when it changes
+  useEffect(() => {
+    if (ownerContext.branchId && !selectedBranch) {
+      setSelectedBranch(ownerContext.branchId);
+    }
+  }, [ownerContext.branchId, selectedBranch]);
   const [adjustmentType, setAdjustmentType] = useState<"in" | "out">("in");
   const [selectedItem, setSelectedItem] = useState("");
   const [qty, setQty] = useState("");
@@ -96,9 +107,10 @@ export function AdjustmentDialog({ restaurantId, open, onOpenChange }: Adjustmen
     try {
       const { data, error } = await supabase.functions.invoke("inventory-create-transaction", {
         body: {
-          restaurantId,
-          branchId: selectedBranch,
+          restaurant_id: restaurantId,
+          branch_id: selectedBranch,
           itemId: selectedItem,
+          branchId: selectedBranch,
           txnType: adjustmentType === "in" ? "ADJUSTMENT_IN" : "ADJUSTMENT_OUT",
           qty: qtyNum,
           unitId: selectedUnit,
@@ -106,13 +118,23 @@ export function AdjustmentDialog({ restaurantId, open, onOpenChange }: Adjustmen
         },
       });
 
-      if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || "Failed");
+      if (error) {
+        const parsed = parseEdgeFunctionError(error, language as "ar" | "en");
+        throw new Error(parsed?.title || t("error_unexpected"));
+      }
+      if (!data?.success) {
+        // Check for bilingual error from edge function
+        const errorMsg = language === "ar" ? data?.message_ar : data?.message_en;
+        throw new Error(errorMsg || data?.error?.code || t("error_unexpected"));
+      }
 
       toast({ title: t("inv_adjustment_created") });
       onOpenChange(false);
-    } catch {
-      toast({ title: t("error_unexpected"), variant: "destructive" });
+    } catch (err) {
+      toast({ 
+        title: err instanceof Error ? err.message : t("error_unexpected"), 
+        variant: "destructive" 
+      });
     } finally {
       setIsSubmitting(false);
     }

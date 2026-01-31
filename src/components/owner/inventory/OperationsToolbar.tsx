@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useOwnerContext } from "@/hooks/useOwnerContext";
 import { Plus, ShoppingCart, ArrowUpDown, Trash2, ArrowLeftRight, ClipboardList, History } from "lucide-react";
 import { ReceivePurchaseDialog } from "./ReceivePurchaseDialog";
 import { AdjustmentDialog } from "./AdjustmentDialog";
@@ -18,11 +19,15 @@ import { StockCountHistoryDialog } from "./StockCountHistoryDialog";
 
 interface OperationsToolbarProps {
   restaurantId: string;
+  branchId?: string; // Optional - will use context if not provided
   isReadOnly?: boolean;
 }
 
-export function OperationsToolbar({ restaurantId, isReadOnly = false }: OperationsToolbarProps) {
+export function OperationsToolbar({ restaurantId, branchId: propBranchId, isReadOnly = false }: OperationsToolbarProps) {
   const { t } = useLanguage();
+  const ownerContext = useOwnerContext();
+  const effectiveBranchId = propBranchId || ownerContext.branchId;
+  
   const [showReceive, setShowReceive] = useState(false);
   const [showAdjustment, setShowAdjustment] = useState(false);
   const [showWaste, setShowWaste] = useState(false);
@@ -30,7 +35,8 @@ export function OperationsToolbar({ restaurantId, isReadOnly = false }: Operatio
   const [showStockCount, setShowStockCount] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
-  if (isReadOnly) return null;
+  // Block operations if no branch context
+  if (isReadOnly || !effectiveBranchId) return null;
 
   return (
     <>

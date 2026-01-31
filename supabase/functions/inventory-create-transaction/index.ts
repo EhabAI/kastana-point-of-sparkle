@@ -1,5 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkSubscriptionActive, subscriptionExpiredResponse } from "../_shared/subscription-guard.ts";
+import { resolveOwnerRestaurantId } from "../_shared/owner-restaurant.ts";
+import { validateOwnerContext, createContextErrorResponse } from "../_shared/owner-context-guard.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,9 +22,31 @@ type ErrorCode =
   | "server_error"
   | "unexpected";
 
+// Bilingual error messages for Owner-facing errors
+const ERROR_MESSAGES: Record<ErrorCode, { en: string; ar: string }> = {
+  missing_auth: { en: "Authentication required", ar: "المصادقة مطلوبة" },
+  invalid_token: { en: "Session expired, please login again", ar: "انتهت الجلسة، يرجى تسجيل الدخول مجددًا" },
+  not_authorized: { en: "You are not authorized to perform this action", ar: "ليس لديك صلاحية لتنفيذ هذا الإجراء" },
+  subscription_expired: { en: "Your subscription has expired", ar: "انتهى اشتراكك" },
+  inventory_disabled: { en: "Inventory module is disabled", ar: "وحدة المخزون معطلة" },
+  missing_fields: { en: "Required fields are missing", ar: "بعض الحقول المطلوبة غير موجودة" },
+  invalid_input: { en: "Invalid input data", ar: "بيانات الإدخال غير صالحة" },
+  invalid_branch: { en: "Invalid branch selected", ar: "الفرع المحدد غير صالح" },
+  invalid_item: { en: "Inventory item not found", ar: "صنف المخزون غير موجود" },
+  insufficient_stock: { en: "Insufficient stock for this operation", ar: "الكمية المتوفرة غير كافية" },
+  server_error: { en: "Server error, please try again", ar: "خطأ في الخادم، يرجى المحاولة مجددًا" },
+  unexpected: { en: "An unexpected error occurred", ar: "حدث خطأ غير متوقع" },
+};
+
 function errorResponse(code: ErrorCode, status = 400) {
+  const messages = ERROR_MESSAGES[code];
   return new Response(
-    JSON.stringify({ success: false, error: { code } }),
+    JSON.stringify({ 
+      success: false, 
+      error: { code },
+      message_en: messages.en,
+      message_ar: messages.ar,
+    }),
     { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
   );
 }
@@ -43,6 +67,9 @@ interface TransactionRequest {
   unitId: string;
   notes?: string;
   skipIfHasStock?: boolean; // For CSV import - skip INITIAL_STOCK if item already has transactions
+  // Owner context fields
+  restaurant_id?: string;
+  branch_id?: string;
 }
 
 Deno.serve(async (req) => {
@@ -72,6 +99,7 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Check user role - owner or cashier
     const { data: roleData, error: roleError } = await supabase
       .from("user_roles")
       .select("role, restaurant_id, branch_id")
@@ -84,8 +112,50 @@ Deno.serve(async (req) => {
       return errorResponse("not_authorized", 403);
     }
 
-    const restaurantId = roleData.restaurant_id;
+    const body: TransactionRequest = await req.json();
+    const { itemId, branchId, txnType, qty, unitId, notes, skipIfHasStock } = body;
 
+    let restaurantId: string;
+    let effectiveBranchId: string;
+
+    // Handle context differently based on role
+    if (roleData.role === "owner") {
+      // Owner: Require explicit restaurant_id and branch_id from request body
+      const contextValidation = validateOwnerContext({
+        restaurant_id: body.restaurant_id,
+        branch_id: body.branch_id || branchId,
+      });
+      
+      if (!contextValidation.isValid) {
+        console.error("[inventory-create-transaction] Owner context validation failed:", contextValidation.error);
+        return createContextErrorResponse(contextValidation, corsHeaders);
+      }
+
+      // Resolve owner restaurant via ownership check
+      const { restaurantId: resolvedId, error: resolveError } = await resolveOwnerRestaurantId({
+        supabaseAdmin: supabase,
+        userId: user.id,
+        requestedRestaurantId: body.restaurant_id,
+      });
+
+      if (!resolvedId) {
+        console.error("[inventory-create-transaction] Owner restaurant resolution failed:", resolveError);
+        return errorResponse("not_authorized", 403);
+      }
+
+      restaurantId = resolvedId;
+      effectiveBranchId = body.branch_id || branchId;
+    } else {
+      // Cashier: Use role data
+      if (!roleData.restaurant_id) {
+        console.error("[inventory-create-transaction] Cashier has no restaurant");
+        return errorResponse("not_authorized", 403);
+      }
+      restaurantId = roleData.restaurant_id;
+      effectiveBranchId = roleData.branch_id || branchId;
+    }
+
+    // Check subscription using the resolved restaurant ID
     const { isActive: subscriptionActive } = await checkSubscriptionActive(restaurantId);
     if (!subscriptionActive) {
       console.error("[inventory-create-transaction] Restaurant subscription expired");
@@ -108,10 +178,7 @@ Deno.serve(async (req) => {
       return errorResponse("inventory_disabled", 403);
     }
 
-    const body: TransactionRequest = await req.json();
-    const { itemId, branchId, txnType, qty, unitId, notes, skipIfHasStock } = body;
-
-    if (!itemId || !branchId || !txnType || !qty || !unitId) {
+    if (!itemId || !effectiveBranchId || !txnType || !qty || !unitId) {
       return errorResponse("missing_fields", 400);
     }
 
@@ -124,10 +191,11 @@ Deno.serve(async (req) => {
       return errorResponse("invalid_input", 400);
     }
 
+    // Validate branch belongs to restaurant
     const { data: branch, error: branchError } = await supabase
       .from("restaurant_branches")
       .select("id")
-      .eq("id", branchId)
+      .eq("id", effectiveBranchId)
       .eq("restaurant_id", restaurantId)
       .single();
 
@@ -139,7 +207,7 @@ Deno.serve(async (req) => {
       .from("inventory_items")
       .select("id, base_unit_id, name")
       .eq("id", itemId)
-      .eq("branch_id", branchId)
+      .eq("branch_id", effectiveBranchId)
       .eq("restaurant_id", restaurantId)
       .single();
 
@@ -180,7 +248,7 @@ Deno.serve(async (req) => {
         .from("inventory_transactions")
         .select("id", { count: "exact", head: true })
         .eq("item_id", itemId)
-        .eq("branch_id", branchId);
+        .eq("branch_id", effectiveBranchId);
 
       if (existingTxnCount && existingTxnCount > 0) {
         // Item already has stock - return success with skipped status
@@ -201,7 +269,7 @@ Deno.serve(async (req) => {
       .from("inventory_stock_levels")
       .select("on_hand_base")
       .eq("item_id", itemId)
-      .eq("branch_id", branchId)
+      .eq("branch_id", effectiveBranchId)
       .maybeSingle();
 
     const currentOnHand = currentStock?.on_hand_base || 0;
@@ -218,7 +286,7 @@ Deno.serve(async (req) => {
       .from("inventory_transactions")
       .insert({
         restaurant_id: restaurantId,
-        branch_id: branchId,
+        branch_id: effectiveBranchId,
         item_id: itemId,
         txn_type: actualTxnType,
         qty: signedQty,
@@ -240,7 +308,7 @@ Deno.serve(async (req) => {
       .upsert(
         {
           restaurant_id: restaurantId,
-          branch_id: branchId,
+          branch_id: effectiveBranchId,
           item_id: itemId,
           on_hand_base: newOnHand,
           updated_at: new Date().toISOString(),
@@ -261,7 +329,7 @@ Deno.serve(async (req) => {
       details: {
         item_id: itemId,
         item_name: item.name,
-        branch_id: branchId,
+        branch_id: effectiveBranchId,
         qty: signedQty,
         qty_in_base: signedQtyInBase,
         new_on_hand: newOnHand,

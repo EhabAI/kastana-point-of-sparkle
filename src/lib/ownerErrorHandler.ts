@@ -14,6 +14,84 @@ interface OwnerErrorResult {
 }
 
 /**
+ * Parses Edge Function error responses that include bilingual messages.
+ * Returns the appropriate message based on language.
+ */
+export function parseEdgeFunctionError(
+  error: unknown,
+  language: "ar" | "en"
+): { title: string; description?: string } | null {
+  if (!error || typeof error !== "object") return null;
+  
+  const errorObj = error as Record<string, unknown>;
+  
+  // Check for structured bilingual error format: { error: { code }, message_en, message_ar }
+  if (errorObj.message_en && errorObj.message_ar) {
+    const message = language === "ar" ? errorObj.message_ar : errorObj.message_en;
+    return {
+      title: String(message),
+      description: undefined,
+    };
+  }
+  
+  // Check for error in data property (from supabase.functions.invoke)
+  const data = errorObj.data as Record<string, unknown> | undefined;
+  if (data?.message_en && data?.message_ar) {
+    const message = language === "ar" ? data.message_ar : data.message_en;
+    return {
+      title: String(message),
+      description: undefined,
+    };
+  }
+  
+  // Check for error.code pattern
+  const errorCode = (errorObj.error as Record<string, unknown>)?.code || 
+                    (data?.error as Record<string, unknown>)?.code;
+  if (errorCode) {
+    // Map common codes to bilingual messages
+    const codeMessages: Record<string, { en: string; ar: string }> = {
+      SUBSCRIPTION_EXPIRED: {
+        en: "Your subscription has expired. Please renew to continue.",
+        ar: "انتهى اشتراكك. يرجى التجديد للمتابعة.",
+      },
+      missing_restaurant_context: {
+        en: "Please select a restaurant first",
+        ar: "يرجى اختيار مطعم أولاً",
+      },
+      missing_branch_context: {
+        en: "Please select a branch first",
+        ar: "يرجى اختيار فرع أولاً",
+      },
+      not_authorized: {
+        en: "You are not authorized to perform this action",
+        ar: "ليس لديك صلاحية لتنفيذ هذا الإجراء",
+      },
+      invalid_branch: {
+        en: "Invalid branch selected",
+        ar: "الفرع المحدد غير صالح",
+      },
+      inventory_disabled: {
+        en: "Inventory module is disabled",
+        ar: "وحدة المخزون معطلة",
+      },
+      server_error: {
+        en: "Server error, please try again",
+        ar: "خطأ في الخادم، يرجى المحاولة مجددًا",
+      },
+    };
+    
+    const codeMessage = codeMessages[String(errorCode)];
+    if (codeMessage) {
+      return {
+        title: language === "ar" ? codeMessage.ar : codeMessage.en,
+      };
+    }
+  }
+  
+  return null;
+}
+
+/**
  * Maps raw errors to business-friendly, bilingual messages for Owner Dashboard.
  * NEVER shows raw error.message, SQL, RLS/Policy wording, or stack traces.
  * 
@@ -44,6 +122,12 @@ export function getOwnerErrorMessage(
     const errorObj = error as Record<string, unknown>;
     message = (errorObj.message as string) || (errorObj.error as string) || "";
     code = (errorObj.code as string) || "";
+    
+    // Handle nested error.code
+    const nestedError = errorObj.error as Record<string, unknown> | undefined;
+    if (nestedError?.code) {
+      code = nestedError.code as string;
+    }
   }
 
   const lowerMessage = message.toLowerCase();
@@ -63,9 +147,30 @@ export function getOwnerErrorMessage(
     };
   }
 
+  // Subscription expired
+  if (
+    code === "SUBSCRIPTION_EXPIRED" ||
+    lowerMessage.includes("subscription") &&
+    (lowerMessage.includes("expired") || lowerMessage.includes("inactive"))
+  ) {
+    return {
+      title: t("subscription_expired"),
+      description: t("subscription_expired_desc"),
+    };
+  }
+
+  // Missing context errors
+  if (code === "missing_restaurant_context" || code === "missing_branch_context") {
+    return {
+      title: t("select_context_required"),
+      description: t("select_branch_first"),
+    };
+  }
+
   // Permission / RLS errors
   if (
     code === "42501" ||
+    code === "not_authorized" ||
     lowerMessage.includes("policy") ||
     lowerMessage.includes("rls") ||
     lowerMessage.includes("denied") ||
@@ -73,17 +178,6 @@ export function getOwnerErrorMessage(
     lowerMessage.includes("not allowed") ||
     lowerMessage.includes("unauthorized") ||
     lowerMessage.includes("access denied")
-  ) {
-    return {
-      title: t("error_owner_permission_title"),
-      description: t("error_owner_permission_desc"),
-    };
-  }
-
-  // Subscription expired
-  if (
-    lowerMessage.includes("subscription") &&
-    (lowerMessage.includes("expired") || lowerMessage.includes("inactive"))
   ) {
     return {
       title: t("error_owner_permission_title"),
@@ -155,6 +249,11 @@ export function getOwnerErrorDirect(
   error: unknown,
   language: "ar" | "en"
 ): OwnerErrorResult {
+  // First try to parse Edge Function structured errors
+  const parsed = parseEdgeFunctionError(error, language);
+  if (parsed) return parsed;
+  
+  // Fall back to system error handler
   const result = getSystemErrorMessage(error, language);
   return {
     title: result.title,

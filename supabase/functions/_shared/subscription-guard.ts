@@ -36,13 +36,15 @@ export async function checkSubscriptionActive(
 
 /**
  * Returns a 403 response for expired subscriptions
- * Consistent format across all edge functions
+ * Consistent bilingual format across all edge functions
  */
 export function subscriptionExpiredResponse(corsHeaders: Record<string, string>) {
   return new Response(
     JSON.stringify({
-      error: "Subscription expired",
-      code: "SUBSCRIPTION_EXPIRED",
+      success: false,
+      error: { code: "SUBSCRIPTION_EXPIRED" },
+      message_en: "Your subscription has expired. Please renew to continue.",
+      message_ar: "انتهى اشتراكك. يرجى التجديد للمتابعة.",
     }),
     {
       status: 403,
