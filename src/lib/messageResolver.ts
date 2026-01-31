@@ -69,6 +69,17 @@ export type MessageKey =
   // Branch Menu Items
   | "items_updated"
   | "prices_copied"
+  // Inventory
+  | "inv_waste_recorded"
+  | "inv_transfer_complete"
+  | "inv_purchase_received"
+  | "inv_count_created"
+  | "inv_count_submitted"
+  | "inv_count_approved"
+  | "inv_count_cancelled"
+  | "inv_adjustment_saved"
+  | "inv_operation_failed"
+  | "data_reset_success"
   // Generic
   | "generic_success"
   | "generic_error"
@@ -315,6 +326,64 @@ const MESSAGES: Record<MessageKey, MessageDefinition> = {
     en: "Prices copied successfully",
     arTraining: "🎓 ممتاز! تم نسخ الأسعار",
     enTraining: "🎓 Great! Prices have been copied",
+  },
+
+  // Inventory
+  inv_waste_recorded: {
+    ar: "تم تسجيل الهدر بنجاح",
+    en: "Waste recorded successfully",
+    arTraining: "🎓 تم تسجيل الهدر",
+    enTraining: "🎓 Waste has been recorded",
+  },
+  inv_transfer_complete: {
+    ar: "تمت عملية النقل بنجاح",
+    en: "Transfer completed successfully",
+    arTraining: "🎓 تم النقل بنجاح",
+    enTraining: "🎓 Transfer completed",
+  },
+  inv_purchase_received: {
+    ar: "تم استلام المشتريات بنجاح",
+    en: "Purchase received successfully",
+    arTraining: "🎓 تم استلام المشتريات",
+    enTraining: "🎓 Purchase received",
+  },
+  inv_count_created: {
+    ar: "تم إنشاء الجرد بنجاح",
+    en: "Stock count created successfully",
+    arTraining: "🎓 تم إنشاء الجرد",
+    enTraining: "🎓 Stock count created",
+  },
+  inv_count_submitted: {
+    ar: "تم تقديم الجرد للمراجعة",
+    en: "Stock count submitted for review",
+    arTraining: "🎓 تم تقديم الجرد",
+    enTraining: "🎓 Stock count submitted",
+  },
+  inv_count_approved: {
+    ar: "تم اعتماد الجرد بنجاح",
+    en: "Stock count approved successfully",
+    arTraining: "🎓 تم اعتماد الجرد",
+    enTraining: "🎓 Stock count approved",
+  },
+  inv_count_cancelled: {
+    ar: "تم إلغاء الجرد",
+    en: "Stock count cancelled",
+    arTraining: "🎓 تم إلغاء الجرد",
+    enTraining: "🎓 Stock count cancelled",
+  },
+  inv_adjustment_saved: {
+    ar: "تم حفظ التعديل بنجاح",
+    en: "Adjustment saved successfully",
+    arTraining: "🎓 تم حفظ التعديل",
+    enTraining: "🎓 Adjustment saved",
+  },
+  inv_operation_failed: {
+    ar: "فشلت العملية",
+    en: "Operation failed",
+  },
+  data_reset_success: {
+    ar: "تم إعادة تعيين البيانات بنجاح",
+    en: "Data reset successfully",
   },
 
   // Generic
