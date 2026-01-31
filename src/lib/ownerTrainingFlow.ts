@@ -241,8 +241,8 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
       progressStart: 47,
       progressEnd: 50,
       message: {
-        ar: "• العروض تُفعّل حسب الوقت\n• تُطبق على فرع محدد\n• يمكنك إيقافها أو تعديلها بسهولة",
-        en: "• Offers activate based on time\n• Apply to specific branch\n• Easy to pause or edit"
+        ar: "• العروض تُفعّل حسب الوقت\n• تُطبق على فرع محدد\n• يمكنك إيقافها أو تعديلها بسهولة\n\n💡 إذا أردت التحكم بوقت ظهور العرض:\nاذهب إلى القائمة ← العروض ← تعديل العرض ← وقت التفعيل\n\nيمكنك تفعيل أو إيقاف أو جدولة العروض حسب الوقت الذي تريده.",
+        en: "• Offers activate based on time\n• Apply to specific branch\n• Easy to pause or edit\n\n💡 If you want to control when offers appear:\nGo to Menu → Offers → Edit Offer → Active Time\n\nYou can enable, disable, or schedule offers based on any time you prefer."
       },
       actions: [
         { id: "go_menu_offers", label: { ar: "الانتقال إلى العروض", en: "Go to Offers" }, type: "navigate", navigateTo: "menu" },
@@ -1052,6 +1052,49 @@ export function nextStep(): TrainingStep | null {
   saveOwnerTrainingProgress(progress);
   
   return nextStepData;
+}
+
+/**
+ * Go to previous step in current track (for re-reading explanations only)
+ * Does NOT reset progress, does NOT change completion status
+ * Works as an explanation replay only
+ */
+export function previousStep(): TrainingStep | null {
+  const progress = getOwnerTrainingProgress();
+  if (!progress.currentTrackId || !progress.currentStepId) return null;
+  
+  const track = getTrack(progress.currentTrackId);
+  if (!track) return null;
+  
+  const currentIndex = track.steps.findIndex(s => s.id === progress.currentStepId);
+  if (currentIndex === -1 || currentIndex === 0) {
+    // Already at first step, cannot go back
+    return null;
+  }
+  
+  const prevIndex = currentIndex - 1;
+  const prevStepData = track.steps[prevIndex];
+  
+  // Only update current step for viewing, do NOT reduce trackProgress
+  // This ensures progress is never reset
+  progress.currentStepId = prevStepData.id;
+  saveOwnerTrainingProgress(progress);
+  
+  return prevStepData;
+}
+
+/**
+ * Check if we can go to previous step (not at first step)
+ */
+export function canGoToPreviousStep(): boolean {
+  const progress = getOwnerTrainingProgress();
+  if (!progress.currentTrackId || !progress.currentStepId) return false;
+  
+  const track = getTrack(progress.currentTrackId);
+  if (!track) return false;
+  
+  const currentIndex = track.steps.findIndex(s => s.id === progress.currentStepId);
+  return currentIndex > 0;
 }
 
 /**
