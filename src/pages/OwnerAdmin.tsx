@@ -27,6 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRestaurantContext } from "@/contexts/RestaurantContext";
 import { useMenuCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from "@/hooks/useMenuCategories";
 import { useMenuItems, useAllMenuItems, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, MenuItem } from "@/hooks/useMenuItems";
+import { useBranchMenuItems } from "@/hooks/useBranchMenuItems";
 import { 
   Store, 
   Loader2, 
@@ -325,6 +326,21 @@ function CategoriesSection({
   const deleteCategory = useDeleteCategory();
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { selectedBranch, isBranchSelected } = useBranchContext();
+  const { data: branchItems = [] } = useBranchMenuItems(selectedBranch?.id);
+
+  // Create a set of category IDs that have items in the selected branch
+  const branchCategoryIds = useMemo(() => {
+    return new Set(branchItems.map(item => item.category_id));
+  }, [branchItems]);
+  
+  // Filter categories by those that have items in the selected branch
+  const filteredCategories = useMemo(() => {
+    if (!isBranchSelected || branchCategoryIds.size === 0) {
+      return categories;
+    }
+    return categories.filter(cat => branchCategoryIds.has(cat.id));
+  }, [categories, isBranchSelected, branchCategoryIds]);
 
   const [newCategoryName, setNewCategoryName] = useState("");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -443,7 +459,10 @@ function CategoriesSection({
                   <CardTitle className="flex items-center gap-2">
                     <FolderOpen className="h-5 w-5" />
                     {t("menu_categories")}
-                    <span className="text-muted-foreground font-normal">({categories.length})</span>
+                    <span className="text-muted-foreground font-normal">({filteredCategories.length})</span>
+                    {selectedBranch && (
+                      <Badge variant="outline" className="font-normal">{selectedBranch.name}</Badge>
+                    )}
                   </CardTitle>
                   <CardDescription>{t("organize_menu")}</CardDescription>
                 </div>
@@ -494,11 +513,11 @@ function CategoriesSection({
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
-        ) : categories.length === 0 ? (
+        ) : filteredCategories.length === 0 ? (
           <p className="text-muted-foreground text-center py-8">{t("no_categories")}</p>
         ) : (
           <div className="space-y-3">
-            {categories.map((category) => (
+            {filteredCategories.map((category) => (
               <div key={category.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg transition-all duration-200 hover:shadow-md hover:bg-muted/70 border border-transparent hover:border-primary/20">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -650,8 +669,15 @@ function MenuItemsSection({
 }) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [itemSearch, setItemSearch] = useState("");
+  const { selectedBranch, isBranchSelected } = useBranchContext();
   const { data: allItems = [], isLoading: isLoadingAll } = useAllMenuItems(restaurantId);
   const { data: categoryItems = [], isLoading: isLoadingCategory } = useMenuItems(restaurantId, selectedCategoryId || undefined);
+  const { data: branchItems = [] } = useBranchMenuItems(selectedBranch?.id);
+  
+  // Create a set of menu item IDs that exist in the selected branch
+  const branchItemIds = useMemo(() => {
+    return new Set(branchItems.map(item => item.menu_item_id));
+  }, [branchItems]);
   
   // Use all items when searching, category items when category is selected without search
   const isSearching = itemSearch.trim().length > 0;
@@ -660,6 +686,11 @@ function MenuItemsSection({
   
   const filteredItems = useMemo(() => {
     let result = baseItems;
+    
+    // Filter by branch if selected
+    if (isBranchSelected && branchItemIds.size > 0) {
+      result = result.filter((item) => branchItemIds.has(item.id));
+    }
     
     // Filter by search term
     if (itemSearch.trim()) {
@@ -673,7 +704,7 @@ function MenuItemsSection({
     }
     
     return result;
-  }, [baseItems, itemSearch, isSearching, selectedCategoryId]);
+  }, [baseItems, itemSearch, isSearching, selectedCategoryId, isBranchSelected, branchItemIds]);
   const createItem = useCreateMenuItem();
   const updateItem = useUpdateMenuItem();
   const deleteItem = useDeleteMenuItem();
@@ -749,6 +780,9 @@ function MenuItemsSection({
             <CardTitle className="flex items-center gap-2">
               <Tag className="h-5 w-5" />
               {t("menu_items")}
+              {selectedBranch && (
+                <Badge variant="outline" className="font-normal">{selectedBranch.name}</Badge>
+              )}
             </CardTitle>
             <CardDescription>{t("manage_menu_items")}</CardDescription>
           </div>
