@@ -21,8 +21,8 @@ function json(data: unknown, status = 200) {
   })
 }
 
-function errorResponse(code: ErrorCode, message: string, status = 400) {
-  return json({ error: { code, message } }, status)
+function errorResponse(code: ErrorCode, status = 400) {
+  return json({ error: { code } }, status)
 }
 
 Deno.serve(async (req) => {
@@ -38,12 +38,12 @@ Deno.serve(async (req) => {
 
     if (!supabaseUrl || !anonKey || !serviceRoleKey) {
       console.error('Missing required env vars for admin-reset-password')
-      return errorResponse('unexpected', 'Unexpected error. Please try again.', 500)
+      return errorResponse('unexpected', 500)
     }
 
     const authHeader = req.headers.get('Authorization')
     if (!authHeader || !authHeader.toLowerCase().startsWith('bearer ')) {
-      return errorResponse('not_authorized', 'Please sign in to perform this action.', 401)
+      return errorResponse('not_authorized', 401)
     }
 
     const body = (await req.json().catch(() => null)) as null | {
@@ -57,12 +57,12 @@ Deno.serve(async (req) => {
     const restaurantId = body?.restaurant_id
 
     if (!targetUserId || !newPassword || !restaurantId) {
-      return errorResponse('unexpected', 'Please provide user_id, new_password, and restaurant_id.', 400)
+      return errorResponse('unexpected', 400)
     }
 
     // Quick weak password check for clearer UX
     if (newPassword.length < 6) {
-      return errorResponse('weak_password', 'Password is too weak. Use at least 6 characters.', 400)
+      return errorResponse('weak_password', 400)
     }
 
     // Client authenticated as the caller (JWT from Authorization header)
@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
 
     const { data: userData, error: userErr } = await userClient.auth.getUser()
     if (userErr || !userData?.user) {
-      return errorResponse('not_authorized', 'Your session is invalid. Please sign in again.', 401)
+      return errorResponse('not_authorized', 401)
     }
 
     const callerId = userData.user.id
@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
 
     if (ownerErr || !isOwner) {
       console.error('Owner role check failed', ownerErr)
-      return errorResponse('not_authorized', 'Only restaurant owners can reset cashier passwords.', 403)
+      return errorResponse('not_authorized', 403)
     }
 
     // Verify the owner owns this restaurant
@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
     })
     
     if (restErr || ownerRestaurantId !== restaurantId) {
-      return errorResponse('not_authorized', 'You can only reset passwords for cashiers in your own restaurant.', 403)
+      return errorResponse('not_authorized', 403)
     }
 
     // Check subscription is active
@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
       .single()
 
     if (roleErr || !targetRole) {
-      return errorResponse('user_not_found', 'Cashier not found in your restaurant.', 404)
+      return errorResponse('user_not_found', 404)
     }
 
     // Update the password
@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
 
     if (updateErr) {
       console.error('Password update failed', updateErr)
-      return errorResponse('unexpected', 'Failed to reset password. Please try again.', 500)
+      return errorResponse('unexpected', 500)
     }
 
     // Log the action in audit_logs
@@ -154,6 +154,6 @@ Deno.serve(async (req) => {
     return json({ success: true }, 200)
   } catch (e) {
     console.error('admin-reset-password unexpected error', e)
-    return errorResponse('unexpected', 'Unexpected error. Please try again.', 500)
+    return errorResponse('unexpected', 500)
   }
 })

@@ -9,7 +9,6 @@ const corsHeaders = {
 }
 
 type ErrorCode = 'not_authorized' | 'invalid_input' | 'user_not_found' | 'unexpected'
-type AppRole = 'system_admin' | 'owner' | 'cashier' | 'kitchen'
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -21,8 +20,8 @@ function json(data: unknown, status = 200) {
   })
 }
 
-function errorResponse(code: ErrorCode, message: string, status = 400) {
-  return json({ error: { code, message } }, status)
+function errorResponse(code: ErrorCode, status = 400) {
+  return json({ error: { code } }, status)
 }
 
 Deno.serve(async (req) => {
@@ -37,14 +36,14 @@ Deno.serve(async (req) => {
 
     if (!supabaseUrl || !serviceRoleKey) {
       console.error('Missing required env vars for update-display-name')
-      return errorResponse('unexpected', 'Unexpected error. Please try again.', 500)
+      return errorResponse('unexpected', 500)
     }
 
     // Extract JWT from Authorization header
     const authHeader = req.headers.get('Authorization')
     if (!authHeader || !authHeader.toLowerCase().startsWith('bearer ')) {
       console.error('Missing or invalid Authorization header')
-      return errorResponse('not_authorized', 'Please sign in to perform this action.', 401)
+      return errorResponse('not_authorized', 401)
     }
 
     const jwt = authHeader.replace(/^bearer\s+/i, '')
@@ -61,12 +60,12 @@ Deno.serve(async (req) => {
     const restaurantId = body?.restaurant_id
 
     if (!targetUserId || !newUsername) {
-      return errorResponse('invalid_input', 'User ID and new username are required.', 400)
+      return errorResponse('invalid_input', 400)
     }
 
     // Validate username
     if (newUsername.length < 2) {
-      return errorResponse('invalid_input', 'Username must be at least 2 characters.', 400)
+      return errorResponse('invalid_input', 400)
     }
 
     // Create service-role client for ALL privileged operations
@@ -79,7 +78,7 @@ Deno.serve(async (req) => {
     
     if (userErr || !userData?.user) {
       console.error('JWT verification failed:', userErr?.message || 'No user data')
-      return errorResponse('not_authorized', 'Your session is invalid. Please sign in again.', 401)
+      return errorResponse('not_authorized', 401)
     }
 
     const callerId = userData.user.id
@@ -95,7 +94,7 @@ Deno.serve(async (req) => {
 
     if (roleErr || !callerRole) {
       console.error('Role lookup failed:', roleErr?.message || 'No role found')
-      return errorResponse('not_authorized', 'Unable to verify your permissions.', 403)
+      return errorResponse('not_authorized', 403)
     }
 
     console.log(`Caller role: ${callerRole.role}`)
@@ -110,7 +109,7 @@ Deno.serve(async (req) => {
 
     if (targetRoleErr || !targetRole) {
       console.error('Target role lookup failed:', targetRoleErr?.message || 'No role found')
-      return errorResponse('user_not_found', 'Target user not found.', 404)
+      return errorResponse('user_not_found', 404)
     }
 
     console.log(`Target role: ${targetRole.role}`)
@@ -128,26 +127,26 @@ Deno.serve(async (req) => {
     else if (callerRole.role === 'owner') {
       // Cannot edit themselves
       if (callerId === targetUserId) {
-        return errorResponse('not_authorized', 'Owners cannot edit their own username.', 403)
+        return errorResponse('not_authorized', 403)
       }
       // Can only edit cashier/kitchen roles
       if (targetRole.role !== 'cashier' && targetRole.role !== 'kitchen') {
-        return errorResponse('not_authorized', 'Owners can only edit cashier or kitchen usernames.', 403)
+        return errorResponse('not_authorized', 403)
       }
       // Must be same restaurant
       if (callerRole.restaurant_id !== targetRole.restaurant_id) {
-        return errorResponse('not_authorized', 'You can only edit staff in your own restaurant.', 403)
+        return errorResponse('not_authorized', 403)
       }
       authorized = true
       auditAction = 'STAFF_DISPLAY_NAME_UPDATED'
     }
     // Cashier and Kitchen cannot edit usernames
     else {
-      return errorResponse('not_authorized', 'You do not have permission to edit usernames.', 403)
+      return errorResponse('not_authorized', 403)
     }
 
     if (!authorized) {
-      return errorResponse('not_authorized', 'You do not have permission to perform this action.', 403)
+      return errorResponse('not_authorized', 403)
     }
 
     // Step 5: Get current username for audit
@@ -159,7 +158,7 @@ Deno.serve(async (req) => {
 
     if (profileErr || !currentProfile) {
       console.error('Profile lookup failed:', profileErr?.message || 'No profile found')
-      return errorResponse('user_not_found', 'User profile not found.', 404)
+      return errorResponse('user_not_found', 404)
     }
 
     const oldUsername = currentProfile.username || ''
@@ -172,7 +171,7 @@ Deno.serve(async (req) => {
 
     if (updateErr) {
       console.error('Profile update failed:', updateErr.message)
-      return errorResponse('unexpected', 'Failed to update username. Please try again.', 500)
+      return errorResponse('unexpected', 500)
     }
 
     // Step 7: Write audit log
@@ -204,6 +203,6 @@ Deno.serve(async (req) => {
     return json({ success: true, old_username: oldUsername, new_username: newUsername }, 200)
   } catch (e) {
     console.error('update-display-name unexpected error:', e)
-    return errorResponse('unexpected', 'Unexpected error. Please try again.', 500)
+    return errorResponse('unexpected', 500)
   }
 })

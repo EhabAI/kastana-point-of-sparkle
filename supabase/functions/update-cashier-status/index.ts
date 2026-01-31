@@ -5,6 +5,19 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+type ErrorCode = 'not_authorized' | 'missing_fields' | 'not_found' | 'unexpected'
+
+function json(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  })
+}
+
+function errorResponse(code: ErrorCode, status = 400) {
+  return json({ error: { code } }, status)
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -20,10 +33,7 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       console.error("No authorization header provided");
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('not_authorized', 401);
     }
 
     // Get the user from the token
@@ -32,10 +42,7 @@ Deno.serve(async (req) => {
     
     if (userError || !userData.user) {
       console.error("Invalid token:", userError);
-      return new Response(
-        JSON.stringify({ error: "Invalid token" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('not_authorized', 401);
     }
 
     const callerId = userData.user.id;
@@ -45,10 +52,7 @@ Deno.serve(async (req) => {
     const { role_id, is_active, restaurant_id } = await req.json();
 
     if (!role_id || is_active === undefined || !restaurant_id) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields: role_id, is_active, restaurant_id" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('missing_fields', 400);
     }
 
     console.log(`Updating cashier status: role_id=${role_id}, is_active=${is_active}, restaurant_id=${restaurant_id}`);
@@ -64,10 +68,7 @@ Deno.serve(async (req) => {
 
     if (callerRoleError || !callerRole) {
       console.error("Caller is not the owner of this restaurant:", callerRoleError);
-      return new Response(
-        JSON.stringify({ error: "Not authorized to manage cashiers for this restaurant" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('not_authorized', 403);
     }
 
     // Verify the target role belongs to this restaurant and is a cashier
@@ -81,10 +82,7 @@ Deno.serve(async (req) => {
 
     if (targetRoleError || !targetRole) {
       console.error("Target cashier not found:", targetRoleError);
-      return new Response(
-        JSON.stringify({ error: "Cashier not found in this restaurant" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('not_found', 404);
     }
 
     // Get cashier email for audit log
@@ -104,10 +102,7 @@ Deno.serve(async (req) => {
 
     if (updateError) {
       console.error("Failed to update cashier status:", updateError);
-      return new Response(
-        JSON.stringify({ error: "Failed to update cashier status" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('unexpected', 500);
     }
 
     console.log(`Cashier status updated successfully: ${previousStatus} -> ${is_active}`);
@@ -135,16 +130,10 @@ Deno.serve(async (req) => {
       console.log("Audit log entry created for CASHIER_STATUS_CHANGED");
     }
 
-    return new Response(
-      JSON.stringify({ success: true, is_active }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return json({ success: true, is_active }, 200);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Internal server error";
     console.error("Error in update-cashier-status:", errorMessage);
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return errorResponse('unexpected', 500);
   }
 });

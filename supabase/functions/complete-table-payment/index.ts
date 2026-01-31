@@ -6,11 +6,24 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+type ErrorCode = 'not_authorized' | 'missing_order_ids' | 'missing_payments' | 'invalid_payment_method' | 'invalid_amount' | 'orders_not_found' | 'orders_partial_not_found' | 'orders_not_open' | 'orders_multi_restaurant' | 'restaurant_mismatch' | 'card_overpayment' | 'underpayment' | 'race_condition' | 'payment_failed' | 'unexpected'
+
 // Helper: round to 3 decimals using HALF-UP (JOD standard)
 const roundJOD = (n: number): number => Math.round(n * 1000) / 1000;
 
 // Allowed payment methods (must match DB constraint)
 const ALLOWED_PAYMENT_METHODS = ["cash", "visa", "cliq", "zain_cash", "orange_money", "umniah_wallet"];
+
+function json(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  })
+}
+
+function errorResponse(code: ErrorCode, status = 400, details?: unknown) {
+  return json({ error: { code, details } }, status)
+}
 
 /**
  * complete-table-payment: Atomically pay multiple orders on a single table
@@ -33,10 +46,7 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       console.error("[complete-table-payment] Missing or invalid Authorization header");
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('not_authorized', 401);
     }
 
     // Create Supabase client with user's auth
@@ -51,10 +61,7 @@ Deno.serve(async (req) => {
     const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
     if (claimsError || !claimsData?.claims) {
       console.error("[complete-table-payment] JWT validation failed:", claimsError);
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('not_authorized', 401);
     }
 
     const userId = claimsData.claims.sub;
@@ -65,35 +72,23 @@ Deno.serve(async (req) => {
 
     if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
       console.error("[complete-table-payment] Missing or invalid orderIds");
-      return new Response(
-        JSON.stringify({ error: "Missing orderIds array" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('missing_order_ids', 400);
     }
 
     if (!payments || !Array.isArray(payments) || payments.length === 0) {
       console.error("[complete-table-payment] Missing or invalid payments");
-      return new Response(
-        JSON.stringify({ error: "Missing payments array" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('missing_payments', 400);
     }
 
     // Validate payment methods
     for (const payment of payments) {
       if (!ALLOWED_PAYMENT_METHODS.includes(payment.method)) {
         console.error("[complete-table-payment] Invalid payment method:", payment.method);
-        return new Response(
-          JSON.stringify({ error: `Invalid payment method: ${payment.method}` }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return errorResponse('invalid_payment_method', 400);
       }
       if (typeof payment.amount !== "number" || payment.amount <= 0) {
         console.error("[complete-table-payment] Invalid payment amount:", payment.amount);
-        return new Response(
-          JSON.stringify({ error: "Invalid payment amount" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return errorResponse('invalid_amount', 400);
       }
     }
 
@@ -113,10 +108,7 @@ Deno.serve(async (req) => {
 
     if (roleError || !userRole) {
       console.error("[complete-table-payment] User role validation failed:", roleError);
-      return new Response(
-        JSON.stringify({ error: "Access denied: requires cashier or owner role" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('not_authorized', 403);
     }
 
     console.log("[complete-table-payment] User role:", userRole.role);
@@ -129,19 +121,13 @@ Deno.serve(async (req) => {
 
     if (ordersError || !orders || orders.length === 0) {
       console.error("[complete-table-payment] Orders not found:", ordersError);
-      return new Response(
-        JSON.stringify({ error: "Orders not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('orders_not_found', 404);
     }
 
     // Verify all requested orders were found
     if (orders.length !== orderIds.length) {
       console.error("[complete-table-payment] Not all orders found:", { requested: orderIds.length, found: orders.length });
-      return new Response(
-        JSON.stringify({ error: "Some orders not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('orders_partial_not_found', 404);
     }
 
     // Validate all orders are in valid payment status
@@ -152,23 +138,14 @@ Deno.serve(async (req) => {
     const invalidOrders = orders.filter(o => !validPaymentStatuses.includes(o.status));
     if (invalidOrders.length > 0) {
       console.error("[complete-table-payment] Invalid status orders found:", invalidOrders.map(o => ({ id: o.id, status: o.status })));
-      return new Response(
-        JSON.stringify({ 
-          error: `Some orders are not open for payment.`,
-          details: invalidOrders.map(o => ({ order_number: o.order_number, status: o.status }))
-        }),
-        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('orders_not_open', 409, invalidOrders.map(o => ({ order_number: o.order_number, status: o.status })));
     }
 
     // Validate all orders belong to same restaurant
     const restaurantIds = [...new Set(orders.map(o => o.restaurant_id))];
     if (restaurantIds.length !== 1) {
       console.error("[complete-table-payment] Orders from multiple restaurants");
-      return new Response(
-        JSON.stringify({ error: "Orders must belong to same restaurant" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('orders_multi_restaurant', 400);
     }
 
     const restaurantId = restaurantIds[0];
@@ -185,10 +162,7 @@ Deno.serve(async (req) => {
       
       if (!restaurant) {
         console.error("[complete-table-payment] Owner restaurant not found");
-        return new Response(
-          JSON.stringify({ error: "Restaurant not found for owner" }),
-          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return errorResponse('restaurant_mismatch', 403);
       }
       userRestaurantId = restaurant.id;
     } else {
@@ -197,10 +171,7 @@ Deno.serve(async (req) => {
 
     if (restaurantId !== userRestaurantId) {
       console.error("[complete-table-payment] Restaurant mismatch");
-      return new Response(
-        JSON.stringify({ error: "Access denied: orders belong to different restaurant" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('restaurant_mismatch', 403);
     }
 
     // Step 4: Validate restaurant subscription is active
@@ -220,19 +191,13 @@ Deno.serve(async (req) => {
     // Card payments must be exact (no overpayment)
     if (!allCash && paymentTotal > combinedTotal + 0.001) {
       console.error("[complete-table-payment] Card overpayment not allowed");
-      return new Response(
-        JSON.stringify({ error: "Card payments must be exact. No overpayment allowed." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('card_overpayment', 400);
     }
 
     // Total payments must cover combined total
     if (paymentTotal < combinedTotal - 0.001) {
       console.error("[complete-table-payment] Underpayment:", { paymentTotal, combinedTotal });
-      return new Response(
-        JSON.stringify({ error: "Payment total is less than combined order total." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('underpayment', 400);
     }
 
     // Step 6: ATOMIC OPERATION - Update all orders to 'paid'
@@ -306,10 +271,7 @@ Deno.serve(async (req) => {
             .eq("id", prevOrder.id);
         }
         
-        return new Response(
-          JSON.stringify({ error: `Order #${order.order_number} is no longer open for payment. Table checkout aborted.` }),
-          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return errorResponse('race_condition', 409, { order_number: order.order_number });
       }
 
       updatedOrders.push(updatedOrder);
@@ -344,10 +306,7 @@ Deno.serve(async (req) => {
             .eq("id", updatedOrder.id);
         }
 
-        return new Response(
-          JSON.stringify({ error: "Failed to record payments" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return errorResponse('payment_failed', 500);
       }
     }
 
@@ -359,22 +318,16 @@ Deno.serve(async (req) => {
     });
 
     // Success response
-    return new Response(
-      JSON.stringify({
-        success: true,
-        orders: updatedOrders.map(o => ({ id: o.id, order_number: o.order_number })),
-        combinedTotal,
-        paymentTotal,
-        change: allCash && paymentTotal > combinedTotal ? roundJOD(paymentTotal - combinedTotal) : 0,
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return json({
+      success: true,
+      orders: updatedOrders.map(o => ({ id: o.id, order_number: o.order_number })),
+      combinedTotal,
+      paymentTotal,
+      change: allCash && paymentTotal > combinedTotal ? roundJOD(paymentTotal - combinedTotal) : 0,
+    }, 200);
 
   } catch (error) {
     console.error("[complete-table-payment] Unexpected error:", error);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return errorResponse('unexpected', 500);
   }
 });
