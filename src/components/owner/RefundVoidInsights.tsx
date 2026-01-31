@@ -2,6 +2,7 @@ import { ChevronDown, ReceiptText, Ban, Loader2, AlertTriangle, User } from "luc
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { startOfDay, endOfDay } from "date-fns";
 import { useState, forwardRef } from "react";
@@ -24,6 +25,7 @@ interface VoidReasonData {
 
 export const RefundVoidInsights = forwardRef<HTMLDivElement, object>(function RefundVoidInsights(_, ref) {
   const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
+  const { selectedBranch } = useBranchContextSafe();
   const { data: settings } = useOwnerRestaurantSettings();
   const { t, language } = useLanguage();
   const currencySymbol = language === "ar" ? "د.أ" : "JOD";
@@ -31,7 +33,7 @@ export const RefundVoidInsights = forwardRef<HTMLDivElement, object>(function Re
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: insightsData, isLoading } = useQuery({
-    queryKey: ["refund-void-insights", restaurant?.id],
+    queryKey: ["refund-void-insights", restaurant?.id, selectedBranch?.id],
     queryFn: async () => {
       if (!restaurant?.id) return null;
 
@@ -40,12 +42,18 @@ export const RefundVoidInsights = forwardRef<HTMLDivElement, object>(function Re
       const endOfToday = endOfDay(today).toISOString();
 
       // 1. Get today's refunds with order info
-      const { data: todayRefunds } = await supabase
+      let refundsQuery = supabase
         .from("refunds")
         .select("id, amount, order_id, created_at")
         .eq("restaurant_id", restaurant.id)
         .gte("created_at", startOfToday)
         .lt("created_at", endOfToday);
+
+      if (selectedBranch?.id) {
+        refundsQuery = refundsQuery.eq("branch_id", selectedBranch.id);
+      }
+
+      const { data: todayRefunds } = await refundsQuery;
 
       const refundCount = todayRefunds?.length || 0;
       const refundTotal = todayRefunds?.reduce((sum, r) => sum + Number(r.amount), 0) || 0;
@@ -113,13 +121,19 @@ export const RefundVoidInsights = forwardRef<HTMLDivElement, object>(function Re
         .sort((a, b) => b.refundCount - a.refundCount);
 
       // 3. Get voided orders today (cancelled or voided)
-      const { data: voidedOrders } = await supabase
+      let voidedOrdersQuery = supabase
         .from("orders")
         .select("id, status, cancelled_reason")
         .eq("restaurant_id", restaurant.id)
         .in("status", ["cancelled", "voided"])
         .gte("created_at", startOfToday)
         .lt("created_at", endOfToday);
+
+      if (selectedBranch?.id) {
+        voidedOrdersQuery = voidedOrdersQuery.eq("branch_id", selectedBranch.id);
+      }
+
+      const { data: voidedOrders } = await voidedOrdersQuery;
 
       const voidedOrderCount = voidedOrders?.length || 0;
 

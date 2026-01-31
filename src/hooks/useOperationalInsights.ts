@@ -148,13 +148,13 @@ function wasShownToday(insightType: InsightType): boolean {
 
 // ==================== MAIN HOOK ====================
 
-export function useOperationalInsights(restaurantId: string | undefined) {
+export function useOperationalInsights(restaurantId: string | undefined, branchId?: string) {
   const today = new Date();
   const todayStart = startOfDay(today).toISOString();
   const todayEnd = endOfDay(today).toISOString();
   
   return useQuery({
-    queryKey: ["operational-insights", restaurantId, format(today, "yyyy-MM-dd")],
+    queryKey: ["operational-insights", restaurantId, branchId, format(today, "yyyy-MM-dd")],
     queryFn: async (): Promise<InsightsResult> => {
       if (!restaurantId) {
         return { 

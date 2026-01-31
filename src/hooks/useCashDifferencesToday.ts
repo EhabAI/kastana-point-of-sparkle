@@ -23,9 +23,9 @@ export interface CashDifferencesTodayData {
  * Fetches cash differences for all closed shifts on a specific date
  * Used exclusively in Owner Dashboard
  */
-export function useCashDifferences(restaurantId: string | undefined, date: Date = new Date()) {
+export function useCashDifferences(restaurantId: string | undefined, date: Date = new Date(), branchId?: string) {
   return useQuery({
-    queryKey: ["cash-differences", restaurantId, format(date, "yyyy-MM-dd")],
+    queryKey: ["cash-differences", restaurantId, branchId, format(date, "yyyy-MM-dd")],
     queryFn: async (): Promise<CashDifferencesTodayData> => {
       if (!restaurantId) {
         return { rows: [], totalDifference: 0, closedShiftsCount: 0 };
@@ -35,7 +35,7 @@ export function useCashDifferences(restaurantId: string | undefined, date: Date 
       const dayEnd = endOfDay(date).toISOString();
 
       // Get all closed shifts on selected date with cashier profile
-      const { data: closedShifts, error: shiftsError } = await supabase
+      let shiftsQuery = supabase
         .from("shifts")
         .select(`
           id,
@@ -50,6 +50,12 @@ export function useCashDifferences(restaurantId: string | undefined, date: Date 
         .gte("closed_at", dayStart)
         .lt("closed_at", dayEnd)
         .order("closed_at", { ascending: false });
+
+      if (branchId) {
+        shiftsQuery = shiftsQuery.eq("branch_id", branchId);
+      }
+
+      const { data: closedShifts, error: shiftsError } = await shiftsQuery;
 
       if (shiftsError) {
         console.error("Error fetching closed shifts:", shiftsError);

@@ -5,6 +5,7 @@
  */
 
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { useOperationalInsights, INSIGHT_LABELS, InsightType } from "@/hooks/useOperationalInsights";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +17,8 @@ interface OperationalInsightsCardProps {
 
 export function OperationalInsightsCard({ restaurantId }: OperationalInsightsCardProps) {
   const { t, language } = useLanguage();
-  const { data: insightsData, isLoading } = useOperationalInsights(restaurantId);
+  const { selectedBranch } = useBranchContextSafe();
+  const { data: insightsData, isLoading } = useOperationalInsights(restaurantId, selectedBranch?.id);
   
   // Don't show anything during loading or if no data
   if (isLoading || !insightsData) return null;
