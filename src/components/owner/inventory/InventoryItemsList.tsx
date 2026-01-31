@@ -21,11 +21,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useInventoryItems, InventoryItem } from "@/hooks/useInventoryItems";
-import { Search, Package, Download, Upload, Edit2, History, AlertTriangle } from "lucide-react";
+import { useInventoryItems, useDeleteInventoryItem, InventoryItem } from "@/hooks/useInventoryItems";
+import { Search, Package, Download, Upload, Edit2, History, AlertTriangle, Trash2, Loader2 } from "lucide-react";
 import { EditItemDialog } from "./EditItemDialog";
 import { ItemTransactionsDialog } from "./ItemTransactionsDialog";
 import { InventoryCSVImport } from "./InventoryCSVImport";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface InventoryItemsListProps {
   restaurantId: string;
@@ -34,7 +45,9 @@ interface InventoryItemsListProps {
 
 export function InventoryItemsList({ restaurantId, isReadOnly = false }: InventoryItemsListProps) {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const { data: items = [], isLoading } = useInventoryItems(restaurantId);
+  const deleteItem = useDeleteInventoryItem();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
@@ -42,6 +55,19 @@ export function InventoryItemsList({ restaurantId, isReadOnly = false }: Invento
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [viewingTransactions, setViewingTransactions] = useState<InventoryItem | null>(null);
   const [showImport, setShowImport] = useState(false);
+  const [deletingItem, setDeletingItem] = useState<InventoryItem | null>(null);
+
+  const handleDeleteItem = async () => {
+    if (!deletingItem) return;
+    
+    try {
+      await deleteItem.mutateAsync(deletingItem.id);
+      toast({ title: t("inv_item_deleted") });
+      setDeletingItem(null);
+    } catch {
+      toast({ title: t("error_unexpected"), variant: "destructive" });
+    }
+  };
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
@@ -233,6 +259,16 @@ export function InventoryItemsList({ restaurantId, isReadOnly = false }: Invento
                             >
                               <History className="h-4 w-4" />
                             </Button>
+                            {!isReadOnly && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => setDeletingItem(item)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -278,6 +314,29 @@ export function InventoryItemsList({ restaurantId, isReadOnly = false }: Invento
           onOpenChange={setShowImport}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletingItem} onOpenChange={(open) => !open && setDeletingItem(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("inv_delete_item_title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("inv_delete_item_desc")} <strong>{deletingItem?.name}</strong>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteItem}
+              disabled={deleteItem.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteItem.isPending && <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" />}
+              {t("delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

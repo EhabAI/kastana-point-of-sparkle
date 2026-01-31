@@ -128,6 +128,7 @@ export function useUpdateInventoryItem() {
       queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
       queryClient.invalidateQueries({ queryKey: ["low-stock-items"] });
       queryClient.invalidateQueries({ queryKey: ["near-reorder-items"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-alerts"] });
     },
   });
 }
@@ -214,6 +215,47 @@ export function useCreateInventoryItem() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
+    },
+  });
+}
+
+export function useDeleteInventoryItem() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (itemId: string) => {
+      // First delete related stock levels
+      await supabase
+        .from("inventory_stock_levels")
+        .delete()
+        .eq("item_id", itemId);
+
+      // Delete related transactions
+      await supabase
+        .from("inventory_transactions")
+        .delete()
+        .eq("item_id", itemId);
+
+      // Delete related recipe lines
+      await supabase
+        .from("menu_item_recipe_lines")
+        .delete()
+        .eq("inventory_item_id", itemId);
+
+      // Finally delete the item itself
+      const { error } = await supabase
+        .from("inventory_items")
+        .delete()
+        .eq("id", itemId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
+      queryClient.invalidateQueries({ queryKey: ["low-stock-items"] });
+      queryClient.invalidateQueries({ queryKey: ["near-reorder-items"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-alerts"] });
+      queryClient.invalidateQueries({ queryKey: ["recipes"] });
     },
   });
 }
