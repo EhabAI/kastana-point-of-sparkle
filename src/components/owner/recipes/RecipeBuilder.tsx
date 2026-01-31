@@ -378,8 +378,17 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
   );
   const hasUnresolvedConflicts = unresolvedConflicts.length > 0;
   
-  // Allow import if there are valid rows AND no unresolved conflicts
-  const canImport = validRowsCount > 0 && !hasUnresolvedConflicts;
+  // Check for missing menu items in preview (before import)
+  const previewMissingMenuItems = parsedRows.filter(
+    (r) => !r.isValid && r.error === t("csv_error_menu_item_not_found")
+  );
+  const hasPreviewMissingMenuItems = previewMissingMenuItems.length > 0;
+  
+  // Check if there are any unresolved errors that block import
+  const hasUnresolvedErrors = invalidRowsCount > 0;
+  
+  // Allow import if there are valid rows AND no unresolved errors
+  const canImport = validRowsCount > 0 && !hasUnresolvedErrors;
 
   // Helper to normalize keys for conflict resolution reuse
   const getConflictKey = (menuItemName: string, ingredientName: string): string => {
@@ -411,10 +420,10 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
 
   // Error priority for sorting (lower = higher priority)
   const getErrorPriority = (row: ParsedRecipeRow): number => {
-    if (row.isValid || row.resolved_inventory_item_id) return 3; // Valid rows last
-    if (row.error === t("csv_error_menu_item_not_found")) return 1; // Menu not found first
+    if (row.isValid || row.resolved_inventory_item_id) return 4; // Valid rows last
+    if (row.error === t("csv_error_menu_item_not_found")) return 1; // Menu not found first (highest priority)
     if (row.conflicting_inventory_items && row.conflicting_inventory_items.length > 0) return 2; // Conflicts second
-    return 2.5; // Other errors
+    return 3; // Other errors third
   };
 
   // Sorted rows for preview display (original order preserved in parsedRows)
@@ -450,12 +459,67 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
     return firstResolved?.rowIndex !== row.rowIndex;
   };
 
-  // Export missing menu items as Menu-compatible CSV (deduplicated, case-insensitive)
+  // Export missing menu items from PREVIEW (parsedRows) as Menu-compatible CSV
+  const handleExportMissingMenuItemsFromPreview = useCallback(() => {
+    if (parsedRows.length === 0) return;
+    
+    // Filter unique menu item names that have error "menu item not found"
+    const seenNormalized = new Set<string>();
+    const missingItems: string[] = [];
+    
+    parsedRows.forEach((row) => {
+      if (!row.isValid && row.error === t("csv_error_menu_item_not_found") && row.menu_item_name) {
+        const normalized = row.menu_item_name.toLowerCase().trim();
+        if (!seenNormalized.has(normalized)) {
+          seenNormalized.add(normalized);
+          missingItems.push(row.menu_item_name.trim()); // Keep original casing
+        }
+      }
+    });
+    
+    if (missingItems.length === 0) return;
+    
+    // Generate Menu-compatible CSV format with Arabic columns first
+    const csvRows: string[] = [];
+    csvRows.push("category_ar,category_en,item_ar,item_en,price");
+    
+    const escapeCSV = (val: string) => {
+      if (val.includes(",") || val.includes('"') || val.includes("\n")) {
+        return `"${val.replace(/"/g, '""')}"`;
+      }
+      return val;
+    };
+    
+    missingItems.forEach((itemName) => {
+      const categoryAr = "عام";
+      const categoryEn = "General";
+      const itemAr = itemName;
+      const itemEn = itemName;
+      const price = "0";
+      
+      csvRows.push([
+        escapeCSV(categoryAr),
+        escapeCSV(categoryEn),
+        escapeCSV(itemAr),
+        escapeCSV(itemEn),
+        price
+      ].join(","));
+    });
+    
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `missing_menu_items_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }, [parsedRows, t]);
+
+  // Export missing menu items from RESULT (importResult) as Menu-compatible CSV (post-import)
   const handleExportMissingMenuItems = useCallback(() => {
     if (!importResult) return;
     
     // Filter unique menu item names that failed due to "menu_item_not_found"
-    // Use case-insensitive, trimmed normalization for deduplication
     const seenNormalized = new Set<string>();
     const missingItems: string[] = [];
     
@@ -471,12 +535,10 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
     
     if (missingItems.length === 0) return;
     
-    // Generate Menu-compatible CSV format
-    // Columns: category_en, category_ar, item_en, item_ar, price
+    // Generate Menu-compatible CSV format with Arabic columns first
     const csvRows: string[] = [];
-    csvRows.push("category_en,category_ar,item_en,item_ar,price");
+    csvRows.push("category_ar,category_en,item_ar,item_en,price");
     
-    // Escape values that might contain commas or quotes
     const escapeCSV = (val: string) => {
       if (val.includes(",") || val.includes('"') || val.includes("\n")) {
         return `"${val.replace(/"/g, '""')}"`;
@@ -485,18 +547,17 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
     };
     
     missingItems.forEach((itemName) => {
-      // Default values per requirements
-      const categoryEn = "Uncategorized";
-      const categoryAr = "غير مصنف";
-      const itemEn = itemName;
+      const categoryAr = "عام";
+      const categoryEn = "General";
       const itemAr = itemName;
+      const itemEn = itemName;
       const price = "0";
       
       csvRows.push([
-        escapeCSV(categoryEn),
         escapeCSV(categoryAr),
-        escapeCSV(itemEn),
+        escapeCSV(categoryEn),
         escapeCSV(itemAr),
+        escapeCSV(itemEn),
         price
       ].join(","));
     });
@@ -871,7 +932,31 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
                 </div>
               </div>
 
-              {invalidRowsCount > 0 && (
+              {/* Missing Menu Items Warning Banner */}
+              {hasPreviewMissingMenuItems && (
+                <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg space-y-3">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm text-amber-700 dark:text-amber-400 font-medium">
+                        {t("csv_missing_menu_items_banner")}
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleExportMissingMenuItemsFromPreview}
+                    className="gap-2 w-full sm:w-auto border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30"
+                  >
+                    <Download className="h-4 w-4" />
+                    {t("csv_export_missing_menu_items_btn")}
+                  </Button>
+                </div>
+              )}
+
+              {/* General invalid rows warning - only show if there are non-menu-item errors */}
+              {invalidRowsCount > 0 && !hasPreviewMissingMenuItems && (
                 <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg flex items-center gap-2 text-amber-700 dark:text-amber-400">
                   <AlertCircle className="h-5 w-5 shrink-0" />
                   <span className="text-sm">{t("csv_invalid_rows_warning")}</span>
@@ -976,7 +1061,7 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
                   <ArrowLeft className="h-4 w-4" />
                   {t("back")}
                 </Button>
-                {hasUnresolvedConflicts ? (
+                {hasUnresolvedErrors ? (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -990,7 +1075,7 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
                         </span>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>{t("csv_resolve_conflicts_tooltip")}</p>
+                        <p>{t("csv_resolve_all_errors_tooltip")}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

@@ -8,6 +8,9 @@ export default {
   csv_row_successful: "نجاح",
   export_missing_menu_items: "تصدير الأصناف الناقصة",
   export_missing_menu_items_hint: "يمكنك رفع هذا الملف مباشرة في شاشة القائمة، ثم تعديل التصنيفات والأسعار لاحقًا.",
+  csv_missing_menu_items_banner: "تم العثور على أصناف غير موجودة في القائمة. يمكنك تصديرها وإضافتها للقائمة.",
+  csv_export_missing_menu_items_btn: "تصدير الأصناف غير الموجودة (CSV)",
+  csv_resolve_all_errors_tooltip: "يرجى حل جميع الأخطاء أو إضافة الأصناف الناقصة أولاً",
   // Brand name - centralized localization
   brandName: 'كاستنا',
   brandNameFull: 'كاستنا POS',
