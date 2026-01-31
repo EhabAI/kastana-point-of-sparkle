@@ -18,6 +18,7 @@ export interface TrainingStep {
   message: { ar: string; en: string };
   highlights?: string[]; // CSS selectors for light highlights
   actions?: TrainingAction[];
+  isInventoryStep?: boolean; // Special flag for state-aware inventory step rendering
 }
 
 export interface TrainingAction {
@@ -251,7 +252,7 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
     },
 
     // ============================================
-    // STAGE 5 - Inventory Management (50% → 58%) - Explanation only
+    // STAGE 5 - Inventory Management (50% → 58%) - Decision-oriented explanation
     // ============================================
     {
       id: "gs_inventory_intro",
@@ -259,8 +260,8 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
       progressStart: 50,
       progressEnd: 53,
       message: {
-        ar: "إدارة المخزون تساعدك على متابعة الكميات والتكلفة 📦",
-        en: "Inventory management helps you track quantities and costs 📦"
+        ar: "📦 إدارة المخزون (اختياري)\n\nإدارة المخزون في كاستنا تساعدك على متابعة الكميات المتوفرة، معرفة ما ينقص قبل نفاده، وربط الأصناف بالمكونات لتتبع التكلفة الفعلية.",
+        en: "📦 Inventory Management (Optional)\n\nInventory management in Kastana helps you track available quantities, know shortages before running out, and link items to ingredients for actual cost tracking."
       },
       actions: [
         { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
@@ -271,12 +272,17 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
       trackId: "getting_started",
       progressStart: 53,
       progressEnd: 58,
+      // This step has special state-aware content - see OwnerTrainingPanel
+      // The message below is a fallback; the panel will show dynamic content
       message: {
-        ar: "إذا كانت إدارة المخزون مفعّلة لمطعمك:\n• يمكنك تتبع الكميات\n• معرفة النقص\n• ربط الأصناف بالمخزون\n\nأما إذا لم تكن مفعّلة:\n• يمكنك تشغيل مطعمك بشكل طبيعي بدون مخزون\n• ويمكن تفعيلها لاحقًا عند الحاجة",
-        en: "If inventory management is enabled:\n• Track quantities\n• Know shortages\n• Link items to inventory\n\nIf not enabled:\n• You can run your restaurant normally without inventory\n• It can be enabled later when needed"
+        ar: "✅ إذا كانت إدارة المخزون مفعّلة:\n• متابعة الكميات المتوفرة لكل صنف\n• الكشف المبكر عن النقص قبل نفاد المخزون\n• ربط أصناف القائمة بمكونات المخزون\n• مراجعة حركات المخزون والتقارير\n\n❌ إذا كانت إدارة المخزون غير مفعّلة:\n• النظام يعمل بشكل طبيعي بدون تتبع المخزون\n• لن يتم حجب أي صنف بسبب الكمية\n• مناسب للمطاعم الصغيرة أو العمليات البسيطة\n• يمكن تفعيل المخزون لاحقًا في أي وقت\n\n💡 تفعيل إدارة المخزون قرار إداري وليس إلزاميًا لبدء العمل على النظام.",
+        en: "✅ If Inventory Management is ENABLED:\n• Track available quantities for each item\n• Early detection of shortages before stock runs out\n• Link menu items to inventory ingredients\n• Review inventory movements and reports\n\n❌ If Inventory Management is DISABLED:\n• System works normally without inventory tracking\n• No items will be blocked due to quantity\n• Suitable for small restaurants or simple operations\n• Inventory can be enabled later at any time\n\n💡 Enabling inventory management is an administrative decision and is not mandatory to start using the system."
       },
+      // Special flag for state-aware rendering in OwnerTrainingPanel
+      isInventoryStep: true,
       actions: [
-        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+        { id: "go_inventory", label: { ar: "الانتقال إلى إدارة المخزون", en: "Go to Inventory" }, type: "navigate", navigateTo: "inventory" },
+        { id: "skip_inventory", label: { ar: "تخطي هذه الخطوة", en: "Skip this step" }, type: "next" }
       ]
     },
 
