@@ -1,150 +1,404 @@
-// Kastana POS - Owner Training Flow Engine
-// Lightweight, rule-based guided training for first-time owners
-// NOT AI-driven - simple step progression with optional navigation
+// Kastana POS - Owner Training Flow Engine (Multi-Track)
+// Rule-based progressive training with automatic track triggers
+// NOT AI-driven - systematic guidance through multiple phases
 
-export type OwnerTrainingStepId = 
-  | "welcome" 
-  | "dashboard_overview" 
-  | "suggest_settings"
-  | "settings_guide"
-  | "completed";
+// ============================================
+// TYPE DEFINITIONS
+// ============================================
 
-export interface OwnerTrainingStep {
-  id: OwnerTrainingStepId;
-  progressStart: number;
+export type TrackId = "getting_started" | "daily_operations" | "insights_reports" | "management_expansion";
+
+export type StepId = string;
+
+export interface TrainingStep {
+  id: StepId;
+  trackId: TrackId;
+  progressStart: number; // Progress within the track (0-100)
   progressEnd: number;
   message: { ar: string; en: string };
   highlights?: string[]; // CSS selectors for light highlights
-  actions?: OwnerTrainingAction[];
+  actions?: TrainingAction[];
 }
 
-export interface OwnerTrainingAction {
+export interface TrainingAction {
   id: string;
   label: { ar: string; en: string };
-  type: "navigate" | "skip" | "next" | "finish";
-  navigateTo?: string; // Route to navigate to
+  type: "navigate" | "skip" | "next" | "finish" | "finish_track";
+  navigateTo?: string;
+}
+
+export interface TrainingTrack {
+  id: TrackId;
+  name: { ar: string; en: string };
+  description: { ar: string; en: string };
+  triggerType: "auto" | "manual" | "conditional";
+  triggerCondition?: string; // Description of trigger condition
+  steps: TrainingStep[];
+  completionMessage: { ar: string; en: string };
+}
+
+export interface OwnerTrainingProgress {
+  // Track completion status
+  completedTracks: TrackId[];
+  currentTrackId: TrackId | null;
+  currentStepId: StepId | null;
+  
+  // Per-track progress (0-100)
+  trackProgress: Partial<Record<TrackId, number>>;
+  
+  // State flags
+  isPaused: boolean;
+  isFullyCompleted: boolean;
+  
+  // Timestamps for trigger conditions
+  firstLoginAt: number | null;
+  firstShiftOpenedAt: number | null;
+  firstOrderCreatedAt: number | null;
+  
+  // Last update
+  lastUpdated: number;
 }
 
 // ============================================
-// TRAINING STEPS DEFINITION
+// TRAINING TRACKS DEFINITION
 // ============================================
 
-export const OWNER_TRAINING_STEPS: OwnerTrainingStep[] = [
-  // Step 1: Welcome (0% → 5%)
-  {
-    id: "welcome",
-    progressStart: 0,
-    progressEnd: 5,
-    message: {
-      ar: "أهلاً بك في كاستنا 👋\n\nخلّينا نراجع لوحة التحكم بسرعة حتى تتعرّف على أهم المعلومات.",
-      en: "Welcome to Kastana 👋\n\nLet's quickly walk through your dashboard."
-    },
-    actions: [
-      {
-        id: "continue",
-        label: { ar: "التالي", en: "Next" },
-        type: "next"
-      }
-    ]
-  },
-  
-  // Step 2: Dashboard Explanation (5% → 10%)
-  {
-    id: "dashboard_overview",
-    progressStart: 5,
-    progressEnd: 10,
-    message: {
-      ar: "هنا تشاهد حالة مطعمك اليوم: المبيعات، الطلبات، العروض، والتنبيهات المهمة.",
-      en: "Here you can see your restaurant's daily status: sales, orders, offers, and alerts."
-    },
-    highlights: [
-      "[data-trainer='daily-summary']",
-      "[data-trainer='offers-status']",
-      "[data-trainer='notifications-alerts']"
-    ],
-    actions: [
-      {
-        id: "continue",
-        label: { ar: "التالي", en: "Next" },
-        type: "next"
-      }
-    ]
-  },
-  
-  // Step 3: Smart Guidance - Suggest Settings (stays at 10%)
-  {
-    id: "suggest_settings",
-    progressStart: 10,
-    progressEnd: 10,
-    message: {
-      ar: "الخطوة المقترحة التالية هي التأكد من الإعدادات الأساسية لمطعمك.",
-      en: "The recommended next step is to review your restaurant's basic settings."
-    },
-    actions: [
-      {
-        id: "go_settings",
-        label: { ar: "الذهاب إلى الإعدادات", en: "Go to Settings" },
-        type: "navigate",
-        navigateTo: "settings"
+const TRACK_GETTING_STARTED: TrainingTrack = {
+  id: "getting_started",
+  name: { ar: "البداية", en: "Getting Started" },
+  description: { ar: "تعرف على لوحة التحكم والإعدادات الأساسية", en: "Learn the dashboard and basic settings" },
+  triggerType: "auto",
+  steps: [
+    {
+      id: "gs_welcome",
+      trackId: "getting_started",
+      progressStart: 0,
+      progressEnd: 20,
+      message: {
+        ar: "أهلاً بك في كاستنا 👋\n\nخلّينا نراجع لوحة التحكم بسرعة حتى تتعرّف على أهم المعلومات.",
+        en: "Welcome to Kastana 👋\n\nLet's quickly walk through your dashboard."
       },
-      {
-        id: "skip",
-        label: { ar: "تخطي الآن", en: "Skip for now" },
-        type: "skip"
-      }
-    ]
-  },
-  
-  // Step 4: Settings Guide (10% → 20%)
-  {
-    id: "settings_guide",
-    progressStart: 10,
-    progressEnd: 20,
-    message: {
-      ar: "ممتاز 👍\n\nتأكد من العملة، الضريبة، وساعات العمل. هذه الإعدادات تُضبط مرة واحدة فقط.",
-      en: "Great 👍\n\nMake sure currency, tax, and business hours are correct. These are usually set once."
+      actions: [
+        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+      ]
     },
-    actions: [
-      {
-        id: "finish",
-        label: { ar: "فهمت", en: "Got it" },
-        type: "finish"
-      }
-    ]
-  },
-  
-  // Step 5: Completed (hidden step - marks completion)
-  {
-    id: "completed",
-    progressStart: 20,
-    progressEnd: 20,
-    message: {
-      ar: "تم! يمكنك دائماً العودة للمدرب للمزيد من المساعدة.",
-      en: "Done! You can always return to the trainer for more help."
+    {
+      id: "gs_dashboard",
+      trackId: "getting_started",
+      progressStart: 20,
+      progressEnd: 40,
+      message: {
+        ar: "هنا تشاهد حالة مطعمك اليوم: المبيعات، الطلبات، العروض، والتنبيهات المهمة.",
+        en: "Here you can see your restaurant's daily status: sales, orders, offers, and alerts."
+      },
+      highlights: [
+        "[data-trainer='daily-summary']",
+        "[data-trainer='offers-status']",
+        "[data-trainer='notifications-alerts']"
+      ],
+      actions: [
+        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+      ]
+    },
+    {
+      id: "gs_suggest_settings",
+      trackId: "getting_started",
+      progressStart: 40,
+      progressEnd: 60,
+      message: {
+        ar: "الخطوة المقترحة التالية هي التأكد من الإعدادات الأساسية لمطعمك.",
+        en: "The recommended next step is to review your restaurant's basic settings."
+      },
+      actions: [
+        { id: "go_settings", label: { ar: "الذهاب إلى الإعدادات", en: "Go to Settings" }, type: "navigate", navigateTo: "settings" },
+        { id: "skip_settings", label: { ar: "تخطي الآن", en: "Skip for now" }, type: "next" }
+      ]
+    },
+    {
+      id: "gs_settings_guide",
+      trackId: "getting_started",
+      progressStart: 60,
+      progressEnd: 80,
+      message: {
+        ar: "ممتاز 👍\n\nتأكد من العملة، الضريبة، وساعات العمل. هذه الإعدادات تُضبط مرة واحدة فقط.",
+        en: "Great 👍\n\nMake sure currency, tax, and business hours are correct. These are usually set once."
+      },
+      actions: [
+        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+      ]
+    },
+    {
+      id: "gs_complete",
+      trackId: "getting_started",
+      progressStart: 80,
+      progressEnd: 100,
+      message: {
+        ar: "تم إكمال مرحلة البداية بنجاح ✅\n\nأنت الآن جاهز لبدء العمل على النظام.",
+        en: "Getting Started completed ✅\n\nYou are now ready to start using the system."
+      },
+      actions: [
+        { id: "finish", label: { ar: "تم", en: "Done" }, type: "finish_track" }
+      ]
     }
+  ],
+  completionMessage: {
+    ar: "تم إكمال مرحلة البداية بنجاح ✅",
+    en: "Getting Started completed ✅"
   }
+};
+
+const TRACK_DAILY_OPERATIONS: TrainingTrack = {
+  id: "daily_operations",
+  name: { ar: "العمليات اليومية", en: "Daily Operations" },
+  description: { ar: "تعلم كيفية متابعة العمل اليومي", en: "Learn how to monitor daily work" },
+  triggerType: "conditional",
+  triggerCondition: "first_shift_or_order_or_24h",
+  steps: [
+    {
+      id: "do_intro",
+      trackId: "daily_operations",
+      progressStart: 0,
+      progressEnd: 20,
+      message: {
+        ar: "مرحباً بك في مرحلة العمليات اليومية! 📊\n\nسنتعرف الآن على كيفية متابعة الطلبات والمبيعات.",
+        en: "Welcome to Daily Operations! 📊\n\nLet's learn how to monitor orders and sales."
+      },
+      actions: [
+        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+      ]
+    },
+    {
+      id: "do_menu_overview",
+      trackId: "daily_operations",
+      progressStart: 20,
+      progressEnd: 40,
+      message: {
+        ar: "من صفحة القائمة يمكنك إدارة الأصناف والأسعار والتصنيفات.\n\nكل تغيير ينعكس فوراً على نقاط البيع.",
+        en: "From the Menu page you can manage items, prices, and categories.\n\nEvery change reflects immediately on POS."
+      },
+      actions: [
+        { id: "go_menu", label: { ar: "عرض القائمة", en: "View Menu" }, type: "navigate", navigateTo: "menu" },
+        { id: "skip", label: { ar: "تخطي", en: "Skip" }, type: "next" }
+      ]
+    },
+    {
+      id: "do_pos_overview",
+      trackId: "daily_operations",
+      progressStart: 40,
+      progressEnd: 60,
+      message: {
+        ar: "نقاط البيع (POS) هي المكان الذي يعمل منه الكاشير.\n\nيمكنك متابعة الطلبات المفتوحة وحالة الورديات من لوحة التحكم.",
+        en: "Point of Sale (POS) is where cashiers work.\n\nYou can monitor open orders and shift status from the dashboard."
+      },
+      actions: [
+        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+      ]
+    },
+    {
+      id: "do_monitoring",
+      trackId: "daily_operations",
+      progressStart: 60,
+      progressEnd: 80,
+      message: {
+        ar: "كمالك، يمكنك متابعة:\n• المبيعات اليومية\n• حالة الورديات\n• فروقات الكاش\n• أداء الموظفين",
+        en: "As an owner, you can monitor:\n• Daily sales\n• Shift status\n• Cash differences\n• Staff performance"
+      },
+      actions: [
+        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+      ]
+    },
+    {
+      id: "do_complete",
+      trackId: "daily_operations",
+      progressStart: 80,
+      progressEnd: 100,
+      message: {
+        ar: "أنت الآن تفهم أساسيات العمليات اليومية! 🎯\n\nتابع عملك بثقة.",
+        en: "You now understand daily operations basics! 🎯\n\nContinue working with confidence."
+      },
+      actions: [
+        { id: "finish", label: { ar: "تم", en: "Done" }, type: "finish_track" }
+      ]
+    }
+  ],
+  completionMessage: {
+    ar: "تم إكمال مرحلة العمليات اليومية ✅",
+    en: "Daily Operations completed ✅"
+  }
+};
+
+const TRACK_INSIGHTS_REPORTS: TrainingTrack = {
+  id: "insights_reports",
+  name: { ar: "التحليلات والتقارير", en: "Insights & Reports" },
+  description: { ar: "تعلم قراءة الأرقام والتقارير", en: "Learn to read numbers and reports" },
+  triggerType: "conditional",
+  triggerCondition: "reports_data_available",
+  steps: [
+    {
+      id: "ir_intro",
+      trackId: "insights_reports",
+      progressStart: 0,
+      progressEnd: 25,
+      message: {
+        ar: "حان وقت فهم الأرقام! 📈\n\nسنتعلم كيفية قراءة التقارير والتحليلات.",
+        en: "Time to understand the numbers! 📈\n\nLet's learn how to read reports and analytics."
+      },
+      actions: [
+        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+      ]
+    },
+    {
+      id: "ir_analytics",
+      trackId: "insights_reports",
+      progressStart: 25,
+      progressEnd: 50,
+      message: {
+        ar: "صفحة التحليلات تُظهر:\n• رسوم بيانية للمبيعات\n• الأصناف الأكثر مبيعاً\n• مقارنات زمنية",
+        en: "Analytics page shows:\n• Sales charts\n• Best-selling items\n• Time comparisons"
+      },
+      actions: [
+        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+      ]
+    },
+    {
+      id: "ir_reports",
+      trackId: "insights_reports",
+      progressStart: 50,
+      progressEnd: 75,
+      message: {
+        ar: "التقارير تُقدم بيانات مفصّلة عن:\n• الإيرادات والمصروفات\n• أداء الموظفين\n• حركة المخزون",
+        en: "Reports provide detailed data on:\n• Revenue and expenses\n• Staff performance\n• Inventory movement"
+      },
+      actions: [
+        { id: "go_reports", label: { ar: "عرض التقارير", en: "View Reports" }, type: "navigate", navigateTo: "reports" },
+        { id: "skip", label: { ar: "تخطي", en: "Skip" }, type: "next" }
+      ]
+    },
+    {
+      id: "ir_complete",
+      trackId: "insights_reports",
+      progressStart: 75,
+      progressEnd: 100,
+      message: {
+        ar: "ممتاز! أنت الآن تستطيع قراءة وفهم التقارير. 📊\n\nاستخدمها لاتخاذ قرارات أفضل.",
+        en: "Excellent! You can now read and understand reports. 📊\n\nUse them to make better decisions."
+      },
+      actions: [
+        { id: "finish", label: { ar: "تم", en: "Done" }, type: "finish_track" }
+      ]
+    }
+  ],
+  completionMessage: {
+    ar: "تم إكمال مرحلة التحليلات والتقارير ✅",
+    en: "Insights & Reports completed ✅"
+  }
+};
+
+const TRACK_MANAGEMENT_EXPANSION: TrainingTrack = {
+  id: "management_expansion",
+  name: { ar: "الإدارة والتوسع", en: "Management & Expansion" },
+  description: { ar: "الفروع والموظفين والصلاحيات", en: "Branches, staff, and permissions" },
+  triggerType: "manual",
+  steps: [
+    {
+      id: "me_intro",
+      trackId: "management_expansion",
+      progressStart: 0,
+      progressEnd: 20,
+      message: {
+        ar: "مرحباً بك في مرحلة الإدارة المتقدمة! 🏢\n\nستتعلم هنا إدارة الفروع والموظفين.",
+        en: "Welcome to Advanced Management! 🏢\n\nYou'll learn to manage branches and staff here."
+      },
+      actions: [
+        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+      ]
+    },
+    {
+      id: "me_branches",
+      trackId: "management_expansion",
+      progressStart: 20,
+      progressEnd: 40,
+      message: {
+        ar: "من إدارة الفروع يمكنك:\n• إضافة فروع جديدة\n• تعديل بيانات الفروع\n• تفعيل أو إيقاف فرع",
+        en: "From Branches management you can:\n• Add new branches\n• Edit branch details\n• Enable or disable a branch"
+      },
+      actions: [
+        { id: "go_branches", label: { ar: "عرض الفروع", en: "View Branches" }, type: "navigate", navigateTo: "branches" },
+        { id: "skip", label: { ar: "تخطي", en: "Skip" }, type: "next" }
+      ]
+    },
+    {
+      id: "me_staff",
+      trackId: "management_expansion",
+      progressStart: 40,
+      progressEnd: 60,
+      message: {
+        ar: "من إدارة الموظفين يمكنك:\n• إضافة كاشير أو طاهٍ\n• تعيين الأدوار والصلاحيات\n• ربط الموظف بفرع معين",
+        en: "From Staff management you can:\n• Add cashier or kitchen staff\n• Assign roles and permissions\n• Link staff to specific branch"
+      },
+      actions: [
+        { id: "go_staff", label: { ar: "عرض الموظفين", en: "View Staff" }, type: "navigate", navigateTo: "staff" },
+        { id: "skip", label: { ar: "تخطي", en: "Skip" }, type: "next" }
+      ]
+    },
+    {
+      id: "me_advanced_settings",
+      trackId: "management_expansion",
+      progressStart: 60,
+      progressEnd: 80,
+      message: {
+        ar: "الإعدادات المتقدمة تشمل:\n• طرق الدفع لكل فرع\n• إعدادات الخصومات\n• المخزون والوصفات",
+        en: "Advanced settings include:\n• Payment methods per branch\n• Discount settings\n• Inventory and recipes"
+      },
+      actions: [
+        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+      ]
+    },
+    {
+      id: "me_complete",
+      trackId: "management_expansion",
+      progressStart: 80,
+      progressEnd: 100,
+      message: {
+        ar: "أنت الآن مستعد لإدارة مطعمك بالكامل! 🎉\n\nتم إكمال جميع مراحل التدريب.",
+        en: "You're now ready to fully manage your restaurant! 🎉\n\nAll training tracks completed."
+      },
+      actions: [
+        { id: "finish", label: { ar: "إنهاء التدريب", en: "Finish Training" }, type: "finish_track" }
+      ]
+    }
+  ],
+  completionMessage: {
+    ar: "تم إكمال مرحلة الإدارة والتوسع ✅",
+    en: "Management & Expansion completed ✅"
+  }
+};
+
+// All tracks in order
+export const TRAINING_TRACKS: TrainingTrack[] = [
+  TRACK_GETTING_STARTED,
+  TRACK_DAILY_OPERATIONS,
+  TRACK_INSIGHTS_REPORTS,
+  TRACK_MANAGEMENT_EXPANSION
 ];
 
 // ============================================
 // LOCAL STORAGE - PROGRESS PERSISTENCE
 // ============================================
 
-const OWNER_TRAINING_KEY = "kastana_owner_training_progress";
-
-export interface OwnerTrainingProgress {
-  currentStepId: OwnerTrainingStepId | null;
-  completed: boolean;
-  paused: boolean;
-  progressPercent: number;
-  lastUpdated: number;
-}
+const OWNER_TRAINING_KEY = "kastana_owner_training_v2";
 
 function getDefaultProgress(): OwnerTrainingProgress {
   return {
+    completedTracks: [],
+    currentTrackId: null,
     currentStepId: null,
-    completed: false,
-    paused: false,
-    progressPercent: 0,
+    trackProgress: {},
+    isPaused: false,
+    isFullyCompleted: false,
+    firstLoginAt: null,
+    firstShiftOpenedAt: null,
+    firstOrderCreatedAt: null,
     lastUpdated: Date.now()
   };
 }
@@ -167,150 +421,394 @@ function saveOwnerTrainingProgress(progress: OwnerTrainingProgress): void {
 }
 
 // ============================================
+// TRACK & STEP HELPERS
+// ============================================
+
+export function getTrack(trackId: TrackId): TrainingTrack | null {
+  return TRAINING_TRACKS.find(t => t.id === trackId) || null;
+}
+
+export function getStep(trackId: TrackId, stepId: StepId): TrainingStep | null {
+  const track = getTrack(trackId);
+  if (!track) return null;
+  return track.steps.find(s => s.id === stepId) || null;
+}
+
+export function getCurrentStep(): TrainingStep | null {
+  const progress = getOwnerTrainingProgress();
+  if (!progress.currentTrackId || !progress.currentStepId) return null;
+  return getStep(progress.currentTrackId, progress.currentStepId);
+}
+
+export function getCurrentTrack(): TrainingTrack | null {
+  const progress = getOwnerTrainingProgress();
+  if (!progress.currentTrackId) return null;
+  return getTrack(progress.currentTrackId);
+}
+
+// ============================================
+// TRIGGER CONDITION CHECKS
+// ============================================
+
+export function checkTrack2Trigger(): boolean {
+  const progress = getOwnerTrainingProgress();
+  
+  // Already completed or in progress
+  if (progress.completedTracks.includes("daily_operations")) return false;
+  if (progress.currentTrackId === "daily_operations") return false;
+  
+  // Must have completed Track 1
+  if (!progress.completedTracks.includes("getting_started")) return false;
+  
+  // Check triggers: first shift, first order, or 24h after first login
+  if (progress.firstShiftOpenedAt) return true;
+  if (progress.firstOrderCreatedAt) return true;
+  
+  if (progress.firstLoginAt) {
+    const hoursSinceLogin = (Date.now() - progress.firstLoginAt) / (1000 * 60 * 60);
+    if (hoursSinceLogin >= 24) return true;
+  }
+  
+  return false;
+}
+
+export function checkTrack3Trigger(): boolean {
+  const progress = getOwnerTrainingProgress();
+  
+  // Already completed or in progress
+  if (progress.completedTracks.includes("insights_reports")) return false;
+  if (progress.currentTrackId === "insights_reports") return false;
+  
+  // Must have completed Track 2
+  if (!progress.completedTracks.includes("daily_operations")) return false;
+  
+  // Track 3 triggers when there's data (simplified - just check if Track 2 is done)
+  // In a real scenario, you'd check if reports/analytics have data
+  return true;
+}
+
+// ============================================
+// TRAINING STATE CHECKS
+// ============================================
+
+export function ownerNeedsTraining(): boolean {
+  const progress = getOwnerTrainingProgress();
+  return !progress.isFullyCompleted;
+}
+
+export function isOwnerTrainingActive(): boolean {
+  const progress = getOwnerTrainingProgress();
+  return progress.currentTrackId !== null && !progress.isPaused && !progress.isFullyCompleted;
+}
+
+export function isOwnerTrainingPaused(): boolean {
+  const progress = getOwnerTrainingProgress();
+  return progress.isPaused && !progress.isFullyCompleted;
+}
+
+export function isOwnerTrainingCompleted(): boolean {
+  return getOwnerTrainingProgress().isFullyCompleted;
+}
+
+export function isTrackCompleted(trackId: TrackId): boolean {
+  return getOwnerTrainingProgress().completedTracks.includes(trackId);
+}
+
+export function getTrackProgress(trackId: TrackId): number {
+  return getOwnerTrainingProgress().trackProgress[trackId] || 0;
+}
+
+export function getOverallProgress(): number {
+  const progress = getOwnerTrainingProgress();
+  const completedCount = progress.completedTracks.length;
+  const totalTracks = TRAINING_TRACKS.length;
+  
+  // Add current track partial progress
+  let currentTrackProgress = 0;
+  if (progress.currentTrackId && progress.trackProgress[progress.currentTrackId]) {
+    currentTrackProgress = (progress.trackProgress[progress.currentTrackId] || 0) / 100 / totalTracks;
+  }
+  
+  return Math.round((completedCount / totalTracks + currentTrackProgress) * 100);
+}
+
+export function getCompletedTracks(): TrackId[] {
+  return getOwnerTrainingProgress().completedTracks;
+}
+
+export function getAvailableTracks(): TrainingTrack[] {
+  const progress = getOwnerTrainingProgress();
+  
+  return TRAINING_TRACKS.filter(track => {
+    // Already completed
+    if (progress.completedTracks.includes(track.id)) return false;
+    
+    // Currently in progress
+    if (progress.currentTrackId === track.id) return false;
+    
+    // Check availability based on trigger type
+    switch (track.id) {
+      case "getting_started":
+        return true; // Always available if not completed
+      case "daily_operations":
+        return progress.completedTracks.includes("getting_started");
+      case "insights_reports":
+        return progress.completedTracks.includes("daily_operations");
+      case "management_expansion":
+        return true; // Manual, always available
+      default:
+        return false;
+    }
+  });
+}
+
+export function getNextRecommendedTrack(): TrainingTrack | null {
+  const progress = getOwnerTrainingProgress();
+  
+  // Track 1 first
+  if (!progress.completedTracks.includes("getting_started")) {
+    return TRACK_GETTING_STARTED;
+  }
+  
+  // Track 2 if triggered
+  if (checkTrack2Trigger()) {
+    return TRACK_DAILY_OPERATIONS;
+  }
+  
+  // Track 3 if triggered
+  if (checkTrack3Trigger()) {
+    return TRACK_INSIGHTS_REPORTS;
+  }
+  
+  // Track 4 is manual
+  if (!progress.completedTracks.includes("management_expansion")) {
+    return TRACK_MANAGEMENT_EXPANSION;
+  }
+  
+  return null;
+}
+
+// ============================================
 // TRAINING ACTIONS
 // ============================================
 
 /**
- * Check if owner needs training (never started or paused)
+ * Record first login timestamp
  */
-export function ownerNeedsTraining(): boolean {
+export function recordFirstLogin(): void {
   const progress = getOwnerTrainingProgress();
-  return !progress.completed;
-}
-
-/**
- * Check if training is currently active
- */
-export function isOwnerTrainingActive(): boolean {
-  const progress = getOwnerTrainingProgress();
-  return progress.currentStepId !== null && !progress.paused && !progress.completed;
-}
-
-/**
- * Get current training step
- */
-export function getCurrentOwnerStep(): OwnerTrainingStep | null {
-  const progress = getOwnerTrainingProgress();
-  if (!progress.currentStepId || progress.paused || progress.completed) {
-    return null;
+  if (!progress.firstLoginAt) {
+    progress.firstLoginAt = Date.now();
+    saveOwnerTrainingProgress(progress);
   }
-  return OWNER_TRAINING_STEPS.find(s => s.id === progress.currentStepId) || null;
 }
 
 /**
- * Start owner training from beginning
+ * Record first shift opened
  */
-export function startOwnerTraining(): OwnerTrainingStep {
-  const firstStep = OWNER_TRAINING_STEPS[0];
-  const progress: OwnerTrainingProgress = {
-    currentStepId: firstStep.id,
-    completed: false,
-    paused: false,
-    progressPercent: firstStep.progressEnd,
-    lastUpdated: Date.now()
-  };
+export function recordFirstShiftOpened(): void {
+  const progress = getOwnerTrainingProgress();
+  if (!progress.firstShiftOpenedAt) {
+    progress.firstShiftOpenedAt = Date.now();
+    saveOwnerTrainingProgress(progress);
+  }
+}
+
+/**
+ * Record first order created
+ */
+export function recordFirstOrderCreated(): void {
+  const progress = getOwnerTrainingProgress();
+  if (!progress.firstOrderCreatedAt) {
+    progress.firstOrderCreatedAt = Date.now();
+    saveOwnerTrainingProgress(progress);
+  }
+}
+
+/**
+ * Start a specific track
+ */
+export function startTrack(trackId: TrackId): TrainingStep | null {
+  const track = getTrack(trackId);
+  if (!track || track.steps.length === 0) return null;
+  
+  const firstStep = track.steps[0];
+  const progress = getOwnerTrainingProgress();
+  
+  progress.currentTrackId = trackId;
+  progress.currentStepId = firstStep.id;
+  progress.trackProgress[trackId] = firstStep.progressEnd;
+  progress.isPaused = false;
+  
+  // Record first login if starting Track 1
+  if (trackId === "getting_started" && !progress.firstLoginAt) {
+    progress.firstLoginAt = Date.now();
+  }
+  
   saveOwnerTrainingProgress(progress);
   return firstStep;
 }
 
 /**
- * Resume paused training
+ * Start owner training from beginning (Track 1)
  */
-export function resumeOwnerTraining(): OwnerTrainingStep | null {
-  const progress = getOwnerTrainingProgress();
-  if (!progress.currentStepId) {
-    return startOwnerTraining();
-  }
-  
-  progress.paused = false;
-  saveOwnerTrainingProgress(progress);
-  
-  return OWNER_TRAINING_STEPS.find(s => s.id === progress.currentStepId) || null;
+export function startOwnerTraining(): TrainingStep | null {
+  return startTrack("getting_started");
 }
 
 /**
- * Go to next step
+ * Resume paused training
  */
-export function nextOwnerStep(): OwnerTrainingStep | null {
+export function resumeOwnerTraining(): TrainingStep | null {
   const progress = getOwnerTrainingProgress();
-  if (!progress.currentStepId) return null;
   
-  const currentIndex = OWNER_TRAINING_STEPS.findIndex(s => s.id === progress.currentStepId);
+  if (progress.currentTrackId && progress.currentStepId) {
+    progress.isPaused = false;
+    saveOwnerTrainingProgress(progress);
+    return getStep(progress.currentTrackId, progress.currentStepId);
+  }
+  
+  // No current training, start from beginning or next available
+  const nextTrack = getNextRecommendedTrack();
+  if (nextTrack) {
+    return startTrack(nextTrack.id);
+  }
+  
+  return null;
+}
+
+/**
+ * Go to next step in current track
+ */
+export function nextStep(): TrainingStep | null {
+  const progress = getOwnerTrainingProgress();
+  if (!progress.currentTrackId || !progress.currentStepId) return null;
+  
+  const track = getTrack(progress.currentTrackId);
+  if (!track) return null;
+  
+  const currentIndex = track.steps.findIndex(s => s.id === progress.currentStepId);
   if (currentIndex === -1) return null;
   
   const nextIndex = currentIndex + 1;
-  if (nextIndex >= OWNER_TRAINING_STEPS.length) {
-    // Training complete
-    completeOwnerTraining();
+  if (nextIndex >= track.steps.length) {
+    // End of track
     return null;
   }
   
-  const nextStep = OWNER_TRAINING_STEPS[nextIndex];
-  progress.currentStepId = nextStep.id;
-  progress.progressPercent = nextStep.progressEnd;
+  const nextStepData = track.steps[nextIndex];
+  progress.currentStepId = nextStepData.id;
+  progress.trackProgress[progress.currentTrackId] = nextStepData.progressEnd;
   saveOwnerTrainingProgress(progress);
   
-  return nextStep;
+  return nextStepData;
 }
 
 /**
- * Go to settings step (when user clicks "Go to Settings")
+ * Navigate to a specific step (used for navigation actions)
  */
-export function goToSettingsStep(): OwnerTrainingStep {
-  const settingsStep = OWNER_TRAINING_STEPS.find(s => s.id === "settings_guide")!;
+export function goToStep(stepId: StepId): TrainingStep | null {
   const progress = getOwnerTrainingProgress();
-  progress.currentStepId = settingsStep.id;
-  progress.progressPercent = settingsStep.progressEnd;
+  if (!progress.currentTrackId) return null;
+  
+  const step = getStep(progress.currentTrackId, stepId);
+  if (!step) return null;
+  
+  progress.currentStepId = stepId;
+  progress.trackProgress[progress.currentTrackId] = step.progressEnd;
   saveOwnerTrainingProgress(progress);
-  return settingsStep;
+  
+  return step;
 }
 
 /**
- * Pause training (user clicked "Skip for now")
+ * Complete current track
+ */
+export function completeCurrentTrack(): void {
+  const progress = getOwnerTrainingProgress();
+  if (!progress.currentTrackId) return;
+  
+  // Mark track as completed
+  if (!progress.completedTracks.includes(progress.currentTrackId)) {
+    progress.completedTracks.push(progress.currentTrackId);
+  }
+  progress.trackProgress[progress.currentTrackId] = 100;
+  
+  // Clear current state
+  progress.currentTrackId = null;
+  progress.currentStepId = null;
+  progress.isPaused = false;
+  
+  // Check if all tracks are completed
+  if (progress.completedTracks.length >= TRAINING_TRACKS.length) {
+    progress.isFullyCompleted = true;
+  }
+  
+  saveOwnerTrainingProgress(progress);
+}
+
+/**
+ * Pause training
  */
 export function pauseOwnerTraining(): void {
   const progress = getOwnerTrainingProgress();
-  progress.paused = true;
+  progress.isPaused = true;
   saveOwnerTrainingProgress(progress);
 }
 
 /**
- * Complete training
+ * Skip current track (mark as skipped, not completed)
  */
-export function completeOwnerTraining(): void {
+export function skipCurrentTrack(): void {
   const progress = getOwnerTrainingProgress();
-  progress.completed = true;
-  progress.currentStepId = "completed";
-  progress.progressPercent = 20;
-  progress.paused = false;
+  progress.currentTrackId = null;
+  progress.currentStepId = null;
+  progress.isPaused = true;
   saveOwnerTrainingProgress(progress);
 }
 
 /**
- * Reset training (for testing)
+ * Reset all training (for testing)
  */
 export function resetOwnerTraining(): void {
   localStorage.removeItem(OWNER_TRAINING_KEY);
 }
 
-/**
- * Get current progress percentage
- */
+// ============================================
+// LEGACY COMPATIBILITY
+// ============================================
+
+// These functions maintain backward compatibility with the old API
+
+export function getCurrentOwnerStep(): TrainingStep | null {
+  return getCurrentStep();
+}
+
 export function getOwnerProgressPercent(): number {
-  return getOwnerTrainingProgress().progressPercent;
+  return getOverallProgress();
 }
 
-/**
- * Check if training is paused
- */
-export function isOwnerTrainingPaused(): boolean {
+export function completeOwnerTraining(): void {
+  completeCurrentTrack();
+}
+
+export function nextOwnerStep(): TrainingStep | null {
+  return nextStep();
+}
+
+// For navigate actions that go to settings
+export function goToSettingsStep(): TrainingStep | null {
   const progress = getOwnerTrainingProgress();
-  return progress.paused && !progress.completed;
-}
-
-/**
- * Check if training is completed
- */
-export function isOwnerTrainingCompleted(): boolean {
-  return getOwnerTrainingProgress().completed;
+  if (!progress.currentTrackId) return null;
+  
+  // Find the settings guide step in current track
+  const track = getTrack(progress.currentTrackId);
+  if (!track) return null;
+  
+  // Find next step after current
+  const currentIndex = track.steps.findIndex(s => s.id === progress.currentStepId);
+  if (currentIndex === -1 || currentIndex >= track.steps.length - 1) return null;
+  
+  const nextStepData = track.steps[currentIndex + 1];
+  return goToStep(nextStepData.id);
 }

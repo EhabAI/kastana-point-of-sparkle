@@ -1,6 +1,6 @@
 // Trainer Coach Tab - Rule-based contextual suggestions
 // Shows smart suggestions based on current screen and user actions
-// For Owner: Shows dedicated Owner Training Panel
+// For Owner: Shows dedicated Owner Training Panel with multi-track support
 
 import { Brain, Lightbulb, ChevronRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useTrainer } from "@/contexts/TrainerContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLocation, useNavigate } from "react-router-dom";
-import { getModulesForContext, type TrainingModule } from "@/lib/trainerRegistry";
+import { useLocation } from "react-router-dom";
+import { getModulesForContext } from "@/lib/trainerRegistry";
 import { OwnerTrainingPanel } from "./OwnerTrainingPanel";
-import { ownerNeedsTraining, isOwnerTrainingActive, isOwnerTrainingPaused, isOwnerTrainingCompleted } from "@/lib/ownerTrainingFlow";
+import { 
+  ownerNeedsTraining, 
+  isOwnerTrainingActive, 
+  isOwnerTrainingPaused, 
+  isOwnerTrainingCompleted 
+} from "@/lib/ownerTrainingFlow";
 
 interface TrainerCoachTabProps {
   language: "ar" | "en";
@@ -29,7 +34,6 @@ interface CoachSuggestion {
 export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabProps) {
   const { role } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const { getStats } = useTrainer();
   
   const stats = getStats();
@@ -51,11 +55,14 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
     ownerNeedsTraining() || isOwnerTrainingActive() || isOwnerTrainingPaused() || isOwnerTrainingCompleted()
   );
   
-  // Handle navigation to settings from owner training
+  // Handle navigation from owner training
   const handleNavigateToSettings = () => {
-    // Navigate to settings tab in owner admin
-    // This triggers a custom event that OwnerAdmin can listen to
     const event = new CustomEvent("owner-training-navigate", { detail: { tab: "settings" } });
+    window.dispatchEvent(event);
+  };
+  
+  const handleNavigateToTab = (tab: string) => {
+    const event = new CustomEvent("owner-training-navigate", { detail: { tab } });
     window.dispatchEvent(event);
   };
   
@@ -187,6 +194,7 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
             <OwnerTrainingPanel 
               language={language}
               onNavigateToSettings={handleNavigateToSettings}
+              onNavigateToTab={handleNavigateToTab}
             />
           )}
           
