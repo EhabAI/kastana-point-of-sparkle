@@ -82,8 +82,8 @@ const ERROR_MESSAGES: Record<CSVErrorType, { ar: string; en: string; hint_ar?: s
     hint_en: "Check your internet connection and try again"
   },
   database_error: {
-    ar: "حدث خطأ تقني أثناء حفظ البيانات",
-    en: "A technical error occurred while saving data",
+    ar: "حدث خطأ تقني أثناء رفع الملف، لم يتم حفظ أي بيانات",
+    en: "A technical error occurred while uploading the file. No data was saved.",
     hint_ar: "لم يتم حفظ أي بيانات. يرجى المحاولة مرة أخرى",
     hint_en: "No data was saved. Please try again"
   },
