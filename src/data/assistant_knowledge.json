@@ -83,6 +83,31 @@
         ]
       },
       "affected_roles": ["owner"]
+    },
+    {
+      "id": "menu_csv_upload_branch_context",
+      "priority": "critical",
+      "title": {
+        "ar": "رفع CSV للقائمة وسياق الفرع",
+        "en": "Menu CSV Upload Branch Context"
+      },
+      "rules": {
+        "ar": [
+          "رفع ملف CSV للقائمة يتطلب اختيار فرع من أعلى الصفحة (Branch Selector)",
+          "لا يُسمح بأي fallback أو implicit branch context",
+          "عملية ربط الأصناف بالفرع idempotent - إعادة الرفع لا تسبب أخطاء تكرار",
+          "عند فقدان سياق الفرع، يظهر خطأ 'branch_context_lost' وليس رسالة عامة",
+          "أثناء التدريب، الرسائل تكون تعليمية وتوضح أن الرفع مرتبط بالفرع المحدد"
+        ],
+        "en": [
+          "Menu CSV upload requires selecting a branch from the top Branch Selector",
+          "No fallback or implicit branch context is allowed",
+          "Branch item linking is idempotent - re-uploading does not cause duplicate errors",
+          "If branch context is lost, show 'branch_context_lost' error, not a generic message",
+          "During training, messages are educational and clarify that upload is tied to selected branch"
+        ]
+      },
+      "affected_roles": ["owner"]
     }
   ],
   "entries": {
@@ -2327,6 +2352,50 @@
         "affected_screens": ["Owner"],
         "user_roles": ["owner"],
         "tags": ["training", "toast", "messages", "behavior"]
+      }
+    },
+    "menu_csv_upload_guide": {
+      "id": "menu_csv_upload_guide",
+      "intent": ["csv_upload", "menu_import", "csv_menu", "upload_menu_file"],
+      "keywords": {
+        "ar": ["رفع CSV", "استيراد القائمة", "ملف CSV", "رفع القائمة", "تحميل الملف", "csv للقائمة"],
+        "en": ["csv upload", "menu import", "csv file", "upload menu", "import menu file", "menu csv"]
+      },
+      "title": {
+        "ar": "رفع CSV للقائمة",
+        "en": "Menu CSV Upload"
+      },
+      "content": {
+        "ar": "📋 رفع ملف CSV للقائمة:\n\n📍 قاعدة أساسية:\n• يتم دائمًا رفع ملف CSV على الفرع المحدد أعلى الصفحة\n• تأكد من اختيار الفرع الصحيح قبل الرفع\n• إذا تغيّر الفرع أو فُقد سياقه، سيطلب النظام إعادة تحديد الفرع\n\n✅ ميزات الرفع:\n• يمكنك رفع نفس الملف أكثر من مرة بدون حدوث أخطاء تكرار\n• الأصناف الموجودة مسبقاً سيتم تحديثها تلقائياً\n• الأصناف الجديدة سيتم إنشاؤها وربطها بالفرع\n\n💡 نصائح:\n• تأكد من الأعمدة المطلوبة: category_en, category_ar, item_en, item_ar, price\n• استخدم تنسيق CSV صحيح (مفصول بفاصلة)\n• الأسعار يجب أن تكون أرقاماً فقط",
+        "en": "📋 Menu CSV Upload:\n\n📍 Basic rule:\n• Menu CSV uploads always apply to the branch selected at the top of the page\n• Make sure to select the correct branch before uploading\n• If the branch context is lost, the system will ask you to reselect the branch\n\n✅ Upload features:\n• Re-uploading the same menu file is safe and will not cause duplicate errors\n• Existing items will be updated automatically\n• New items will be created and linked to the branch\n\n💡 Tips:\n• Required columns: category_en, category_ar, item_en, item_ar, price\n• Use correct CSV format (comma-separated)\n• Prices must be numbers only"
+      },
+      "metadata": {
+        "feature_id": "menu_csv_upload",
+        "affected_screens": ["Menu", "Owner"],
+        "user_roles": ["owner"],
+        "tags": ["csv", "upload", "menu", "import", "branch"]
+      }
+    },
+    "menu_csv_common_errors": {
+      "id": "menu_csv_common_errors",
+      "intent": ["csv_error", "upload_failed", "csv_problem", "menu_upload_error"],
+      "keywords": {
+        "ar": ["خطأ csv", "فشل الرفع", "مشكلة الرفع", "خطأ تقني", "أخطاء القائمة", "لم يتم الرفع"],
+        "en": ["csv error", "upload failed", "upload problem", "technical error", "menu errors", "upload not working"]
+      },
+      "title": {
+        "ar": "أخطاء شائعة عند رفع CSV",
+        "en": "Common CSV Upload Errors"
+      },
+      "content": {
+        "ar": "🔧 الأخطاء الشائعة عند رفع CSV للقائمة:\n\n❌ لم يتم تحديد الفرع:\n• السبب: لم تختر فرعاً من أعلى الصفحة\n• الحل: اختر الفرع من القائمة أعلى الشاشة ثم أعد الرفع\n\n❌ فقدان سياق الفرع:\n• السبب: تغيّر الفرع أو حدث خطأ في التطبيق\n• الحل: حدّث الصفحة، أعد اختيار الفرع، ثم أعد الرفع\n\n❌ الأعمدة المطلوبة غير مكتملة:\n• السبب: الملف لا يحتوي على جميع الأعمدة المطلوبة\n• الحل: تأكد من وجود: category_en, category_ar, item_en, item_ar, price\n\n❌ الملف فارغ:\n• السبب: الملف لا يحتوي على بيانات بعد رؤوس الأعمدة\n• الحل: أضف صفوف البيانات للملف\n\n💡 ملاحظة: إعادة رفع نفس الملف آمنة ولن تسبب أخطاء تكرار.",
+        "en": "🔧 Common CSV Upload Errors:\n\n❌ Branch not selected:\n• Cause: No branch selected from the top of the page\n• Solution: Select a branch from the dropdown at the top, then re-upload\n\n❌ Branch context lost:\n• Cause: Branch changed or app state error\n• Solution: Refresh the page, reselect the branch, then re-upload\n\n❌ Required columns missing:\n• Cause: File doesn't contain all required columns\n• Solution: Ensure these columns exist: category_en, category_ar, item_en, item_ar, price\n\n❌ Empty file:\n• Cause: File has no data rows after headers\n• Solution: Add data rows to the file\n\n💡 Note: Re-uploading the same file is safe and won't cause duplicate errors."
+      },
+      "metadata": {
+        "feature_id": "menu_csv_errors",
+        "affected_screens": ["Menu", "Owner"],
+        "user_roles": ["owner"],
+        "tags": ["csv", "error", "upload", "troubleshooting", "branch"]
       }
     }
   }

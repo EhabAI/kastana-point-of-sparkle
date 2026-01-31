@@ -289,6 +289,34 @@ export const SYSTEM_INVARIANTS: SystemInvariant[] = [
     category: "restaurant",
     severity: "blocking",
   },
+  // === MENU CSV UPLOAD INVARIANTS ===
+  {
+    id: "inv_menu_csv_branch_required",
+    rule: {
+      ar: "رفع ملف CSV للقائمة يتطلب اختيار فرع من أعلى الصفحة. لا يُسمح بأي fallback ضمني.",
+      en: "Menu CSV upload requires selecting a branch from the top selector. No implicit fallback allowed.",
+    },
+    category: "restaurant",
+    severity: "blocking",
+  },
+  {
+    id: "inv_menu_csv_idempotent",
+    rule: {
+      ar: "ربط الأصناف بالفرع idempotent. إعادة رفع نفس الملف لا تسبب أخطاء duplicate.",
+      en: "Branch item linking is idempotent. Re-uploading the same file does not cause duplicate errors.",
+    },
+    category: "restaurant",
+    severity: "warning",
+  },
+  {
+    id: "inv_menu_csv_context_lost_error",
+    rule: {
+      ar: "عند فقدان سياق الفرع أثناء الرفع، يظهر خطأ 'branch_context_lost' وليس رسالة عامة.",
+      en: "If branch context is lost during upload, show 'branch_context_lost' error, not a generic message.",
+    },
+    category: "restaurant",
+    severity: "blocking",
+  },
 ];
 
 // ============================================
