@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogBody } from "@/components/ui/dialog";
 import { Trash2, Plus, Save, ChefHat, Search, Package, AlertCircle, Upload, FileText, CheckCircle2, XCircle, ArrowLeft, Loader2, Filter, PartyPopper } from "lucide-react";
 import { useAllMenuItems } from "@/hooks/useMenuItems";
 import { useInventoryItems, useInventoryUnits } from "@/hooks/useInventoryItems";
@@ -446,7 +446,7 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
 
           {showResult && importResult ? (
             // Result View - After Import
-            <div className="space-y-4 py-4">
+            <DialogBody className="space-y-4 py-4">
               {/* Success Summary */}
               {importResult.recipes_created > 0 && (
                 <div className="p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
@@ -510,36 +510,34 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
                     <AlertCircle className="h-4 w-4" />
                     {t("import_errors")} ({importResult.errors.length})
                   </h4>
-                  <ScrollArea className="h-[250px] border border-destructive/30 rounded-lg bg-destructive/5">
-                    <div className="p-3 space-y-2">
-                      {importResult.errors.map((error, idx) => (
-                        <div 
-                          key={idx} 
-                          className="p-3 bg-background border border-destructive/20 rounded-md text-sm"
-                        >
-                          <div className="flex flex-col gap-1">
+                  <div className="border border-destructive/30 rounded-lg bg-destructive/5 p-3 space-y-2">
+                    {importResult.errors.map((error, idx) => (
+                      <div 
+                        key={idx} 
+                        className="p-3 bg-background border border-destructive/20 rounded-md text-sm"
+                      >
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{t("menu_item")}:</span>
+                            <span className="text-muted-foreground">{error.menu_item_name}</span>
+                          </div>
+                          {error.inventory_item_name && (
                             <div className="flex items-center gap-2">
-                              <span className="font-medium">{t("menu_item")}:</span>
-                              <span className="text-muted-foreground">{error.menu_item_name}</span>
+                              <span className="font-medium">{t("ingredient")}:</span>
+                              <span className="text-muted-foreground">{error.inventory_item_name}</span>
                             </div>
-                            {error.inventory_item_name && (
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium">{t("ingredient")}:</span>
-                                <span className="text-muted-foreground">{error.inventory_item_name}</span>
-                              </div>
-                            )}
-                            <div className="flex items-center gap-2 text-destructive">
-                              <span className="font-medium">{t("error")}:</span>
-                              <span>{t(`csv_error_${error.reason_code}`) || error.reason}</span>
-                            </div>
+                          )}
+                          <div className="flex items-center gap-2 text-destructive">
+                            <span className="font-medium">{t("error")}:</span>
+                            <span>{t(`csv_error_${error.reason_code}`) || error.reason}</span>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
-            </div>
+            </DialogBody>
           ) : !showPreview ? (
             // File Upload View
             <div className="space-y-4 py-4">
