@@ -381,16 +381,27 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
   // Allow import if there are valid rows AND no unresolved conflicts
   const canImport = validRowsCount > 0 && !hasUnresolvedConflicts;
 
-  // Handler for resolving inventory conflicts via dropdown
-  const handleResolveInventoryConflict = (rowIndex: number, inventoryItemId: string) => {
+  // Helper to normalize keys for conflict resolution reuse
+  const getConflictKey = (menuItemName: string, ingredientName: string): string => {
+    return `${menuItemName.toLowerCase().trim()}|${ingredientName.toLowerCase().trim()}`;
+  };
+
+  // Handler for resolving inventory conflicts via dropdown - applies to all matching rows
+  const handleResolveInventoryConflict = (rowIndex: number, inventoryItemId: string, menuItemName: string, ingredientName: string) => {
+    const conflictKey = getConflictKey(menuItemName, ingredientName);
+    
     setParsedRows((prev) =>
       prev.map((row) => {
-        if (row.rowIndex === rowIndex) {
+        // Apply resolution to the selected row AND all rows with same conflict key
+        const rowConflictKey = getConflictKey(row.menu_item_name, row.inventory_item_name);
+        const hasMatchingConflict = row.conflicting_inventory_items && row.conflicting_inventory_items.length > 0;
+        
+        if (row.rowIndex === rowIndex || (hasMatchingConflict && rowConflictKey === conflictKey)) {
           return {
             ...row,
             resolved_inventory_item_id: inventoryItemId,
-            isValid: true, // Mark as valid after resolution
-            error: undefined, // Clear error
+            isValid: true,
+            error: undefined,
           };
         }
         return row;
@@ -398,24 +409,80 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
     );
   };
 
-  // Export missing menu items as Menu-compatible CSV
+  // Error priority for sorting (lower = higher priority)
+  const getErrorPriority = (row: ParsedRecipeRow): number => {
+    if (row.isValid || row.resolved_inventory_item_id) return 3; // Valid rows last
+    if (row.error === t("csv_error_menu_item_not_found")) return 1; // Menu not found first
+    if (row.conflicting_inventory_items && row.conflicting_inventory_items.length > 0) return 2; // Conflicts second
+    return 2.5; // Other errors
+  };
+
+  // Sorted rows for preview display (original order preserved in parsedRows)
+  const sortedPreviewRows = [...parsedRows].sort((a, b) => {
+    // First sort by error priority
+    const priorityDiff = getErrorPriority(a) - getErrorPriority(b);
+    if (priorityDiff !== 0) return priorityDiff;
+    // Then group by menu item name
+    const menuCompare = a.menu_item_name.toLowerCase().localeCompare(b.menu_item_name.toLowerCase());
+    if (menuCompare !== 0) return menuCompare;
+    // Finally preserve original order within same menu item
+    return a.rowIndex - b.rowIndex;
+  });
+
+  // Track which conflict keys have already been resolved (for showing "applied" indicator)
+  const resolvedConflictKeys = new Set<string>();
+  parsedRows.forEach((row) => {
+    if (row.resolved_inventory_item_id && row.conflicting_inventory_items?.length) {
+      resolvedConflictKeys.add(getConflictKey(row.menu_item_name, row.inventory_item_name));
+    }
+  });
+
+  // Check if a row's conflict was resolved by another row (for "auto-applied" display)
+  const isAutoAppliedResolution = (row: ParsedRecipeRow, allRows: ParsedRecipeRow[]): boolean => {
+    if (!row.resolved_inventory_item_id || !row.conflicting_inventory_items?.length) return false;
+    const key = getConflictKey(row.menu_item_name, row.inventory_item_name);
+    // Find the first row with this conflict key that was resolved
+    const firstResolved = allRows.find(
+      (r) => r.resolved_inventory_item_id && 
+             r.conflicting_inventory_items?.length && 
+             getConflictKey(r.menu_item_name, r.inventory_item_name) === key
+    );
+    return firstResolved?.rowIndex !== row.rowIndex;
+  };
+
+  // Export missing menu items as Menu-compatible CSV (deduplicated, case-insensitive)
   const handleExportMissingMenuItems = useCallback(() => {
     if (!importResult) return;
     
     // Filter unique menu item names that failed due to "menu_item_not_found"
-    const missingItems = new Set<string>();
+    // Use case-insensitive, trimmed normalization for deduplication
+    const seenNormalized = new Set<string>();
+    const missingItems: string[] = [];
+    
     importResult.errors.forEach((error) => {
       if (error.reason_code === "menu_item_not_found" && error.menu_item_name) {
-        missingItems.add(error.menu_item_name.trim());
+        const normalized = error.menu_item_name.toLowerCase().trim();
+        if (!seenNormalized.has(normalized)) {
+          seenNormalized.add(normalized);
+          missingItems.push(error.menu_item_name.trim()); // Keep original casing
+        }
       }
     });
     
-    if (missingItems.size === 0) return;
+    if (missingItems.length === 0) return;
     
     // Generate Menu-compatible CSV format
     // Columns: category_en, category_ar, item_en, item_ar, price
     const csvRows: string[] = [];
     csvRows.push("category_en,category_ar,item_en,item_ar,price");
+    
+    // Escape values that might contain commas or quotes
+    const escapeCSV = (val: string) => {
+      if (val.includes(",") || val.includes('"') || val.includes("\n")) {
+        return `"${val.replace(/"/g, '""')}"`;
+      }
+      return val;
+    };
     
     missingItems.forEach((itemName) => {
       // Default values per requirements
@@ -424,14 +491,6 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
       const itemEn = itemName;
       const itemAr = itemName;
       const price = "0";
-      
-      // Escape values that might contain commas or quotes
-      const escapeCSV = (val: string) => {
-        if (val.includes(",") || val.includes('"') || val.includes("\n")) {
-          return `"${val.replace(/"/g, '""')}"`;
-        }
-        return val;
-      };
       
       csvRows.push([
         escapeCSV(categoryEn),
@@ -828,57 +887,70 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {parsedRows.map((row) => {
-                      const hasConflicts = row.conflicting_inventory_items && row.conflicting_inventory_items.length > 0;
-                      const isResolved = !!row.resolved_inventory_item_id;
-                      const showAsValid = row.isValid || isResolved;
-                      
-                      return (
-                        <TableRow 
-                          key={row.rowIndex} 
-                          className={cn(
-                            !showAsValid && "bg-destructive/5",
-                            isResolved && "bg-green-50 dark:bg-green-950/20"
-                          )}
-                        >
-                          <TableCell className="text-muted-foreground">{row.rowIndex}</TableCell>
-                          <TableCell>{row.menu_item_name || "-"}</TableCell>
-                          <TableCell>{row.inventory_item_name || "-"}</TableCell>
-                          <TableCell>{row.quantity || "-"}</TableCell>
-                          <TableCell>{row.unit || "-"}</TableCell>
-                          <TableCell>
-                            {showAsValid && !hasConflicts ? (
-                              <span className="text-muted-foreground">{t("csv_row_no_error")}</span>
-                            ) : isResolved ? (
-                              <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-                                <Check className="h-4 w-4" />
-                                <span className="text-sm">{t("csv_conflict_resolved")}</span>
-                              </div>
-                            ) : hasConflicts ? (
-                              <div className="space-y-1">
-                                <span className="text-xs text-destructive block mb-1">{row.error}</span>
-                                <Select
-                                  onValueChange={(value) => handleResolveInventoryConflict(row.rowIndex, value)}
-                                >
-                                  <SelectTrigger className="h-8 text-xs">
-                                    <SelectValue placeholder={t("csv_select_correct_item")} />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {row.conflicting_inventory_items?.map((item) => (
-                                      <SelectItem key={item.id} value={item.id}>
-                                        {item.name} ({item.unit_name}) — #{item.id.slice(0, 6)}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            ) : (
-                              <span className="text-sm text-destructive">{row.error}</span>
+                    {(() => {
+                      let lastMenuItemName = "";
+                      return sortedPreviewRows.map((row, displayIndex) => {
+                        const hasConflicts = row.conflicting_inventory_items && row.conflicting_inventory_items.length > 0;
+                        const isResolved = !!row.resolved_inventory_item_id;
+                        const showAsValid = row.isValid || isResolved;
+                        const isAutoApplied = isAutoAppliedResolution(row, parsedRows);
+                        
+                        // Visual grouping: show separator when menu item changes
+                        const isNewMenuGroup = row.menu_item_name.toLowerCase().trim() !== lastMenuItemName.toLowerCase().trim();
+                        lastMenuItemName = row.menu_item_name;
+                        
+                        return (
+                          <TableRow 
+                            key={row.rowIndex} 
+                            className={cn(
+                              !showAsValid && "bg-destructive/5",
+                              isResolved && "bg-green-50 dark:bg-green-950/20",
+                              isNewMenuGroup && displayIndex > 0 && "border-t-2 border-border"
                             )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
+                          >
+                            <TableCell className="text-muted-foreground">{row.rowIndex}</TableCell>
+                            <TableCell className={cn(isNewMenuGroup && "font-medium")}>
+                              {row.menu_item_name || "-"}
+                            </TableCell>
+                            <TableCell>{row.inventory_item_name || "-"}</TableCell>
+                            <TableCell>{row.quantity || "-"}</TableCell>
+                            <TableCell>{row.unit || "-"}</TableCell>
+                            <TableCell>
+                              {showAsValid && !hasConflicts ? (
+                                <span className="text-muted-foreground">{t("csv_row_no_error")}</span>
+                              ) : isResolved ? (
+                                <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                                  <Check className="h-4 w-4" />
+                                  <span className="text-sm">
+                                    {isAutoApplied ? t("csv_conflict_auto_applied") : t("csv_conflict_resolved")}
+                                  </span>
+                                </div>
+                              ) : hasConflicts ? (
+                                <div className="space-y-1">
+                                  <span className="text-xs text-destructive block mb-1">{row.error}</span>
+                                  <Select
+                                    onValueChange={(value) => handleResolveInventoryConflict(row.rowIndex, value, row.menu_item_name, row.inventory_item_name)}
+                                  >
+                                    <SelectTrigger className="h-8 text-xs">
+                                      <SelectValue placeholder={t("csv_select_correct_item")} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {row.conflicting_inventory_items?.map((item) => (
+                                        <SelectItem key={item.id} value={item.id}>
+                                          {item.name} ({item.unit_name}) — #{item.id.slice(0, 6)}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              ) : (
+                                <span className="text-sm text-destructive">{row.error}</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      });
+                    })()}
                   </TableBody>
                 </Table>
               </div>
