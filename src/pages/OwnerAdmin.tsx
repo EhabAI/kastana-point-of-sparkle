@@ -297,8 +297,8 @@ export default function OwnerAdmin() {
           <div className="flex items-center justify-between flex-wrap gap-4">
             <BranchSelector />
           </div>
-          {role === "owner" && <TableManagement restaurantId={restaurant.id} tableCount={tables.length} />}
-          {role === "owner" && <StaffManagement restaurantId={restaurant.id} staffCount={cashiers.length} />}
+          {role === "owner" && <TableManagement restaurantId={restaurant.id} />}
+          {role === "owner" && <StaffManagement restaurantId={restaurant.id} />}
         </TabsContent>
 
         {/* Branches Tab */}

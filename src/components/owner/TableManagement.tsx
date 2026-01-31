@@ -21,7 +21,6 @@ import QRCode from "qrcode";
 
 interface TableManagementProps {
   restaurantId: string;
-  tableCount?: number;
 }
 
 // Generate real QR code as data URL using qrcode library
@@ -262,7 +261,7 @@ function TableRow({
   );
 }
 
-export function TableManagement({ restaurantId, tableCount }: TableManagementProps) {
+export function TableManagement({ restaurantId }: TableManagementProps) {
   const { data: tables = [], isLoading } = useRestaurantTables(restaurantId);
   const { data: branches = [], isLoading: branchesLoading } = useBranches(restaurantId);
   const { branchId: selectedBranchId, isContextReady, contextMissing } = useOwnerContext();
