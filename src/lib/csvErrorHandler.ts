@@ -9,6 +9,7 @@ type CSVErrorType =
   | 'empty_file'
   | 'no_valid_rows'
   | 'branch_required'
+  | 'branch_context_lost'
   | 'duplicate_data'
   | 'parse_error'
   | 'permission_error'
@@ -49,6 +50,12 @@ const ERROR_MESSAGES: Record<CSVErrorType, { ar: string; en: string; hint_ar?: s
     en: "Cannot upload menu without selecting a branch",
     hint_ar: "اختر الفرع من القائمة أعلى الصفحة أولاً",
     hint_en: "Select a branch from the dropdown at the top of the page first"
+  },
+  branch_context_lost: {
+    ar: "تعذر ربط الملف بالفرع المختار. الرجاء تحديث الصفحة والمحاولة مرة أخرى.",
+    en: "Could not link file to selected branch. Please refresh the page and try again.",
+    hint_ar: "قد يكون هناك خطأ في حالة التطبيق. حدّث الصفحة لإعادة تحميل السياق.",
+    hint_en: "There may be an issue with the app state. Refresh the page to reload the context."
   },
   duplicate_data: {
     ar: "بعض العناصر موجودة مسبقاً وسيتم تحديثها",
@@ -132,6 +139,16 @@ function detectErrorType(error: unknown): CSVErrorType {
   if (errorMessage.includes('no valid') || 
       errorMessage.includes('لم يتم العثور على صفوف')) {
     return 'no_valid_rows';
+  }
+  
+  if (errorMessage === 'branch_required') {
+    return 'branch_required';
+  }
+  
+  if (errorMessage === 'branch_context_lost' ||
+      errorMessage.includes('branch_context') ||
+      errorMessage.includes('context_lost')) {
+    return 'branch_context_lost';
   }
   
   if (errorMessage.includes('branch') || 

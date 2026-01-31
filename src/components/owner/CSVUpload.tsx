@@ -100,7 +100,8 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
   const { t, language } = useLanguage();
   
   // Use unified owner context for restaurant and branch validation
-  const { branchId, branchName, restaurantName, isContextReady } = useOwnerContext();
+  // CRITICAL: branchId must be explicitly passed from BranchContext - never use implicit state
+  const { branchId, branchName, restaurantName, isContextReady, isLoading: contextLoading } = useOwnerContext();
   
   const [menuFileName, setMenuFileName] = useState<string | null>(null);
   const [offersFileName, setOffersFileName] = useState<string | null>(null);
@@ -115,9 +116,35 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
   const menuInputRef = useRef<HTMLInputElement>(null);
   const offersInputRef = useRef<HTMLInputElement>(null);
   
-  // Use the globally selected branch from the BranchSelector
-  const effectiveMenuBranchId = branchId;
-  const effectiveOffersBranchId = branchId;
+  /**
+   * Validates branch context is explicitly available before upload.
+   * Returns the validated branchId or null if context is invalid.
+   * This ensures we NEVER rely on implicit state or training context.
+   */
+  const validateBranchContext = (): string | null => {
+    // 1. Context is still loading - don't allow upload yet
+    if (contextLoading) {
+      return null;
+    }
+    
+    // 2. Branch must be explicitly selected in BranchSelector
+    if (!branchId || branchId.trim() === '') {
+      return null;
+    }
+    
+    // 3. Validate branchId is a valid UUID format (basic check)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(branchId)) {
+      console.error('[CSVUpload] Invalid branchId format:', branchId);
+      return null;
+    }
+    
+    return branchId;
+  };
+  
+  // Use validated branch from context - NEVER use training context or implicit state
+  const effectiveMenuBranchId = validateBranchContext();
+  const effectiveOffersBranchId = validateBranchContext();
 
   const refreshData = () => {
     queryClient.invalidateQueries({ queryKey: ['menu-categories'] });
@@ -131,9 +158,29 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate branch selection
-    if (!effectiveMenuBranchId) {
+    // CRITICAL: Validate branch context before any upload operation
+    // branchId must come explicitly from BranchContext - never implicit
+    if (contextLoading) {
+      // Context still loading, user should wait
       const errorResult = getCSVErrorMessage('branch_required', language, isTrainingMode);
+      setMenuResult({ success: false, message: errorResult.message, hint: errorResult.hint });
+      return;
+    }
+    
+    if (!effectiveMenuBranchId) {
+      // Branch visible in UI but branchId not in upload logic
+      // This means context was lost - show specific error
+      const errorResult = branchId 
+        ? getCSVErrorMessage('branch_context_lost', language, isTrainingMode)
+        : getCSVErrorMessage('branch_required', language, isTrainingMode);
+      setMenuResult({ success: false, message: errorResult.message, hint: errorResult.hint });
+      return;
+    }
+    
+    // Double-check: effectiveMenuBranchId must be explicitly passed, not null
+    const uploadBranchId = effectiveMenuBranchId;
+    if (!uploadBranchId) {
+      const errorResult = getCSVErrorMessage('branch_context_lost', language, isTrainingMode);
       setMenuResult({ success: false, message: errorResult.message, hint: errorResult.hint });
       return;
     }
@@ -353,9 +400,27 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate branch selection
-    if (!effectiveOffersBranchId) {
+    // CRITICAL: Validate branch context before any upload operation
+    // branchId must come explicitly from BranchContext - never implicit
+    if (contextLoading) {
       const errorResult = getCSVErrorMessage('branch_required', language, isTrainingMode);
+      setOffersResult({ success: false, message: errorResult.message, hint: errorResult.hint });
+      return;
+    }
+    
+    if (!effectiveOffersBranchId) {
+      // Branch visible in UI but branchId not in upload logic
+      const errorResult = branchId 
+        ? getCSVErrorMessage('branch_context_lost', language, isTrainingMode)
+        : getCSVErrorMessage('branch_required', language, isTrainingMode);
+      setOffersResult({ success: false, message: errorResult.message, hint: errorResult.hint });
+      return;
+    }
+    
+    // Double-check: effectiveOffersBranchId must be explicitly passed
+    const uploadBranchId = effectiveOffersBranchId;
+    if (!uploadBranchId) {
+      const errorResult = getCSVErrorMessage('branch_context_lost', language, isTrainingMode);
       setOffersResult({ success: false, message: errorResult.message, hint: errorResult.hint });
       return;
     }
