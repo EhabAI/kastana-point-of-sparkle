@@ -27,13 +27,22 @@ function errorResponse(code: ErrorCode, status = 400) {
   );
 }
 
+// Success response helper - always returns 200
+function successResponse(data: Record<string, unknown>) {
+  return new Response(
+    JSON.stringify({ success: true, ...data }),
+    { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
 interface TransactionRequest {
   itemId: string;
   branchId: string;
-  txnType: "ADJUSTMENT_IN" | "ADJUSTMENT_OUT" | "WASTE" | "INITIAL_STOCK";
+  txnType: "ADJUSTMENT_IN" | "ADJUSTMENT_OUT" | "WASTE" | "INITIAL_STOCK" | "ADD_STOCK";
   qty: number;
   unitId: string;
   notes?: string;
+  skipIfHasStock?: boolean; // For CSV import - skip INITIAL_STOCK if item already has transactions
 }
 
 Deno.serve(async (req) => {
@@ -100,13 +109,13 @@ Deno.serve(async (req) => {
     }
 
     const body: TransactionRequest = await req.json();
-    const { itemId, branchId, txnType, qty, unitId, notes } = body;
+    const { itemId, branchId, txnType, qty, unitId, notes, skipIfHasStock } = body;
 
     if (!itemId || !branchId || !txnType || !qty || !unitId) {
       return errorResponse("missing_fields", 400);
     }
 
-    const validTypes = ["ADJUSTMENT_IN", "ADJUSTMENT_OUT", "WASTE", "INITIAL_STOCK"];
+    const validTypes = ["ADJUSTMENT_IN", "ADJUSTMENT_OUT", "WASTE", "INITIAL_STOCK", "ADD_STOCK"];
     if (!validTypes.includes(txnType)) {
       return errorResponse("invalid_input", 400);
     }
@@ -165,6 +174,26 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Check if item already has transactions (for INITIAL_STOCK handling)
+    if (txnType === "INITIAL_STOCK" && skipIfHasStock) {
+      const { count: existingTxnCount } = await supabase
+        .from("inventory_transactions")
+        .select("id", { count: "exact", head: true })
+        .eq("item_id", itemId)
+        .eq("branch_id", branchId);
+
+      if (existingTxnCount && existingTxnCount > 0) {
+        // Item already has stock - return success with skipped status
+        console.log(`[inventory-create-transaction] Skipped INITIAL_STOCK for item ${itemId} - already has ${existingTxnCount} transactions`);
+        return successResponse({
+          skipped: true,
+          reason: "item_has_existing_stock",
+          itemId,
+          existingTransactions: existingTxnCount,
+        });
+      }
+    }
+
     const signedQty = ["ADJUSTMENT_OUT", "WASTE", "TRANSFER_OUT"].includes(txnType) ? -qty : qty;
     const signedQtyInBase = ["ADJUSTMENT_OUT", "WASTE", "TRANSFER_OUT"].includes(txnType) ? -qtyInBase : qtyInBase;
 
@@ -182,13 +211,16 @@ Deno.serve(async (req) => {
       return errorResponse("insufficient_stock", 400);
     }
 
+    // For ADD_STOCK, use ADJUSTMENT_IN as the actual transaction type
+    const actualTxnType = txnType === "ADD_STOCK" ? "ADJUSTMENT_IN" : txnType;
+
     const { data: txn, error: txnError } = await supabase
       .from("inventory_transactions")
       .insert({
         restaurant_id: restaurantId,
         branch_id: branchId,
         item_id: itemId,
-        txn_type: txnType,
+        txn_type: actualTxnType,
         qty: signedQty,
         unit_id: unitId,
         qty_in_base: signedQtyInBase,
@@ -225,7 +257,7 @@ Deno.serve(async (req) => {
       restaurant_id: restaurantId,
       entity_type: "inventory_transaction",
       entity_id: txn.id,
-      action: `INVENTORY_${txnType}`,
+      action: `INVENTORY_${actualTxnType}`,
       details: {
         item_id: itemId,
         item_name: item.name,
@@ -234,19 +266,17 @@ Deno.serve(async (req) => {
         qty_in_base: signedQtyInBase,
         new_on_hand: newOnHand,
         notes,
+        original_txn_type: txnType,
       },
     });
 
-    console.log(`[inventory-create-transaction] Success: ${txnType} for item ${itemId}, qty: ${signedQtyInBase}`);
+    console.log(`[inventory-create-transaction] Success: ${actualTxnType} for item ${itemId}, qty: ${signedQtyInBase}`);
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        transaction: txn,
-        newOnHand,
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return successResponse({
+      transaction: txn,
+      newOnHand,
+      skipped: false,
+    });
   } catch (error) {
     console.error("[inventory-create-transaction] Unexpected error:", error);
     return errorResponse("unexpected", 500);

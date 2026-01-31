@@ -246,9 +246,15 @@ export default {
   inv_transaction_failed: "فشل إضافة المخزون",
   inv_stock_added: "كميات مخزون مُضافة",
   inv_items_reused: "أصناف موجودة متطابقة",
+  inv_items_skipped_existing: "أصناف تم تخطيها (موجودة مسبقاً)",
   inv_import_warning_title: "تنبيه هام",
   inv_import_warning_msg: "هذا الاستيراد سيُضيف الكميات للمخزون الحالي. الكميات الموجودة لن تُستبدل.",
+  inv_import_complete: "اكتمل الاستيراد",
   inv_confirm_import: "تأكيد الاستيراد",
+  inv_insufficient_stock: "المخزون غير كافٍ",
+  inv_invalid_item: "الصنف غير موجود",
+  inv_invalid_branch: "الفرع غير صحيح",
+  inv_module_disabled: "إدارة المخزون غير مفعّلة",
   existing: "الحالي",
 
   // Inventory Operations

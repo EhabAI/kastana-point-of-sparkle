@@ -246,9 +246,15 @@ export default {
   inv_transaction_failed: "Failed to add stock",
   inv_stock_added: "stock quantities added",
   inv_items_reused: "existing items matched",
+  inv_items_skipped_existing: "items skipped (already have stock)",
   inv_import_warning_title: "Important Notice",
   inv_import_warning_msg: "This import will ADD quantities to existing stock. Existing quantities will NOT be replaced.",
+  inv_import_complete: "Import Complete",
   inv_confirm_import: "Confirm Import",
+  inv_insufficient_stock: "Insufficient stock",
+  inv_invalid_item: "Item not found",
+  inv_invalid_branch: "Invalid branch",
+  inv_module_disabled: "Inventory management is disabled",
   existing: "Existing",
 
   // Inventory Operations

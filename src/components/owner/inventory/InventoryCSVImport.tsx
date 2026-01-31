@@ -39,7 +39,21 @@ interface ImportResult {
   itemsCreated: number;
   itemsReused: number;
   transactionsCreated: number;
+  transactionsSkipped: number;
   errors: string[];
+}
+
+// Helper to map error codes to user-friendly messages
+function getTransactionErrorMessage(code: string, t: (key: string) => string): string {
+  const errorMap: Record<string, string> = {
+    insufficient_stock: t("inv_insufficient_stock"),
+    invalid_item: t("inv_invalid_item"),
+    invalid_branch: t("inv_invalid_branch"),
+    inventory_disabled: t("inv_module_disabled"),
+    subscription_expired: t("subscription_expired"),
+    server_error: t("server_error"),
+  };
+  return errorMap[code] || t("inv_transaction_failed");
 }
 
 export function InventoryCSVImport({ restaurantId, open, onOpenChange }: InventoryCSVImportProps) {
@@ -114,6 +128,7 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
       let itemsCreated = 0;
       let itemsReused = 0;
       let transactionsCreated = 0;
+      let transactionsSkipped = 0;
       const errors: string[] = [];
 
       for (const row of rows) {
@@ -197,28 +212,52 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
                   txnType: "INITIAL_STOCK",
                   qty: quantity,
                   unitId: unit.id,
-                  notes: "CSV Import",
+                  notes: t("csv_import"),
+                  skipIfHasStock: true, // Skip if item already has transactions
                 },
               }
             );
 
-            if (error || !data?.success) {
-              errors.push(`${row.name}: ${t("inv_transaction_failed")} - ${data?.error || error?.message}`);
-            } else {
-              transactionsCreated++;
+            // Handle response - edge function always returns 200 for business logic
+            if (error) {
+              // Network or system error
+              errors.push(`${row.name}: ${t("inv_transaction_failed")}`);
+            } else if (data?.success) {
+              if (data.skipped) {
+                // Item already has stock - this is expected, not an error
+                transactionsSkipped++;
+              } else {
+                transactionsCreated++;
+              }
+            } else if (data?.error) {
+              // Business logic error from edge function
+              const errorCode = data.error.code || "unknown";
+              const errorMsg = getTransactionErrorMessage(errorCode, t);
+              errors.push(`${row.name}: ${errorMsg}`);
             }
-          } catch (err: any) {
-            errors.push(`${row.name}: ${t("inv_transaction_failed")} - ${err.message}`);
+          } catch (err: unknown) {
+            // Catch any unexpected errors gracefully
+            console.error("[CSV Import] Transaction error:", err);
+            errors.push(`${row.name}: ${t("inv_transaction_failed")}`);
           }
         }
       }
 
-      setResults({ itemsCreated, itemsReused, transactionsCreated, errors });
+      setResults({ itemsCreated, itemsReused, transactionsCreated, transactionsSkipped, errors });
 
-      if (itemsCreated > 0 || transactionsCreated > 0) {
+      // Show success toast with summary
+      const hasChanges = itemsCreated > 0 || transactionsCreated > 0;
+      const hasSkipped = transactionsSkipped > 0;
+      
+      if (hasChanges || hasSkipped) {
+        const parts: string[] = [];
+        if (itemsCreated > 0) parts.push(`${itemsCreated} ${t("items_created")}`);
+        if (transactionsCreated > 0) parts.push(`${transactionsCreated} ${t("inv_stock_added")}`);
+        if (transactionsSkipped > 0) parts.push(`${transactionsSkipped} ${t("inv_items_skipped_existing")}`);
+        
         toast({
-          title: t("inv_import_success"),
-          description: `${itemsCreated} ${t("items_created")}, ${transactionsCreated} ${t("inv_stock_added")}`,
+          title: t("inv_import_complete"),
+          description: parts.join("، "),
         });
       }
     } catch (error: unknown) {
@@ -315,16 +354,31 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
 
               {results && (
                 <div className="space-y-2">
-                  {(results.itemsCreated > 0 || results.itemsReused > 0 || results.transactionsCreated > 0) && (
-                    <div className="text-sm text-green-600 bg-green-50 dark:bg-green-950/30 p-2 rounded space-y-1">
+                  {(results.itemsCreated > 0 || results.itemsReused > 0 || results.transactionsCreated > 0 || results.transactionsSkipped > 0) && (
+                    <div className="text-sm bg-muted/50 p-3 rounded space-y-1.5">
                       {results.itemsCreated > 0 && (
-                        <div>✓ {results.itemsCreated} {t("items_created")}</div>
+                        <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                          <span className="text-xs">✓</span>
+                          <span>{results.itemsCreated} {t("items_created")}</span>
+                        </div>
                       )}
                       {results.itemsReused > 0 && (
-                        <div>✓ {results.itemsReused} {t("inv_items_reused")}</div>
+                        <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                          <span className="text-xs">✓</span>
+                          <span>{results.itemsReused} {t("inv_items_reused")}</span>
+                        </div>
                       )}
                       {results.transactionsCreated > 0 && (
-                        <div>✓ {results.transactionsCreated} {t("inv_stock_added")}</div>
+                        <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                          <span className="text-xs">✓</span>
+                          <span>{results.transactionsCreated} {t("inv_stock_added")}</span>
+                        </div>
+                      )}
+                      {results.transactionsSkipped > 0 && (
+                        <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                          <span className="text-xs">⏭</span>
+                          <span>{results.transactionsSkipped} {t("inv_items_skipped_existing")}</span>
+                        </div>
                       )}
                     </div>
                   )}
