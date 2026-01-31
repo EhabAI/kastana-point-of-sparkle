@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { 
-  ChevronRight, Settings, SkipForward, CheckCircle2, Sparkles, 
+  ChevronRight, ChevronLeft, Settings, SkipForward, CheckCircle2, Sparkles, 
   Play, Pause, BookOpen, Layers, BarChart3, Building2, ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,8 @@ import {
   startOwnerTraining,
   resumeOwnerTraining,
   nextStep,
+  previousStep,
+  canGoToPreviousStep,
   pauseOwnerTraining,
   completeCurrentTrack,
   goToSettingsStep,
@@ -59,6 +61,7 @@ export function OwnerTrainingPanel({
   const [isPaused, setIsPaused] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [showTrackList, setShowTrackList] = useState(false);
+  const [canGoBack, setCanGoBack] = useState(false);
 
   // Load initial state
   useEffect(() => {
@@ -82,12 +85,14 @@ export function OwnerTrainingPanel({
       const track = getCurrentTrack();
       setCurrentStep(step);
       setCurrentTrack(track);
+      setCanGoBack(canGoToPreviousStep());
       if (track) {
         setTrackProgress(getTrackProgress(track.id));
       }
     } else {
       setCurrentStep(null);
       setCurrentTrack(null);
+      setCanGoBack(false);
     }
   }, []);
 
@@ -125,6 +130,14 @@ export function OwnerTrainingPanel({
   const handlePause = useCallback(() => {
     pauseOwnerTraining();
     refreshState();
+  }, [refreshState]);
+
+  // Handle going back one step (explanation replay only)
+  const handleGoBack = useCallback(() => {
+    const prev = previousStep();
+    if (prev) {
+      refreshState();
+    }
   }, [refreshState]);
 
   // Handle action button clicks
@@ -189,6 +202,7 @@ export function OwnerTrainingPanel({
     startTrack: language === "ar" ? "ابدأ" : "Start",
     completed: language === "ar" ? "مكتمل" : "Completed",
     recommended: language === "ar" ? "موصى به" : "Recommended",
+    goBack: language === "ar" ? "رجوع خطوة" : "Go Back",
   };
 
   // Get current stage name based on progress percentage (9 stages)
@@ -530,37 +544,53 @@ export function OwnerTrainingPanel({
       
       {/* Action buttons */}
       {currentStep.actions && currentStep.actions.length > 0 && (
-        <div className={cn(
-          "flex gap-2",
-          currentStep.actions.length === 1 ? "justify-end" : "justify-between"
-        )}>
-          {currentStep.actions.map((action) => {
-            const { variant, icon } = getActionButton(action);
-            return (
-              <Button
-                key={action.id}
-                variant={variant}
-                size="sm"
-                className={cn(
-                  "h-8 text-xs gap-1.5",
-                  currentStep.actions!.length === 1 && "flex-1"
-                )}
-                onClick={() => handleAction(action)}
-              >
-                {action.type === "skip" ? (
-                  <>
-                    {action.label[language]}
-                    {icon}
-                  </>
-                ) : (
-                  <>
-                    {icon}
-                    {action.label[language]}
-                  </>
-                )}
-              </Button>
-            );
-          })}
+        <div className="flex flex-col gap-2">
+          {/* Main action buttons */}
+          <div className={cn(
+            "flex gap-2",
+            currentStep.actions.length === 1 ? "justify-end" : "justify-between"
+          )}>
+            {currentStep.actions.map((action) => {
+              const { variant, icon } = getActionButton(action);
+              return (
+                <Button
+                  key={action.id}
+                  variant={variant}
+                  size="sm"
+                  className={cn(
+                    "h-8 text-xs gap-1.5",
+                    currentStep.actions!.length === 1 && "flex-1"
+                  )}
+                  onClick={() => handleAction(action)}
+                >
+                  {action.type === "skip" ? (
+                    <>
+                      {action.label[language]}
+                      {icon}
+                    </>
+                  ) : (
+                    <>
+                      {icon}
+                      {action.label[language]}
+                    </>
+                  )}
+                </Button>
+              );
+            })}
+          </div>
+          
+          {/* Back button - for re-reading previous step explanation */}
+          {canGoBack && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs text-muted-foreground hover:text-foreground w-fit"
+              onClick={handleGoBack}
+            >
+              <ChevronLeft className="h-3.5 w-3.5 ltr:mr-1 rtl:ml-1" />
+              {labels.goBack}
+            </Button>
+          )}
         </div>
       )}
 
