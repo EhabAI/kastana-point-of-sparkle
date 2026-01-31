@@ -1,6 +1,6 @@
 {
-  "version": "2.3.0",
-  "lastUpdated": "2026-01-30",
+  "version": "2.4.0",
+  "lastUpdated": "2026-01-31",
   "fallbackResponses": {
     "ar": "أستطيع مساعدتك في نظام كاستنا POS. يرجى كتابة سؤالك بشكل واضح حول الطلبات، الدفع، المخزون، التقارير، أو أي ميزة أخرى في النظام.",
     "en": "I can help you with Kastana POS. Please ask your question clearly about orders, payments, inventory, reports, or any other system feature."
@@ -9,6 +9,34 @@
     "ar": ["كيف أفتح طلب جديد؟", "ما هو تقرير Z؟", "كيف أعمل مرتجع؟", "شرح حالات الطلب", "كيف يعمل المخزون؟"],
     "en": ["How do I create an order?", "What is Z Report?", "How do I process a refund?", "Explain order states", "How does inventory work?"]
   },
+  "systemRules": [
+    {
+      "id": "owner_branch_context",
+      "priority": "critical",
+      "title": {
+        "ar": "سياق الفرع للمالك (إلزامي)",
+        "en": "Owner Branch Context (Mandatory)"
+      },
+      "rules": {
+        "ar": [
+          "جميع عمليات المالك مرتبطة بالفرع المحدد",
+          "لا يُسمح بأي عملية (إنشاء، تعديل، استيراد، حذف) بدون اختيار فرع",
+          "جميع البيانات (القائمة، المخزون، الوصفات، العروض، الموظفين) تنتمي للفرع المحدد",
+          "تغيير الفرع يغيّر سياق العمل بالكامل",
+          "التدريب والشروحات يجب أن تكون دائماً مرتبطة بالفرع المحدد"
+        ],
+        "en": [
+          "All Owner actions are scoped to a selected branch",
+          "No action (create, edit, import, delete) is allowed without selecting a branch",
+          "All data (menu, inventory, recipes, offers, staff) belongs to the selected branch",
+          "Changing the branch changes the entire working context",
+          "Training and explanations must always be branch-aware"
+        ]
+      },
+      "overrides": "single_branch_behavior",
+      "affected_roles": ["owner"]
+    }
+  ],
   "entries": {
     "order_lifecycle": {
       "id": "order_lifecycle",
