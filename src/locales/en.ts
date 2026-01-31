@@ -3,6 +3,9 @@ export default {
   // Brand name - centralized localization
   brandName: 'Kastana',
   brandNameFull: 'Kastana POS',
+  brandSignatureTeam: 'Kastana Team',
+  brandSignatureManagement: 'Kastana Management',
+  brandSignatureFrom: 'From Kastana Team',
   
   // Internal Notification System
   send_internal_notification: 'Send In-App Notification',

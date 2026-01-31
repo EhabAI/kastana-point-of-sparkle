@@ -99,6 +99,10 @@ export function ContactRestaurantDialog({
     return templates;
   };
 
+  // Brand signature (localized)
+  const brandSignature = t('brandSignatureTeam');
+  const brandNameFull = t('brandNameFull');
+
   // Generate suggested template content
   const generateSuggestedMessage = (templateType: SuggestedTemplate): string => {
     const restaurantName = restaurant?.name || '';
@@ -110,14 +114,14 @@ export function ContactRestaurantDialog({
         case "subscription_reminder":
           return `مرحباً،
 
-نود تذكيركم بأن اشتراك مطعم "${restaurantName}" في Kastana POS ${isExpired ? 'قد انتهى' : 'سينتهي قريباً'}.
+نود تذكيركم بأن اشتراك مطعم "${restaurantName}" في ${brandNameFull} ${isExpired ? 'قد انتهى' : 'سينتهي قريباً'}.
 
 ${subscriptionEndDate ? `تاريخ انتهاء الاشتراك: ${endDateStr}` : ''}
 ${!isExpired && daysRemaining > 0 ? `المتبقي: ${daysRemaining} يوم` : ''}
 
 يرجى التواصل معنا لتجديد الاشتراك.
 
-فريق Kastana`;
+${brandSignature}`;
 
         case "action_required":
           return `مرحباً،
@@ -128,12 +132,12 @@ ${!isExpired && daysRemaining > 0 ? `المتبقي: ${daysRemaining} يوم` : 
 
 نرجو الاستجابة في أقرب وقت ممكن.
 
-فريق Kastana`;
+${brandSignature}`;
 
         case "setup_incomplete":
           return `مرحباً،
 
-لاحظنا أن إعداد مطعم "${restaurantName}" في Kastana POS غير مكتمل.
+لاحظنا أن إعداد مطعم "${restaurantName}" في ${brandNameFull} غير مكتمل.
 
 لضمان أفضل تجربة استخدام، يرجى إكمال الخطوات التالية:
 • [الخطوة الأولى]
@@ -141,7 +145,7 @@ ${!isExpired && daysRemaining > 0 ? `المتبقي: ${daysRemaining} يوم` : 
 
 إذا احتجتم للمساعدة، لا تترددوا في التواصل معنا.
 
-فريق Kastana`;
+${brandSignature}`;
 
         case "admin_note":
           return `مرحباً،
@@ -152,7 +156,7 @@ ${!isExpired && daysRemaining > 0 ? `المتبقي: ${daysRemaining} يوم` : 
 
 للاستفسارات، يرجى التواصل معنا.
 
-فريق Kastana`;
+${brandSignature}`;
 
         case "friendly_followup":
           return `مرحباً،
@@ -163,7 +167,7 @@ ${!isExpired && daysRemaining > 0 ? `المتبقي: ${daysRemaining} يوم` : 
 
 نحن دائماً سعداء بخدمتكم.
 
-فريق Kastana`;
+${brandSignature}`;
 
         case "custom":
         default:
@@ -174,14 +178,14 @@ ${!isExpired && daysRemaining > 0 ? `المتبقي: ${daysRemaining} يوم` : 
         case "subscription_reminder":
           return `Hello,
 
-This is a reminder that the Kastana POS subscription for "${restaurantName}" ${isExpired ? 'has expired' : 'is expiring soon'}.
+This is a reminder that the ${brandNameFull} subscription for "${restaurantName}" ${isExpired ? 'has expired' : 'is expiring soon'}.
 
 ${subscriptionEndDate ? `Expiration date: ${endDateStr}` : ''}
 ${!isExpired && daysRemaining > 0 ? `Days remaining: ${daysRemaining}` : ''}
 
 Please contact us to renew your subscription.
 
-Kastana Team`;
+${brandSignature}`;
 
         case "action_required":
           return `Hello,
@@ -192,12 +196,12 @@ We need you to take action regarding "${restaurantName}".
 
 We kindly request your prompt response.
 
-Kastana Team`;
+${brandSignature}`;
 
         case "setup_incomplete":
           return `Hello,
 
-We noticed that the setup for "${restaurantName}" in Kastana POS is incomplete.
+We noticed that the setup for "${restaurantName}" in ${brandNameFull} is incomplete.
 
 To ensure the best experience, please complete the following steps:
 • [Step 1]
@@ -205,7 +209,7 @@ To ensure the best experience, please complete the following steps:
 
 If you need assistance, don't hesitate to contact us.
 
-Kastana Team`;
+${brandSignature}`;
 
         case "admin_note":
           return `Hello,
@@ -216,7 +220,7 @@ Administrative note regarding "${restaurantName}":
 
 For inquiries, please contact us.
 
-Kastana Team`;
+${brandSignature}`;
 
         case "friendly_followup":
           return `Hello,
@@ -227,7 +231,7 @@ We're reaching out to check how things are going at "${restaurantName}" and to s
 
 We're always happy to help.
 
-Kastana Team`;
+${brandSignature}`;
 
         case "custom":
         default:
@@ -281,66 +285,66 @@ Kastana Team`;
         case "expired":
           return `مرحباً،
 
-نود تذكيركم بأن اشتراك مطعم "${restaurantName}" في Kastana POS قد انتهى.
+نود تذكيركم بأن اشتراك مطعم "${restaurantName}" في ${brandNameFull} قد انتهى.
 
 للاستمرار في استخدام النظام، يرجى التواصل معنا لتجديد الاشتراك.
 
-فريق Kastana`;
+${brandSignature}`;
 
         case "expiring_soon":
           return `مرحباً،
 
-نود تذكيركم بأن اشتراك مطعم "${restaurantName}" في Kastana POS سينتهي قريباً.
+نود تذكيركم بأن اشتراك مطعم "${restaurantName}" في ${brandNameFull} سينتهي قريباً.
 
 تاريخ انتهاء الاشتراك: ${endDateStr}
 المتبقي: ${Math.abs(daysRemaining)} يوم
 
 يرجى التواصل معنا لتجديد الاشتراك قبل انتهاء المدة.
 
-فريق Kastana`;
+${brandSignature}`;
 
         case "follow_up":
         default:
           return `مرحباً،
 
-معك فريق Kastana. نتواصل معكم بخصوص مطعم "${restaurantName}".
+معك ${brandSignature}. نتواصل معكم بخصوص مطعم "${restaurantName}".
 
 كيف نستطيع مساعدتكم؟
 
-فريق Kastana`;
+${brandSignature}`;
       }
     } else {
       switch (templateType) {
         case "expired":
           return `Hello,
 
-This is a reminder that the Kastana POS subscription for "${restaurantName}" has expired.
+This is a reminder that the ${brandNameFull} subscription for "${restaurantName}" has expired.
 
 To continue using the system, please contact us to renew your subscription.
 
-Kastana Team`;
+${brandSignature}`;
 
         case "expiring_soon":
           return `Hello,
 
-This is a reminder that the Kastana POS subscription for "${restaurantName}" is expiring soon.
+This is a reminder that the ${brandNameFull} subscription for "${restaurantName}" is expiring soon.
 
 Expiration date: ${endDateStr}
 Days remaining: ${Math.abs(daysRemaining)}
 
 Please contact us to renew your subscription before it expires.
 
-Kastana Team`;
+${brandSignature}`;
 
         case "follow_up":
         default:
           return `Hello,
 
-This is the Kastana team reaching out regarding "${restaurantName}".
+This is the ${brandSignature} reaching out regarding "${restaurantName}".
 
 How can we assist you?
 
-Kastana Team`;
+${brandSignature}`;
       }
     }
   };

@@ -44,80 +44,85 @@ const NOTIFICATION_TYPES: { value: NotifType; labelAr: string; labelEn: string; 
   { value: 'action_required', labelAr: 'إجراء مطلوب', labelEn: 'Action Required', icon: AlertCircle, color: 'text-red-500' },
 ];
 
-// Suggested messages per notification type
-const SUGGESTED_MESSAGES: Record<NotifType, SuggestedMessage[]> = {
-  action_required: [
-    { key: 'custom', labelAr: 'رسالة مخصصة', labelEn: 'Custom Message', titleAr: '', titleEn: '', messageAr: '', messageEn: '' },
-    { 
-      key: 'subscription_reminder', 
-      labelAr: 'تجديد الاشتراك', 
-      labelEn: 'Subscription Renewal',
-      titleAr: 'تجديد الاشتراك مطلوب',
-      titleEn: 'Subscription Renewal Required',
-      messageAr: 'يرجى تجديد اشتراككم في أقرب وقت لضمان استمرار الخدمة.',
-      messageEn: 'Please renew your subscription soon to ensure service continuity.'
-    },
-    { 
-      key: 'action_needed', 
-      labelAr: 'إجراء مطلوب', 
-      labelEn: 'Action Needed',
-      titleAr: 'مطلوب اتخاذ إجراء',
-      titleEn: 'Action Required',
-      messageAr: 'نحتاج منكم اتخاذ إجراء بخصوص حسابكم. يرجى التواصل معنا.',
-      messageEn: 'We need you to take action regarding your account. Please contact us.'
-    },
-    { 
-      key: 'setup_incomplete', 
-      labelAr: 'إكمال الإعداد', 
-      labelEn: 'Complete Setup',
-      titleAr: 'إعداد النظام غير مكتمل',
-      titleEn: 'System Setup Incomplete',
-      messageAr: 'لاحظنا أن إعداد النظام غير مكتمل. يرجى إكمال الخطوات المتبقية.',
-      messageEn: 'We noticed your system setup is incomplete. Please complete the remaining steps.'
-    },
-  ],
-  warning: [
-    { key: 'custom', labelAr: 'رسالة مخصصة', labelEn: 'Custom Message', titleAr: '', titleEn: '', messageAr: '', messageEn: '' },
-    { 
-      key: 'subscription_reminder', 
-      labelAr: 'انتهاء الاشتراك قريباً', 
-      labelEn: 'Subscription Expiring Soon',
-      titleAr: 'تنبيه: اشتراككم ينتهي قريباً',
-      titleEn: 'Warning: Subscription Expiring Soon',
-      messageAr: 'اشتراككم سينتهي خلال الأيام القادمة. يرجى التجديد لتجنب انقطاع الخدمة.',
-      messageEn: 'Your subscription will expire in the coming days. Please renew to avoid service interruption.'
-    },
-    { 
-      key: 'admin_note', 
-      labelAr: 'ملاحظة هامة', 
-      labelEn: 'Important Note',
-      titleAr: 'ملاحظة هامة من الإدارة',
-      titleEn: 'Important Administrative Note',
-      messageAr: 'نود لفت انتباهكم إلى ملاحظة هامة تتعلق بحسابكم.',
-      messageEn: 'We would like to bring an important note to your attention regarding your account.'
-    },
-  ],
-  info: [
-    { key: 'custom', labelAr: 'رسالة مخصصة', labelEn: 'Custom Message', titleAr: '', titleEn: '', messageAr: '', messageEn: '' },
-    { 
-      key: 'friendly_followup', 
-      labelAr: 'متابعة ودية', 
-      labelEn: 'Friendly Follow-up',
-      titleAr: 'مرحباً من فريق كاستنا',
-      titleEn: 'Hello from Kastana Team',
-      messageAr: 'نتمنى أن تكونوا بخير! نتواصل معكم للاطمئنان ومعرفة إذا كنتم بحاجة لأي مساعدة.',
-      messageEn: 'We hope you are doing well! We are reaching out to check in and see if you need any assistance.'
-    },
-    { 
-      key: 'admin_note', 
-      labelAr: 'ملاحظة إدارية', 
-      labelEn: 'Administrative Note',
-      titleAr: 'ملاحظة من الإدارة',
-      titleEn: 'Note from Administration',
-      messageAr: 'نود إبلاغكم بملاحظة إدارية تخص حسابكم.',
-      messageEn: 'We would like to inform you of an administrative note regarding your account.'
-    },
-  ],
+// Suggested messages generator - uses localized brand signature
+const getSuggestedMessages = (language: string): Record<NotifType, SuggestedMessage[]> => {
+  const brandSignature = language === 'ar' ? 'فريق كاستنا' : 'Kastana Team';
+  const brandFrom = language === 'ar' ? 'من فريق كاستنا' : 'From Kastana Team';
+  
+  return {
+    action_required: [
+      { key: 'custom', labelAr: 'رسالة مخصصة', labelEn: 'Custom Message', titleAr: '', titleEn: '', messageAr: '', messageEn: '' },
+      { 
+        key: 'subscription_reminder', 
+        labelAr: 'تجديد الاشتراك', 
+        labelEn: 'Subscription Renewal',
+        titleAr: 'تجديد الاشتراك مطلوب',
+        titleEn: 'Subscription Renewal Required',
+        messageAr: `يرجى تجديد اشتراككم في أقرب وقت لضمان استمرار الخدمة.\n\n${brandSignature}`,
+        messageEn: `Please renew your subscription soon to ensure service continuity.\n\n${brandSignature}`
+      },
+      { 
+        key: 'action_needed', 
+        labelAr: 'إجراء مطلوب', 
+        labelEn: 'Action Needed',
+        titleAr: 'مطلوب اتخاذ إجراء',
+        titleEn: 'Action Required',
+        messageAr: `نحتاج منكم اتخاذ إجراء بخصوص حسابكم. يرجى التواصل معنا.\n\n${brandSignature}`,
+        messageEn: `We need you to take action regarding your account. Please contact us.\n\n${brandSignature}`
+      },
+      { 
+        key: 'setup_incomplete', 
+        labelAr: 'إكمال الإعداد', 
+        labelEn: 'Complete Setup',
+        titleAr: 'إعداد النظام غير مكتمل',
+        titleEn: 'System Setup Incomplete',
+        messageAr: `لاحظنا أن إعداد النظام غير مكتمل. يرجى إكمال الخطوات المتبقية.\n\n${brandSignature}`,
+        messageEn: `We noticed your system setup is incomplete. Please complete the remaining steps.\n\n${brandSignature}`
+      },
+    ],
+    warning: [
+      { key: 'custom', labelAr: 'رسالة مخصصة', labelEn: 'Custom Message', titleAr: '', titleEn: '', messageAr: '', messageEn: '' },
+      { 
+        key: 'subscription_reminder', 
+        labelAr: 'انتهاء الاشتراك قريباً', 
+        labelEn: 'Subscription Expiring Soon',
+        titleAr: 'تنبيه: اشتراككم ينتهي قريباً',
+        titleEn: 'Warning: Subscription Expiring Soon',
+        messageAr: `اشتراككم سينتهي خلال الأيام القادمة. يرجى التجديد لتجنب انقطاع الخدمة.\n\n${brandSignature}`,
+        messageEn: `Your subscription will expire in the coming days. Please renew to avoid service interruption.\n\n${brandSignature}`
+      },
+      { 
+        key: 'admin_note', 
+        labelAr: 'ملاحظة هامة', 
+        labelEn: 'Important Note',
+        titleAr: 'ملاحظة هامة من الإدارة',
+        titleEn: 'Important Administrative Note',
+        messageAr: `نود لفت انتباهكم إلى ملاحظة هامة تتعلق بحسابكم.\n\n${brandSignature}`,
+        messageEn: `We would like to bring an important note to your attention regarding your account.\n\n${brandSignature}`
+      },
+    ],
+    info: [
+      { key: 'custom', labelAr: 'رسالة مخصصة', labelEn: 'Custom Message', titleAr: '', titleEn: '', messageAr: '', messageEn: '' },
+      { 
+        key: 'friendly_followup', 
+        labelAr: 'متابعة ودية', 
+        labelEn: 'Friendly Follow-up',
+        titleAr: language === 'ar' ? 'مرحباً من فريق كاستنا' : 'Hello from Kastana Team',
+        titleEn: 'Hello from Kastana Team',
+        messageAr: `نتمنى أن تكونوا بخير! نتواصل معكم للاطمئنان ومعرفة إذا كنتم بحاجة لأي مساعدة.\n\n${brandSignature}`,
+        messageEn: `We hope you are doing well! We are reaching out to check in and see if you need any assistance.\n\n${brandSignature}`
+      },
+      { 
+        key: 'admin_note', 
+        labelAr: 'ملاحظة إدارية', 
+        labelEn: 'Administrative Note',
+        titleAr: 'ملاحظة من الإدارة',
+        titleEn: 'Note from Administration',
+        messageAr: `نود إبلاغكم بملاحظة إدارية تخص حسابكم.\n\n${brandSignature}`,
+        messageEn: `We would like to inform you of an administrative note regarding your account.\n\n${brandSignature}`
+      },
+    ],
+  };
 };
 
 export function InternalNotificationDialog({
@@ -135,8 +140,9 @@ export function InternalNotificationDialog({
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
 
-  // Get available suggested messages for current notification type
-  const availableSuggestions = SUGGESTED_MESSAGES[notifType];
+  // Get available suggested messages for current notification type (with localized brand)
+  const suggestedMessages = getSuggestedMessages(language);
+  const availableSuggestions = suggestedMessages[notifType];
 
   // Handle notification type change - reset suggested key
   const handleNotifTypeChange = (newType: NotifType) => {
