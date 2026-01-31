@@ -20,6 +20,7 @@ export type MessageKey =
   | "table_created"
   | "table_updated"
   | "table_create_error"
+  | "table_duplicate_name"
   | "table_update_error"
   // Categories
   | "category_created"
@@ -114,6 +115,10 @@ const MESSAGES: Record<MessageKey, MessageDefinition> = {
   table_create_error: {
     ar: "فشل في إنشاء الطاولة",
     en: "Failed to create table",
+  },
+  table_duplicate_name: {
+    ar: "اسم الطاولة موجود مسبقاً في هذا الفرع",
+    en: "A table with this name already exists in this branch",
   },
   table_update_error: {
     ar: "فشل في تحديث الطاولة",

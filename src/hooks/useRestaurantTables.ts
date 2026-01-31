@@ -60,6 +60,20 @@ export function useCreateRestaurantTable() {
       capacity?: number;
       branchId?: string;
     }) => {
+      // Check for duplicate table name in the same branch
+      const { data: existing, error: checkError } = await supabase
+        .from("restaurant_tables")
+        .select("id")
+        .eq("restaurant_id", restaurantId)
+        .eq("table_name", tableName.trim())
+        .eq("branch_id", branchId || null)
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+      if (existing) {
+        throw new Error("DUPLICATE_TABLE_NAME");
+      }
+
       // Generate unique table code with retry logic
       let tableCode = generateTableCode();
       let attempts = 0;
@@ -70,7 +84,7 @@ export function useCreateRestaurantTable() {
           .from("restaurant_tables")
           .insert({
             restaurant_id: restaurantId,
-            table_name: tableName,
+            table_name: tableName.trim(),
             table_code: tableCode,
             capacity,
             branch_id: branchId || null,
@@ -98,6 +112,11 @@ export function useCreateRestaurantTable() {
       toast({ title: resolveMessage("table_created", language) });
     },
     onError: (error: Error) => {
+      // Check for duplicate name error
+      if (error.message === "DUPLICATE_TABLE_NAME") {
+        toast({ title: resolveMessage("table_duplicate_name", language), variant: "destructive" });
+        return;
+      }
       const msg = resolveErrorMessage(error, language, "table_create_error");
       toast({ title: msg.title, description: msg.description, variant: "destructive" });
     },
