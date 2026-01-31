@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -111,6 +111,23 @@ export default function OwnerAdmin() {
   const { isEnabled: inventoryEnabled } = useInventoryEnabled();
   const { toast } = useToast();
   const currency = settings?.currency || "JOD";
+  
+  // Controlled tab state for training navigation
+  const [activeTab, setActiveTab] = useState("overview");
+  
+  // Listen for training navigation events
+  useEffect(() => {
+    const handleTrainingNavigate = (event: CustomEvent<{ tab: string }>) => {
+      if (event.detail?.tab) {
+        setActiveTab(event.detail.tab);
+      }
+    };
+    
+    window.addEventListener("owner-training-navigate", handleTrainingNavigate as EventListener);
+    return () => {
+      window.removeEventListener("owner-training-navigate", handleTrainingNavigate as EventListener);
+    };
+  }, []);
 
 
   if (loadingRestaurant) {
@@ -146,7 +163,7 @@ export default function OwnerAdmin() {
       <div className="space-y-3 animate-fade-in">
 
       {/* Tabbed Navigation - Professional POS-style full-width tabs */}
-      <Tabs defaultValue="overview" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="sticky top-9 z-10 -mx-4 px-4 bg-background border-b border-border">
           <TabsList className="flex w-full h-10 bg-transparent p-0 gap-0 overflow-x-auto scrollbar-hide">
             <TabsTrigger 

@@ -106,7 +106,7 @@ export function OffersStatusCard({ restaurantId }: OffersStatusCardProps) {
   const StatusIcon = currentStatus.icon;
 
   return (
-    <Card className="relative overflow-hidden bg-gradient-to-br from-indigo-400/90 to-violet-400/80 border-indigo-300/50 shadow-sm">
+    <Card data-trainer="offers-status" className="relative overflow-hidden bg-gradient-to-br from-indigo-400/90 to-violet-400/80 border-indigo-300/50 shadow-sm">
       {/* Thick accent bar on the right (RTL) */}
       <div className={`absolute top-0 end-0 w-2 h-full ${currentStatus.accentColor}`} />
       
