@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { resolveOwnerRestaurantId } from "../_shared/owner-restaurant.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -56,9 +57,10 @@ Deno.serve(async (req) => {
       return errorResponse("unauthorized", 401);
     }
 
+    // Check user role - allow owner or system_admin
     const { data: roleData, error: roleError } = await supabase
       .from("user_roles")
-      .select("role, restaurant_id")
+      .select("role")
       .eq("user_id", user.id)
       .in("role", ["owner", "system_admin"])
       .maybeSingle();
@@ -73,8 +75,18 @@ Deno.serve(async (req) => {
 
     console.log(`Importing ${rows.length} rows for restaurant ${restaurant_id}`);
 
-    if (roleData.role === "owner" && roleData.restaurant_id !== restaurant_id) {
-      return errorResponse("restaurant_mismatch", 403);
+    // For owners, validate restaurant ownership using the shared helper
+    if (roleData.role === "owner") {
+      const { restaurantId: resolvedId, error: resolveError } = await resolveOwnerRestaurantId({
+        supabaseAdmin: supabase,
+        userId: user.id,
+        requestedRestaurantId: restaurant_id,
+      });
+
+      if (resolveError || !resolvedId) {
+        console.log("Restaurant resolution error:", resolveError);
+        return errorResponse("restaurant_mismatch", 403);
+      }
     }
 
     if (!restaurant_id || !rows || rows.length === 0) {
