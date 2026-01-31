@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogBody } from "@/components/ui/dialog";
-import { Trash2, Plus, Save, ChefHat, Search, Package, AlertCircle, Upload, FileText, CheckCircle2, XCircle, ArrowLeft, Loader2, Filter, PartyPopper, Check } from "lucide-react";
+import { Trash2, Plus, Save, ChefHat, Search, Package, AlertCircle, Upload, FileText, CheckCircle2, XCircle, ArrowLeft, Loader2, Filter, PartyPopper, Check, Download } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAllMenuItems } from "@/hooks/useMenuItems";
 import { useInventoryItems, useInventoryUnits } from "@/hooks/useInventoryItems";
@@ -398,6 +398,64 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
     );
   };
 
+  // Export missing menu items as Menu-compatible CSV
+  const handleExportMissingMenuItems = useCallback(() => {
+    if (!importResult) return;
+    
+    // Filter unique menu item names that failed due to "menu_item_not_found"
+    const missingItems = new Set<string>();
+    importResult.errors.forEach((error) => {
+      if (error.reason_code === "menu_item_not_found" && error.menu_item_name) {
+        missingItems.add(error.menu_item_name.trim());
+      }
+    });
+    
+    if (missingItems.size === 0) return;
+    
+    // Generate Menu-compatible CSV format
+    // Columns: category_en, category_ar, item_en, item_ar, price
+    const csvRows: string[] = [];
+    csvRows.push("category_en,category_ar,item_en,item_ar,price");
+    
+    missingItems.forEach((itemName) => {
+      // Default values per requirements
+      const categoryEn = "Uncategorized";
+      const categoryAr = "غير مصنف";
+      const itemEn = itemName;
+      const itemAr = itemName;
+      const price = "0";
+      
+      // Escape values that might contain commas or quotes
+      const escapeCSV = (val: string) => {
+        if (val.includes(",") || val.includes('"') || val.includes("\n")) {
+          return `"${val.replace(/"/g, '""')}"`;
+        }
+        return val;
+      };
+      
+      csvRows.push([
+        escapeCSV(categoryEn),
+        escapeCSV(categoryAr),
+        escapeCSV(itemEn),
+        escapeCSV(itemAr),
+        price
+      ].join(","));
+    });
+    
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `missing_menu_items_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }, [importResult]);
+
+  // Check if there are any missing menu item errors
+  const hasMissingMenuItems = importResult?.errors.some(
+    (error) => error.reason_code === "menu_item_not_found"
+  ) ?? false;
+
   const { data: menuItems = [], isLoading: loadingMenuItems } = useAllMenuItems(restaurantId);
   const { data: inventoryItems = [], isLoading: loadingInventory } = useInventoryItems(restaurantId);
   const { data: units = [] } = useInventoryUnits(restaurantId);
@@ -667,6 +725,29 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Export Missing Menu Items */}
+              {hasMissingMenuItems && (
+                <div className="p-4 bg-muted/50 border border-border rounded-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">{t("export_missing_menu_items")}</p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleExportMissingMenuItems}
+                      className="gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      {t("export_csv")}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {t("export_missing_menu_items_hint")}
+                  </p>
                 </div>
               )}
             </DialogBody>

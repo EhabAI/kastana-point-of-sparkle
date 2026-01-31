@@ -1,9 +1,11 @@
 // English translations for Kastana POS
 export default {
-  // CSV Recipe Import - Guided Mapping
+  // CSV Recipe Import - Guided Mapping & Export Missing Menu Items
   csv_select_correct_item: "Select correct item",
   csv_resolve_conflicts_tooltip: "Please resolve all conflicting rows before importing",
   csv_conflict_resolved: "Resolved",
+  export_missing_menu_items: "Export missing menu items",
+  export_missing_menu_items_hint: "You can upload this file directly in the Menu screen, then adjust categories and prices later.",
   // Brand name - centralized localization
   brandName: 'Kastana',
   brandNameFull: 'Kastana POS',
