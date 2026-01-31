@@ -637,6 +637,14 @@ export default {
   choose_category: "Choose a category",
   mark_as_offer: "Mark as Offer",
   description_optional: "Description (optional)",
+  
+  // Category CRUD Messages
+  category_created_success: "Category created successfully",
+  category_updated_success: "Category updated successfully",
+  category_deleted_success: "Category deleted successfully",
+  category_created_training: "🎓 Great! The category has been created",
+  category_updated_training: "🎓 Great! The category has been updated",
+  category_deleted_training: "🎓 Great! The category has been deleted",
 
   // Item Type Classification
   item_type: "Item Type",
