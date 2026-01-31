@@ -15,6 +15,7 @@ import { StaffReportsSkeleton } from "./ReportSkeletons";
 
 interface StaffReportsProps {
   dateRange: DateRange;
+  branchId?: string;
 }
 
 interface CashierSales {
@@ -37,13 +38,15 @@ interface VoidDetail {
   time: string;
 }
 
-export function StaffReports({ dateRange }: StaffReportsProps) {
+export function StaffReports({ dateRange, branchId }: StaffReportsProps) {
   const { t, language } = useLanguage();
   const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
   const { data: settings } = useOwnerRestaurantSettings();
   const currencySymbol = language === "ar" ? "د.أ" : "JOD";
 
-  const [filters, setFilters] = useState<ReportFilterValues>({});
+  const [filters, setFilters] = useState<ReportFilterValues>(() => 
+    branchId ? { branchId } : {}
+  );
   const [showSalesDialog, setShowSalesDialog] = useState(false);
   const [showActivityDialog, setShowActivityDialog] = useState(false);
   const [showVoidsDialog, setShowVoidsDialog] = useState(false);

@@ -21,6 +21,7 @@ import { TrendingUp, TrendingDown, Minus, DollarSign, Package, Layers, Building2
 
 interface CostingReportsProps {
   dateRange: DateRange;
+  branchId?: string;
 }
 
 interface ItemProfit {
@@ -51,12 +52,14 @@ interface BranchProfit {
   margin: number;
 }
 
-export function CostingReports({ dateRange }: CostingReportsProps) {
+export function CostingReports({ dateRange, branchId }: CostingReportsProps) {
   const { t, language } = useLanguage();
   const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
   const currencySymbol = language === "ar" ? "د.أ" : "JOD";
 
-  const [filters, setFilters] = useState<ReportFilterValues>({});
+  const [filters, setFilters] = useState<ReportFilterValues>(() => 
+    branchId ? { branchId } : {}
+  );
 
   const { data, isLoading } = useQuery({
     queryKey: ["costing-reports", restaurant?.id, dateRange.from.toISOString(), dateRange.to.toISOString(), filters],
