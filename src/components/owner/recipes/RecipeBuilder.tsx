@@ -516,8 +516,13 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
   ) ?? false;
 
   const { data: menuItems = [], isLoading: loadingMenuItems } = useAllMenuItems(restaurantId);
-  const { data: inventoryItems = [], isLoading: loadingInventory } = useInventoryItems(restaurantId);
+  const { data: allInventoryItems = [], isLoading: loadingInventory } = useInventoryItems(restaurantId);
   const { data: units = [] } = useInventoryUnits(restaurantId);
+  
+  // Filter inventory items to only show items from the currently selected branch
+  const inventoryItems = effectiveBranchId 
+    ? allInventoryItems.filter(item => item.branchId === effectiveBranchId)
+    : allInventoryItems;
   const { data: existingRecipe, isLoading: loadingRecipe } = useRecipeByMenuItem(restaurantId, selectedMenuItemId, effectiveBranchId);
   const upsertRecipe = useUpsertRecipe();
 
