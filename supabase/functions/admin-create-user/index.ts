@@ -3,6 +3,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.89.0'
 import { checkSubscriptionActive, subscriptionExpiredResponse } from "../_shared/subscription-guard.ts";
+import { validateOwnerContext, createContextErrorResponse } from "../_shared/owner-context-guard.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -149,6 +150,13 @@ Deno.serve(async (req) => {
       // Owners can only create cashier or kitchen staff
       if (requestedRole !== 'cashier' && requestedRole !== 'kitchen') {
         return errorResponse('not_authorized', 403)
+      }
+
+      // Validate Owner context - both restaurant_id and branch_id required for staff creation
+      const contextValidation = validateOwnerContext(body as Record<string, unknown>)
+      if (!contextValidation.isValid) {
+        console.error('[admin-create-user] Context validation failed:', contextValidation.error)
+        return createContextErrorResponse(contextValidation, corsHeaders)
       }
 
       // Restaurant ID is required for staff creation

@@ -14,6 +14,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useOwnerContext } from "@/hooks/useOwnerContext";
+import { OwnerContextIndicator, OwnerContextInlineWarning } from "@/components/owner/OwnerContextGuard";
 import { Upload, Loader2, FileText, AlertTriangle, CheckCircle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -83,6 +85,9 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Use owner context for branch validation
+  const { branchId, branchName, restaurantName, isContextReady } = useOwnerContext();
 
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -124,6 +129,10 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
       toast({ title: t("inv_select_file"), variant: "destructive" });
       return;
     }
+    if (!isContextReady) {
+      toast({ title: t("select_branch_first"), variant: "destructive" });
+      return;
+    }
     setShowWarning(true);
   };
 
@@ -155,9 +164,9 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
         reorderPoint: parseFloat(row.reorder_point || "0") || 0,
       }));
 
-      // Call the dedicated CSV import edge function
+      // Call the dedicated CSV import edge function with restaurant and branch context
       const { data, error } = await supabase.functions.invoke("inventory-csv-import", {
-        body: { restaurant_id: restaurantId, rows },
+        body: { restaurant_id: restaurantId, branch_id: branchId, rows },
       });
 
       if (error) {
@@ -255,6 +264,13 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          {/* Context indicator - shows which restaurant/branch this will apply to */}
+          {isContextReady ? (
+            <OwnerContextIndicator restaurantName={restaurantName} branchName={branchName} />
+          ) : (
+            <OwnerContextInlineWarning />
+          )}
+          
           {/* Warning Alert - Before Import */}
           {showWarning && (
             <Alert variant="destructive" className="border-amber-500 bg-amber-50 dark:bg-amber-950/30">
@@ -386,7 +402,7 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
             {t("close")}
           </Button>
           {!showWarning && !results && (
-            <Button onClick={handleStartImport} disabled={isProcessing || !file}>
+            <Button onClick={handleStartImport} disabled={isProcessing || !file || !isContextReady}>
               {isProcessing && <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" />}
               {t("inv_import")}
             </Button>

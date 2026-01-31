@@ -1,12 +1,13 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, FileSpreadsheet, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Upload, FileSpreadsheet, Loader2, CheckCircle2, AlertCircle, Building2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useBranchContext } from '@/contexts/BranchContext';
+import { useOwnerContext } from '@/hooks/useOwnerContext';
+import { OwnerContextIndicator, OwnerContextInlineWarning } from '@/components/owner/OwnerContextGuard';
 
 
 interface CSVUploadProps {
@@ -98,7 +99,8 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
   const queryClient = useQueryClient();
   const { t } = useLanguage();
   
-  const { selectedBranch } = useBranchContext();
+  // Use unified owner context for restaurant and branch validation
+  const { branchId, branchName, restaurantName, isContextReady } = useOwnerContext();
   
   const [menuFileName, setMenuFileName] = useState<string | null>(null);
   const [offersFileName, setOffersFileName] = useState<string | null>(null);
@@ -111,8 +113,8 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
   const offersInputRef = useRef<HTMLInputElement>(null);
   
   // Use the globally selected branch from the BranchSelector
-  const effectiveMenuBranchId = selectedBranch?.id;
-  const effectiveOffersBranchId = selectedBranch?.id;
+  const effectiveMenuBranchId = branchId;
+  const effectiveOffersBranchId = branchId;
 
   const refreshData = () => {
     queryClient.invalidateQueries({ queryKey: ['menu-categories'] });
@@ -532,7 +534,14 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
         </CardTitle>
         <CardDescription>{t("csv_upload_desc")}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        {/* Context indicator - shows which restaurant/branch this will apply to */}
+        {isContextReady ? (
+          <OwnerContextIndicator restaurantName={restaurantName} branchName={branchName} />
+        ) : (
+          <OwnerContextInlineWarning />
+        )}
+        
         <div className="grid gap-6 md:grid-cols-2">
           {/* Menu CSV Upload */}
           <div className="space-y-3">
@@ -550,13 +559,14 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
                 onChange={handleMenuUpload}
                 className="hidden"
                 id="menu-csv-input"
+                disabled={!isContextReady}
               />
               
               <Button
                 variant="outline"
                 className="w-full"
                 onClick={() => menuInputRef.current?.click()}
-                disabled={menuUploading}
+                disabled={menuUploading || !isContextReady}
               >
                 {menuUploading ? (
                   <>
@@ -610,13 +620,14 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
                 onChange={handleOffersUpload}
                 className="hidden"
                 id="offers-csv-input"
+                disabled={!isContextReady}
               />
               
               <Button
                 variant="outline"
                 className="w-full"
                 onClick={() => offersInputRef.current?.click()}
-                disabled={offersUploading}
+                disabled={offersUploading || !isContextReady}
               >
                 {offersUploading ? (
                   <>

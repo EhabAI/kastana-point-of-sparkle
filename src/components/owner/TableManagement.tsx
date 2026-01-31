@@ -9,13 +9,14 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRestaurantTables, useCreateRestaurantTable, useUpdateRestaurantTable, RestaurantTable } from "@/hooks/useRestaurantTables";
 import { useBranches } from "@/hooks/useBranches";
-import { useBranchContextSafe } from "@/contexts/BranchContext";
+import { useOwnerContext } from "@/hooks/useOwnerContext";
 import { useQROrderEnabled } from "@/hooks/useQRModuleToggle";
 import { Loader2, Plus, Edit2, QrCode, Copy, Download, Table2, ChevronDown, Users, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOwnerErrorMessage } from "@/lib/ownerErrorHandler";
 import { getQRMenuBaseURL } from "@/components/DomainRouter";
+import { OwnerContextGuard } from "@/components/owner/OwnerContextGuard";
 import QRCode from "qrcode";
 
 interface TableManagementProps {
@@ -264,7 +265,7 @@ function TableRow({
 export function TableManagement({ restaurantId, tableCount }: TableManagementProps) {
   const { data: tables = [], isLoading } = useRestaurantTables(restaurantId);
   const { data: branches = [], isLoading: branchesLoading } = useBranches(restaurantId);
-  const { selectedBranch } = useBranchContextSafe();
+  const { branchId: selectedBranchId, isContextReady, contextMissing } = useOwnerContext();
   const { data: qrEnabled = false } = useQROrderEnabled(restaurantId);
   const createTable = useCreateRestaurantTable();
   const updateTable = useUpdateRestaurantTable();
@@ -282,8 +283,8 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
 
   // Use globally selected branch from BranchSelector for filtering
   // Filter tables by selected branch (if a branch is selected)
-  const filteredTables = selectedBranch?.id 
-    ? tables.filter(t => t.branch_id === selectedBranch.id)
+  const filteredTables = selectedBranchId 
+    ? tables.filter(t => t.branch_id === selectedBranchId)
     : tables;
 
   // Get branch name by ID
@@ -357,7 +358,7 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
             </CollapsibleTrigger>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" disabled={branches.length === 0}>
+                <Button size="sm" disabled={branches.length === 0 || !isContextReady}>
                   <Plus className="h-4 w-4 mr-2" />
                   {t("add_table")}
                 </Button>
