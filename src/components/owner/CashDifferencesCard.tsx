@@ -118,7 +118,7 @@ export function CashDifferencesCard({ restaurantId, currency = "JOD", compact = 
   };
 
   return (
-    <Card className={`border ${getCardStyle()}`}>
+    <Card className={`border ${getCardStyle()}`} data-trainer="cash-differences">
       <CardHeader className={compact ? "pb-2 pt-3 px-3" : "pb-3"}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

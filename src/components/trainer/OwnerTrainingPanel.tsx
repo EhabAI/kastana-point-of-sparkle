@@ -191,6 +191,21 @@ export function OwnerTrainingPanel({
     recommended: language === "ar" ? "موصى به" : "Recommended",
   };
 
+  // Get current stage name based on progress percentage
+  const getCurrentStageName = (progress: number): { ar: string; en: string } => {
+    if (progress < 25) {
+      return { ar: "الإعدادات الأساسية", en: "Basic Settings" };
+    } else if (progress < 45) {
+      return { ar: "تحضير القائمة", en: "Menu Setup" };
+    } else if (progress < 65) {
+      return { ar: "تشغيل الكاشيير", en: "POS Operation" };
+    } else if (progress < 85) {
+      return { ar: "المتابعة اليومية", en: "Daily Monitoring" };
+    } else {
+      return { ar: "نظرة مستقبلية", en: "What's Next" };
+    }
+  };
+
   const getTrackIcon = (trackId: TrackId) => {
     switch (trackId) {
       case "getting_started": return <Sparkles className="h-4 w-4" />;
@@ -448,15 +463,22 @@ export function OwnerTrainingPanel({
   // Show active training step
   if (!currentStep || !currentTrack) return null;
 
+  const stageName = getCurrentStageName(trackProgress);
+
   return (
     <div className="p-4 bg-blue-50/50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800/50">
       {/* Header with track info */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           {getTrackIcon(currentTrack.id)}
-          <span className="font-medium text-blue-700 dark:text-blue-300 text-sm">
-            {currentTrack.name[language]}
-          </span>
+          <div className="flex flex-col">
+            <span className="font-medium text-blue-700 dark:text-blue-300 text-sm">
+              {currentTrack.name[language]}
+            </span>
+            <span className="text-[10px] text-blue-500 dark:text-blue-400">
+              {stageName[language]}
+            </span>
+          </div>
         </div>
         <div className="flex items-center gap-1.5">
           <Button
