@@ -31,12 +31,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useCashiers, useAddCashier, useUpdateCashierStatus } from "@/hooks/useCashiers";
 import { useKitchenStaff, useAddKitchenStaff, useUpdateKitchenStaffStatus } from "@/hooks/useKitchenStaff";
 import { useBranches } from "@/hooks/useBranches";
-import { useBranchContextSafe } from "@/contexts/BranchContext";
+import { useOwnerContext } from "@/hooks/useOwnerContext";
 import { useResetCashierPassword } from "@/hooks/useResetCashierPassword";
 import { useKDSEnabled } from "@/hooks/useKDSEnabled";
 import { Users, Loader2, UserPlus, Building2, KeyRound, ChefHat, Pencil, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { OwnerContextGuard } from "@/components/owner/OwnerContextGuard";
 
 interface StaffManagementProps {
   restaurantId: string;
@@ -47,7 +48,7 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
   const { data: cashiers = [], isLoading: cashiersLoading } = useCashiers(restaurantId);
   const { data: kitchenStaff = [], isLoading: kitchenLoading } = useKitchenStaff(restaurantId);
   const { data: branches = [] } = useBranches(restaurantId);
-  const { selectedBranch } = useBranchContextSafe();
+  const { branchId: selectedBranchId, isContextReady, contextMissing } = useOwnerContext();
   const { data: kdsEnabled } = useKDSEnabled(restaurantId);
   const addCashier = useAddCashier();
   const addKitchenStaff = useAddKitchenStaff();
@@ -59,12 +60,12 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
   const queryClient = useQueryClient();
 
   // Filter staff by selected branch
-  const filteredCashiers = selectedBranch?.id 
-    ? cashiers.filter(c => c.branch_id === selectedBranch.id)
+  const filteredCashiers = selectedBranchId 
+    ? cashiers.filter(c => c.branch_id === selectedBranchId)
     : cashiers;
   
-  const filteredKitchenStaff = selectedBranch?.id 
-    ? kitchenStaff.filter(s => s.branch_id === selectedBranch.id)
+  const filteredKitchenStaff = selectedBranchId 
+    ? kitchenStaff.filter(s => s.branch_id === selectedBranchId)
     : kitchenStaff;
 
   const [activeTab, setActiveTab] = useState("cashiers");
@@ -305,6 +306,13 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
           </div>
         </CardHeader>
         <CardContent>
+          {/* Context guard - show warning if branch not selected */}
+          {!isContextReady && (
+            <div className="mb-4">
+              <OwnerContextGuard contextMissing={contextMissing} showBranchSelector={false} />
+            </div>
+          )}
+          
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="flex items-center justify-between mb-4">
               <TabsList>
@@ -321,12 +329,12 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
               </TabsList>
               
               <div className="flex gap-2">
-                <Button size="sm" onClick={() => openCreateDialog("cashier")}>
+                <Button size="sm" onClick={() => openCreateDialog("cashier")} disabled={!isContextReady}>
                   <UserPlus className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
                   {t("add_cashier")}
                 </Button>
                 {kdsEnabled && (
-                  <Button size="sm" variant="outline" onClick={() => openCreateDialog("kitchen")}>
+                  <Button size="sm" variant="outline" onClick={() => openCreateDialog("kitchen")} disabled={!isContextReady}>
                     <ChefHat className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
                     {t("add_kitchen_staff")}
                   </Button>

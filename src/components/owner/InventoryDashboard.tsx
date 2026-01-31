@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useBranchContextSafe } from "@/contexts/BranchContext";
+import { useOwnerContext } from "@/hooks/useOwnerContext";
 import {
   useLowStockItems,
   useNearReorderItems,
@@ -14,6 +14,7 @@ import {
 import { InventoryItemsList, OperationsToolbar, InventoryInsights } from "./inventory";
 import { InventoryTransactionFilter, type FilterableTxnType } from "./inventory/InventoryTransactionFilter";
 import { RecipeBuilder } from "./recipes";
+import { OwnerContextGuard } from "./OwnerContextGuard";
 import { AlertTriangle, PackageX, RefreshCw, Trash2, Package, LayoutDashboard, List, ChefHat, Lightbulb } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
@@ -26,12 +27,17 @@ interface InventoryDashboardProps {
 }
 
 export function InventoryDashboard({ restaurantId, isReadOnly = false, currency = "JOD" }: InventoryDashboardProps) {
-  const { selectedBranch } = useBranchContextSafe();
+  const { branchId: selectedBranchId, isContextReady, contextMissing } = useOwnerContext();
   const { t, language } = useLanguage();
   const [activeTab, setActiveTab] = useState("dashboard");
 
   return (
     <div className="space-y-4">
+      {/* Context guard - show warning if branch not selected */}
+      {!isContextReady && (
+        <OwnerContextGuard contextMissing={contextMissing} showBranchSelector={false} />
+      )}
+      
       {/* Module description */}
       <p className="text-sm text-muted-foreground">
         {t("module_desc_inventory")}
@@ -56,19 +62,19 @@ export function InventoryDashboard({ restaurantId, isReadOnly = false, currency 
               {t("recipes")}
             </TabsTrigger>
           </TabsList>
-          <OperationsToolbar restaurantId={restaurantId} isReadOnly={isReadOnly} />
+          <OperationsToolbar restaurantId={restaurantId} isReadOnly={isReadOnly || !isContextReady} />
         </div>
 
         <TabsContent value="dashboard" className="mt-4">
-          <DashboardWidgets restaurantId={restaurantId} branchId={selectedBranch?.id} />
+          <DashboardWidgets restaurantId={restaurantId} branchId={selectedBranchId ?? undefined} />
         </TabsContent>
 
         <TabsContent value="items" className="mt-4">
-          <InventoryItemsList restaurantId={restaurantId} branchId={selectedBranch?.id} isReadOnly={isReadOnly} />
+          <InventoryItemsList restaurantId={restaurantId} branchId={selectedBranchId ?? undefined} isReadOnly={isReadOnly || !isContextReady} />
         </TabsContent>
 
         <TabsContent value="insights" className="mt-4">
-          <InventoryInsights restaurantId={restaurantId} branchId={selectedBranch?.id} />
+          <InventoryInsights restaurantId={restaurantId} branchId={selectedBranchId ?? undefined} />
         </TabsContent>
 
         <TabsContent value="recipes" className="mt-4">

@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkSubscriptionActive, subscriptionExpiredResponse } from "../_shared/subscription-guard.ts";
 import { resolveOwnerRestaurantId } from "../_shared/owner-restaurant.ts";
+import { validateOwnerContext, createContextErrorResponse } from "../_shared/owner-context-guard.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -71,10 +72,18 @@ Deno.serve(async (req) => {
     }
 
     // Parse request body early so we can resolve the intended restaurant context.
-    // Client is expected to pass `restaurant_id` for multi-restaurant owners.
+    // Client is expected to pass `restaurant_id` and `branch_id` for Owner operations.
     const body = await req.json().catch(() => ({}));
     const rows: CSVImportRow[] = body.rows || [];
     const requestedRestaurantId: string | null = body.restaurant_id || null;
+    const requestedBranchId: string | null = body.branch_id || null;
+
+    // Validate Owner context - both restaurant_id and branch_id are required
+    const contextValidation = validateOwnerContext(body);
+    if (!contextValidation.isValid) {
+      console.error("[inventory-csv-import] Context validation failed:", contextValidation.error);
+      return createContextErrorResponse(contextValidation, corsHeaders);
+    }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -89,6 +98,27 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ success: false, error: code }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate that the requested branch belongs to the restaurant
+    const { data: branchData, error: branchError } = await supabase
+      .from("restaurant_branches")
+      .select("id")
+      .eq("id", requestedBranchId!)
+      .eq("restaurant_id", restaurantId)
+      .maybeSingle();
+
+    if (branchError || !branchData) {
+      console.error("[inventory-csv-import] Branch validation failed:", branchError);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "invalid_branch",
+          message_en: "Branch does not belong to this restaurant",
+          message_ar: "الفرع لا ينتمي لهذا المطعم",
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
