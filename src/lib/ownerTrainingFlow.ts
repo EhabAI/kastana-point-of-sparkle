@@ -71,42 +71,47 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
   triggerType: "auto",
   steps: [
     // ============================================
-    // STAGE 1 - Welcome & Settings (0% → 15%)
+    // STAGE 0 - Branches (FIRST MANDATORY STEP) (0% → 8%)
     // ============================================
     {
-      id: "gs_welcome",
+      id: "gs_branches",
       trackId: "getting_started",
       progressStart: 0,
-      progressEnd: 3,
+      progressEnd: 5,
       message: {
-        ar: "أهلاً بك في كاستنا 👋\n\nخلّينا نراجع لوحة التحكم بسرعة حتى تتعرّف على أهم المعلومات.",
-        en: "Welcome to Kastana 👋\n\nLet's quickly walk through your dashboard."
+        ar: "📍 الفروع\n\nالفروع تُمثل مواقع مطعمك المختلفة.\n\nكل فرع له طاولاته، كاشيير خاص، ومبيعات وتقارير مستقلة.\n\nأي إعداد أو عملية تقوم بها ستكون مرتبطة بالفرع المحدد.",
+        en: "📍 Branches\n\nBranches represent your restaurant's different locations.\n\nEach branch has its own tables, cashiers, and independent sales and reports.\n\nAny setting or operation you perform will be linked to the selected branch."
+      },
+      actions: [
+        { id: "go_branches", label: { ar: "الانتقال إلى الفروع", en: "Go to Branches" }, type: "navigate", navigateTo: "branches" },
+        { id: "skip_branches", label: { ar: "تخطي هذه الخطوة", en: "Skip this step" }, type: "next" }
+      ]
+    },
+    {
+      id: "gs_branches_complete",
+      trackId: "getting_started",
+      progressStart: 5,
+      progressEnd: 8,
+      message: {
+        ar: "ممتاز! 👍\n\nتأكد دائماً من اختيار الفرع الصحيح قبل أي عملية.\n\nكل البيانات (القائمة، المخزون، الموظفين، الطاولات) مرتبطة بالفرع المختار.",
+        en: "Excellent! 👍\n\nAlways ensure the correct branch is selected before any operation.\n\nAll data (menu, inventory, staff, tables) is linked to the selected branch."
       },
       actions: [
         { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
       ]
     },
+
+    // ============================================
+    // STAGE 1 - Overview / Dashboard (8% → 15%)
+    // ============================================
     {
-      id: "gs_branch_context",
+      id: "gs_overview_intro",
       trackId: "getting_started",
-      progressStart: 3,
-      progressEnd: 5,
+      progressStart: 8,
+      progressEnd: 10,
       message: {
-        ar: "⚠️ قاعدة هامة: سياق الفرع\n\n• تأكد دائماً من اختيار الفرع الصحيح قبل أي عملية\n• لكل فرع بياناته الخاصة (القائمة، المخزون، الموظفين)\n• تغيير الفرع يعني أنك تعمل على بيانات مختلفة",
-        en: "⚠️ Important Rule: Branch Context\n\n• Always ensure the correct branch is selected before any operation\n• Each branch has its own data (menu, inventory, staff)\n• Changing branch means you're working on different data"
-      },
-      actions: [
-        { id: "next", label: { ar: "فهمت", en: "Got it" }, type: "next" }
-      ]
-    },
-    {
-      id: "gs_dashboard",
-      trackId: "getting_started",
-      progressStart: 5,
-      progressEnd: 8,
-      message: {
-        ar: "هنا تشاهد حالة مطعمك اليوم: المبيعات، الطلبات، العروض، والتنبيهات المهمة.",
-        en: "Here you can see your restaurant's daily status: sales, orders, offers, and alerts."
+        ar: "نظرة عامة 📊\n\nهنا تشاهد حالة مطعمك اليوم: المبيعات، الطلبات، العروض، والتنبيهات المهمة.",
+        en: "Overview 📊\n\nHere you can see your restaurant's daily status: sales, orders, offers, and alerts."
       },
       highlights: [
         "[data-trainer='daily-summary']",
@@ -114,31 +119,18 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
         "[data-trainer='notifications-alerts']"
       ],
       actions: [
-        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+        { id: "go_overview", label: { ar: "الانتقال إلى نظرة عامة", en: "Go to Overview" }, type: "navigate", navigateTo: "overview" },
+        { id: "skip_overview", label: { ar: "تخطي الآن", en: "Skip for now" }, type: "next" }
       ]
     },
     {
-      id: "gs_suggest_settings",
-      trackId: "getting_started",
-      progressStart: 8,
-      progressEnd: 10,
-      message: {
-        ar: "الخطوة المقترحة التالية هي التأكد من الإعدادات الأساسية لمطعمك.",
-        en: "The recommended next step is to review your restaurant's basic settings."
-      },
-      actions: [
-        { id: "go_settings", label: { ar: "الذهاب إلى الإعدادات", en: "Go to Settings" }, type: "navigate", navigateTo: "settings" },
-        { id: "skip_settings", label: { ar: "تخطي الآن", en: "Skip for now" }, type: "next" }
-      ]
-    },
-    {
-      id: "gs_settings_guide",
+      id: "gs_overview_complete",
       trackId: "getting_started",
       progressStart: 10,
       progressEnd: 15,
       message: {
-        ar: "ممتاز 👍\n\nتأكد من العملة، الضريبة، وساعات العمل.\nهذه الإعدادات تُضبط مرة واحدة فقط.",
-        en: "Great 👍\n\nMake sure currency, tax, and business hours are correct.\nThese are usually set once."
+        ar: "ممتاز! 👍\n\nلوحة التحكم تُظهر كل شيء بنظرة واحدة.\n\nالآن لننتقل إلى إعداد القائمة.",
+        en: "Excellent! 👍\n\nThe dashboard shows everything at a glance.\n\nNow let's move to setting up the menu."
       },
       actions: [
         { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
@@ -146,57 +138,13 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
     },
 
     // ============================================
-    // STAGE 2 - Users & Roles (15% → 25%)
-    // ============================================
-    {
-      id: "gs_users_intro",
-      trackId: "getting_started",
-      progressStart: 15,
-      progressEnd: 18,
-      message: {
-        ar: "الخطوة التالية هي إضافة فريق العمل 👥\n\nكل شخص يعمل على النظام يحتاج مستخدم خاص به.",
-        en: "The next step is to add your team 👥\n\nEvery person working on the system needs their own user account."
-      },
-      actions: [
-        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
-      ]
-    },
-    {
-      id: "gs_users_explain",
-      trackId: "getting_started",
-      progressStart: 18,
-      progressEnd: 22,
-      message: {
-        ar: "• الكاشيير يستقبل الطلبات والدفع\n• مستخدم المطبخ (إذا كان مفعّلًا) يتابع الطلبات فقط",
-        en: "• Cashier receives orders and payments\n• Kitchen user (if enabled) only monitors orders"
-      },
-      actions: [
-        { id: "go_management", label: { ar: "الانتقال إلى الإدارة", en: "Go to Management" }, type: "navigate", navigateTo: "management" },
-        { id: "skip_users", label: { ar: "تخطي الآن", en: "Skip for now" }, type: "next" }
-      ]
-    },
-    {
-      id: "gs_users_complete",
-      trackId: "getting_started",
-      progressStart: 22,
-      progressEnd: 25,
-      message: {
-        ar: "ممتاز! 👍\n\nيمكنك إضافة موظفين جدد في أي وقت من صفحة الإدارة.",
-        en: "Excellent! 👍\n\nYou can add new staff anytime from the Management page."
-      },
-      actions: [
-        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
-      ]
-    },
-
-    // ============================================
-    // STAGE 3 - Menu Setup (25% → 45%)
+    // STAGE 2 - Menu Setup (15% → 30%)
     // ============================================
     {
       id: "gs_menu_intro",
       trackId: "getting_started",
-      progressStart: 25,
-      progressEnd: 30,
+      progressStart: 15,
+      progressEnd: 18,
       message: {
         ar: "القائمة هي قلب مطعمك 🍽️\n\nبدونها لا يمكن البيع.",
         en: "The menu is the heart of your restaurant 🍽️\n\nWithout it, you cannot sell."
@@ -208,8 +156,8 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
     {
       id: "gs_menu_explain",
       trackId: "getting_started",
-      progressStart: 30,
-      progressEnd: 38,
+      progressStart: 18,
+      progressEnd: 25,
       message: {
         ar: "يمكنك:\n\n• إنشاء تصنيفات\n• إضافة الأصناف والأسعار\n• تعديل أو إيقاف أي صنف في أي وقت",
         en: "You can:\n\n• Create categories\n• Add items and prices\n• Edit or disable any item anytime"
@@ -222,8 +170,8 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
     {
       id: "gs_menu_complete",
       trackId: "getting_started",
-      progressStart: 38,
-      progressEnd: 45,
+      progressStart: 25,
+      progressEnd: 30,
       message: {
         ar: "رائع! 🎉\n\nالقائمة جاهزة للاستخدام.\nيمكنك إضافة أصناف جديدة في أي وقت.",
         en: "Great! 🎉\n\nYour menu is ready.\nYou can add new items anytime."
@@ -234,79 +182,13 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
     },
 
     // ============================================
-    // STAGE 4 - Offers (45% → 50%)
-    // ============================================
-    {
-      id: "gs_offers_intro",
-      trackId: "getting_started",
-      progressStart: 45,
-      progressEnd: 47,
-      message: {
-        ar: "العروض تساعدك على زيادة المبيعات 🎯",
-        en: "Offers help you increase sales 🎯"
-      },
-      actions: [
-        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
-      ]
-    },
-    {
-      id: "gs_offers_explain",
-      trackId: "getting_started",
-      progressStart: 47,
-      progressEnd: 50,
-      message: {
-        ar: "• العروض تُفعّل حسب الوقت\n• تُطبق على فرع محدد\n• يمكنك إيقافها أو تعديلها بسهولة\n\n💡 إذا أردت التحكم بوقت ظهور العرض:\nاذهب إلى القائمة ← العروض ← تعديل العرض ← وقت التفعيل\n\nيمكنك تفعيل أو إيقاف أو جدولة العروض حسب الوقت الذي تريده.",
-        en: "• Offers activate based on time\n• Apply to specific branch\n• Easy to pause or edit\n\n💡 If you want to control when offers appear:\nGo to Menu → Offers → Edit Offer → Active Time\n\nYou can enable, disable, or schedule offers based on any time you prefer."
-      },
-      actions: [
-        { id: "go_menu_offers", label: { ar: "الانتقال إلى العروض", en: "Go to Offers" }, type: "navigate", navigateTo: "menu" },
-        { id: "skip_offers", label: { ar: "تخطي الآن", en: "Skip for now" }, type: "next" }
-      ]
-    },
-
-    // ============================================
-    // STAGE 5 - Inventory Management (50% → 58%) - Decision-oriented explanation
-    // ============================================
-    {
-      id: "gs_inventory_intro",
-      trackId: "getting_started",
-      progressStart: 50,
-      progressEnd: 53,
-      message: {
-        ar: "📦 إدارة المخزون (اختياري)\n\nإدارة المخزون في كاستنا تساعدك على متابعة الكميات المتوفرة، معرفة ما ينقص قبل نفاده، وربط الأصناف بالمكونات لتتبع التكلفة الفعلية.",
-        en: "📦 Inventory Management (Optional)\n\nInventory management in Kastana helps you track available quantities, know shortages before running out, and link items to ingredients for actual cost tracking."
-      },
-      actions: [
-        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
-      ]
-    },
-    {
-      id: "gs_inventory_explain",
-      trackId: "getting_started",
-      progressStart: 53,
-      progressEnd: 58,
-      // This step has special state-aware content - see OwnerTrainingPanel
-      // The message below is a fallback; the panel will show dynamic content
-      message: {
-        ar: "✅ إذا كانت إدارة المخزون مفعّلة:\n• متابعة الكميات المتوفرة لكل صنف\n• الكشف المبكر عن النقص قبل نفاد المخزون\n• ربط أصناف القائمة بمكونات المخزون\n• مراجعة حركات المخزون والتقارير\n\n❌ إذا كانت إدارة المخزون غير مفعّلة:\n• النظام يعمل بشكل طبيعي بدون تتبع المخزون\n• لن يتم حجب أي صنف بسبب الكمية\n• مناسب للمطاعم الصغيرة أو العمليات البسيطة\n• يمكن تفعيل المخزون لاحقًا في أي وقت\n\n💡 تفعيل إدارة المخزون قرار إداري وليس إلزاميًا لبدء العمل على النظام.",
-        en: "✅ If Inventory Management is ENABLED:\n• Track available quantities for each item\n• Early detection of shortages before stock runs out\n• Link menu items to inventory ingredients\n• Review inventory movements and reports\n\n❌ If Inventory Management is DISABLED:\n• System works normally without inventory tracking\n• No items will be blocked due to quantity\n• Suitable for small restaurants or simple operations\n• Inventory can be enabled later at any time\n\n💡 Enabling inventory management is an administrative decision and is not mandatory to start using the system."
-      },
-      // Special flag for state-aware rendering in OwnerTrainingPanel
-      isInventoryStep: true,
-      actions: [
-        { id: "go_inventory", label: { ar: "الانتقال إلى إدارة المخزون", en: "Go to Inventory" }, type: "navigate", navigateTo: "inventory" },
-        { id: "skip_inventory", label: { ar: "تخطي هذه الخطوة", en: "Skip this step" }, type: "next" }
-      ]
-    },
-
-    // ============================================
-    // STAGE 6 - Table Management (58% → 65%)
+    // STAGE 3 - Table Management (30% → 42%)
     // ============================================
     {
       id: "gs_tables_intro",
       trackId: "getting_started",
-      progressStart: 58,
-      progressEnd: 60,
+      progressStart: 30,
+      progressEnd: 33,
       message: {
         ar: "إذا كان مطعمك يحتوي على صالة، إدارة الطاولات تسهّل العمل 🪑",
         en: "If your restaurant has a dining area, table management makes work easier 🪑"
@@ -318,8 +200,8 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
     {
       id: "gs_tables_explain",
       trackId: "getting_started",
-      progressStart: 60,
-      progressEnd: 63,
+      progressStart: 33,
+      progressEnd: 38,
       message: {
         ar: "• إنشاء الطاولات\n• تحديد عدد الكراسي\n• معرفة حالة كل طاولة",
         en: "• Create tables\n• Set seat count\n• See status of each table"
@@ -332,8 +214,8 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
     {
       id: "gs_tables_complete",
       trackId: "getting_started",
-      progressStart: 63,
-      progressEnd: 65,
+      progressStart: 38,
+      progressEnd: 42,
       message: {
         ar: "ممتاز! 👍\n\nيمكنك إضافة طاولات حسب حاجة مطعمك.",
         en: "Excellent! 👍\n\nYou can add tables as needed for your restaurant."
@@ -344,137 +226,133 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
     },
 
     // ============================================
-    // STAGE 6 - Daily Operation Overview (65% → 80%) - Explanation only
+    // STAGE 4 - Staff / Users & Roles (42% → 54%)
     // ============================================
     {
-      id: "gs_pos_intro",
+      id: "gs_users_intro",
       trackId: "getting_started",
-      progressStart: 65,
+      progressStart: 42,
+      progressEnd: 45,
+      message: {
+        ar: "الخطوة التالية هي إضافة فريق العمل 👥\n\nكل شخص يعمل على النظام يحتاج مستخدم خاص به.",
+        en: "The next step is to add your team 👥\n\nEvery person working on the system needs their own user account."
+      },
+      actions: [
+        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+      ]
+    },
+    {
+      id: "gs_users_explain",
+      trackId: "getting_started",
+      progressStart: 45,
+      progressEnd: 50,
+      message: {
+        ar: "• الكاشيير يستقبل الطلبات والدفع\n• مستخدم المطبخ (إذا كان مفعّلًا) يتابع الطلبات فقط",
+        en: "• Cashier receives orders and payments\n• Kitchen user (if enabled) only monitors orders"
+      },
+      actions: [
+        { id: "go_management", label: { ar: "الانتقال إلى الإدارة", en: "Go to Management" }, type: "navigate", navigateTo: "management" },
+        { id: "skip_users", label: { ar: "تخطي الآن", en: "Skip for now" }, type: "next" }
+      ]
+    },
+    {
+      id: "gs_users_complete",
+      trackId: "getting_started",
+      progressStart: 50,
+      progressEnd: 54,
+      message: {
+        ar: "ممتاز! 👍\n\nيمكنك إضافة موظفين جدد في أي وقت من صفحة الإدارة.",
+        en: "Excellent! 👍\n\nYou can add new staff anytime from the Management page."
+      },
+      actions: [
+        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+      ]
+    },
+
+    // ============================================
+    // STAGE 5 - Settings (54% → 68%)
+    // ============================================
+    {
+      id: "gs_settings_intro",
+      trackId: "getting_started",
+      progressStart: 54,
+      progressEnd: 58,
+      message: {
+        ar: "الإعدادات ⚙️\n\nهنا تتحكم في الإعدادات الأساسية لمطعمك.",
+        en: "Settings ⚙️\n\nHere you control your restaurant's basic settings."
+      },
+      actions: [
+        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+      ]
+    },
+    {
+      id: "gs_settings_explain",
+      trackId: "getting_started",
+      progressStart: 58,
+      progressEnd: 64,
+      message: {
+        ar: "• العملة والضريبة\n• ساعات العمل\n• إعدادات الخصم\n• طرق الدفع\n\nهذه الإعدادات تُضبط مرة واحدة فقط.",
+        en: "• Currency and tax\n• Business hours\n• Discount settings\n• Payment methods\n\nThese are usually set once."
+      },
+      actions: [
+        { id: "go_settings", label: { ar: "الذهاب إلى الإعدادات", en: "Go to Settings" }, type: "navigate", navigateTo: "settings" },
+        { id: "skip_settings", label: { ar: "تخطي الآن", en: "Skip for now" }, type: "next" }
+      ]
+    },
+    {
+      id: "gs_settings_complete",
+      trackId: "getting_started",
+      progressStart: 64,
       progressEnd: 68,
       message: {
-        ar: "التشغيل اليومي يتم من خلال الكاشيير 💳",
-        en: "Daily operations are handled through the POS 💳"
+        ar: "ممتاز! 👍\n\nيمكنك دائماً تعديل الإعدادات من هذه الصفحة.",
+        en: "Excellent! 👍\n\nYou can always adjust settings from this page."
       },
       actions: [
         { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
       ]
     },
+
+    // ============================================
+    // STAGE 6 - Inventory (Optional) (68% → 80%)
+    // ============================================
     {
-      id: "gs_pos_explain",
+      id: "gs_inventory_intro",
       trackId: "getting_started",
       progressStart: 68,
-      progressEnd: 75,
+      progressEnd: 72,
       message: {
-        ar: "الكاشيير هو المسؤول عن:\n• فتح الوردية\n• استقبال الطلبات\n• استلام الدفع\n\nأما أنت كصاحب مطعم:\n• تتابع المبيعات\n• تراجع الأداء\n• تشاهد أي فروقات نقدية إن وُجدت",
-        en: "The cashier is responsible for:\n• Opening the shift\n• Receiving orders\n• Collecting payment\n\nAs a restaurant owner:\n• You monitor sales\n• Review performance\n• View cash differences if any"
+        ar: "📦 إدارة المخزون (اختياري)\n\nإدارة المخزون في كاستنا تساعدك على متابعة الكميات المتوفرة، معرفة ما ينقص قبل نفاده، وربط الأصناف بالمكونات لتتبع التكلفة الفعلية.",
+        en: "📦 Inventory Management (Optional)\n\nInventory management in Kastana helps you track available quantities, know shortages before running out, and link items to ingredients for actual cost tracking."
       },
       actions: [
-        { id: "go_pos_view", label: { ar: "الانتقال إلى شاشة الكاشيير (عرض فقط)", en: "Go to POS (view only)" }, type: "navigate", navigateTo: "pos" },
-        { id: "skip_pos", label: { ar: "تخطي الآن", en: "Skip for now" }, type: "next" }
+        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
       ]
     },
     {
-      id: "gs_pos_complete",
+      id: "gs_inventory_explain",
       trackId: "getting_started",
-      progressStart: 75,
+      progressStart: 72,
       progressEnd: 80,
       message: {
-        ar: "ممتاز! 👍\n\nالآن تعرف كيف يعمل الكاشيير.\nدورك كصاحب مطعم هو المتابعة والمراجعة.",
-        en: "Excellent! 👍\n\nNow you understand how the POS works.\nYour role as owner is to monitor and review."
+        ar: "✅ إذا كانت إدارة المخزون مفعّلة:\n• متابعة الكميات المتوفرة لكل صنف\n• الكشف المبكر عن النقص قبل نفاد المخزون\n• ربط أصناف القائمة بمكونات المخزون\n\n❌ إذا كانت غير مفعّلة:\n• النظام يعمل بشكل طبيعي\n• مناسب للمطاعم الصغيرة\n• يمكن تفعيلها لاحقًا",
+        en: "✅ If Inventory Management is ENABLED:\n• Track available quantities\n• Early detection of shortages\n• Link menu items to ingredients\n\n❌ If DISABLED:\n• System works normally\n• Suitable for small restaurants\n• Can be enabled later"
       },
+      isInventoryStep: true,
       actions: [
-        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+        { id: "go_inventory", label: { ar: "الانتقال إلى إدارة المخزون", en: "Go to Inventory" }, type: "navigate", navigateTo: "inventory" },
+        { id: "skip_inventory", label: { ar: "تخطي هذه الخطوة", en: "Skip this step" }, type: "next" }
       ]
     },
 
     // ============================================
-    // STAGE 7 - Daily Monitoring (80% → 90%)
-    // ============================================
-    {
-      id: "gs_monitoring_intro",
-      trackId: "getting_started",
-      progressStart: 80,
-      progressEnd: 83,
-      message: {
-        ar: "تابع عمل مطعمك يوميًا من مكان واحد 📊",
-        en: "Monitor your restaurant daily from one place 📊"
-      },
-      actions: [
-        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
-      ]
-    },
-    {
-      id: "gs_monitoring_explain",
-      trackId: "getting_started",
-      progressStart: 83,
-      progressEnd: 88,
-      message: {
-        ar: "• المبيعات\n• الإشعارات\n• فروقات النقد",
-        en: "• Sales\n• Notifications\n• Cash differences"
-      },
-      highlights: [
-        "[data-trainer='daily-summary']",
-        "[data-trainer='notifications-alerts']",
-        "[data-trainer='cash-differences']"
-      ],
-      actions: [
-        { id: "go_overview", label: { ar: "الانتقال إلى نظرة عامة", en: "Go to Overview" }, type: "navigate", navigateTo: "overview" },
-        { id: "skip_monitoring", label: { ar: "تخطي الآن", en: "Skip for now" }, type: "next" }
-      ]
-    },
-    {
-      id: "gs_monitoring_complete",
-      trackId: "getting_started",
-      progressStart: 88,
-      progressEnd: 90,
-      message: {
-        ar: "ممتاز! 👍\n\nلوحة التحكم تُظهر كل شيء بنظرة واحدة.",
-        en: "Excellent! 👍\n\nThe dashboard shows everything at a glance."
-      },
-      actions: [
-        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
-      ]
-    },
-
-    // ============================================
-    // STAGE 8 - Branches (90% → 93%)
-    // ============================================
-    {
-      id: "gs_branches_intro",
-      trackId: "getting_started",
-      progressStart: 90,
-      progressEnd: 91,
-      message: {
-        ar: "إذا كان لديك أكثر من فرع، يمكنك إدارتهم بسهولة 🏢",
-        en: "If you have multiple branches, you can manage them easily 🏢"
-      },
-      actions: [
-        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
-      ]
-    },
-    {
-      id: "gs_branches_explain",
-      trackId: "getting_started",
-      progressStart: 91,
-      progressEnd: 93,
-      message: {
-        ar: "• كل فرع مستقل تشغيليًا\n• التقارير منفصلة\n• التحكم مركزي",
-        en: "• Each branch operates independently\n• Reports are separate\n• Control is centralized"
-      },
-      actions: [
-        { id: "go_branches", label: { ar: "الانتقال إلى الفروع", en: "Go to Branches" }, type: "navigate", navigateTo: "branches" },
-        { id: "skip_branches", label: { ar: "تخطي الآن", en: "Skip for now" }, type: "next" }
-      ]
-    },
-
-    // ============================================
-    // STAGE 9 - Reports & Analytics (93% → 98%) - FINAL STEP
+    // STAGE 7 - Reports & Analytics (80% → 95%) - FINAL TRAINING STEP
     // ============================================
     {
       id: "gs_reports_intro",
       trackId: "getting_started",
-      progressStart: 93,
-      progressEnd: 98,
+      progressStart: 80,
+      progressEnd: 95,
       message: {
         ar: "📊 التقارير والتحليلات\n\nهنا يمكنك متابعة أداء مطعمك واتخاذ قرارات أفضل.\n\nالتقارير تعتمد على البيانات التي تم تسجيلها أثناء العمل.\nفي البداية قد ترى أرقامًا صفرية، وهذا طبيعي.",
         en: "📊 Reports & Analytics\n\nHere you can monitor your restaurant's performance and make better decisions.\n\nReports depend on data recorded during operations.\nAt first, you may see zero numbers, which is normal."
@@ -486,12 +364,12 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
     },
 
     // ============================================
-    // STAGE 10 - Congratulations (98% → 100%)
+    // STAGE 8 - Congratulations (95% → 100%)
     // ============================================
     {
       id: "gs_complete",
       trackId: "getting_started",
-      progressStart: 98,
+      progressStart: 95,
       progressEnd: 100,
       message: {
         ar: "🎉 تهانينا! أنهيت تدريب كاستنا بنجاح\n\nأنت الآن جاهز لتشغيل مطعمك على كاستنا بثقة.\n\nيمكنك دائمًا العودة إلى المدرب الذكي لشرح أي شاشة.",
