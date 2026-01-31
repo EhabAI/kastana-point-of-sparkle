@@ -283,10 +283,19 @@ export const SYSTEM_INVARIANTS: SystemInvariant[] = [
   {
     id: "inv_training_flow_order",
     rule: {
-      ar: "ترتيب التدريب: الفروع ← نظرة عامة ← القائمة ← الطاولات ← الموظفين ← الإعدادات ← التقارير.",
-      en: "Training order: Branches → Overview → Menu → Tables → Staff → Settings → Reports.",
+      ar: "ترتيب التدريب المقفل: الفروع ← القائمة ← المخزون ← الوصفات (مهم جداً) ← التقارير.",
+      en: "Locked training order: Branches → Menu → Inventory → Recipes (Critical) → Reports.",
     },
     category: "restaurant",
+    severity: "blocking",
+  },
+  {
+    id: "inv_recipes_high_importance",
+    rule: {
+      ar: "الوصفات عقدة عالية الأهمية. بدونها: المخزون لا ينقص، لا يمكن حساب التكلفة، التقارير غير دقيقة.",
+      en: "Recipes is a high-importance node. Without them: Inventory doesn't decrease, cost cannot be calculated, reports inaccurate.",
+    },
+    category: "inventory",
     severity: "blocking",
   },
   // === MENU CSV UPLOAD INVARIANTS ===
@@ -315,6 +324,34 @@ export const SYSTEM_INVARIANTS: SystemInvariant[] = [
       en: "If branch context is lost during upload, show 'branch_context_lost' error, not a generic message.",
     },
     category: "restaurant",
+    severity: "blocking",
+  },
+  // === RECIPE CSV IMPORT INVARIANTS ===
+  {
+    id: "inv_recipe_csv_menu_item_required",
+    rule: {
+      ar: "استيراد الوصفات يتطلب وجود الصنف في قائمة الفرع الحالي. صنف غير موجود = خطأ مانع.",
+      en: "Recipe import requires item to exist in current branch menu. Item not found = blocking error.",
+    },
+    category: "inventory",
+    severity: "blocking",
+  },
+  {
+    id: "inv_recipe_csv_inventory_conflict",
+    rule: {
+      ar: "عند وجود مواد متعددة بنفس الاسم، يجب على المستخدم الاختيار. الاختيار يُطبق تلقائياً على الصفوف المشابهة.",
+      en: "When multiple materials with same name exist, user must select. Selection auto-applies to similar rows.",
+    },
+    category: "inventory",
+    severity: "warning",
+  },
+  {
+    id: "inv_recipe_csv_import_disabled",
+    rule: {
+      ar: "زر الاستيراد معطل حتى تُحل جميع الأخطاء المانعة (صنف غير موجود، تعارض غير محلول).",
+      en: "Import button disabled until all blocking errors are resolved (item not found, unresolved conflict).",
+    },
+    category: "inventory",
     severity: "blocking",
   },
 ];
@@ -674,6 +711,83 @@ export const ACTIONS_REGISTRY: ActionEntry[] = [
     side_effects: { audit_log: true },
     related_invariants: ["inv_owner_assignment_admin_only", "inv_owner_change_immediate"],
   },
+  // === RECIPE CSV IMPORT ACTIONS ===
+  {
+    id: "action_recipe_csv_import",
+    action_name: { ar: "استيراد الوصفات عبر CSV", en: "Recipe CSV Import" },
+    allowed_roles: ["owner"],
+    preconditions: {
+      ar: [
+        "الفرع محدد",
+        "الأصناف موجودة في القائمة",
+        "المواد موجودة في المخزون",
+        "ملف CSV بالتنسيق الصحيح (menu_item_name, ingredient, quantity, unit)",
+      ],
+      en: [
+        "Branch is selected",
+        "Items exist in menu",
+        "Materials exist in inventory",
+        "CSV file with correct format (menu_item_name, ingredient, quantity, unit)",
+      ],
+    },
+    postconditions: {
+      ar: [
+        "معاينة تعرض الأخطاء والتعارضات",
+        "بعد حل الأخطاء: الوصفات تُنشأ للصفوف الصحيحة",
+      ],
+      en: [
+        "Preview shows errors and conflicts",
+        "After resolving errors: Recipes created for valid rows",
+      ],
+    },
+    side_effects: { audit_log: true, inventory: true },
+    related_invariants: ["inv_recipe_required_deduction", "inv_menu_csv_branch_required"],
+  },
+  {
+    id: "action_export_missing_recipes",
+    action_name: { ar: "تصدير الأصناف بلا وصفة", en: "Export Items Without Recipes" },
+    allowed_roles: ["owner"],
+    preconditions: {
+      ar: ["الفرع محدد", "توجد أصناف طعام أو شراب بدون وصفة"],
+      en: ["Branch is selected", "Food or drink items without recipes exist"],
+    },
+    postconditions: {
+      ar: ["ملف CSV للتحميل", "الملف جاهز لاستيراد الوصفات"],
+      en: ["CSV file for download", "File ready for recipe import"],
+    },
+    side_effects: { audit_log: false },
+    related_invariants: [],
+  },
+  {
+    id: "action_export_missing_menu_items",
+    action_name: { ar: "تصدير الأصناف غير الموجودة", en: "Export Missing Menu Items" },
+    allowed_roles: ["owner"],
+    preconditions: {
+      ar: ["ملف وصفات يحتوي على أصناف غير موجودة في القائمة"],
+      en: ["Recipe file contains items not in menu"],
+    },
+    postconditions: {
+      ar: ["ملف CSV جاهز للرفع في شاشة استيراد القائمة", "يحتوي على التصنيف والاسم والسعر"],
+      en: ["CSV file ready to upload in Menu import screen", "Contains category, name, and price"],
+    },
+    side_effects: { audit_log: false },
+    related_invariants: [],
+  },
+  {
+    id: "action_resolve_inventory_conflict",
+    action_name: { ar: "حل تعارض المادة", en: "Resolve Inventory Conflict" },
+    allowed_roles: ["owner"],
+    preconditions: {
+      ar: ["تعارض في اسم المادة (مواد متعددة بنفس الاسم)"],
+      en: ["Inventory name conflict (multiple materials with same name)"],
+    },
+    postconditions: {
+      ar: ["المادة الصحيحة محددة", "الاختيار يُطبق على جميع الصفوف المشابهة"],
+      en: ["Correct material selected", "Selection applies to all similar rows"],
+    },
+    side_effects: { audit_log: false },
+    related_invariants: [],
+  },
 ];
 
 // ============================================
@@ -871,24 +985,34 @@ export const SCREENS_REGISTRY: ScreenEntry[] = [
     screen_name: { ar: "الوصفات", en: "Recipes" },
     route: "/admin",
     user_roles: ["owner"],
-    main_actions: ["action_add_recipe"],
+    main_actions: ["action_add_recipe", "action_recipe_csv_import", "action_export_missing_recipes"],
     common_states: {
-      ar: ["صنف بدون وصفة", "وصفة مكتملة"],
-      en: ["Item without recipe", "Complete recipe"],
+      ar: ["صنف بدون وصفة", "وصفة مكتملة", "استيراد CSV - معاينة", "خطأ صنف غير موجود", "تعارض في المادة", "استيراد ناجح"],
+      en: ["Item without recipe", "Complete recipe", "CSV import - preview", "Menu item not found error", "Inventory conflict", "Import successful"],
     },
     common_confusions: {
       ar: [
         "كيف أربط المادة الخام؟",
         "الوحدات مش واضحة",
         "الكمية بالضبط؟",
+        "ليش في خطأ؟",
+        "شو يعني صنف غير موجود؟",
+        "كيف أحل تعارض المادة؟",
+        "ليش زر الاستيراد معطل؟",
+        "كيف أصدر الأصناف الناقصة؟",
       ],
       en: [
         "How to link raw material?",
         "Units are confusing",
         "Exact quantity?",
+        "Why is there an error?",
+        "What does item not found mean?",
+        "How to resolve material conflict?",
+        "Why is import button disabled?",
+        "How to export missing items?",
       ],
     },
-    related_actions: ["action_add_recipe"],
+    related_actions: ["action_add_recipe", "action_recipe_csv_import", "action_export_missing_recipes"],
   },
   {
     id: "screen_shifts",
@@ -1221,6 +1345,63 @@ export const FLOW_DIAGNOSTICS: FlowDiagnostic[] = [
       ],
     },
     related_invariants: ["inv_inventory_module_check", "inv_recipe_required_deduction"],
+  },
+  {
+    id: "flow_recipe_csv_import",
+    flow_name: { ar: "استيراد الوصفات عبر CSV", en: "Recipe CSV Import" },
+    expected_sequence: [
+      "Select correct branch",
+      "Upload CSV file with menu_item_name, ingredient, quantity, unit",
+      "System validates each row",
+      "Preview shows errors and conflicts",
+      "Resolve menu item not found errors (export & add to menu)",
+      "Resolve inventory conflicts (select from dropdown)",
+      "Import button enabled",
+      "Recipes created for valid rows",
+    ],
+    common_failure_points: {
+      ar: [
+        "صنف القائمة غير موجود",
+        "تعارض في اسم المادة",
+        "زر الاستيراد معطل",
+        "الوصفة لم تُنشأ",
+      ],
+      en: [
+        "Menu item not found",
+        "Inventory name conflict",
+        "Import button disabled",
+        "Recipe not created",
+      ],
+    },
+    diagnostic_questions: {
+      ar: [
+        "هل الصنف موجود في قائمة الفرع الحالي؟",
+        "هل المادة موجودة في مخزون الفرع الحالي؟",
+        "هل اخترت المادة الصحيحة من القائمة المنسدلة؟",
+        "هل حلّيت جميع الأخطاء الحمراء؟",
+      ],
+      en: [
+        "Does item exist in current branch menu?",
+        "Does material exist in current branch inventory?",
+        "Did you select correct material from dropdown?",
+        "Did you resolve all red errors?",
+      ],
+    },
+    most_likely_causes: {
+      ar: [
+        "الصنف غير موجود في القائمة (صدّر الأصناف الناقصة)",
+        "مواد متعددة بنفس الاسم (اختر الصحيحة)",
+        "لم تُحل جميع الأخطاء",
+        "الفرع المحدد خاطئ",
+      ],
+      en: [
+        "Item not in menu (export missing items)",
+        "Multiple materials with same name (select correct one)",
+        "Not all errors resolved",
+        "Wrong branch selected",
+      ],
+    },
+    related_invariants: ["inv_recipe_required_deduction", "inv_menu_csv_branch_required"],
   },
   {
     id: "flow_shift_open_close",

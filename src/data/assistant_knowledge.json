@@ -1,5 +1,5 @@
 {
-  "version": "2.5.0",
+  "version": "2.6.0",
   "lastUpdated": "2026-01-31",
   "fallbackResponses": {
     "ar": "أستطيع مساعدتك في نظام كاستنا POS. يرجى كتابة سؤالك بشكل واضح حول الطلبات، الدفع، المخزون، التقارير، أو أي ميزة أخرى في النظام.",
@@ -40,21 +40,48 @@
       "id": "owner_training_flow_order",
       "priority": "critical",
       "title": {
-        "ar": "ترتيب تدريب صاحب المطعم",
-        "en": "Owner Training Flow Order"
+        "ar": "ترتيب تدريب صاحب المطعم (مقفل)",
+        "en": "Owner Training Flow Order (Locked)"
       },
       "rules": {
         "ar": [
-          "ترتيب خطوات التدريب: 1) الفروع (إلزامي - أول خطوة) 2) نظرة عامة 3) القائمة 4) الطاولات 5) الموظفين 6) الإعدادات 7) التقارير والتحليلات (آخر خطوة)",
-          "الفروع هي أول خطوة لأن جميع العمليات مرتبطة بالفرع المختار",
-          "التقارير والتحليلات تأتي في النهاية لأنها تعتمد على البيانات المسجلة أثناء العمل",
-          "إذا لم يكن هناك فرع محدد، لا يُسمح بالانتقال لأي خطوة أخرى"
+          "الترتيب المقفل: 1) اختيار الفرع (إلزامي) 2) القائمة (التصنيفات، الأصناف، العروض، CSV) 3) المخزون (المواد، CSV، التكرارات) 4) الوصفات (⚠️ أهم خطوة) 5) التقارير (آخر خطوة)",
+          "الوصفات تُعتبر عقدة عالية الأهمية - تربط القائمة بالمخزون",
+          "بدون وصفة، المخزون لا ينقص عند البيع ولا يمكن حساب التكلفة",
+          "التقارير تُشرح فقط في آخر خطوة من التدريب",
+          "إذا سأل المستخدم 'شو الخطوة التالية؟' يُجاب حسب الترتيب المقفل"
         ],
         "en": [
-          "Training step order: 1) Branches (mandatory - first step) 2) Overview 3) Menu 4) Tables 5) Staff 6) Settings 7) Reports & Analytics (last step)",
-          "Branches come first because all operations are tied to the selected branch",
-          "Reports & Analytics come last because they depend on data recorded during operations",
-          "If no branch is selected, cannot proceed to any other step"
+          "Locked order: 1) Branch selection (mandatory) 2) Menu (categories, items, offers, CSV) 3) Inventory (items, CSV, duplicates) 4) Recipes (⚠️ Critical step) 5) Reports (last step)",
+          "Recipes is marked as a high-importance node - links menu to inventory",
+          "Without recipe, inventory doesn't decrease on sale and cost cannot be calculated",
+          "Reports only explained in the final training step",
+          "If user asks 'what is next step?' answer according to locked order"
+        ]
+      },
+      "affected_roles": ["owner"]
+    },
+    {
+      "id": "owner_recipes_high_importance",
+      "priority": "high",
+      "title": {
+        "ar": "الوصفات - عقدة عالية الأهمية",
+        "en": "Recipes - High Importance Node"
+      },
+      "rules": {
+        "ar": [
+          "الوصفات هي الرابط بين القائمة والمخزون",
+          "بدون وصفة: المخزون لا ينقص تلقائياً، لا يمكن حساب COGS، التقارير غير دقيقة",
+          "استيراد الوصفات يتطلب: وجود الأصناف في القائمة + وجود المواد في المخزون",
+          "أخطاء الاستيراد نوعان: صنف غير موجود (مانع) + تعارض في المادة (يحتاج اختيار)",
+          "الاختيار في التعارض يُطبق تلقائياً على جميع الصفوف المشابهة"
+        ],
+        "en": [
+          "Recipes are the link between menu and inventory",
+          "Without recipe: Inventory doesn't auto-decrease, COGS cannot be calculated, Reports are inaccurate",
+          "Recipe import requires: Items exist in menu + Materials exist in inventory",
+          "Import errors are two types: Item not found (blocking) + Material conflict (needs selection)",
+          "Selection in conflict auto-applies to all similar rows"
         ]
       },
       "affected_roles": ["owner"]
@@ -2292,22 +2319,160 @@
       "id": "owner_training_flow_structure",
       "intent": ["training_order", "training_steps", "training_flow"],
       "keywords": {
-        "ar": ["ترتيب التدريب", "خطوات التدريب", "مسار التدريب", "مراحل التدريب", "التدريب الأساسي"],
-        "en": ["training order", "training steps", "training flow", "training stages", "basic training"]
+        "ar": ["ترتيب التدريب", "خطوات التدريب", "مسار التدريب", "مراحل التدريب", "التدريب الأساسي", "شو الخطوة التالية"],
+        "en": ["training order", "training steps", "training flow", "training stages", "basic training", "what is next step"]
       },
       "title": {
-        "ar": "مسار تدريب صاحب المطعم",
-        "en": "Owner Training Flow"
+        "ar": "مسار تدريب صاحب المطعم (مقفل)",
+        "en": "Owner Training Flow (Locked)"
       },
       "content": {
-        "ar": "مسار تدريب صاحب المطعم:\n\n📋 ترتيب الخطوات:\n1️⃣ الفروع (إلزامي - أول خطوة)\n2️⃣ نظرة عامة على لوحة التحكم\n3️⃣ القائمة والأصناف\n4️⃣ الطاولات\n5️⃣ الموظفين\n6️⃣ الإعدادات\n7️⃣ التقارير والتحليلات (آخر خطوة)\n\n💡 لماذا الفروع أولاً؟\n• جميع العمليات مرتبطة بالفرع المختار\n• كل فرع له بياناته الخاصة\n• لا يمكن المتابعة بدون اختيار فرع\n\n📊 لماذا التقارير آخراً؟\n• التقارير تعتمد على البيانات المسجلة\n• في البداية قد ترى أرقاماً صفرية، وهذا طبيعي\n• بعد التشغيل الفعلي، ستمتلئ التقارير بالبيانات\n\n✅ نصائح:\n• أكمل جميع الخطوات بالترتيب\n• يمكنك إعادة التدريب في أي وقت\n• التدريب لا يؤثر على بياناتك",
-        "en": "Owner Training Flow:\n\n📋 Step Order:\n1️⃣ Branches (mandatory - first step)\n2️⃣ Dashboard Overview\n3️⃣ Menu and Items\n4️⃣ Tables\n5️⃣ Staff\n6️⃣ Settings\n7️⃣ Reports & Analytics (final step)\n\n💡 Why Branches First?\n• All operations are tied to the selected branch\n• Each branch has its own data\n• Cannot proceed without selecting a branch\n\n📊 Why Reports Last?\n• Reports depend on recorded data\n• At first, you may see zero numbers, which is normal\n• After actual operation, reports will fill with data\n\n✅ Tips:\n• Complete all steps in order\n• You can restart training anytime\n• Training does not affect your data"
+        "ar": "مسار تدريب صاحب المطعم (ترتيب مقفل):\n\n📋 الترتيب الإلزامي:\n1️⃣ اختيار الفرع (إلزامي - أول خطوة)\n2️⃣ إدارة القائمة (التصنيفات، الأصناف، العروض، استيراد CSV)\n3️⃣ إدارة المخزون (المواد، استيراد CSV، معالجة التكرار)\n4️⃣ الوصفات (⚠️ مهم جداً - ربط القائمة بالمخزون)\n5️⃣ التقارير والتحليلات (آخر خطوة)\n\n🔗 الوصفات - أهم خطوة:\n• تربط الأصناف بالمواد الخام\n• تفعّل الخصم التلقائي للمخزون\n• بدونها، المخزون لا ينقص عند البيع\n\n💡 لماذا هذا الترتيب؟\n• الفرع أولاً لأن كل شيء مرتبط به\n• القائمة قبل الوصفات لأن الوصفات تحتاج أصناف\n• المخزون قبل الوصفات لأن الوصفات تحتاج مواد\n• التقارير آخراً لأنها تعتمد على بيانات التشغيل\n\n⚠️ قاعدة مهمة:\n• لا يمكن تخطي الخطوات\n• كل خطوة تبني على السابقة\n• التقارير تُشرح فقط في النهاية",
+        "en": "Owner Training Flow (Locked Order):\n\n📋 Mandatory Order:\n1️⃣ Select Branch (mandatory - first step)\n2️⃣ Menu Management (categories, items, offers, CSV import)\n3️⃣ Inventory Management (items, CSV import, handling duplicates)\n4️⃣ Recipes (⚠️ Critical - linking menu to inventory)\n5️⃣ Reports & Analytics (final step)\n\n🔗 Recipes - Most Important Step:\n• Links menu items to raw materials\n• Enables auto-deduction from inventory\n• Without them, inventory doesn't decrease on sale\n\n💡 Why This Order?\n• Branch first because everything is tied to it\n• Menu before recipes because recipes need items\n• Inventory before recipes because recipes need materials\n• Reports last because they depend on operational data\n\n⚠️ Important Rule:\n• Cannot skip steps\n• Each step builds on the previous\n• Reports only explained at the end"
       },
       "metadata": {
         "feature_id": "training_flow",
         "affected_screens": ["Owner"],
         "user_roles": ["owner"],
-        "tags": ["training", "flow", "order", "steps"]
+        "priority": "critical",
+        "locked_order": true,
+        "tags": ["training", "flow", "order", "steps", "locked"]
+      }
+    },
+    "menu_inventory_recipes_difference": {
+      "id": "menu_inventory_recipes_difference",
+      "intent": ["explain_difference", "menu_vs_inventory", "what_is_recipe"],
+      "keywords": {
+        "ar": ["الفرق بين القائمة والمخزون", "شو الفرق", "ليش منفصلين", "علاقة القائمة والمخزون", "ما هي الوصفة", "كيف يعمل المخزون"],
+        "en": ["difference between menu and inventory", "what is the difference", "why separated", "menu inventory relationship", "what is recipe", "how inventory works"]
+      },
+      "title": {
+        "ar": "الفرق بين القائمة والمخزون والوصفات",
+        "en": "Difference Between Menu, Inventory, and Recipes"
+      },
+      "content": {
+        "ar": "📋 الفرق بين القائمة والمخزون والوصفات:\n\n🍽️ القائمة (Menu):\n• ما يراه الزبون ويطلبه\n• الأصناف والتصنيفات والأسعار\n• مثال: برجر لحم بـ 5 دينار\n\n📦 المخزون (Inventory):\n• المواد الخام والكميات المتوفرة\n• ما تشتريه من الموردين\n• مثال: لحم مفروم، خبز، جبنة\n\n🔗 الوصفات (Recipes):\n• الرابط بين القائمة والمخزون\n• تحدد كم مادة خام لكل صنف\n• مثال: برجر لحم = 150 جم لحم + 1 خبز + 30 جم جبنة\n\n💡 لماذا منفصلين؟\n• القائمة للزبائن والأسعار\n• المخزون للتكاليف والكميات\n• الوصفات للربط والخصم التلقائي\n\n⚠️ بدون وصفة:\n• المخزون لا ينقص عند البيع\n• لا يمكن حساب التكلفة الفعلية\n• التقارير لا تعكس الاستهلاك الحقيقي",
+        "en": "📋 Difference Between Menu, Inventory, and Recipes:\n\n🍽️ Menu:\n• What the customer sees and orders\n• Items, categories, and prices\n• Example: Beef burger for 5 JD\n\n📦 Inventory:\n• Raw materials and available quantities\n• What you buy from suppliers\n• Example: Ground beef, bun, cheese\n\n🔗 Recipes:\n• The link between menu and inventory\n• Defines how much raw material per item\n• Example: Beef burger = 150g beef + 1 bun + 30g cheese\n\n💡 Why Separated?\n• Menu is for customers and pricing\n• Inventory is for costs and quantities\n• Recipes are for linking and auto-deduction\n\n⚠️ Without Recipe:\n• Inventory doesn't decrease on sale\n• Cannot calculate actual cost\n• Reports don't reflect real consumption"
+      },
+      "metadata": {
+        "feature_id": "menu_inventory_recipes",
+        "affected_screens": ["Owner", "Menu", "Inventory"],
+        "user_roles": ["owner"],
+        "priority": "high",
+        "tags": ["menu", "inventory", "recipes", "difference", "explanation"]
+      }
+    },
+    "recipe_csv_import_guide": {
+      "id": "recipe_csv_import_guide",
+      "intent": ["recipe_csv", "import_recipes", "csv_recipe"],
+      "keywords": {
+        "ar": ["استيراد الوصفات", "رفع CSV للوصفات", "ملف الوصفات", "خطأ في الوصفات", "ليش في خطأ"],
+        "en": ["recipe import", "upload recipe csv", "recipe file", "recipe error", "why error"]
+      },
+      "title": {
+        "ar": "استيراد الوصفات عبر CSV",
+        "en": "Recipe CSV Import"
+      },
+      "content": {
+        "ar": "📋 استيراد الوصفات عبر CSV:\n\n⚠️ قبل الاستيراد تأكد من:\n1. وجود الأصناف في القائمة\n2. وجود المواد في المخزون\n3. اختيار الفرع الصحيح\n\n📂 أعمدة الملف:\nmenu_item_name, ingredient, quantity, unit\n\n🔴 أنواع الأخطاء:\n\n1️⃣ صنف القائمة غير موجود:\n• الصنف المذكور غير موجود في القائمة\n• الحل: أضف الصنف أولاً أو صدّر الأصناف الناقصة\n\n2️⃣ تعارض في اسم المادة:\n• توجد مواد متعددة بنفس الاسم\n• الحل: اختر المادة الصحيحة من القائمة المنسدلة\n• الاختيار يُطبق تلقائياً على الصفوف المشابهة\n\n🔄 ترتيب المعاينة:\n• الأخطاء الحمراء أولاً (صنف غير موجود)\n• ثم التعارضات (اختيار مطلوب)\n• ثم الصفوف الصحيحة\n\n✅ زر الاستيراد:\n• معطل حتى حل جميع الأخطاء\n• بعد حل الأخطاء، يمكنك الاستيراد",
+        "en": "📋 Recipe CSV Import:\n\n⚠️ Before importing, ensure:\n1. Items exist in menu\n2. Materials exist in inventory\n3. Correct branch is selected\n\n📂 File columns:\nmenu_item_name, ingredient, quantity, unit\n\n🔴 Error Types:\n\n1️⃣ Menu item not found:\n• The mentioned item doesn't exist in menu\n• Solution: Add the item first or export missing items\n\n2️⃣ Inventory name conflict:\n• Multiple materials with the same name exist\n• Solution: Select the correct material from dropdown\n• Selection auto-applies to similar rows\n\n🔄 Preview Order:\n• Red errors first (item not found)\n• Then conflicts (selection required)\n• Then valid rows\n\n✅ Import Button:\n• Disabled until all errors are resolved\n• After resolving errors, you can import"
+      },
+      "metadata": {
+        "feature_id": "recipe_csv_import",
+        "affected_screens": ["Owner", "Inventory"],
+        "user_roles": ["owner"],
+        "priority": "high",
+        "tags": ["recipes", "csv", "import", "errors", "conflicts"]
+      }
+    },
+    "recipe_csv_error_menu_not_found": {
+      "id": "recipe_csv_error_menu_not_found",
+      "intent": ["recipe_error", "menu_not_found", "missing_item"],
+      "keywords": {
+        "ar": ["صنف القائمة غير موجود", "صنف غير موجود", "الصنف مش موجود", "خطأ صنف"],
+        "en": ["menu item not found", "item not found", "missing menu item", "item error"]
+      },
+      "title": {
+        "ar": "خطأ: صنف القائمة غير موجود",
+        "en": "Error: Menu Item Not Found"
+      },
+      "content": {
+        "ar": "🔴 صنف القائمة غير موجود:\n\nالمشكلة:\nالصنف المذكور في ملف الوصفات غير موجود في قائمة الفرع الحالي.\n\nالأسباب المحتملة:\n• الصنف لم يُضاف للقائمة بعد\n• الصنف موجود في فرع آخر\n• خطأ إملائي في اسم الصنف\n\nالحلول:\n1️⃣ تصدير الأصناف الناقصة:\n• اضغط على 'تصدير الأصناف غير الموجودة (CSV)'\n• ارفع الملف في شاشة استيراد القائمة\n• عد وأعد استيراد الوصفات\n\n2️⃣ إضافة يدوية:\n• اذهب لشاشة القائمة\n• أضف الصنف بنفس الاسم\n• عد وأعد استيراد الوصفات\n\n⚠️ هذا الخطأ مانع:\nلا يمكن استيراد الملف حتى تُضاف جميع الأصناف الناقصة.",
+        "en": "🔴 Menu Item Not Found:\n\nThe Problem:\nThe item mentioned in the recipe file doesn't exist in the current branch's menu.\n\nPossible Causes:\n• Item hasn't been added to menu yet\n• Item exists in a different branch\n• Typo in item name\n\nSolutions:\n1️⃣ Export Missing Items:\n• Click 'Export missing items (CSV)'\n• Upload the file in Menu import screen\n• Return and re-import recipes\n\n2️⃣ Manual Addition:\n• Go to Menu screen\n• Add item with the same name\n• Return and re-import recipes\n\n⚠️ This is a blocking error:\nCannot import file until all missing items are added."
+      },
+      "metadata": {
+        "feature_id": "recipe_error_menu",
+        "affected_screens": ["Owner", "Inventory"],
+        "user_roles": ["owner"],
+        "error_type": "blocking",
+        "tags": ["recipes", "error", "menu", "not_found"]
+      }
+    },
+    "recipe_csv_error_inventory_conflict": {
+      "id": "recipe_csv_error_inventory_conflict",
+      "intent": ["recipe_error", "inventory_conflict", "duplicate_name"],
+      "keywords": {
+        "ar": ["تعارض في اسم المادة", "مواد متعددة", "نفس الاسم", "اختيار المادة"],
+        "en": ["inventory name conflict", "multiple materials", "same name", "select material"]
+      },
+      "title": {
+        "ar": "تعارض: مواد متعددة بنفس الاسم",
+        "en": "Conflict: Multiple Materials with Same Name"
+      },
+      "content": {
+        "ar": "🟠 تعارض في اسم المادة:\n\nالمشكلة:\nتوجد أكثر من مادة في المخزون بنفس الاسم.\n\nلماذا يحدث؟\n• مواد مختلفة بأسماء متشابهة\n• مواد من موردين مختلفين\n• وحدات قياس مختلفة لنفس المادة\n\nالحل:\n1. انظر للقائمة المنسدلة في عمود 'المادة'\n2. اختر المادة الصحيحة بناءً على:\n   • الوحدة (كجم، لتر، حبة...)\n   • معرف المادة (آخر أرقام)\n3. الاختيار يُطبق تلقائياً على جميع الصفوف المشابهة\n\n💡 نصيحة:\nإذا كان لديك عدة صفوف بنفس الصنف والمادة، اختر مرة واحدة فقط.\n\n✅ بعد الاختيار:\n• الصف يتحول للون الأخضر\n• يمكنك المتابعة للاستيراد",
+        "en": "🟠 Inventory Name Conflict:\n\nThe Problem:\nMultiple materials in inventory have the same name.\n\nWhy does this happen?\n• Different materials with similar names\n• Materials from different suppliers\n• Different measurement units for same material\n\nSolution:\n1. Look at the dropdown in 'Material' column\n2. Select the correct material based on:\n   • Unit (kg, liter, piece...)\n   • Material ID (last digits)\n3. Selection auto-applies to all similar rows\n\n💡 Tip:\nIf you have multiple rows with same item and material, select once only.\n\n✅ After Selection:\n• Row turns green\n• You can proceed to import"
+      },
+      "metadata": {
+        "feature_id": "recipe_error_inventory",
+        "affected_screens": ["Owner", "Inventory"],
+        "user_roles": ["owner"],
+        "error_type": "resolvable",
+        "tags": ["recipes", "error", "inventory", "conflict", "duplicate"]
+      }
+    },
+    "export_items_without_recipes": {
+      "id": "export_items_without_recipes",
+      "intent": ["export_missing", "items_without_recipe", "recipe_template"],
+      "keywords": {
+        "ar": ["تصدير الأصناف بلا وصفة", "أصناف بدون وصفة", "قالب الوصفات", "تصدير للوصفات"],
+        "en": ["export items without recipes", "items without recipe", "recipe template", "export for recipes"]
+      },
+      "title": {
+        "ar": "تصدير الأصناف بدون وصفة",
+        "en": "Export Items Without Recipes"
+      },
+      "content": {
+        "ar": "📤 تصدير الأصناف بدون وصفة:\n\nما هو؟\nزر يُصدّر ملف CSV يحتوي على جميع أصناف الأطعمة والمشروبات التي ليس لها وصفة.\n\n🎯 الفائدة:\n• تحصل على قائمة بالأصناف الناقصة\n• يمكنك ملء المكونات والكميات offline\n• ترفع الملف مرة أخرى لإنشاء الوصفات\n\n📂 بنية الملف:\nmenu_item_name, ingredient, quantity, unit\n• اسم الصنف مملوء تلقائياً\n• أعمدة المكونات فارغة لتملأها أنت\n\n✅ متى يظهر الزر؟\n• فقط عندما توجد أصناف بدون وصفة\n• يحترم فلتر البحث الحالي\n\n💡 نصيحة:\n• صدّر الملف\n• أكمل المكونات والكميات\n• ارفع الملف في شاشة استيراد الوصفات",
+        "en": "📤 Export Items Without Recipes:\n\nWhat is it?\nA button that exports a CSV file containing all food and drink items that don't have a recipe.\n\n🎯 Benefits:\n• Get a list of missing items\n• Fill in ingredients and quantities offline\n• Upload the file again to create recipes\n\n📂 File Structure:\nmenu_item_name, ingredient, quantity, unit\n• Item name is auto-filled\n• Ingredient columns are empty for you to fill\n\n✅ When does the button appear?\n• Only when items without recipes exist\n• Respects current search filter\n\n💡 Tip:\n• Export the file\n• Complete ingredients and quantities\n• Upload in Recipe import screen"
+      },
+      "metadata": {
+        "feature_id": "export_missing_recipes",
+        "affected_screens": ["Owner", "Inventory"],
+        "user_roles": ["owner"],
+        "tags": ["recipes", "export", "template", "missing"]
+      }
+    },
+    "export_missing_menu_items_csv": {
+      "id": "export_missing_menu_items_csv",
+      "intent": ["export_menu_items", "missing_items_csv", "recipe_menu_bridge"],
+      "keywords": {
+        "ar": ["تصدير الأصناف غير الموجودة", "أصناف ناقصة", "تصدير للقائمة"],
+        "en": ["export missing items", "missing menu items", "export for menu"]
+      },
+      "title": {
+        "ar": "تصدير الأصناف غير الموجودة (للقائمة)",
+        "en": "Export Missing Menu Items"
+      },
+      "content": {
+        "ar": "📤 تصدير الأصناف غير الموجودة:\n\nما هو؟\nعندما يحتوي ملف الوصفات على أصناف غير موجودة في القائمة، يمكنك تصديرها كملف CSV.\n\n🎯 الفائدة:\n• الملف جاهز للرفع مباشرة في شاشة استيراد القائمة\n• لا حاجة لتعديل يدوي\n• يضيف الأصناف بقيم افتراضية (عام، سعر 0)\n\n📂 بنية الملف:\ncategory_ar, category_en, item_ar, item_en, price\n• التصنيف: 'عام' / 'General' (افتراضي)\n• السعر: 0 (عدّله حسب الحاجة)\n\n🔄 الخطوات:\n1. صدّر الأصناف الناقصة من شاشة الوصفات\n2. اذهب لشاشة استيراد القائمة\n3. ارفع الملف (عدّل الأسعار والتصنيفات إذا أردت)\n4. عد لاستيراد الوصفات\n\n⚠️ ملاحظة:\nالملف يزيل التكرارات تلقائياً (حساس لحالة الأحرف).",
+        "en": "📤 Export Missing Menu Items:\n\nWhat is it?\nWhen the recipe file contains items not in the menu, you can export them as a CSV file.\n\n🎯 Benefits:\n• File is ready to upload directly in Menu import screen\n• No manual editing needed\n• Adds items with default values (General, price 0)\n\n📂 File Structure:\ncategory_ar, category_en, item_ar, item_en, price\n• Category: 'عام' / 'General' (default)\n• Price: 0 (modify as needed)\n\n🔄 Steps:\n1. Export missing items from Recipe screen\n2. Go to Menu import screen\n3. Upload the file (modify prices and categories if needed)\n4. Return to Recipe import\n\n⚠️ Note:\nFile auto-removes duplicates (case-insensitive)."
+      },
+      "metadata": {
+        "feature_id": "export_missing_menu",
+        "affected_screens": ["Owner", "Inventory", "Menu"],
+        "user_roles": ["owner"],
+        "tags": ["recipes", "menu", "export", "missing", "bridge"]
       }
     },
     "reports_analytics_training": {
