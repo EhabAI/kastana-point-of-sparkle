@@ -1458,6 +1458,8 @@ export default {
   csv_menu_items_updated: "أصناف القائمة المحدثة",
   csv_recipe_lines_inserted: "سطور الوصفات المضافة",
   csv_errors: "الأخطاء",
+  errors: "أخطاء",
+  more_errors: "أخطاء إضافية",
   importing: "جاري الاستيراد...",
   menu_item: "صنف القائمة",
   import: "استيراد",

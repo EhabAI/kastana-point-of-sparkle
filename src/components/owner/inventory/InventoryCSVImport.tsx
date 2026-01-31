@@ -12,13 +12,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useBranches } from "@/hooks/useBranches";
-import { useCreateInventoryItem, useInventoryItems } from "@/hooks/useInventoryItems";
-import { useInventoryUnits, getOrCreateUnit } from "@/hooks/useInventoryUnits";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { getOwnerErrorMessage } from "@/lib/ownerErrorHandler";
-import { Upload, Loader2, FileText, AlertTriangle } from "lucide-react";
+import { Upload, Loader2, FileText, AlertTriangle, CheckCircle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface InventoryCSVImportProps {
@@ -38,25 +34,25 @@ interface CSVRow {
 }
 
 interface ImportResult {
+  success: boolean;
   itemsCreated: number;
-  itemsReused: number;
-  transactionsCreated: number;
-  transactionsSkipped: number;
   unitsCreated: number;
+  stockEntriesCreated: number;
+  stockEntriesSkipped: number;
   errors: string[];
 }
 
-// Helper to map error codes to user-friendly messages
-function getTransactionErrorMessage(code: string, t: (key: string) => string): string {
+// Map edge function error codes to user-friendly messages
+function getImportErrorMessage(code: string, t: (key: string) => string): string {
   const errorMap: Record<string, string> = {
-    insufficient_stock: t("inv_insufficient_stock"),
-    invalid_item: t("inv_invalid_item"),
-    invalid_branch: t("inv_invalid_branch"),
+    missing_auth: t("auth_required"),
+    invalid_token: t("session_expired"),
+    not_authorized: t("not_authorized"),
     inventory_disabled: t("inv_module_disabled"),
     subscription_expired: t("subscription_expired"),
     server_error: t("server_error"),
   };
-  return errorMap[code] || t("inv_transaction_failed");
+  return errorMap[code] || t("inv_import_failed");
 }
 
 export function InventoryCSVImport({ restaurantId, open, onOpenChange }: InventoryCSVImportProps) {
@@ -64,9 +60,6 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { data: branches = [] } = useBranches(restaurantId);
-  const { data: existingItems = [], refetch: refetchItems } = useInventoryItems(restaurantId);
-  const createItem = useCreateInventoryItem();
 
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -82,12 +75,12 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
 
     for (let i = 1; i < lines.length; i++) {
       const values = lines[i].split(",").map((v) => v.trim());
-      const row: any = {};
+      const row: Record<string, string> = {};
       headers.forEach((header, index) => {
         row[header] = values[index] || "";
       });
       if (row.name && row.base_unit && row.branch_name) {
-        rows.push(row);
+        rows.push(row as unknown as CSVRow);
       }
     }
 
@@ -120,171 +113,80 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
 
     try {
       const text = await file.text();
-      const rows = parseCSV(text);
+      const csvRows = parseCSV(text);
 
-      if (rows.length === 0) {
+      if (csvRows.length === 0) {
         toast({ title: t("csv_empty"), variant: "destructive" });
         setIsProcessing(false);
         return;
       }
 
-      let itemsCreated = 0;
-      let itemsReused = 0;
-      let transactionsCreated = 0;
-      let transactionsSkipped = 0;
-      let unitsCreated = 0;
-      const errors: string[] = [];
+      // Transform CSV rows to edge function format
+      const rows = csvRows.map((row) => ({
+        name: row.name,
+        category: row.category || null,
+        baseUnit: row.base_unit,
+        branchName: row.branch_name,
+        quantity: parseFloat(row.quantity || "0") || 0,
+        minLevel: parseFloat(row.min_level || "0") || 0,
+        reorderPoint: parseFloat(row.reorder_point || "0") || 0,
+      }));
 
-      // Cache for units we've already looked up or created in this import session
-      const unitCache = new Map<string, { id: string; name: string }>();
+      // Call the dedicated CSV import edge function
+      const { data, error } = await supabase.functions.invoke("inventory-csv-import", {
+        body: { rows },
+      });
 
-      for (const row of rows) {
-        // Find branch by name
-        const branch = branches.find(
-          (b) => b.name.toLowerCase() === row.branch_name?.toLowerCase()
-        );
-
-        if (!branch) {
-          errors.push(`${row.name}: ${t("inv_branch_not_found")} "${row.branch_name}"`);
-          continue;
-        }
-
-        // Get or create unit - NEVER fail due to missing unit
-        let unit: { id: string; name: string };
-        const normalizedUnitName = row.base_unit?.toLowerCase().trim();
-        
-        if (!normalizedUnitName) {
-          errors.push(`${row.name}: ${t("inv_missing_unit")}`);
-          continue;
-        }
-
-        // Check cache first
-        if (unitCache.has(normalizedUnitName)) {
-          unit = unitCache.get(normalizedUnitName)!;
-        } else {
-          try {
-            const unitResult = await getOrCreateUnit(restaurantId, normalizedUnitName);
-            unit = { id: unitResult.id, name: unitResult.name };
-            unitCache.set(normalizedUnitName, unit);
-            if (unitResult.created) {
-              unitsCreated++;
-            }
-          } catch (err: any) {
-            console.error("[CSV Import] Unit error:", err);
-            errors.push(`${row.name}: ${t("inv_unit_create_failed")} "${row.base_unit}"`);
-            continue;
-          }
-        }
-
-        // Check if item exists (by name + base_unit + branch)
-        // Re-fetch items to see newly created ones
-        let existingItem = existingItems.find(
-          (item) =>
-            item.name.toLowerCase() === row.name.toLowerCase() &&
-            item.baseUnitId === unit.id &&
-            item.branchId === branch.id
-        );
-
-        // If item doesn't exist, check for name + unit mismatch in same branch
-        if (!existingItem) {
-          const itemWithSameName = existingItems.find(
-            (item) =>
-              item.name.toLowerCase() === row.name.toLowerCase() &&
-              item.branchId === branch.id
-          );
-
-          if (itemWithSameName && itemWithSameName.baseUnitId !== unit.id) {
-            errors.push(
-              `${row.name}: ${t("inv_unit_mismatch")} (${t("existing")}: ${itemWithSameName.baseUnitName}, CSV: ${row.base_unit})`
-            );
-            continue;
-          }
-        }
-
-        let itemId = existingItem?.id;
-
-        // Create item if not exists
-        if (!existingItem) {
-          try {
-            const newItem = await createItem.mutateAsync({
-              restaurantId,
-              branchId: branch.id,
-              name: row.name,
-              baseUnitId: unit.id,
-              minLevel: parseFloat(row.min_level || "0") || 0,
-              reorderPoint: parseFloat(row.reorder_point || "0") || 0,
-            });
-            itemId = newItem.id;
-            itemsCreated++;
-          } catch (err: any) {
-            errors.push(`${row.name}: ${err.message}`);
-            continue;
-          }
-        } else {
-          itemsReused++;
-        }
-
-        // Create transaction if quantity > 0
-        const quantity = parseFloat(row.quantity || "0");
-        if (quantity > 0 && itemId) {
-          try {
-            const { data, error } = await supabase.functions.invoke(
-              "inventory-create-transaction",
-              {
-                body: {
-                  itemId,
-                  branchId: branch.id,
-                  txnType: "INITIAL_STOCK",
-                  qty: quantity,
-                  unitId: unit.id,
-                  notes: t("csv_import"),
-                  skipIfHasStock: true, // Skip if item already has transactions
-                },
-              }
-            );
-
-            // Handle response - edge function always returns 200 for business logic
-            if (error) {
-              // Network or system error
-              errors.push(`${row.name}: ${t("inv_transaction_failed")}`);
-            } else if (data?.success) {
-              if (data.skipped) {
-                // Item already has stock - this is expected, not an error
-                transactionsSkipped++;
-              } else {
-                transactionsCreated++;
-              }
-            } else if (data?.error) {
-              // Business logic error from edge function
-              const errorCode = data.error.code || "unknown";
-              const errorMsg = getTransactionErrorMessage(errorCode, t);
-              errors.push(`${row.name}: ${errorMsg}`);
-            }
-          } catch (err: unknown) {
-            // Catch any unexpected errors gracefully
-            console.error("[CSV Import] Transaction error:", err);
-            errors.push(`${row.name}: ${t("inv_transaction_failed")}`);
-          }
-        }
+      if (error) {
+        console.error("[CSV Import] Edge function error:", error);
+        toast({
+          title: t("inv_import_failed"),
+          description: t("server_error"),
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        return;
       }
 
-      // Invalidate units cache if we created new ones
-      if (unitsCreated > 0) {
-        queryClient.invalidateQueries({ queryKey: ["inventory-units", restaurantId] });
+      // Handle error response from edge function
+      if (!data?.success && data?.error) {
+        const errorMsg = getImportErrorMessage(data.error, t);
+        toast({
+          title: t("inv_import_failed"),
+          description: errorMsg,
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        return;
       }
 
-      setResults({ itemsCreated, itemsReused, transactionsCreated, transactionsSkipped, unitsCreated, errors });
+      // Set results from edge function response
+      const result: ImportResult = {
+        success: data.success,
+        itemsCreated: data.itemsCreated || 0,
+        unitsCreated: data.unitsCreated || 0,
+        stockEntriesCreated: data.stockEntriesCreated || 0,
+        stockEntriesSkipped: data.stockEntriesSkipped || 0,
+        errors: data.errors || [],
+      };
+
+      setResults(result);
+
+      // Invalidate all inventory-related queries
+      queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-units"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-stock"] });
+      queryClient.invalidateQueries({ queryKey: ["low-stock-items"] });
 
       // Show success toast with summary
-      const hasChanges = itemsCreated > 0 || transactionsCreated > 0 || unitsCreated > 0;
-      const hasSkipped = transactionsSkipped > 0;
+      const hasChanges = result.itemsCreated > 0 || result.stockEntriesCreated > 0 || result.unitsCreated > 0;
       
-      if (hasChanges || hasSkipped) {
+      if (hasChanges || result.stockEntriesSkipped > 0) {
         const parts: string[] = [];
-        if (itemsCreated > 0) parts.push(`${itemsCreated} ${t("items_created")}`);
-        if (unitsCreated > 0) parts.push(`${unitsCreated} ${t("inv_units_created")}`);
-        if (transactionsCreated > 0) parts.push(`${transactionsCreated} ${t("inv_stock_added")}`);
-        if (transactionsSkipped > 0) parts.push(`${transactionsSkipped} ${t("inv_items_skipped_existing")}`);
+        if (result.itemsCreated > 0) parts.push(`${result.itemsCreated} ${t("items_created")}`);
+        if (result.unitsCreated > 0) parts.push(`${result.unitsCreated} ${t("inv_units_created")}`);
+        if (result.stockEntriesCreated > 0) parts.push(`${result.stockEntriesCreated} ${t("inv_stock_added")}`);
+        if (result.stockEntriesSkipped > 0) parts.push(`${result.stockEntriesSkipped} ${t("inv_items_skipped_existing")}`);
         
         toast({
           title: t("inv_import_complete"),
@@ -292,8 +194,12 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
         });
       }
     } catch (error: unknown) {
-      const msg = getOwnerErrorMessage(error, t);
-      toast({ title: msg.title, description: msg.description, variant: "destructive" });
+      console.error("[CSV Import] Unexpected error:", error);
+      toast({
+        title: t("inv_import_failed"),
+        description: t("server_error"),
+        variant: "destructive",
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -305,6 +211,13 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
     setShowWarning(false);
     onOpenChange(false);
   };
+
+  const hasAnyResults = results && (
+    results.itemsCreated > 0 ||
+    results.unitsCreated > 0 ||
+    results.stockEntriesCreated > 0 ||
+    results.stockEntriesSkipped > 0
+  );
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -383,10 +296,15 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
                 </p>
               </div>
 
+              {/* Import Results Summary */}
               {results && (
                 <div className="space-y-2">
-                  {(results.itemsCreated > 0 || results.itemsReused > 0 || results.transactionsCreated > 0 || results.transactionsSkipped > 0 || results.unitsCreated > 0) && (
-                    <div className="text-sm bg-muted/50 p-3 rounded space-y-1.5">
+                  {hasAnyResults && (
+                    <div className="text-sm bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-3 rounded space-y-1.5">
+                      <div className="flex items-center gap-2 text-green-700 dark:text-green-400 font-medium mb-2">
+                        <CheckCircle className="h-4 w-4" />
+                        <span>{t("inv_import_complete")}</span>
+                      </div>
                       {results.itemsCreated > 0 && (
                         <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                           <span className="text-xs">✓</span>
@@ -399,33 +317,35 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
                           <span>{results.unitsCreated} {t("inv_units_created")}</span>
                         </div>
                       )}
-                      {results.itemsReused > 0 && (
-                        <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-                          <span className="text-xs">✓</span>
-                          <span>{results.itemsReused} {t("inv_items_reused")}</span>
-                        </div>
-                      )}
-                      {results.transactionsCreated > 0 && (
+                      {results.stockEntriesCreated > 0 && (
                         <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                           <span className="text-xs">✓</span>
-                          <span>{results.transactionsCreated} {t("inv_stock_added")}</span>
+                          <span>{results.stockEntriesCreated} {t("inv_stock_added")}</span>
                         </div>
                       )}
-                      {results.transactionsSkipped > 0 && (
+                      {results.stockEntriesSkipped > 0 && (
                         <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
                           <span className="text-xs">⏭</span>
-                          <span>{results.transactionsSkipped} {t("inv_items_skipped_existing")}</span>
+                          <span>{results.stockEntriesSkipped} {t("inv_items_skipped_existing")}</span>
                         </div>
                       )}
                     </div>
                   )}
+                  
+                  {/* Only show errors if there are actual errors */}
                   {results.errors.length > 0 && (
                     <div className="text-sm text-destructive bg-destructive/10 p-2 rounded max-h-24 overflow-y-auto">
-                      {results.errors.map((err, i) => (
+                      <p className="font-medium text-xs mb-1">{results.errors.length} {t("errors")}:</p>
+                      {results.errors.slice(0, 10).map((err, i) => (
                         <div key={i} className="text-xs">
                           • {err}
                         </div>
                       ))}
+                      {results.errors.length > 10 && (
+                        <div className="text-xs mt-1 opacity-75">
+                          +{results.errors.length - 10} {t("more_errors")}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -438,7 +358,7 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
           <Button variant="outline" onClick={handleClose}>
             {t("close")}
           </Button>
-          {!showWarning && (
+          {!showWarning && !results && (
             <Button onClick={handleStartImport} disabled={isProcessing || !file}>
               {isProcessing && <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" />}
               {t("inv_import")}
