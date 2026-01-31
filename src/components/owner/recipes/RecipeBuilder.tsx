@@ -785,7 +785,7 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
                                   <SelectContent>
                                     {row.conflicting_inventory_items?.map((item) => (
                                       <SelectItem key={item.id} value={item.id}>
-                                        {item.name} ({item.unit_name})
+                                        {item.name} ({item.unit_name}) — #{item.id.slice(0, 6)}
                                       </SelectItem>
                                     ))}
                                   </SelectContent>
