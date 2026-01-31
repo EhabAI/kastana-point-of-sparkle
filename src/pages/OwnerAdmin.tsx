@@ -95,6 +95,7 @@ import { OwnerNotificationToasts } from "@/components/owner/OwnerNotificationToa
 
 import { InventoryRiskCard } from "@/components/owner/InventoryRiskCard";
 import { OffersStatusCard } from "@/components/owner/OffersStatusCard";
+import { AssistantBranchSync } from "@/components/owner/AssistantBranchSync";
 import { useRestaurantTables } from "@/hooks/useRestaurantTables";
 import { useCashiers } from "@/hooks/useCashiers";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
@@ -159,6 +160,8 @@ export default function OwnerAdmin() {
 
   return (
     <DashboardLayout title={t("owner_dashboard")}>
+      {/* Sync branch context to Smart Assistant */}
+      <AssistantBranchSync />
       {/* Toast notifications listener for owner */}
       <OwnerNotificationToasts />
       <div className="space-y-3 animate-fade-in">

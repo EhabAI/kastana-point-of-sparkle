@@ -102,6 +102,10 @@ interface FallbackContext {
   shiftOpen?: boolean;
   restaurantActive?: boolean;
   hasOpenOrders?: boolean;
+  // Branch context for Owner (all responses scoped to selected branch)
+  branchId?: string;
+  branchName?: string;
+  restaurantName?: string;
 }
 
 interface UseAssistantAIReturn {
@@ -212,7 +216,13 @@ export function useAssistantAI(): UseAssistantAIReturn {
       fallbackContext?.restaurantActive ?? true,
       fallbackContext?.hasOpenOrders ?? false,
       fallbackContext?.featureVisibility,
-      language
+      language,
+      // Branch context for Owner
+      fallbackContext?.branchId ? {
+        branchId: fallbackContext.branchId,
+        branchName: fallbackContext.branchName,
+        restaurantName: fallbackContext.restaurantName,
+      } : undefined
     ) : null;
     
     // V2: Classify soft intent (question type only, not destination)

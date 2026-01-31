@@ -27,6 +27,12 @@ export interface V2SystemContext {
     discounts: boolean;
   };
   language: "ar" | "en";
+  // Branch context for Owner (all responses scoped to selected branch)
+  branch_context?: {
+    branch_id: string | null;
+    branch_name: string | null;
+    restaurant_name: string | null;
+  };
 }
 
 /**
@@ -69,7 +75,8 @@ export function buildV2Context(
   restaurantActive: boolean = true,
   hasOpenOrders: boolean = false,
   featureVisibility?: FeatureVisibility,
-  language: "ar" | "en" = "ar"
+  language: "ar" | "en" = "ar",
+  branchContext?: { branchId?: string; branchName?: string; restaurantName?: string }
 ): V2SystemContext {
   // Get visible UI elements for this screen
   const uiElements = getScreenUIElements(screenContext);
@@ -91,6 +98,11 @@ export function buildV2Context(
       discounts: featureVisibility?.discountsEnabled ?? true,
     },
     language,
+    branch_context: branchContext ? {
+      branch_id: branchContext.branchId ?? null,
+      branch_name: branchContext.branchName ?? null,
+      restaurant_name: branchContext.restaurantName ?? null,
+    } : undefined,
   };
 }
 
