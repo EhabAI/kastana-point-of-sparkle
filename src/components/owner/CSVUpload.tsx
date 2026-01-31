@@ -109,6 +109,8 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
   const refreshData = () => {
     queryClient.invalidateQueries({ queryKey: ['menu-categories'] });
     queryClient.invalidateQueries({ queryKey: ['menu-items'] });
+    queryClient.invalidateQueries({ queryKey: ['all-menu-items'] });
+    queryClient.invalidateQueries({ queryKey: ['branch-menu-items'] });
     queryClient.invalidateQueries({ queryKey: ['owner-restaurant'] });
   };
 
