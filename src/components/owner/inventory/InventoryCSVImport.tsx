@@ -257,7 +257,7 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("inv_import_csv")}</DialogTitle>
           <DialogDescription>{t("inv_import_csv_desc")}</DialogDescription>
