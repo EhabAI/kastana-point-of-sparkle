@@ -299,7 +299,7 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
                 {t("staff_management")}
-                <span className="text-muted-foreground font-normal">({staffCount ?? totalStaff})</span>
+                <span className="text-muted-foreground font-normal">({totalStaff})</span>
               </CardTitle>
               <CardDescription>{t("manage_staff_desc")}</CardDescription>
             </div>

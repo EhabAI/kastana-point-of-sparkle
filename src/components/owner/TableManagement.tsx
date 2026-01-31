@@ -349,7 +349,7 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     {t("tables_management")}
-                    <span className="text-muted-foreground font-normal">({tableCount ?? tables.length})</span>
+                    <span className="text-muted-foreground font-normal">({filteredTables.length})</span>
                     <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </CardTitle>
                   <CardDescription>{t("tables_desc")}</CardDescription>
