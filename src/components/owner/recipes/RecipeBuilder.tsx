@@ -11,7 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogBody } from "@/components/ui/dialog";
-import { Trash2, Plus, Save, ChefHat, Search, Package, AlertCircle, Upload, FileText, CheckCircle2, XCircle, ArrowLeft, Loader2, Filter, PartyPopper } from "lucide-react";
+import { Trash2, Plus, Save, ChefHat, Search, Package, AlertCircle, Upload, FileText, CheckCircle2, XCircle, ArrowLeft, Loader2, Filter, PartyPopper, Check } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAllMenuItems } from "@/hooks/useMenuItems";
 import { useInventoryItems, useInventoryUnits } from "@/hooks/useInventoryItems";
 import { useRecipeByMenuItem, useUpsertRecipe } from "@/hooks/useRecipes";
@@ -37,6 +38,12 @@ interface RecipeLineInput {
   unit_id: string;
 }
 
+interface ConflictingInventoryItem {
+  id: string;
+  name: string;
+  unit_name: string;
+}
+
 interface ParsedRecipeRow {
   rowIndex: number;
   menu_item_name: string;
@@ -45,6 +52,8 @@ interface ParsedRecipeRow {
   unit: string;
   isValid: boolean;
   error?: string;
+  conflicting_inventory_items?: ConflictingInventoryItem[];
+  resolved_inventory_item_id?: string;
 }
 
 interface ImportError {
@@ -174,6 +183,7 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
 
     // Validation with specific error reasons (priority order - most important first)
     let error: string | undefined;
+    let conflicting_inventory_items: ConflictingInventoryItem[] | undefined;
     
     // 1. Check required fields first
     if (!menu_item_name) {
@@ -206,7 +216,13 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
           if (inventoryMatch.length === 0) {
             error = t("csv_error_inventory_item_not_found");
           } else if (inventoryMatch.length > 1) {
+            // Multiple inventory items found - attach conflicting items for user selection
             error = t("csv_error_inventory_item_not_unique");
+            conflicting_inventory_items = inventoryMatch.map((item) => ({
+              id: item.id,
+              name: item.name,
+              unit_name: unitsList.find((u) => u.id === item.baseUnitId)?.name || "",
+            }));
           } else {
             // 5. Check if unit exists
             const unitMatch = unitsList.find(
@@ -228,6 +244,7 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
       unit,
       isValid: !error,
       error,
+      conflicting_inventory_items,
     };
   };
 
@@ -352,10 +369,34 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
     }
   };
 
-  const validRowsCount = parsedRows.filter(r => r.isValid).length;
-  const invalidRowsCount = parsedRows.filter(r => !r.isValid).length;
-  // Allow import if there are valid rows (backend will do full validation)
-  const canImport = validRowsCount > 0;
+  const validRowsCount = parsedRows.filter(r => r.isValid || r.resolved_inventory_item_id).length;
+  const invalidRowsCount = parsedRows.filter(r => !r.isValid && !r.resolved_inventory_item_id).length;
+  
+  // Check for unresolved conflicts - rows with conflicting items but no selection made
+  const unresolvedConflicts = parsedRows.filter(
+    (r) => r.conflicting_inventory_items && r.conflicting_inventory_items.length > 0 && !r.resolved_inventory_item_id
+  );
+  const hasUnresolvedConflicts = unresolvedConflicts.length > 0;
+  
+  // Allow import if there are valid rows AND no unresolved conflicts
+  const canImport = validRowsCount > 0 && !hasUnresolvedConflicts;
+
+  // Handler for resolving inventory conflicts via dropdown
+  const handleResolveInventoryConflict = (rowIndex: number, inventoryItemId: string) => {
+    setParsedRows((prev) =>
+      prev.map((row) => {
+        if (row.rowIndex === rowIndex) {
+          return {
+            ...row,
+            resolved_inventory_item_id: inventoryItemId,
+            isValid: true, // Mark as valid after resolution
+            error: undefined, // Clear error
+          };
+        }
+        return row;
+      })
+    );
+  };
 
   const { data: menuItems = [], isLoading: loadingMenuItems } = useAllMenuItems(restaurantId);
   const { data: inventoryItems = [], isLoading: loadingInventory } = useInventoryItems(restaurantId);
@@ -706,22 +747,57 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {parsedRows.map((row) => (
-                      <TableRow key={row.rowIndex} className={cn(!row.isValid && "bg-destructive/5")}>
-                        <TableCell className="text-muted-foreground">{row.rowIndex}</TableCell>
-                        <TableCell>{row.menu_item_name || "-"}</TableCell>
-                        <TableCell>{row.inventory_item_name || "-"}</TableCell>
-                        <TableCell>{row.quantity || "-"}</TableCell>
-                        <TableCell>{row.unit || "-"}</TableCell>
-                        <TableCell>
-                          {row.isValid ? (
-                            <span className="text-muted-foreground">{t("csv_row_no_error")}</span>
-                          ) : (
-                            <span className="text-sm text-destructive">{row.error}</span>
+                    {parsedRows.map((row) => {
+                      const hasConflicts = row.conflicting_inventory_items && row.conflicting_inventory_items.length > 0;
+                      const isResolved = !!row.resolved_inventory_item_id;
+                      const showAsValid = row.isValid || isResolved;
+                      
+                      return (
+                        <TableRow 
+                          key={row.rowIndex} 
+                          className={cn(
+                            !showAsValid && "bg-destructive/5",
+                            isResolved && "bg-green-50 dark:bg-green-950/20"
                           )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                        >
+                          <TableCell className="text-muted-foreground">{row.rowIndex}</TableCell>
+                          <TableCell>{row.menu_item_name || "-"}</TableCell>
+                          <TableCell>{row.inventory_item_name || "-"}</TableCell>
+                          <TableCell>{row.quantity || "-"}</TableCell>
+                          <TableCell>{row.unit || "-"}</TableCell>
+                          <TableCell>
+                            {showAsValid && !hasConflicts ? (
+                              <span className="text-muted-foreground">{t("csv_row_no_error")}</span>
+                            ) : isResolved ? (
+                              <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                                <Check className="h-4 w-4" />
+                                <span className="text-sm">{t("csv_conflict_resolved")}</span>
+                              </div>
+                            ) : hasConflicts ? (
+                              <div className="space-y-1">
+                                <span className="text-xs text-destructive block mb-1">{row.error}</span>
+                                <Select
+                                  onValueChange={(value) => handleResolveInventoryConflict(row.rowIndex, value)}
+                                >
+                                  <SelectTrigger className="h-8 text-xs">
+                                    <SelectValue placeholder={t("csv_select_correct_item")} />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {row.conflicting_inventory_items?.map((item) => (
+                                      <SelectItem key={item.id} value={item.id}>
+                                        {item.name} ({item.unit_name})
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            ) : (
+                              <span className="text-sm text-destructive">{row.error}</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
@@ -739,22 +815,42 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
                   <ArrowLeft className="h-4 w-4" />
                   {t("back")}
                 </Button>
-                <Button 
-                  disabled={!canImport || isImporting}
-                  onClick={handleImport}
-                  className="gap-2"
-                >
-                  {isImporting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      {t("importing")}
-                    </>
-                  ) : (
-                    <>
-                      {t("import")} ({validRowsCount} {t("rows")})
-                    </>
-                  )}
-                </Button>
+                {hasUnresolvedConflicts ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span tabIndex={0}>
+                          <Button 
+                            disabled={true}
+                            className="gap-2 pointer-events-none opacity-50"
+                          >
+                            {t("import")} ({validRowsCount} {t("rows")})
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t("csv_resolve_conflicts_tooltip")}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
+                  <Button 
+                    disabled={!canImport || isImporting}
+                    onClick={handleImport}
+                    className="gap-2"
+                  >
+                    {isImporting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        {t("importing")}
+                      </>
+                    ) : (
+                      <>
+                        {t("import")} ({validRowsCount} {t("rows")})
+                      </>
+                    )}
+                  </Button>
+                )}
               </>
             ) : (
               <>
