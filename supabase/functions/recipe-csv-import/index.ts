@@ -46,6 +46,7 @@ interface RecipeRow {
   inventory_item_name: string;
   quantity: number;
   unit: string;
+  resolved_inventory_item_id?: string; // Pre-resolved inventory item ID from frontend conflict resolution
 }
 
 interface ImportRequest {
@@ -283,33 +284,40 @@ Deno.serve(async (req) => {
       let hasErrors = false;
 
       for (const row of menuItemRows) {
-        // Validate inventory item (branch-level)
-        const invItemKey = row.inventory_item_name.toLowerCase().trim();
-        const invItemMatches = inventoryMap.get(invItemKey);
+        let inventoryItemId: string;
         
-        if (!invItemMatches || invItemMatches.length === 0) {
-          errors.push({
-            menu_item_name: originalMenuItemName,
-            inventory_item_name: row.inventory_item_name,
-            reason: "Inventory item not found in selected branch",
-            reason_code: "inventory_item_not_found",
-          });
-          hasErrors = true;
-          continue;
+        // If resolved_inventory_item_id is provided, use it directly (conflict was resolved on frontend)
+        if (row.resolved_inventory_item_id) {
+          inventoryItemId = row.resolved_inventory_item_id;
+        } else {
+          // Validate inventory item by name lookup (branch-level)
+          const invItemKey = row.inventory_item_name.toLowerCase().trim();
+          const invItemMatches = inventoryMap.get(invItemKey);
+          
+          if (!invItemMatches || invItemMatches.length === 0) {
+            errors.push({
+              menu_item_name: originalMenuItemName,
+              inventory_item_name: row.inventory_item_name,
+              reason: "Inventory item not found in selected branch",
+              reason_code: "inventory_item_not_found",
+            });
+            hasErrors = true;
+            continue;
+          }
+          
+          if (invItemMatches.length > 1) {
+            errors.push({
+              menu_item_name: originalMenuItemName,
+              inventory_item_name: row.inventory_item_name,
+              reason: "Multiple inventory items found with this name",
+              reason_code: "inventory_item_not_unique",
+            });
+            hasErrors = true;
+            continue;
+          }
+          
+          inventoryItemId = invItemMatches[0].id;
         }
-        
-        if (invItemMatches.length > 1) {
-          errors.push({
-            menu_item_name: originalMenuItemName,
-            inventory_item_name: row.inventory_item_name,
-            reason: "Multiple inventory items found with this name",
-            reason_code: "inventory_item_not_unique",
-          });
-          hasErrors = true;
-          continue;
-        }
-        
-        const invItem = invItemMatches[0];
 
         // Validate unit
         const unitId = unitMap.get(row.unit.toLowerCase().trim());
@@ -340,7 +348,7 @@ Deno.serve(async (req) => {
         const qtyInBase = row.quantity;
 
         linesToInsert.push({
-          inventory_item_id: invItem.id,
+          inventory_item_id: inventoryItemId,
           qty: row.quantity,
           unit_id: unitId,
           qty_in_base: qtyInBase,
