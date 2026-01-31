@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Separator } from "@/components/ui/separator";
 import { Settings, Clock, Loader2, ChevronDown } from "lucide-react";
 import {
   useOwnerRestaurantSettings,
@@ -13,7 +14,7 @@ import {
 } from "@/hooks/useOwnerRestaurantSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-
+import { OwnerDataReset } from "./OwnerDataReset";
 const DAYS_OF_WEEK = [
   { key: "sunday", labelKey: "sunday" },
   { key: "monday", labelKey: "monday" },
@@ -265,6 +266,20 @@ export function RestaurantSettings() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Data Reset Section */}
+        <Separator />
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-destructive">
+            {language === "ar" ? "إعادة تعيين البيانات" : "Data Reset"}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {language === "ar" 
+              ? "حذف جميع بيانات القائمة والمخزون والموظفين المرتبطة بهذا المطعم"
+              : "Delete all menu, inventory, and staff data associated with this restaurant"}
+          </p>
+          <OwnerDataReset />
         </div>
           </CardContent>
         </CollapsibleContent>
