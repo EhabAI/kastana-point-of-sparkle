@@ -1,5 +1,6 @@
-// Trainer Coach Tab - AI-powered contextual suggestions
+// Trainer Coach Tab - Rule-based contextual suggestions
 // Shows smart suggestions based on current screen and user actions
+// For Owner: Shows dedicated Owner Training Panel
 
 import { Brain, Lightbulb, ChevronRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,8 +8,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useTrainer } from "@/contexts/TrainerContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getModulesForContext, type TrainingModule } from "@/lib/trainerRegistry";
+import { OwnerTrainingPanel } from "./OwnerTrainingPanel";
+import { ownerNeedsTraining, isOwnerTrainingActive, isOwnerTrainingPaused, isOwnerTrainingCompleted } from "@/lib/ownerTrainingFlow";
 
 interface TrainerCoachTabProps {
   language: "ar" | "en";
@@ -26,6 +29,7 @@ interface CoachSuggestion {
 export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabProps) {
   const { role } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const { getStats } = useTrainer();
   
   const stats = getStats();
@@ -41,12 +45,26 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
   
   const contextModules = role ? getModulesForContext(role, getScreenId()) : [];
   
-  // Build smart suggestions based on context
+  // Check if we're on owner screen and should show owner training
+  const isOwnerScreen = getScreenId() === "owner";
+  const showOwnerTraining = role === "owner" && isOwnerScreen && (
+    ownerNeedsTraining() || isOwnerTrainingActive() || isOwnerTrainingPaused() || isOwnerTrainingCompleted()
+  );
+  
+  // Handle navigation to settings from owner training
+  const handleNavigateToSettings = () => {
+    // Navigate to settings tab in owner admin
+    // This triggers a custom event that OwnerAdmin can listen to
+    const event = new CustomEvent("owner-training-navigate", { detail: { tab: "settings" } });
+    window.dispatchEvent(event);
+  };
+  
+  // Build smart suggestions based on context (for non-owner roles)
   const getSuggestions = (): CoachSuggestion[] => {
     const suggestions: CoachSuggestion[] = [];
     
-    // First-shift suggestion if not completed
-    if (!stats.firstShiftDone) {
+    // Skip first-shift suggestion for owners (they use dedicated training)
+    if (!stats.firstShiftDone && role !== "owner") {
       suggestions.push({
         id: "first_shift",
         icon: "learn",
@@ -59,8 +77,7 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
           en: "Quick 3-minute tour to learn the basics"
         },
         moduleId: role === "cashier" ? "first_shift_cashier" : 
-                  role === "owner" ? "owner_dashboard_tour" : 
-                  "kitchen_basics"
+                  role === "kitchen" ? "kitchen_basics" : undefined
       });
     }
     
@@ -80,7 +97,8 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
       });
     }
     
-    if (getScreenId() === "owner") {
+    // Owner tips only if not showing dedicated training panel
+    if (getScreenId() === "owner" && !showOwnerTraining) {
       suggestions.push({
         id: "owner_tip_1",
         icon: "tip",
@@ -144,8 +162,8 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
         </div>
         <p className="text-xs text-muted-foreground">{labels.subtitle}</p>
         
-        {/* Progress bar */}
-        {stats.totalCount > 0 && (
+        {/* Progress bar - hide for owner with dedicated training */}
+        {stats.totalCount > 0 && !showOwnerTraining && (
           <div className="mt-3">
             <div className="flex justify-between text-xs mb-1">
               <span className="text-muted-foreground">{labels.progress}</span>
@@ -161,15 +179,24 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
         )}
       </div>
       
-      {/* Suggestions list */}
+      {/* Content area */}
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-3">
-          {suggestions.length === 0 ? (
+          {/* Owner Training Panel - shown prominently for owners */}
+          {showOwnerTraining && (
+            <OwnerTrainingPanel 
+              language={language}
+              onNavigateToSettings={handleNavigateToSettings}
+            />
+          )}
+          
+          {/* Regular suggestions for non-owner roles or after owner training */}
+          {(!showOwnerTraining || isOwnerTrainingCompleted()) && suggestions.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground text-sm">
               <Sparkles className="h-8 w-8 mx-auto mb-2 text-primary/30" />
               {labels.noSuggestions}
             </div>
-          ) : (
+          ) : (!showOwnerTraining || isOwnerTrainingCompleted()) && (
             suggestions.map(suggestion => (
               <div
                 key={suggestion.id}

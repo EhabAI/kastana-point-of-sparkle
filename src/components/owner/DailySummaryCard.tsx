@@ -166,7 +166,7 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
   };
   
   return (
-    <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800/50 border h-full">
+    <Card data-trainer="daily-summary" className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800/50 border h-full">
       <CardHeader className="pb-2 pt-3 px-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">

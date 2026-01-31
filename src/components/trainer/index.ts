@@ -5,3 +5,4 @@ export { TrainerCurriculumTab } from "./TrainerCurriculumTab";
 export { TrainerExplainTab } from "./TrainerExplainTab";
 export { TrainerOverlay } from "./TrainerOverlay";
 export { FirstShiftPrompt } from "./FirstShiftPrompt";
+export { OwnerTrainingPanel } from "./OwnerTrainingPanel";

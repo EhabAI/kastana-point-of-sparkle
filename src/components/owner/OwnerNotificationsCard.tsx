@@ -62,7 +62,7 @@ export function OwnerNotificationsCard() {
 
   return (
     <>
-      <div className="rounded-xl bg-[#F5F7FB] dark:bg-[#1F2937] border border-black/5 dark:border-white/[0.06] p-4">
+      <div data-trainer="notifications-alerts" className="rounded-xl bg-[#F5F7FB] dark:bg-[#1F2937] border border-black/5 dark:border-white/[0.06] p-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
