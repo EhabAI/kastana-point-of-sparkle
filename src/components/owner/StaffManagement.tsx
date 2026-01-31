@@ -31,6 +31,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useCashiers, useAddCashier, useUpdateCashierStatus } from "@/hooks/useCashiers";
 import { useKitchenStaff, useAddKitchenStaff, useUpdateKitchenStaffStatus } from "@/hooks/useKitchenStaff";
 import { useBranches } from "@/hooks/useBranches";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { useResetCashierPassword } from "@/hooks/useResetCashierPassword";
 import { useKDSEnabled } from "@/hooks/useKDSEnabled";
 import { Users, Loader2, UserPlus, Building2, KeyRound, ChefHat, Pencil, Mail } from "lucide-react";
@@ -46,6 +47,7 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
   const { data: cashiers = [], isLoading: cashiersLoading } = useCashiers(restaurantId);
   const { data: kitchenStaff = [], isLoading: kitchenLoading } = useKitchenStaff(restaurantId);
   const { data: branches = [] } = useBranches(restaurantId);
+  const { selectedBranch } = useBranchContextSafe();
   const { data: kdsEnabled } = useKDSEnabled(restaurantId);
   const addCashier = useAddCashier();
   const addKitchenStaff = useAddKitchenStaff();
@@ -55,6 +57,15 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
   const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
+
+  // Filter staff by selected branch
+  const filteredCashiers = selectedBranch?.id 
+    ? cashiers.filter(c => c.branch_id === selectedBranch.id)
+    : cashiers;
+  
+  const filteredKitchenStaff = selectedBranch?.id 
+    ? kitchenStaff.filter(s => s.branch_id === selectedBranch.id)
+    : kitchenStaff;
 
   const [activeTab, setActiveTab] = useState("cashiers");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -80,7 +91,7 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
   const [updatingEmail, setUpdatingEmail] = useState(false);
 
   const isLoading = cashiersLoading || kitchenLoading;
-  const totalStaff = cashiers.length + kitchenStaff.length;
+  const totalStaff = filteredCashiers.length + filteredKitchenStaff.length;
 
   // Get branch name by ID for display
   const getBranchName = (branchId: string | null | undefined) => {
@@ -299,12 +310,12 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
               <TabsList>
                 <TabsTrigger value="cashiers" className="gap-2">
                   <Users className="h-4 w-4" />
-                  {t("cashiers")} ({cashiers.length})
+                  {t("cashiers")} ({filteredCashiers.length})
                 </TabsTrigger>
                 {kdsEnabled && (
                   <TabsTrigger value="kitchen" className="gap-2">
                     <ChefHat className="h-4 w-4" />
-                    {t("kitchen_staff")} ({kitchenStaff.length})
+                    {t("kitchen_staff")} ({filteredKitchenStaff.length})
                   </TabsTrigger>
                 )}
               </TabsList>
@@ -328,7 +339,7 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 </div>
-              ) : cashiers.length === 0 ? (
+              ) : filteredCashiers.length === 0 ? (
                 <div className="text-center py-8">
                   <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground">{t("no_cashiers")}</p>
@@ -345,7 +356,7 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {cashiers.map((cashier) => (
+                    {filteredCashiers.map((cashier) => (
                       <TableRow key={cashier.id} className="hover-row">
                         <TableCell className="font-medium">{cashier.username || cashier.email || t("no_email")}</TableCell>
                         <TableCell className="text-muted-foreground text-sm">{cashier.email || t("no_email")}</TableCell>
@@ -414,7 +425,7 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                   </div>
-                ) : kitchenStaff.length === 0 ? (
+                ) : filteredKitchenStaff.length === 0 ? (
                   <div className="text-center py-8">
                     <ChefHat className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground">{t("no_kitchen_staff")}</p>
@@ -431,7 +442,7 @@ export function StaffManagement({ restaurantId, staffCount }: StaffManagementPro
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {kitchenStaff.map((staff) => (
+                      {filteredKitchenStaff.map((staff) => (
                         <TableRow key={staff.id} className="hover-row">
                           <TableCell className="font-medium">{staff.username || staff.email || t("no_email")}</TableCell>
                           <TableCell className="text-muted-foreground text-sm">{staff.email || t("no_email")}</TableCell>

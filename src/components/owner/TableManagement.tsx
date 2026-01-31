@@ -9,6 +9,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRestaurantTables, useCreateRestaurantTable, useUpdateRestaurantTable, RestaurantTable } from "@/hooks/useRestaurantTables";
 import { useBranches } from "@/hooks/useBranches";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { useQROrderEnabled } from "@/hooks/useQRModuleToggle";
 import { Loader2, Plus, Edit2, QrCode, Copy, Download, Table2, ChevronDown, Users, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -263,6 +264,7 @@ function TableRow({
 export function TableManagement({ restaurantId, tableCount }: TableManagementProps) {
   const { data: tables = [], isLoading } = useRestaurantTables(restaurantId);
   const { data: branches = [], isLoading: branchesLoading } = useBranches(restaurantId);
+  const { selectedBranch } = useBranchContextSafe();
   const { data: qrEnabled = false } = useQROrderEnabled(restaurantId);
   const createTable = useCreateRestaurantTable();
   const updateTable = useUpdateRestaurantTable();
@@ -277,17 +279,12 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
   const [editingTable, setEditingTable] = useState<RestaurantTable | null>(null);
   const [editTableName, setEditTableName] = useState("");
   const [editTableCapacity, setEditTableCapacity] = useState(4);
-  
-  // Filter by branch - default to first branch if available
-  const [filterBranchId, setFilterBranchId] = useState<string>("all");
 
-  // DO NOT auto-select branch for new tables - Owner must explicitly select
-  // newTableBranchId stays empty until user selects
-
-  // Filter tables by selected branch
-  const filteredTables = filterBranchId === "all" 
-    ? tables 
-    : tables.filter(t => t.branch_id === filterBranchId);
+  // Use globally selected branch from BranchSelector for filtering
+  // Filter tables by selected branch (if a branch is selected)
+  const filteredTables = selectedBranch?.id 
+    ? tables.filter(t => t.branch_id === selectedBranch.id)
+    : tables;
 
   // Get branch name by ID
   const getBranchName = (branchId: string | null) => {
@@ -425,25 +422,6 @@ export function TableManagement({ restaurantId, tableCount }: TableManagementPro
         </CardHeader>
         <CollapsibleContent>
           <CardContent>
-            {/* Branch Filter */}
-            {branches.length > 0 && (
-              <div className="mb-4">
-                <Label className="mb-2 block text-sm">{t("filter_by_branch")}</Label>
-                <Select value={filterBranchId} onValueChange={setFilterBranchId}>
-                  <SelectTrigger className="w-full md:w-64">
-                    <SelectValue placeholder={t("all_branches")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("all_branches")}</SelectItem>
-                    {branches.map((branch) => (
-                      <SelectItem key={branch.id} value={branch.id}>
-                        {branch.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
             
             {isLoading || branchesLoading ? (
               <div className="flex items-center justify-center py-8">
