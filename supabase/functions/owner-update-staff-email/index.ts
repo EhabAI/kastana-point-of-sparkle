@@ -20,8 +20,8 @@ function json(data: unknown, status = 200) {
   })
 }
 
-function errorResponse(code: ErrorCode, message: string, status = 400) {
-  return json({ error: { code, message } }, status)
+function errorResponse(code: ErrorCode, status = 400) {
+  return json({ error: { code } }, status)
 }
 
 Deno.serve(async (req) => {
@@ -37,12 +37,12 @@ Deno.serve(async (req) => {
 
     if (!supabaseUrl || !anonKey || !serviceRoleKey) {
       console.error('Missing required env vars for owner-update-staff-email')
-      return errorResponse('unexpected', 'Unexpected error. Please try again.', 500)
+      return errorResponse('unexpected', 500)
     }
 
     const authHeader = req.headers.get('Authorization')
     if (!authHeader || !authHeader.toLowerCase().startsWith('bearer ')) {
-      return errorResponse('not_authorized', 'Please sign in to perform this action.', 401)
+      return errorResponse('not_authorized', 401)
     }
 
     const body = (await req.json().catch(() => null)) as null | {
@@ -56,13 +56,13 @@ Deno.serve(async (req) => {
     const restaurantId = body?.restaurant_id
 
     if (!targetUserId || !newEmail || !restaurantId) {
-      return errorResponse('unexpected', 'Please provide user_id, new_email, and restaurant_id.', 400)
+      return errorResponse('unexpected', 400)
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(newEmail)) {
-      return errorResponse('invalid_email', 'Please enter a valid email address.', 400)
+      return errorResponse('invalid_email', 400)
     }
 
     // Client authenticated as the caller (JWT from Authorization header)
@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
 
     const { data: userData, error: userErr } = await userClient.auth.getUser()
     if (userErr || !userData?.user) {
-      return errorResponse('not_authorized', 'Your session is invalid. Please sign in again.', 401)
+      return errorResponse('not_authorized', 401)
     }
 
     const callerId = userData.user.id
@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
       .single()
 
     if (roleErr || !callerRole) {
-      return errorResponse('not_authorized', 'Only restaurant owners can update staff emails.', 403)
+      return errorResponse('not_authorized', 403)
     }
 
     // Get owner's restaurant
@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
       .single()
 
     if (restErr || !ownerRestaurant || ownerRestaurant.id !== restaurantId) {
-      return errorResponse('not_authorized', 'You can only update staff for your own restaurant.', 403)
+      return errorResponse('not_authorized', 403)
     }
 
     // Check if target user is staff (cashier or kitchen) of this restaurant
@@ -116,14 +116,14 @@ Deno.serve(async (req) => {
       .single()
 
     if (targetRoleErr || !targetRole) {
-      return errorResponse('not_your_staff', 'This user is not a staff member of your restaurant.', 403)
+      return errorResponse('not_your_staff', 403)
     }
 
     // Verify the target user exists
     const { data: targetUser, error: targetErr } = await serviceClient.auth.admin.getUserById(targetUserId)
 
     if (targetErr || !targetUser?.user) {
-      return errorResponse('user_not_found', 'User not found.', 404)
+      return errorResponse('user_not_found', 404)
     }
 
     // Update the email (skip email confirmation for admin updates)
@@ -135,9 +135,9 @@ Deno.serve(async (req) => {
     if (updateErr) {
       console.error('Email update failed', updateErr)
       if (updateErr.message?.includes('already registered') || updateErr.message?.includes('duplicate')) {
-        return errorResponse('email_taken', 'This email is already registered.', 400)
+        return errorResponse('email_taken', 400)
       }
-      return errorResponse('unexpected', 'Failed to update email. Please try again.', 500)
+      return errorResponse('unexpected', 500)
     }
 
     // Update the profiles table as well
@@ -154,6 +154,6 @@ Deno.serve(async (req) => {
     return json({ success: true }, 200)
   } catch (e) {
     console.error('owner-update-staff-email unexpected error', e)
-    return errorResponse('unexpected', 'Unexpected error. Please try again.', 500)
+    return errorResponse('unexpected', 500)
   }
 })

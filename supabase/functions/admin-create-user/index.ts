@@ -22,8 +22,8 @@ function json(data: unknown, status = 200) {
   })
 }
 
-function errorResponse(code: ErrorCode, message: string, status = 400) {
-  return json({ error: { code, message } }, status)
+function errorResponse(code: ErrorCode, status = 400) {
+  return json({ error: { code } }, status)
 }
 
 function isLikelyUserExists(message: string) {
@@ -59,14 +59,14 @@ Deno.serve(async (req) => {
 
     if (!supabaseUrl || !serviceRoleKey) {
       console.error('Missing required env vars for admin-create-user')
-      return errorResponse('unexpected', 'Unexpected error. Please try again.', 500)
+      return errorResponse('unexpected', 500)
     }
 
     // Extract JWT from Authorization header
     const authHeader = req.headers.get('Authorization')
     if (!authHeader || !authHeader.toLowerCase().startsWith('bearer ')) {
       console.error('Missing or invalid Authorization header')
-      return errorResponse('not_authorized', 'Please sign in to perform this action.', 401)
+      return errorResponse('not_authorized', 401)
     }
 
     const jwt = authHeader.replace(/^bearer\s+/i, '')
@@ -88,17 +88,17 @@ Deno.serve(async (req) => {
     const username = body?.username?.trim()
 
     if (!email || !password) {
-      return errorResponse('unexpected', 'Please provide an email and password.', 400)
+      return errorResponse('unexpected', 400)
     }
 
     // Validate the requested role
     if (!isValidRole(requestedRole)) {
-      return errorResponse('invalid_role', 'Invalid role specified. Must be cashier or kitchen.', 400)
+      return errorResponse('invalid_role', 400)
     }
 
     // Quick weak password check for clearer UX
     if (password.length < 6) {
-      return errorResponse('weak_password', 'Password is too weak. Use at least 6 characters.', 400)
+      return errorResponse('weak_password', 400)
     }
 
     // Create service-role client for ALL privileged operations
@@ -113,7 +113,7 @@ Deno.serve(async (req) => {
     
     if (userErr || !userData?.user) {
       console.error('JWT verification failed:', userErr?.message || 'No user data')
-      return errorResponse('not_authorized', 'Your session is invalid. Please sign in again.', 401)
+      return errorResponse('not_authorized', 401)
     }
 
     const callerId = userData.user.id
@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
 
     if (roleErr || !callerRole) {
       console.error('Role lookup failed:', roleErr?.message || 'No role found')
-      return errorResponse('not_authorized', 'Unable to verify your permissions.', 403)
+      return errorResponse('not_authorized', 403)
     }
 
     console.log(`Caller role: ${callerRole.role}`)
@@ -142,18 +142,18 @@ Deno.serve(async (req) => {
     if (callerRole.role === 'system_admin') {
       // System admin can only create owners
       if (requestedRole !== 'owner') {
-        return errorResponse('not_authorized', 'System admins can only create owner accounts.', 403)
+        return errorResponse('not_authorized', 403)
       }
       // No restaurant validation needed for system admin creating owner
     } else if (callerRole.role === 'owner') {
       // Owners can only create cashier or kitchen staff
       if (requestedRole !== 'cashier' && requestedRole !== 'kitchen') {
-        return errorResponse('not_authorized', 'Owners can only create cashier or kitchen staff accounts.', 403)
+        return errorResponse('not_authorized', 403)
       }
 
       // Restaurant ID is required for staff creation
       if (!restaurantId) {
-        return errorResponse('missing_restaurant', 'Restaurant ID is required when creating staff.', 400)
+        return errorResponse('missing_restaurant', 400)
       }
 
       // Verify the owner owns this restaurant by checking restaurants.owner_id
@@ -167,7 +167,7 @@ Deno.serve(async (req) => {
 
       if (ownershipErr || !ownedRestaurant) {
         console.error(`Ownership verification failed: owner ${callerId} does not own restaurant ${restaurantId}`)
-        return errorResponse('not_authorized', 'You can only create staff for your own restaurant.', 403)
+        return errorResponse('not_authorized', 403)
       }
 
       console.log(`Ownership verified: owner ${callerId} owns restaurant ${restaurantId}`)
@@ -189,16 +189,16 @@ Deno.serve(async (req) => {
 
         if (kdsErr) {
           console.error('KDS settings lookup failed:', kdsErr.message)
-          return errorResponse('unexpected', 'Unable to verify KDS settings.', 500)
+          return errorResponse('unexpected', 500)
         }
 
         if (!kdsSettings?.kds_enabled) {
-          return errorResponse('kds_disabled', 'KDS must be enabled to create kitchen staff.', 400)
+          return errorResponse('kds_disabled', 400)
         }
       }
     } else {
       console.error(`Unauthorized role: ${callerRole.role}`)
-      return errorResponse('not_authorized', 'You do not have permission to create accounts.', 403)
+      return errorResponse('not_authorized', 403)
     }
 
     // Step 4: Create the user using admin API (service role)
@@ -222,14 +222,14 @@ Deno.serve(async (req) => {
       console.error('Create user failed:', msg, 'Code:', authCode)
 
       if (authCode === 'email_exists' || isLikelyUserExists(msg)) {
-        return errorResponse('user_exists', 'This email is already registered.', 409)
+        return errorResponse('user_exists', 409)
       }
 
       if (isLikelyWeakPassword(msg)) {
-        return errorResponse('weak_password', 'Password is too weak. Use at least 6 characters.', 400)
+        return errorResponse('weak_password', 400)
       }
 
-      return errorResponse('unexpected', 'Unexpected error while creating the user. Please try again.', 500)
+      return errorResponse('unexpected', 500)
     }
 
     const newUserId = created.user.id
@@ -259,7 +259,7 @@ Deno.serve(async (req) => {
       await supabaseAdmin.auth.admin.deleteUser(newUserId).catch((e) => {
         console.error('Failed to cleanup user after role insert failure:', e)
       })
-      return errorResponse('unexpected', `User created, but assigning the ${requestedRole} role failed. Please try again.`, 500)
+      return errorResponse('unexpected', 500)
     }
 
     // Step 6: Insert profile record (trigger should also create it, but this ensures it exists)
@@ -282,9 +282,9 @@ Deno.serve(async (req) => {
     }
 
     console.log(`User created successfully: ${newUserId} with role ${requestedRole}`)
-    return json({ user_id: newUserId }, 200)
+    return json({ success: true, user_id: newUserId }, 200)
   } catch (e) {
     console.error('admin-create-user unexpected error:', e)
-    return errorResponse('unexpected', 'Unexpected error. Please try again.', 500)
+    return errorResponse('unexpected', 500)
   }
 })

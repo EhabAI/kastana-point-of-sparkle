@@ -6,8 +6,21 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+type ErrorCode = 'not_authorized' | 'missing_fields' | 'invalid_amount' | 'invalid_refund_type' | 'order_not_found' | 'order_not_refundable' | 'restaurant_mismatch' | 'refund_exceeds_available' | 'refund_failed' | 'unexpected'
+
 // Helper: round to 3 decimals using HALF-UP (JOD standard)
 const roundJOD = (n: number): number => Math.round(n * 1000) / 1000;
+
+function json(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  })
+}
+
+function errorResponse(code: ErrorCode, status = 400) {
+  return json({ error: { code } }, status)
+}
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
@@ -20,10 +33,7 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       console.error("[create-refund] Missing or invalid Authorization header");
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('not_authorized', 401);
     }
 
     // Create Supabase client with user's auth
@@ -38,10 +48,7 @@ Deno.serve(async (req) => {
     const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
     if (claimsError || !claimsData?.claims) {
       console.error("[create-refund] JWT validation failed:", claimsError);
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('not_authorized', 401);
     }
 
     const userId = claimsData.claims.sub;
@@ -52,26 +59,17 @@ Deno.serve(async (req) => {
 
     if (!orderId || !amount || !refundType || !reason?.trim()) {
       console.error("[create-refund] Invalid request body:", { orderId, amount, refundType, reason });
-      return new Response(
-        JSON.stringify({ error: "Missing required fields: orderId, amount, refundType, reason" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('missing_fields', 400);
     }
 
     if (typeof amount !== "number" || amount <= 0) {
       console.error("[create-refund] Invalid refund amount:", amount);
-      return new Response(
-        JSON.stringify({ error: "Refund amount must be greater than zero" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('invalid_amount', 400);
     }
 
     if (!["full", "partial"].includes(refundType)) {
       console.error("[create-refund] Invalid refund type:", refundType);
-      return new Response(
-        JSON.stringify({ error: "Refund type must be 'full' or 'partial'" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('invalid_refund_type', 400);
     }
 
     // Use service role client for atomic transaction
@@ -90,10 +88,7 @@ Deno.serve(async (req) => {
 
     if (roleError || !userRole) {
       console.error("[create-refund] User role validation failed:", roleError);
-      return new Response(
-        JSON.stringify({ error: "Access denied: requires cashier or owner role" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('not_authorized', 403);
     }
 
     console.log("[create-refund] User role:", userRole.role);
@@ -107,10 +102,7 @@ Deno.serve(async (req) => {
 
     if (orderError || !order) {
       console.error("[create-refund] Order not found:", orderError);
-      return new Response(
-        JSON.stringify({ error: "Order not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('order_not_found', 404);
     }
 
     console.log("[create-refund] Order found:", { id: order.id, status: order.status, total: order.total });
@@ -118,10 +110,7 @@ Deno.serve(async (req) => {
     // Step 3: Validate order status (must be 'paid' or 'refunded' for partial refunds)
     if (order.status !== "paid" && order.status !== "refunded") {
       console.error("[create-refund] Order not refundable:", order.status);
-      return new Response(
-        JSON.stringify({ error: `Cannot refund order with status '${order.status}'. Only paid orders can be refunded.` }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('order_not_refundable', 400);
     }
 
     // Step 4: Validate user has access to this restaurant
@@ -136,10 +125,7 @@ Deno.serve(async (req) => {
       
       if (!restaurant) {
         console.error("[create-refund] Owner restaurant not found");
-        return new Response(
-          JSON.stringify({ error: "Restaurant not found for owner" }),
-          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return errorResponse('restaurant_mismatch', 403);
       }
       userRestaurantId = restaurant.id;
     } else {
@@ -148,10 +134,7 @@ Deno.serve(async (req) => {
 
     if (order.restaurant_id !== userRestaurantId) {
       console.error("[create-refund] Restaurant mismatch:", { order: order.restaurant_id, user: userRestaurantId });
-      return new Response(
-        JSON.stringify({ error: "Access denied: order belongs to different restaurant" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('restaurant_mismatch', 403);
     }
 
     // Step 5: Validate restaurant subscription is active
@@ -169,10 +152,7 @@ Deno.serve(async (req) => {
 
     if (refundsError) {
       console.error("[create-refund] Failed to fetch existing refunds:", refundsError);
-      return new Response(
-        JSON.stringify({ error: "Failed to calculate refundable amount" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('unexpected', 500);
     }
 
     const totalRefunded = roundJOD(existingRefunds?.reduce((sum, r) => sum + Number(r.amount), 0) || 0);
@@ -185,12 +165,7 @@ Deno.serve(async (req) => {
     // Validate refund doesn't exceed available amount
     if (refundAmount > maxRefundable + 0.001) {
       console.error("[create-refund] Refund exceeds available amount:", { refundAmount, maxRefundable });
-      return new Response(
-        JSON.stringify({ 
-          error: `Cannot refund ${refundAmount.toFixed(3)}. Maximum refundable: ${maxRefundable.toFixed(3)}. Already refunded: ${totalRefunded.toFixed(3)}` 
-        }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('refund_exceeds_available', 400);
     }
 
     // Step 7: ATOMIC - Insert refund record
@@ -209,10 +184,7 @@ Deno.serve(async (req) => {
 
     if (refundError) {
       console.error("[create-refund] Failed to insert refund:", refundError);
-      return new Response(
-        JSON.stringify({ error: "Failed to create refund record" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse('refund_failed', 500);
     }
 
     console.log("[create-refund] Refund created:", refund.id);
@@ -345,24 +317,18 @@ Deno.serve(async (req) => {
     }
 
     // Success response
-    return new Response(
-      JSON.stringify({
-        success: true,
-        refund,
-        totalRefunded: newTotalRefunded,
-        remainingRefundable: roundJOD(orderTotal - newTotalRefunded),
-        isFullyRefunded,
-        inventoryRestored,
-        inventoryRestoredCount,
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return json({
+      success: true,
+      refund,
+      totalRefunded: newTotalRefunded,
+      remainingRefundable: roundJOD(orderTotal - newTotalRefunded),
+      isFullyRefunded,
+      inventoryRestored,
+      inventoryRestoredCount,
+    }, 200);
 
   } catch (error) {
     console.error("[create-refund] Unexpected error:", error);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return errorResponse('unexpected', 500);
   }
 });

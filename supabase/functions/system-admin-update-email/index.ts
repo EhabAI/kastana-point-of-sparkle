@@ -20,8 +20,8 @@ function json(data: unknown, status = 200) {
   })
 }
 
-function errorResponse(code: ErrorCode, message: string, status = 400) {
-  return json({ error: { code, message } }, status)
+function errorResponse(code: ErrorCode, status = 400) {
+  return json({ error: { code } }, status)
 }
 
 Deno.serve(async (req) => {
@@ -37,12 +37,12 @@ Deno.serve(async (req) => {
 
     if (!supabaseUrl || !anonKey || !serviceRoleKey) {
       console.error('Missing required env vars for system-admin-update-email')
-      return errorResponse('unexpected', 'Unexpected error. Please try again.', 500)
+      return errorResponse('unexpected', 500)
     }
 
     const authHeader = req.headers.get('Authorization')
     if (!authHeader || !authHeader.toLowerCase().startsWith('bearer ')) {
-      return errorResponse('not_authorized', 'Please sign in to perform this action.', 401)
+      return errorResponse('not_authorized', 401)
     }
 
     const body = (await req.json().catch(() => null)) as null | {
@@ -54,13 +54,13 @@ Deno.serve(async (req) => {
     const newEmail = body?.new_email
 
     if (!targetUserId || !newEmail) {
-      return errorResponse('unexpected', 'Please provide user_id and new_email.', 400)
+      return errorResponse('unexpected', 400)
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(newEmail)) {
-      return errorResponse('invalid_email', 'Please enter a valid email address.', 400)
+      return errorResponse('invalid_email', 400)
     }
 
     // Client authenticated as the caller (JWT from Authorization header)
@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
 
     const { data: userData, error: userErr } = await userClient.auth.getUser()
     if (userErr || !userData?.user) {
-      return errorResponse('not_authorized', 'Your session is invalid. Please sign in again.', 401)
+      return errorResponse('not_authorized', 401)
     }
 
     const callerId = userData.user.id
@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
 
     if (adminErr || !isSystemAdmin) {
       console.error('System admin role check failed', adminErr)
-      return errorResponse('not_authorized', 'Only system administrators can update user emails.', 403)
+      return errorResponse('not_authorized', 403)
     }
 
     // Service-role client to update email
@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
     const { data: targetUser, error: targetErr } = await serviceClient.auth.admin.getUserById(targetUserId)
 
     if (targetErr || !targetUser?.user) {
-      return errorResponse('user_not_found', 'User not found.', 404)
+      return errorResponse('user_not_found', 404)
     }
 
     // Update the email (skip email confirmation for admin updates)
@@ -108,9 +108,9 @@ Deno.serve(async (req) => {
     if (updateErr) {
       console.error('Email update failed', updateErr)
       if (updateErr.message?.includes('already registered') || updateErr.message?.includes('duplicate')) {
-        return errorResponse('email_taken', 'This email is already registered.', 400)
+        return errorResponse('email_taken', 400)
       }
-      return errorResponse('unexpected', 'Failed to update email. Please try again.', 500)
+      return errorResponse('unexpected', 500)
     }
 
     // Update the profiles table as well
@@ -127,6 +127,6 @@ Deno.serve(async (req) => {
     return json({ success: true }, 200)
   } catch (e) {
     console.error('system-admin-update-email unexpected error', e)
-    return errorResponse('unexpected', 'Unexpected error. Please try again.', 500)
+    return errorResponse('unexpected', 500)
   }
 })

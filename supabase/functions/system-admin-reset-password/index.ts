@@ -20,8 +20,8 @@ function json(data: unknown, status = 200) {
   })
 }
 
-function errorResponse(code: ErrorCode, message: string, status = 400) {
-  return json({ error: { code, message } }, status)
+function errorResponse(code: ErrorCode, status = 400) {
+  return json({ error: { code } }, status)
 }
 
 Deno.serve(async (req) => {
@@ -37,12 +37,12 @@ Deno.serve(async (req) => {
 
     if (!supabaseUrl || !anonKey || !serviceRoleKey) {
       console.error('Missing required env vars for system-admin-reset-password')
-      return errorResponse('unexpected', 'Unexpected error. Please try again.', 500)
+      return errorResponse('unexpected', 500)
     }
 
     const authHeader = req.headers.get('Authorization')
     if (!authHeader || !authHeader.toLowerCase().startsWith('bearer ')) {
-      return errorResponse('not_authorized', 'Please sign in to perform this action.', 401)
+      return errorResponse('not_authorized', 401)
     }
 
     const body = (await req.json().catch(() => null)) as null | {
@@ -54,12 +54,12 @@ Deno.serve(async (req) => {
     const newPassword = body?.new_password
 
     if (!targetUserId || !newPassword) {
-      return errorResponse('unexpected', 'Please provide user_id and new_password.', 400)
+      return errorResponse('unexpected', 400)
     }
 
     // Quick weak password check for clearer UX
     if (newPassword.length < 6) {
-      return errorResponse('weak_password', 'Password is too weak. Use at least 6 characters.', 400)
+      return errorResponse('weak_password', 400)
     }
 
     // Client authenticated as the caller (JWT from Authorization header)
@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
 
     const { data: userData, error: userErr } = await userClient.auth.getUser()
     if (userErr || !userData?.user) {
-      return errorResponse('not_authorized', 'Your session is invalid. Please sign in again.', 401)
+      return errorResponse('not_authorized', 401)
     }
 
     const callerId = userData.user.id
@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
 
     if (adminErr || !isSystemAdmin) {
       console.error('System admin role check failed', adminErr)
-      return errorResponse('not_authorized', 'Only system administrators can reset user passwords.', 403)
+      return errorResponse('not_authorized', 403)
     }
 
     // Service-role client to update password
@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
     const { data: targetUser, error: targetErr } = await serviceClient.auth.admin.getUserById(targetUserId)
 
     if (targetErr || !targetUser?.user) {
-      return errorResponse('user_not_found', 'User not found.', 404)
+      return errorResponse('user_not_found', 404)
     }
 
     // Update the password
@@ -106,13 +106,13 @@ Deno.serve(async (req) => {
 
     if (updateErr) {
       console.error('Password update failed', updateErr)
-      return errorResponse('unexpected', 'Failed to reset password. Please try again.', 500)
+      return errorResponse('unexpected', 500)
     }
 
     console.log(`Password reset successfully for user: ${targetUserId} by system_admin: ${callerId}`)
     return json({ success: true }, 200)
   } catch (e) {
     console.error('system-admin-reset-password unexpected error', e)
-    return errorResponse('unexpected', 'Unexpected error. Please try again.', 500)
+    return errorResponse('unexpected', 500)
   }
 })
