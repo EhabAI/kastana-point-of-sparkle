@@ -8,6 +8,9 @@ export default {
   csv_row_successful: "Successful",
   export_missing_menu_items: "Export missing menu items",
   export_missing_menu_items_hint: "You can upload this file directly in the Menu screen, then adjust categories and prices later.",
+  csv_missing_menu_items_banner: "Some menu items were not found. You can export and add them to the menu first.",
+  csv_export_missing_menu_items_btn: "Export Missing Items (CSV)",
+  csv_resolve_all_errors_tooltip: "Please resolve all errors or add missing menu items first",
   // Brand name - centralized localization
   brandName: 'Kastana',
   brandNameFull: 'Kastana POS',
