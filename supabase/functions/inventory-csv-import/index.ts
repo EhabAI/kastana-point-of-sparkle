@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkSubscriptionActive, subscriptionExpiredResponse } from "../_shared/subscription-guard.ts";
+import { resolveOwnerRestaurantId } from "../_shared/owner-restaurant.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -69,24 +70,27 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Parse request body early so we can resolve the intended restaurant context.
+    // Client is expected to pass `restaurant_id` for multi-restaurant owners.
+    const body = await req.json().catch(() => ({}));
+    const rows: CSVImportRow[] = body.rows || [];
+    const requestedRestaurantId: string | null = body.restaurant_id || null;
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get user role - must be owner (no cashier/shift requirement for CSV import)
-    const { data: roleData, error: roleError } = await supabase
-      .from("user_roles")
-      .select("role, restaurant_id")
-      .eq("user_id", user.id)
-      .eq("role", "owner")
-      .maybeSingle();
+    const { restaurantId, error: restaurantResolveError } = await resolveOwnerRestaurantId({
+      supabaseAdmin: supabase,
+      userId: user.id,
+      requestedRestaurantId,
+    });
 
-    if (roleError || !roleData) {
+    if (!restaurantId) {
+      const code = restaurantResolveError || "not_authorized";
       return new Response(
-        JSON.stringify({ success: false, error: "not_authorized" }),
+        JSON.stringify({ success: false, error: code }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    const restaurantId = roleData.restaurant_id;
 
     // Check subscription ONCE at the beginning
     const { isActive: subscriptionActive } = await checkSubscriptionActive(restaurantId);
@@ -107,10 +111,6 @@ Deno.serve(async (req) => {
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    // Parse request body
-    const body = await req.json();
-    const rows: CSVImportRow[] = body.rows || [];
 
     if (!rows.length) {
       return new Response(

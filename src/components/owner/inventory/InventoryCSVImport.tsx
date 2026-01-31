@@ -55,6 +55,29 @@ function getImportErrorMessage(code: string, t: (key: string) => string): string
   return errorMap[code] || t("inv_import_failed");
 }
 
+async function tryParseFunctionError(err: unknown): Promise<{ code?: string; message?: string; status?: number }> {
+  try {
+    const e = err as any;
+    const res: Response | undefined = e?.context?.response;
+    const status = typeof res?.status === "number" ? res.status : undefined;
+    const payload = res ? await res.clone().json().catch(() => null) : null;
+
+    // `subscription-guard` returns: { error: "Subscription expired", code: "SUBSCRIPTION_EXPIRED" }
+    if (payload?.code === "SUBSCRIPTION_EXPIRED") {
+      return { code: "subscription_expired", message: payload?.error, status };
+    }
+
+    // Some functions use: { success:false, error: "not_authorized" }
+    if (typeof payload?.error === "string") {
+      return { code: payload.error, message: payload?.message, status };
+    }
+
+    return { status };
+  } catch {
+    return {};
+  }
+}
+
 export function InventoryCSVImport({ restaurantId, open, onOpenChange }: InventoryCSVImportProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -134,14 +157,18 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
 
       // Call the dedicated CSV import edge function
       const { data, error } = await supabase.functions.invoke("inventory-csv-import", {
-        body: { rows },
+        body: { restaurant_id: restaurantId, rows },
       });
 
       if (error) {
         console.error("[CSV Import] Edge function error:", error);
+
+        const parsed = await tryParseFunctionError(error);
+        const friendly = parsed.code ? getImportErrorMessage(parsed.code, t) : t("server_error");
+
         toast({
           title: t("inv_import_failed"),
-          description: t("server_error"),
+          description: friendly,
           variant: "destructive",
         });
         setIsProcessing(false);
