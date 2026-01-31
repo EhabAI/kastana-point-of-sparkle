@@ -897,6 +897,16 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [viewMode, open]);
   
+  // Listen for close-assistant-panel events (from training navigation)
+  useEffect(() => {
+    const handleClosePanel = () => {
+      setOpen(false);
+    };
+    
+    window.addEventListener("close-assistant-panel", handleClosePanel);
+    return () => window.removeEventListener("close-assistant-panel", handleClosePanel);
+  }, []);
+  
   // Handle width mode toggle
   const handleToggleWidth = useCallback(() => {
     setWidthMode((current) => {
