@@ -35,6 +35,8 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useSmartAssistant, type SmartAssistantState } from "@/hooks/useSmartAssistant";
+import { useAssistantContext } from "@/contexts/AssistantContext";
+import { AssistantBranchGuard, AssistantBranchIndicator, AssistantBranchInlineWarning } from "@/components/owner/AssistantBranchGuard";
 import { getSeverityColor, getSeverityIcon, type SmartRule, type RuleSeverity } from "@/lib/smartAssistantRules";
 import { 
   getQuickReplies, 
@@ -983,6 +985,26 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
 
   const { language, contextHint, alerts, hasAlerts, screenContext } = state;
   
+  // Get branch context for Owner-specific awareness
+  const { branch_context, is_branch_ready, user_role } = useAssistantContext();
+  const isOwnerRole = user_role === "owner";
+  const needsBranchSelection = isOwnerRole && !is_branch_ready;
+  
+  // Track branch changes for training pause logic
+  const prevBranchRef = useRef(branch_context.branchId);
+  const [branchChangedDuringTraining, setBranchChangedDuringTraining] = useState(false);
+  
+  // Detect branch change during active training
+  useEffect(() => {
+    if (prevBranchRef.current !== branch_context.branchId && prevBranchRef.current !== null) {
+      // Branch changed - if we're in training mode, flag it
+      if (activeTab === "training" || activeTab === "coach") {
+        setBranchChangedDuringTraining(true);
+      }
+    }
+    prevBranchRef.current = branch_context.branchId;
+  }, [branch_context.branchId, activeTab]);
+  
   // Check if in KDS mode (role = kitchen OR screen = kds)
   const isKDSMode = role === "kitchen" || screenContext === "kds";
   
@@ -1165,6 +1187,10 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
         shiftOpen: props.shiftOpenedAt != null,
         restaurantActive: true, // Always active if user is logged in
         hasOpenOrders: (props.orderItemCount ?? 0) > 0 || props.orderStatus === "OPEN",
+        // Branch context for Owner (all responses scoped to selected branch)
+        branchId: branch_context.branchId || undefined,
+        branchName: branch_context.branchName || undefined,
+        restaurantName: branch_context.restaurantName || undefined,
         // Feature visibility would come from restaurant settings if available
       });
       
@@ -1397,11 +1423,42 @@ export function SmartAssistantLite(props: SmartAssistantLiteProps) {
               )}
             </div>
           </ScrollArea>
+        ) : needsBranchSelection ? (
+          /* Owner must select branch first */
+          <div className="flex-1 flex flex-col">
+            <AssistantBranchGuard language={language} className="flex-1" />
+          </div>
         ) : (
           <>
 
             {/* Help Content - Direct without tabs */}
             <div className="flex-1 flex flex-col min-h-0">
+                  {/* Branch Indicator for Owner (when branch is selected) */}
+                  {isOwnerRole && is_branch_ready && (
+                    <div className="px-3 py-2 border-b bg-muted/30">
+                      <AssistantBranchIndicator 
+                        branchName={branch_context.branchName}
+                        restaurantName={branch_context.restaurantName}
+                        language={language}
+                      />
+                      {branchChangedDuringTraining && (
+                        <div className="mt-2 rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 p-2">
+                          <p className="text-xs text-amber-700 dark:text-amber-300">
+                            {language === "ar"
+                              ? "تم تغيير الفرع. يُنصح بإعادة بدء التدريب للفرع الجديد."
+                              : "Branch changed. Consider restarting training for the new branch."}
+                          </p>
+                          <button
+                            onClick={() => setBranchChangedDuringTraining(false)}
+                            className="text-xs text-amber-600 dark:text-amber-400 underline mt-1"
+                          >
+                            {language === "ar" ? "تجاهل" : "Dismiss"}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
                   {/* Compact Navigation Bar - 4 tabs */}
                   <div className="border-b px-2 py-1.5">
                     <div className="flex items-center gap-0.5 bg-muted/50 rounded-md p-0.5">

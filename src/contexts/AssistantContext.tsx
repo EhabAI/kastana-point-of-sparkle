@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -8,6 +8,13 @@ type OrderStatus = "open" | "held" | "paid" | "cancelled" | "voided" | null;
 type PaymentMethod = "cash" | "visa" | "mastercard" | "wallet" | "efawateer" | null;
 type SystemLanguage = "ar" | "en";
 
+interface BranchContext {
+  branchId: string | null;
+  branchName: string | null;
+  restaurantId: string | null;
+  restaurantName: string | null;
+}
+
 interface AssistantContextState {
   user_role: UserRole;
   current_screen_id: string;
@@ -16,6 +23,9 @@ interface AssistantContextState {
   selected_table_id: string | null;
   payment_method: PaymentMethod;
   system_language: SystemLanguage;
+  // Branch awareness (Owner only)
+  branch_context: BranchContext;
+  is_branch_ready: boolean; // True when branch is selected (Owner context)
 }
 
 interface AssistantContextActions {
@@ -23,6 +33,7 @@ interface AssistantContextActions {
   setShiftStatus: (status: ShiftStatus) => void;
   setSelectedTableId: (tableId: string | null) => void;
   setPaymentMethod: (method: PaymentMethod) => void;
+  setBranchContext: (ctx: BranchContext) => void;
 }
 
 type AssistantContextType = AssistantContextState & AssistantContextActions;
@@ -77,6 +88,12 @@ export function AssistantContextProvider({ children }: { children: ReactNode }) 
   const [shiftStatus, setShiftStatusState] = useState<ShiftStatus>(null);
   const [selectedTableId, setSelectedTableIdState] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethodState] = useState<PaymentMethod>(null);
+  const [branchContext, setBranchContextState] = useState<BranchContext>({
+    branchId: null,
+    branchName: null,
+    restaurantId: null,
+    restaurantName: null,
+  });
 
   // Setters
   const setOrderStatus = useCallback((status: OrderStatus) => {
@@ -95,9 +112,18 @@ export function AssistantContextProvider({ children }: { children: ReactNode }) 
     setPaymentMethodState(method);
   }, []);
 
+  const setBranchContext = useCallback((ctx: BranchContext) => {
+    setBranchContextState(ctx);
+  }, []);
+
   // Derive values
   const current_screen_id = getScreenId(location.pathname);
   const user_role: UserRole = role as UserRole;
+  
+  // Branch is ready for Owner when both restaurantId and branchId are set
+  const is_branch_ready = user_role === "owner" 
+    ? Boolean(branchContext.restaurantId && branchContext.branchId)
+    : true; // Non-owner roles don't need branch context
 
   const value: AssistantContextType = {
     // State
@@ -108,11 +134,14 @@ export function AssistantContextProvider({ children }: { children: ReactNode }) 
     selected_table_id: selectedTableId,
     payment_method: paymentMethod,
     system_language: systemLanguage,
+    branch_context: branchContext,
+    is_branch_ready,
     // Actions
     setOrderStatus,
     setShiftStatus,
     setSelectedTableId,
     setPaymentMethod,
+    setBranchContext,
   };
 
   return (
@@ -138,4 +167,5 @@ export type {
   PaymentMethod,
   SystemLanguage,
   AssistantContextState,
+  BranchContext,
 };
