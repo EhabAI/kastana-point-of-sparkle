@@ -1461,6 +1461,8 @@ export default {
   csv_invalid_rows: "Invalid rows",
   csv_fix_errors_before_import: "Please fix all errors before importing. Re-upload a corrected CSV file.",
   csv_row_valid: "Valid",
+  csv_error_reason_column: "Error reason",
+  csv_row_no_error: "—",
   csv_error_menu_item_required: "Menu item name is required",
   csv_error_inventory_item_required: "Inventory item name is required",
   csv_error_quantity_required: "Quantity is required",

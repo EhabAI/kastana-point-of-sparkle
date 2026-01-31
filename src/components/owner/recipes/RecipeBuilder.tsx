@@ -665,7 +665,7 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
                       <TableHead>{t("ingredient")}</TableHead>
                       <TableHead>{t("quantity")}</TableHead>
                       <TableHead>{t("unit")}</TableHead>
-                      <TableHead className="w-[200px]">{t("status")}</TableHead>
+                      <TableHead className="w-[220px]">{t("csv_error_reason_column")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -678,15 +678,9 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
                         <TableCell>{row.unit || "-"}</TableCell>
                         <TableCell>
                           {row.isValid ? (
-                            <div className="flex items-center gap-1 text-green-600">
-                              <CheckCircle2 className="h-4 w-4" />
-                              <span className="text-sm">{t("csv_row_valid")}</span>
-                            </div>
+                            <span className="text-muted-foreground">{t("csv_row_no_error")}</span>
                           ) : (
-                            <div className="flex items-center gap-1 text-destructive">
-                              <XCircle className="h-4 w-4 shrink-0" />
-                              <span className="text-sm truncate" title={row.error}>{row.error}</span>
-                            </div>
+                            <span className="text-sm text-destructive">{row.error}</span>
                           )}
                         </TableCell>
                       </TableRow>
