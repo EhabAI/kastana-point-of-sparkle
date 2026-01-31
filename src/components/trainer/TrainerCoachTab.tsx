@@ -2,7 +2,8 @@
 // Shows smart suggestions based on current screen and user actions
 // For Owner: Shows dedicated Owner Training Panel with multi-track support
 
-import { Brain, Lightbulb, ChevronRight, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Brain, Lightbulb, ChevronRight, Sparkles, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -15,8 +16,22 @@ import {
   ownerNeedsTraining, 
   isOwnerTrainingActive, 
   isOwnerTrainingPaused, 
-  isOwnerTrainingCompleted 
+  isOwnerTrainingCompleted,
+  resetOwnerTraining,
+  startOwnerTraining
 } from "@/lib/ownerTrainingFlow";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from "@/hooks/use-toast";
 
 interface TrainerCoachTabProps {
   language: "ar" | "en";
@@ -35,6 +50,7 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
   const { role } = useAuth();
   const location = useLocation();
   const { getStats } = useTrainer();
+  const [restartKey, setRestartKey] = useState(0);
   
   const stats = getStats();
   
@@ -142,6 +158,22 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
   
   const suggestions = getSuggestions();
   
+  // Handle restart training
+  const handleRestartTraining = () => {
+    // Reset owner training progress
+    resetOwnerTraining();
+    // Start training from beginning
+    startOwnerTraining();
+    // Force re-render
+    setRestartKey(prev => prev + 1);
+    // Show toast
+    toast({
+      title: language === "ar" ? "🎓 بدأ تدريب كاستنا من البداية" : "🎓 Kastana training started from beginning",
+    });
+    // Open assistant panel (trigger refresh)
+    window.dispatchEvent(new CustomEvent("open-assistant-panel"));
+  };
+  
   const labels = {
     title: language === "ar" ? "المدرب الذكي" : "Smart Coach",
     subtitle: language === "ar" 
@@ -152,7 +184,14 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
     noSuggestions: language === "ar" 
       ? "رائع! لا توجد اقتراحات جديدة حالياً" 
       : "Great! No new suggestions right now",
-    startTraining: language === "ar" ? "ابدأ" : "Start"
+    startTraining: language === "ar" ? "ابدأ" : "Start",
+    restartTraining: language === "ar" ? "بدء التدريب من البداية" : "Restart Training",
+    restartConfirmTitle: language === "ar" ? "هل تريد بدء التدريب من البداية؟" : "Restart training from beginning?",
+    restartConfirmDescription: language === "ar" 
+      ? "سيتم إعادة شرح النظام خطوة بخطوة\nلن يتم حذف أي بيانات أو إعدادات" 
+      : "The system will be explained step by step\nNo data or settings will be deleted",
+    startTrainingBtn: language === "ar" ? "ابدأ التدريب" : "Start Training",
+    cancelBtn: language === "ar" ? "إلغاء" : "Cancel",
   };
   
   const getIcon = (type: "tip" | "learn" | "action") => {
@@ -164,7 +203,7 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
   };
   
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" key={restartKey}>
       {/* Header */}
       <div className="p-4 border-b bg-gradient-to-r from-primary/5 to-primary/10">
         <div className="flex items-center gap-2 mb-1">
@@ -172,6 +211,36 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
           <h3 className="font-semibold text-primary">{labels.title}</h3>
         </div>
         <p className="text-xs text-muted-foreground">{labels.subtitle}</p>
+        
+        {/* Restart Training Button - Only for owners */}
+        {role === "owner" && isOwnerScreen && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-3 w-full text-xs gap-2"
+              >
+                <GraduationCap className="h-4 w-4" />
+                {labels.restartTraining}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{labels.restartConfirmTitle}</AlertDialogTitle>
+                <AlertDialogDescription className="whitespace-pre-line">
+                  {labels.restartConfirmDescription}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{labels.cancelBtn}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleRestartTraining}>
+                  {labels.startTrainingBtn}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
         
         {/* Progress bar - hide for owner with dedicated training */}
         {stats.totalCount > 0 && !showOwnerTraining && (
