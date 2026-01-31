@@ -323,7 +323,7 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
   const { data: menuItems = [], isLoading: loadingMenuItems } = useAllMenuItems(restaurantId);
   const { data: inventoryItems = [], isLoading: loadingInventory } = useInventoryItems(restaurantId);
   const { data: units = [] } = useInventoryUnits(restaurantId);
-  const { data: existingRecipe, isLoading: loadingRecipe } = useRecipeByMenuItem(restaurantId, selectedMenuItemId);
+  const { data: existingRecipe, isLoading: loadingRecipe } = useRecipeByMenuItem(restaurantId, selectedMenuItemId, effectiveBranchId);
   const upsertRecipe = useUpsertRecipe();
 
   // Fetch all recipes to know which menu items have recipes
@@ -408,7 +408,7 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
   }, []);
 
   const handleSave = async () => {
-    if (!selectedMenuItemId) return;
+    if (!selectedMenuItemId || !effectiveBranchId) return;
 
     // Validate lines
     const validLines = lines.filter(
@@ -425,6 +425,7 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
 
     await upsertRecipe.mutateAsync({
       restaurant_id: restaurantId,
+      branch_id: effectiveBranchId,
       menu_item_id: selectedMenuItemId,
       lines: validLines.map((l) => ({
         inventory_item_id: l.inventory_item_id,

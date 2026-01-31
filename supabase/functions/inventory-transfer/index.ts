@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { resolveOwnerRestaurantId } from "../_shared/owner-restaurant.ts";
 import { checkSubscriptionActive, subscriptionExpiredResponse } from "../_shared/subscription-guard.ts";
 
 const corsHeaders = {
@@ -10,6 +11,7 @@ type ErrorCode =
   | "missing_auth"
   | "invalid_token"
   | "not_authorized"
+  | "restaurant_mismatch"
   | "subscription_expired"
   | "inventory_disabled"
   | "missing_fields"
@@ -20,9 +22,32 @@ type ErrorCode =
   | "server_error"
   | "unexpected";
 
+// Bilingual error messages
+const ERROR_MESSAGES: Record<ErrorCode, { en: string; ar: string }> = {
+  missing_auth: { en: "Authentication required", ar: "المصادقة مطلوبة" },
+  invalid_token: { en: "Invalid authentication token", ar: "رمز المصادقة غير صالح" },
+  not_authorized: { en: "You are not authorized to perform this action", ar: "ليس لديك صلاحية لتنفيذ هذا الإجراء" },
+  restaurant_mismatch: { en: "Restaurant ownership verification failed", ar: "فشل التحقق من ملكية المطعم" },
+  subscription_expired: { en: "Your subscription has expired", ar: "انتهى اشتراكك" },
+  inventory_disabled: { en: "Inventory module is disabled", ar: "وحدة المخزون معطلة" },
+  missing_fields: { en: "Required fields are missing", ar: "بعض الحقول المطلوبة غير موجودة" },
+  invalid_branch: { en: "One or both branches are invalid", ar: "أحد الفروع أو كلاهما غير صالح" },
+  same_branch: { en: "Cannot transfer to the same branch", ar: "لا يمكن النقل إلى نفس الفرع" },
+  invalid_item: { en: "One or more inventory items are invalid", ar: "عنصر أو أكثر من المخزون غير صالح" },
+  insufficient_stock: { en: "Insufficient stock for transfer", ar: "الكمية المتوفرة غير كافية للنقل" },
+  server_error: { en: "Server error, please try again", ar: "خطأ في الخادم، يرجى المحاولة مجددًا" },
+  unexpected: { en: "An unexpected error occurred", ar: "حدث خطأ غير متوقع" },
+};
+
 function errorResponse(code: ErrorCode, status = 400) {
+  const messages = ERROR_MESSAGES[code];
   return new Response(
-    JSON.stringify({ success: false, error: { code } }),
+    JSON.stringify({ 
+      success: false, 
+      error: { code },
+      message_en: messages.en,
+      message_ar: messages.ar,
+    }),
     { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
   );
 }
@@ -34,6 +59,7 @@ interface TransferLine {
 }
 
 interface TransferRequest {
+  restaurant_id?: string;
   fromBranchId: string;
   toBranchId: string;
   lines: TransferLine[];
@@ -76,9 +102,22 @@ Deno.serve(async (req) => {
       return errorResponse("not_authorized", 403);
     }
 
-    const restaurantId = roleData.restaurant_id;
+    const body: TransferRequest = await req.json();
+    const { restaurant_id: requestedRestaurantId, fromBranchId, toBranchId, lines, notes } = body;
 
-    const { isActive: subscriptionActive } = await checkSubscriptionActive(restaurantId);
+    // Resolve restaurant ID for multi-restaurant owners
+    const { restaurantId: resolvedRestaurantId, error: resolveError } = await resolveOwnerRestaurantId({
+      supabaseAdmin: supabase,
+      userId: user.id,
+      requestedRestaurantId: requestedRestaurantId || undefined,
+    });
+
+    if (resolveError || !resolvedRestaurantId) {
+      console.log("[inventory-transfer] Restaurant resolution error:", resolveError);
+      return errorResponse("restaurant_mismatch", 403);
+    }
+
+    const { isActive: subscriptionActive } = await checkSubscriptionActive(resolvedRestaurantId);
     if (!subscriptionActive) {
       console.error("[inventory-transfer] Restaurant subscription expired");
       return subscriptionExpiredResponse(corsHeaders);
@@ -87,7 +126,7 @@ Deno.serve(async (req) => {
     const { data: settings, error: settingsError } = await supabase
       .from("restaurant_settings")
       .select("inventory_enabled")
-      .eq("restaurant_id", restaurantId)
+      .eq("restaurant_id", resolvedRestaurantId)
       .maybeSingle();
 
     if (settingsError) {
@@ -96,12 +135,9 @@ Deno.serve(async (req) => {
     }
 
     if (!settings?.inventory_enabled) {
-      console.warn("[inventory-transfer] Inventory module disabled for restaurant:", restaurantId);
+      console.warn("[inventory-transfer] Inventory module disabled for restaurant:", resolvedRestaurantId);
       return errorResponse("inventory_disabled", 403);
     }
-
-    const body: TransferRequest = await req.json();
-    const { fromBranchId, toBranchId, lines, notes } = body;
 
     if (!fromBranchId || !toBranchId || !lines || lines.length === 0) {
       return errorResponse("missing_fields", 400);
@@ -115,7 +151,7 @@ Deno.serve(async (req) => {
       .from("restaurant_branches")
       .select("id, name")
       .in("id", [fromBranchId, toBranchId])
-      .eq("restaurant_id", restaurantId);
+      .eq("restaurant_id", resolvedRestaurantId);
 
     if (branchError || !branches || branches.length !== 2) {
       return errorResponse("invalid_branch", 400);
@@ -129,7 +165,7 @@ Deno.serve(async (req) => {
       .select("id, base_unit_id, name")
       .in("id", itemIds)
       .eq("branch_id", fromBranchId)
-      .eq("restaurant_id", restaurantId);
+      .eq("restaurant_id", resolvedRestaurantId);
 
     if (itemsError || !sourceItems || sourceItems.length !== itemIds.length) {
       return errorResponse("invalid_item", 400);
@@ -141,14 +177,14 @@ Deno.serve(async (req) => {
       .from("inventory_items")
       .select("id, name, base_unit_id")
       .eq("branch_id", toBranchId)
-      .eq("restaurant_id", restaurantId);
+      .eq("restaurant_id", resolvedRestaurantId);
 
     const destItemByName = new Map(destItems?.map((i) => [i.name, i]) || []);
 
     const { data: conversions } = await supabase
       .from("inventory_unit_conversions")
       .select("from_unit_id, to_unit_id, multiplier")
-      .eq("restaurant_id", restaurantId);
+      .eq("restaurant_id", resolvedRestaurantId);
 
     const conversionMap = new Map<string, number>();
     conversions?.forEach((c) => {
@@ -200,7 +236,7 @@ Deno.serve(async (req) => {
         const { data: newItem, error: newItemError } = await supabase
           .from("inventory_items")
           .insert({
-            restaurant_id: restaurantId,
+            restaurant_id: resolvedRestaurantId,
             branch_id: toBranchId,
             name: sourceItem.name,
             base_unit_id: sourceItem.base_unit_id,
@@ -218,7 +254,7 @@ Deno.serve(async (req) => {
       }
 
       transferOutTxns.push({
-        restaurant_id: restaurantId,
+        restaurant_id: resolvedRestaurantId,
         branch_id: fromBranchId,
         item_id: line.itemId,
         txn_type: "TRANSFER_OUT",
@@ -231,7 +267,7 @@ Deno.serve(async (req) => {
       });
 
       transferInTxns.push({
-        restaurant_id: restaurantId,
+        restaurant_id: resolvedRestaurantId,
         branch_id: toBranchId,
         item_id: destItemId,
         txn_type: "TRANSFER_IN",
@@ -266,7 +302,7 @@ Deno.serve(async (req) => {
         .from("inventory_stock_levels")
         .upsert(
           {
-            restaurant_id: restaurantId,
+            restaurant_id: resolvedRestaurantId,
             branch_id: fromBranchId,
             item_id: update.itemId,
             on_hand_base: newOnHand,
@@ -290,7 +326,7 @@ Deno.serve(async (req) => {
         .from("inventory_stock_levels")
         .upsert(
           {
-            restaurant_id: restaurantId,
+            restaurant_id: resolvedRestaurantId,
             branch_id: toBranchId,
             item_id: update.itemId,
             on_hand_base: newOnHand,
@@ -302,7 +338,7 @@ Deno.serve(async (req) => {
 
     await supabase.from("audit_logs").insert({
       user_id: user.id,
-      restaurant_id: restaurantId,
+      restaurant_id: resolvedRestaurantId,
       entity_type: "inventory_transfer",
       action: "INVENTORY_TRANSFER",
       details: {
@@ -323,6 +359,8 @@ Deno.serve(async (req) => {
         success: true,
         transferredItems: lines.length,
         createdDestinationItems: createdDestItems.length,
+        message_en: `Successfully transferred ${lines.length} items`,
+        message_ar: `تم نقل ${lines.length} عناصر بنجاح`,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

@@ -355,11 +355,12 @@ Deno.serve(async (req) => {
 
       // All ingredients valid - now create/update the recipe atomically
       try {
-        // Recipes are restaurant-level (with optional branch_id for branch-specific recipes)
+        // Recipes are branch-specific: lookup by (restaurant_id, branch_id, menu_item_id)
         const { data: existingRecipe } = await supabase
           .from("menu_item_recipes")
           .select("id")
           .eq("restaurant_id", restaurant_id)
+          .eq("branch_id", branch_id)
           .eq("menu_item_id", menuItemId)
           .maybeSingle();
 
@@ -368,7 +369,7 @@ Deno.serve(async (req) => {
         if (existingRecipe) {
           recipeId = existingRecipe.id;
           
-          // Delete existing lines
+          // Delete existing lines for THIS branch's recipe only
           const { error: deleteError } = await supabase
             .from("menu_item_recipe_lines")
             .delete()
@@ -385,13 +386,13 @@ Deno.serve(async (req) => {
             .update({ updated_at: new Date().toISOString() })
             .eq("id", recipeId);
         } else {
-          // Create new recipe
+          // Create new recipe for this specific branch
           const { data: newRecipe, error: createError } = await supabase
             .from("menu_item_recipes")
             .insert({
               restaurant_id,
               menu_item_id: menuItemId,
-              branch_id: branch_id, // Store which branch this was created for
+              branch_id: branch_id,
               is_active: true,
             })
             .select("id")

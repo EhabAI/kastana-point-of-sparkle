@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { resolveOwnerRestaurantId } from "../_shared/owner-restaurant.ts";
 import { checkSubscriptionActive, subscriptionExpiredResponse } from "../_shared/subscription-guard.ts";
 
 const corsHeaders = {
@@ -10,6 +11,7 @@ type ErrorCode =
   | "missing_auth"
   | "invalid_token"
   | "not_authorized"
+  | "restaurant_mismatch"
   | "subscription_expired"
   | "inventory_disabled"
   | "missing_fields"
@@ -19,14 +21,37 @@ type ErrorCode =
   | "server_error"
   | "unexpected";
 
+// Bilingual error messages
+const ERROR_MESSAGES: Record<ErrorCode, { en: string; ar: string }> = {
+  missing_auth: { en: "Authentication required", ar: "المصادقة مطلوبة" },
+  invalid_token: { en: "Invalid authentication token", ar: "رمز المصادقة غير صالح" },
+  not_authorized: { en: "You are not authorized to perform this action", ar: "ليس لديك صلاحية لتنفيذ هذا الإجراء" },
+  restaurant_mismatch: { en: "Restaurant ownership verification failed", ar: "فشل التحقق من ملكية المطعم" },
+  subscription_expired: { en: "Your subscription has expired", ar: "انتهى اشتراكك" },
+  inventory_disabled: { en: "Inventory module is disabled", ar: "وحدة المخزون معطلة" },
+  missing_fields: { en: "Required fields are missing", ar: "بعض الحقول المطلوبة غير موجودة" },
+  count_not_found: { en: "Stock count not found", ar: "عملية الجرد غير موجودة" },
+  count_immutable: { en: "This stock count has already been approved or cancelled", ar: "تم اعتماد أو إلغاء عملية الجرد هذه بالفعل" },
+  no_count_lines: { en: "No items in this stock count", ar: "لا توجد عناصر في عملية الجرد هذه" },
+  server_error: { en: "Server error, please try again", ar: "خطأ في الخادم، يرجى المحاولة مجددًا" },
+  unexpected: { en: "An unexpected error occurred", ar: "حدث خطأ غير متوقع" },
+};
+
 function errorResponse(code: ErrorCode, status = 400) {
+  const messages = ERROR_MESSAGES[code];
   return new Response(
-    JSON.stringify({ success: false, error: { code } }),
+    JSON.stringify({ 
+      success: false, 
+      error: { code },
+      message_en: messages.en,
+      message_ar: messages.ar,
+    }),
     { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
   );
 }
 
 interface ApproveRequest {
+  restaurant_id?: string;
   stockCountId: string;
 }
 
@@ -66,9 +91,26 @@ Deno.serve(async (req) => {
       return errorResponse("not_authorized", 403);
     }
 
-    const restaurantId = roleData.restaurant_id;
+    const body: ApproveRequest = await req.json();
+    const { restaurant_id: requestedRestaurantId, stockCountId } = body;
 
-    const { isActive: subscriptionActive } = await checkSubscriptionActive(restaurantId);
+    if (!stockCountId) {
+      return errorResponse("missing_fields", 400);
+    }
+
+    // Resolve restaurant ID for multi-restaurant owners
+    const { restaurantId: resolvedRestaurantId, error: resolveError } = await resolveOwnerRestaurantId({
+      supabaseAdmin: supabase,
+      userId: user.id,
+      requestedRestaurantId: requestedRestaurantId || undefined,
+    });
+
+    if (resolveError || !resolvedRestaurantId) {
+      console.log("[stock-count-approve] Restaurant resolution error:", resolveError);
+      return errorResponse("restaurant_mismatch", 403);
+    }
+
+    const { isActive: subscriptionActive } = await checkSubscriptionActive(resolvedRestaurantId);
     if (!subscriptionActive) {
       console.error("[stock-count-approve] Restaurant subscription expired");
       return subscriptionExpiredResponse(corsHeaders);
@@ -77,7 +119,7 @@ Deno.serve(async (req) => {
     const { data: settings, error: settingsError } = await supabase
       .from("restaurant_settings")
       .select("inventory_enabled")
-      .eq("restaurant_id", restaurantId)
+      .eq("restaurant_id", resolvedRestaurantId)
       .maybeSingle();
 
     if (settingsError) {
@@ -86,22 +128,15 @@ Deno.serve(async (req) => {
     }
 
     if (!settings?.inventory_enabled) {
-      console.warn("[stock-count-approve] Inventory module disabled for restaurant:", restaurantId);
+      console.warn("[stock-count-approve] Inventory module disabled for restaurant:", resolvedRestaurantId);
       return errorResponse("inventory_disabled", 403);
-    }
-
-    const body: ApproveRequest = await req.json();
-    const { stockCountId } = body;
-
-    if (!stockCountId) {
-      return errorResponse("missing_fields", 400);
     }
 
     const { data: stockCount, error: countError } = await supabase
       .from("stock_counts")
       .select("id, branch_id, status, restaurant_id")
       .eq("id", stockCountId)
-      .eq("restaurant_id", restaurantId)
+      .eq("restaurant_id", resolvedRestaurantId)
       .single();
 
     if (countError || !stockCount) {
@@ -167,7 +202,7 @@ Deno.serve(async (req) => {
       itemsWithVariance++;
 
       transactions.push({
-        restaurant_id: restaurantId,
+        restaurant_id: resolvedRestaurantId,
         branch_id: stockCount.branch_id,
         item_id: line.item_id,
         txn_type: "INVENTORY_ADJUSTMENT",
@@ -214,7 +249,7 @@ Deno.serve(async (req) => {
         .from("inventory_stock_levels")
         .upsert(
           {
-            restaurant_id: restaurantId,
+            restaurant_id: resolvedRestaurantId,
             branch_id: stockCount.branch_id,
             item_id: update.itemId,
             on_hand_base: newOnHand,
@@ -244,7 +279,7 @@ Deno.serve(async (req) => {
 
     await supabase.from("audit_logs").insert({
       user_id: user.id,
-      restaurant_id: restaurantId,
+      restaurant_id: resolvedRestaurantId,
       entity_type: "stock_count",
       entity_id: stockCountId,
       action: "STOCK_COUNT_APPROVED",
@@ -269,6 +304,8 @@ Deno.serve(async (req) => {
         positiveVariance: totalPositiveVariance,
         negativeVariance: totalNegativeVariance,
         netVariance: totalPositiveVariance - totalNegativeVariance,
+        message_en: `Stock count approved with ${transactions.length} adjustments`,
+        message_ar: `تم اعتماد الجرد مع ${transactions.length} تعديل`,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
