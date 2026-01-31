@@ -207,7 +207,7 @@ export function InternalNotificationDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md p-0">
+      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto p-0">
         <DialogHeader className="px-4 pt-4 pb-2 flex-shrink-0">
           <DialogTitle className="text-base flex items-center gap-2">
             <Bell className="h-4 w-4 text-primary" />
