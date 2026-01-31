@@ -153,7 +153,15 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
     return { headers, rows };
   };
 
-  const validateRow = (row: string[], headers: string[], rowIndex: number): ParsedRecipeRow => {
+  // Enhanced validation that checks against actual data
+  const validateRowWithData = (
+    row: string[], 
+    headers: string[], 
+    rowIndex: number,
+    menuItemsList: typeof menuItems,
+    inventoryItemsList: typeof inventoryItems,
+    unitsList: typeof units
+  ): ParsedRecipeRow => {
     const getColumnValue = (columnName: string): string => {
       const index = headers.indexOf(columnName);
       return index >= 0 && row[index] ? row[index].trim() : "";
@@ -164,25 +172,52 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
     const quantity = getColumnValue("quantity");
     const unit = getColumnValue("unit");
 
-    // Validation
-    const errors: string[] = [];
+    // Validation with specific error reasons (priority order - most important first)
+    let error: string | undefined;
     
+    // 1. Check required fields first
     if (!menu_item_name) {
-      errors.push(t("csv_error_menu_item_required"));
-    }
-    if (!inventory_item_name) {
-      errors.push(t("csv_error_inventory_item_required"));
-    }
-    if (!quantity) {
-      errors.push(t("csv_error_quantity_required"));
+      error = t("csv_error_menu_item_required");
+    } else if (!inventory_item_name) {
+      error = t("csv_error_inventory_item_required");
+    } else if (!quantity) {
+      error = t("csv_error_quantity_required");
+    } else if (!unit) {
+      error = t("csv_error_unit_required");
     } else {
+      // 2. Validate quantity format
       const qtyNum = parseFloat(quantity);
       if (isNaN(qtyNum) || qtyNum <= 0) {
-        errors.push(t("csv_error_quantity_invalid"));
+        error = t("csv_error_quantity_invalid");
+      } else {
+        // 3. Check if menu item exists
+        const menuItemMatch = menuItemsList.filter(
+          (m) => m.name.toLowerCase().trim() === menu_item_name.toLowerCase().trim()
+        );
+        if (menuItemMatch.length === 0) {
+          error = t("csv_error_menu_item_not_found");
+        } else if (menuItemMatch.length > 1) {
+          error = t("csv_error_menu_item_not_unique");
+        } else {
+          // 4. Check if inventory item exists
+          const inventoryMatch = inventoryItemsList.filter(
+            (i) => i.name.toLowerCase().trim() === inventory_item_name.toLowerCase().trim()
+          );
+          if (inventoryMatch.length === 0) {
+            error = t("csv_error_inventory_item_not_found");
+          } else if (inventoryMatch.length > 1) {
+            error = t("csv_error_inventory_item_not_unique");
+          } else {
+            // 5. Check if unit exists
+            const unitMatch = unitsList.find(
+              (u) => u.name.toLowerCase().trim() === unit.toLowerCase().trim()
+            );
+            if (!unitMatch) {
+              error = t("csv_error_unit_not_found");
+            }
+          }
+        }
       }
-    }
-    if (!unit) {
-      errors.push(t("csv_error_unit_required"));
     }
 
     return {
@@ -191,8 +226,8 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
       inventory_item_name,
       quantity,
       unit,
-      isValid: errors.length === 0,
-      error: errors.length > 0 ? errors.join(", ") : undefined,
+      isValid: !error,
+      error,
     };
   };
 
@@ -212,8 +247,10 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
         return;
       }
 
-      // Parse and validate each row
-      const parsed = rows.map((row, index) => validateRow(row, normalizedHeaders, index + 2));
+      // Parse and validate each row against actual data
+      const parsed = rows.map((row, index) => 
+        validateRowWithData(row, normalizedHeaders, index + 2, menuItems, inventoryItems, units)
+      );
       setParsedRows(parsed);
       setShowPreview(true);
       setHeaderError(null);
