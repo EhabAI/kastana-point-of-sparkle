@@ -1,11 +1,20 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, FileSpreadsheet, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Upload, FileSpreadsheet, Loader2, CheckCircle2, AlertCircle, Building2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useBranchContext } from '@/contexts/BranchContext';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 
 interface CSVUploadProps {
   restaurantId: string;
@@ -96,15 +105,23 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
   const queryClient = useQueryClient();
   const { t } = useLanguage();
   
+  const { branches, selectedBranch } = useBranchContext();
+  
   const [menuFileName, setMenuFileName] = useState<string | null>(null);
   const [offersFileName, setOffersFileName] = useState<string | null>(null);
   const [menuUploading, setMenuUploading] = useState(false);
   const [offersUploading, setOffersUploading] = useState(false);
   const [menuResult, setMenuResult] = useState<{ success: boolean; message: string } | null>(null);
   const [offersResult, setOffersResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [menuBranchId, setMenuBranchId] = useState<string | null>(null);
+  const [offersBranchId, setOffersBranchId] = useState<string | null>(null);
   
   const menuInputRef = useRef<HTMLInputElement>(null);
   const offersInputRef = useRef<HTMLInputElement>(null);
+  
+  // Initialize branch selections when selectedBranch is available
+  const effectiveMenuBranchId = menuBranchId || selectedBranch?.id;
+  const effectiveOffersBranchId = offersBranchId || selectedBranch?.id;
 
   const refreshData = () => {
     queryClient.invalidateQueries({ queryKey: ['menu-categories'] });
@@ -438,6 +455,36 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
                 {t("menu_csv_columns")}
               </p>
               
+              {/* Branch Selector for Menu CSV */}
+              {branches.length > 0 && (
+                <div className="mb-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium text-muted-foreground">{t("branch")}:</span>
+                  </div>
+                  <Select
+                    value={effectiveMenuBranchId || ""}
+                    onValueChange={setMenuBranchId}
+                  >
+                    <SelectTrigger className="w-full bg-background">
+                      <SelectValue placeholder={t("select_branch")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {branches.map((branch) => (
+                        <SelectItem key={branch.id} value={branch.id}>
+                          <div className="flex items-center gap-2">
+                            <span>{branch.name}</span>
+                            {branch.is_default && (
+                              <Badge variant="secondary" className="text-xs">{t("default")}</Badge>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              
               <input
                 ref={menuInputRef}
                 type="file"
@@ -496,6 +543,36 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
               <p className="text-sm text-muted-foreground mb-3">
                 {t("offers_csv_columns")}
               </p>
+              
+              {/* Branch Selector for Offers CSV */}
+              {branches.length > 0 && (
+                <div className="mb-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium text-muted-foreground">{t("branch")}:</span>
+                  </div>
+                  <Select
+                    value={effectiveOffersBranchId || ""}
+                    onValueChange={setOffersBranchId}
+                  >
+                    <SelectTrigger className="w-full bg-background">
+                      <SelectValue placeholder={t("select_branch")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {branches.map((branch) => (
+                        <SelectItem key={branch.id} value={branch.id}>
+                          <div className="flex items-center gap-2">
+                            <span>{branch.name}</span>
+                            {branch.is_default && (
+                              <Badge variant="secondary" className="text-xs">{t("default")}</Badge>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               
               <input
                 ref={offersInputRef}
