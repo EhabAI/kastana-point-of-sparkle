@@ -174,28 +174,8 @@ export function useItemTransactions(itemId: string | undefined) {
   });
 }
 
-export function useInventoryUnits(restaurantId: string | undefined) {
-  return useQuery({
-    queryKey: ["inventory-units", restaurantId],
-    queryFn: async () => {
-      if (!restaurantId) return [];
-
-      const { data, error } = await supabase
-        .from("inventory_units")
-        .select("id, name, symbol")
-        .eq("restaurant_id", restaurantId)
-        .order("name");
-
-      if (error) {
-        console.error("Error fetching units:", error);
-        return [];
-      }
-
-      return data || [];
-    },
-    enabled: !!restaurantId,
-  });
-}
+// Re-export from dedicated units hook for backward compatibility
+export { useInventoryUnits } from "./useInventoryUnits";
 
 export function useCreateInventoryItem() {
   const queryClient = useQueryClient();
