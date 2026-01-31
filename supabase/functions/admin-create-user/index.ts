@@ -156,11 +156,21 @@ Deno.serve(async (req) => {
         return errorResponse('missing_restaurant', 'Restaurant ID is required when creating staff.', 400)
       }
 
-      // Verify the owner owns this restaurant
-      if (callerRole.restaurant_id !== restaurantId) {
-        console.error(`Restaurant mismatch: owner has ${callerRole.restaurant_id}, requested ${restaurantId}`)
+      // Verify the owner owns this restaurant by checking restaurants.owner_id
+      // (Owners are linked via restaurants table, NOT via user_roles.restaurant_id)
+      const { data: ownedRestaurant, error: ownershipErr } = await supabaseAdmin
+        .from('restaurants')
+        .select('id')
+        .eq('id', restaurantId)
+        .eq('owner_id', callerId)
+        .maybeSingle()
+
+      if (ownershipErr || !ownedRestaurant) {
+        console.error(`Ownership verification failed: owner ${callerId} does not own restaurant ${restaurantId}`)
         return errorResponse('not_authorized', 'You can only create staff for your own restaurant.', 403)
       }
+
+      console.log(`Ownership verified: owner ${callerId} owns restaurant ${restaurantId}`)
 
       // Check subscription is active for owner's restaurant
       const { isActive: subscriptionActive } = await checkSubscriptionActive(restaurantId);
