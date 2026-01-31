@@ -10,9 +10,10 @@ import { ConsumptionVarianceAnalysis } from "./insights/ConsumptionVarianceAnaly
 
 interface InventoryInsightsProps {
   restaurantId: string;
+  branchId?: string;
 }
 
-export function InventoryInsights({ restaurantId }: InventoryInsightsProps) {
+export function InventoryInsights({ restaurantId, branchId }: InventoryInsightsProps) {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("consumption");
 
@@ -53,23 +54,23 @@ export function InventoryInsights({ restaurantId }: InventoryInsightsProps) {
         </TabsList>
 
         <TabsContent value="consumption" className="mt-4">
-          <ConsumptionVarianceAnalysis restaurantId={restaurantId} />
+          <ConsumptionVarianceAnalysis restaurantId={restaurantId} branchId={branchId} />
         </TabsContent>
 
         <TabsContent value="trends" className="mt-4">
-          <VarianceTrendsChart restaurantId={restaurantId} />
+          <VarianceTrendsChart restaurantId={restaurantId} branchId={branchId} />
         </TabsContent>
 
         <TabsContent value="top-items" className="mt-4">
-          <TopVarianceItemsTable restaurantId={restaurantId} />
+          <TopVarianceItemsTable restaurantId={restaurantId} branchId={branchId} />
         </TabsContent>
 
         <TabsContent value="breakdown" className="mt-4">
-          <VarianceBreakdownView restaurantId={restaurantId} />
+          <VarianceBreakdownView restaurantId={restaurantId} branchId={branchId} />
         </TabsContent>
 
         <TabsContent value="alerts" className="mt-4">
-          <InventoryAlertsPanel restaurantId={restaurantId} />
+          <InventoryAlertsPanel restaurantId={restaurantId} branchId={branchId} />
         </TabsContent>
       </Tabs>
     </div>

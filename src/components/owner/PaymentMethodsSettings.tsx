@@ -3,10 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { CreditCard, Loader2, ChevronDown, Banknote, Building2, Wallet } from "lucide-react";
-import { useBranches } from "@/hooks/useBranches";
+import { CreditCard, Loader2, ChevronDown, Banknote, Building2, Wallet, AlertCircle } from "lucide-react";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { useBranchPaymentMethods, useUpdateBranchPaymentMethods } from "@/hooks/useBranchPaymentMethods";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
@@ -18,16 +17,11 @@ interface PaymentMethodsSettingsProps {
 export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
-  const { data: branches = [], isLoading: branchesLoading } = useBranches(restaurantId);
+  const { selectedBranch, isLoading: branchLoading, isBranchSelected } = useBranchContextSafe();
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
 
-  // Auto-select first branch
-  useEffect(() => {
-    if (branches.length > 0 && !selectedBranchId) {
-      setSelectedBranchId(branches[0].id);
-    }
-  }, [branches, selectedBranchId]);
+  // Use the globally selected branch
+  const selectedBranchId = selectedBranch?.id || null;
 
   const { data: paymentMethods, isLoading: methodsLoading } = useBranchPaymentMethods(selectedBranchId || undefined);
   const updateMethods = useUpdateBranchPaymentMethods();
@@ -75,7 +69,7 @@ export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsP
     }
   };
 
-  if (branchesLoading) {
+  if (branchLoading) {
     return (
       <Card className="shadow-card">
         <CardContent className="flex items-center justify-center py-12">
@@ -110,32 +104,20 @@ export function PaymentMethodsSettings({ restaurantId }: PaymentMethodsSettingsP
         </CardHeader>
         <CollapsibleContent>
           <CardContent className="space-y-6">
-            {/* Branch Selector */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
-                {t("select_branch")}
-              </Label>
-              <Select
-                value={selectedBranchId || ""}
-                onValueChange={(value) => {
-                  setSelectedBranchId(value);
-                  setHasChanges(false);
-                }}
-              >
-                <SelectTrigger className="w-full max-w-xs">
-                  <SelectValue placeholder={t("select_branch")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {branches.map((branch) => (
-                    <SelectItem key={branch.id} value={branch.id}>
-                      {branch.name}
-                      {branch.is_default && ` (${t("default")})`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Branch Info - shows the globally selected branch */}
+            {!isBranchSelected ? (
+              <div className="flex items-center gap-2 p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                <span className="text-sm text-amber-700 dark:text-amber-300">
+                  {t("select_branch_first")}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">{selectedBranch?.name}</span>
+              </div>
+            )}
 
             {methodsLoading ? (
               <div className="flex items-center justify-center py-8">

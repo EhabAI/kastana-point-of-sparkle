@@ -44,17 +44,18 @@ type Granularity = "daily" | "weekly";
 export function useVarianceTrends(
   restaurantId: string | undefined,
   granularity: Granularity = "daily",
-  days: number = 30
+  days: number = 30,
+  branchId?: string
 ) {
   return useQuery({
-    queryKey: ["variance-trends", restaurantId, granularity, days],
+    queryKey: ["variance-trends", restaurantId, granularity, days, branchId],
     queryFn: async (): Promise<VarianceTrendPoint[]> => {
       if (!restaurantId) return [];
 
       const startDate = subDays(new Date(), days);
 
       // Get APPROVED stock counts within the date range
-      const { data: stockCounts, error: scError } = await supabase
+      let query = supabase
         .from("stock_counts")
         .select(`
           id,
@@ -65,6 +66,12 @@ export function useVarianceTrends(
         .eq("restaurant_id", restaurantId)
         .eq("status", "APPROVED")
         .gte("approved_at", startDate.toISOString());
+
+      if (branchId) {
+        query = query.eq("branch_id", branchId);
+      }
+
+      const { data: stockCounts, error: scError } = await query;
 
       if (scError) {
         console.error("Error fetching stock counts for trends:", scError);
@@ -145,22 +152,29 @@ export function useTopVarianceItems(
   restaurantId: string | undefined,
   days: number = 30,
   limit: number = 10,
-  sortBy: "quantity" | "value" = "quantity"
+  sortBy: "quantity" | "value" = "quantity",
+  branchId?: string
 ) {
   return useQuery({
-    queryKey: ["top-variance-items", restaurantId, days, limit, sortBy],
+    queryKey: ["top-variance-items", restaurantId, days, limit, sortBy, branchId],
     queryFn: async (): Promise<TopVarianceItem[]> => {
       if (!restaurantId) return [];
 
       const startDate = subDays(new Date(), days);
 
       // Get APPROVED stock counts within the date range
-      const { data: stockCounts, error: scError } = await supabase
+      let query = supabase
         .from("stock_counts")
         .select("id, branch_id, restaurant_branches!inner (name)")
         .eq("restaurant_id", restaurantId)
         .eq("status", "APPROVED")
         .gte("approved_at", startDate.toISOString());
+
+      if (branchId) {
+        query = query.eq("branch_id", branchId);
+      }
+
+      const { data: stockCounts, error: scError } = await query;
 
       if (scError) {
         console.error("Error fetching stock counts:", scError);
@@ -243,10 +257,11 @@ export function useTopVarianceItems(
 
 export function useVarianceBreakdown(
   restaurantId: string | undefined,
-  days: number = 30
+  days: number = 30,
+  branchId?: string
 ) {
   return useQuery({
-    queryKey: ["variance-breakdown", restaurantId, days],
+    queryKey: ["variance-breakdown", restaurantId, days, branchId],
     queryFn: async (): Promise<VarianceBreakdown[]> => {
       if (!restaurantId) return [];
 
@@ -258,7 +273,7 @@ export function useVarianceBreakdown(
       // - WASTE: WASTE
       // - REFUND: REFUND (if inventory is restored)
       // - ADJUSTMENT: INVENTORY_ADJUSTMENT (from stock count approvals)
-      const { data: transactions, error: txnError } = await supabase
+      let query = supabase
         .from("inventory_transactions")
         .select(`
           id,
@@ -272,6 +287,12 @@ export function useVarianceBreakdown(
         .eq("restaurant_id", restaurantId)
         .in("txn_type", ["SALE", "WASTE", "REFUND", "INVENTORY_ADJUSTMENT"])
         .gte("created_at", startDate.toISOString());
+
+      if (branchId) {
+        query = query.eq("branch_id", branchId);
+      }
+
+      const { data: transactions, error: txnError } = await query;
 
       if (txnError) {
         console.error("Error fetching transactions:", txnError);
@@ -341,10 +362,11 @@ export interface VarianceSummary {
 
 export function useVarianceSummary(
   restaurantId: string | undefined,
-  days: number = 30
+  days: number = 30,
+  branchId?: string
 ) {
   return useQuery({
-    queryKey: ["variance-summary", restaurantId, days],
+    queryKey: ["variance-summary", restaurantId, days, branchId],
     queryFn: async (): Promise<VarianceSummary> => {
       if (!restaurantId) {
         return {
@@ -360,12 +382,18 @@ export function useVarianceSummary(
       const startDate = subDays(new Date(), days);
 
       // Get APPROVED stock counts
-      const { data: stockCounts, error: scError } = await supabase
+      let query = supabase
         .from("stock_counts")
         .select("id")
         .eq("restaurant_id", restaurantId)
         .eq("status", "APPROVED")
         .gte("approved_at", startDate.toISOString());
+
+      if (branchId) {
+        query = query.eq("branch_id", branchId);
+      }
+
+      const { data: stockCounts, error: scError } = await query;
 
       if (scError) {
         console.error("Error fetching stock counts:", scError);

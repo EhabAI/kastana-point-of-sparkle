@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import {
   useLowStockItems,
   useNearReorderItems,
@@ -25,6 +26,7 @@ interface InventoryDashboardProps {
 }
 
 export function InventoryDashboard({ restaurantId, isReadOnly = false, currency = "JOD" }: InventoryDashboardProps) {
+  const { selectedBranch } = useBranchContextSafe();
   const { t, language } = useLanguage();
   const [activeTab, setActiveTab] = useState("dashboard");
 
@@ -58,15 +60,15 @@ export function InventoryDashboard({ restaurantId, isReadOnly = false, currency 
         </div>
 
         <TabsContent value="dashboard" className="mt-4">
-          <DashboardWidgets restaurantId={restaurantId} />
+          <DashboardWidgets restaurantId={restaurantId} branchId={selectedBranch?.id} />
         </TabsContent>
 
         <TabsContent value="items" className="mt-4">
-          <InventoryItemsList restaurantId={restaurantId} isReadOnly={isReadOnly} />
+          <InventoryItemsList restaurantId={restaurantId} branchId={selectedBranch?.id} isReadOnly={isReadOnly} />
         </TabsContent>
 
         <TabsContent value="insights" className="mt-4">
-          <InventoryInsights restaurantId={restaurantId} />
+          <InventoryInsights restaurantId={restaurantId} branchId={selectedBranch?.id} />
         </TabsContent>
 
         <TabsContent value="recipes" className="mt-4">
@@ -77,13 +79,13 @@ export function InventoryDashboard({ restaurantId, isReadOnly = false, currency 
   );
 }
 
-function DashboardWidgets({ restaurantId }: { restaurantId: string }) {
+function DashboardWidgets({ restaurantId, branchId }: { restaurantId: string; branchId?: string }) {
   const { t, language } = useLanguage();
   const [txnFilter, setTxnFilter] = useState<FilterableTxnType>("ALL");
-  const { data: lowStockItems = [], isLoading: loadingLow } = useLowStockItems(restaurantId);
-  const { data: nearReorderItems = [], isLoading: loadingReorder } = useNearReorderItems(restaurantId);
-  const { data: recentTransactions = [], isLoading: loadingTx } = useRecentTransactions(restaurantId);
-  const { data: wasteSummary = [], isLoading: loadingWaste } = useWasteSummary(restaurantId);
+  const { data: lowStockItems = [], isLoading: loadingLow } = useLowStockItems(restaurantId, branchId);
+  const { data: nearReorderItems = [], isLoading: loadingReorder } = useNearReorderItems(restaurantId, branchId);
+  const { data: recentTransactions = [], isLoading: loadingTx } = useRecentTransactions(restaurantId, branchId);
+  const { data: wasteSummary = [], isLoading: loadingWaste } = useWasteSummary(restaurantId, branchId);
 
   const dateLocale = language === "ar" ? ar : enUS;
 

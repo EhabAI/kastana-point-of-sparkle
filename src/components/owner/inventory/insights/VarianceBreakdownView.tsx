@@ -9,6 +9,7 @@ import { PieChart as PieIcon, ShoppingCart, Trash2, RotateCcw, ClipboardCheck, P
 
 interface VarianceBreakdownViewProps {
   restaurantId: string;
+  branchId?: string;
 }
 
 const REASON_COLORS: Record<VarianceByReason["reason"], string> = {
@@ -25,11 +26,11 @@ const REASON_ICONS: Record<VarianceByReason["reason"], React.ReactNode> = {
   ADJUSTMENT: <ClipboardCheck className="h-4 w-4" />,
 };
 
-export function VarianceBreakdownView({ restaurantId }: VarianceBreakdownViewProps) {
+export function VarianceBreakdownView({ restaurantId, branchId }: VarianceBreakdownViewProps) {
   const { t, language } = useLanguage();
   const [days, setDays] = useState(30);
 
-  const { data: breakdowns = [], isLoading } = useVarianceBreakdown(restaurantId, days);
+  const { data: breakdowns = [], isLoading } = useVarianceBreakdown(restaurantId, days, branchId);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat(language === "ar" ? "ar-JO" : "en-JO", {

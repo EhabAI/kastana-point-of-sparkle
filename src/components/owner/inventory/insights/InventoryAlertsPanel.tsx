@@ -17,6 +17,7 @@ import { useState } from "react";
 
 interface InventoryAlertsPanelProps {
   restaurantId: string;
+  branchId?: string;
 }
 
 const ALERT_ICONS: Record<AlertType, React.ReactNode> = {
@@ -40,9 +41,9 @@ const SEVERITY_STYLES: Record<AlertSeverity, { bg: string; border: string; text:
   },
 };
 
-export function InventoryAlertsPanel({ restaurantId }: InventoryAlertsPanelProps) {
+export function InventoryAlertsPanel({ restaurantId, branchId }: InventoryAlertsPanelProps) {
   const { t } = useLanguage();
-  const { data: alerts = [], isLoading } = useInventoryAlerts(restaurantId);
+  const { data: alerts = [], isLoading } = useInventoryAlerts(restaurantId, branchId);
   const [expandedAlerts, setExpandedAlerts] = useState<Set<string>>(new Set());
 
   const toggleAlert = (id: string) => {

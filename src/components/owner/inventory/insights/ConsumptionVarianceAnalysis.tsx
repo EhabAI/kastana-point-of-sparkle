@@ -42,6 +42,7 @@ import { cn } from "@/lib/utils";
 
 interface ConsumptionVarianceAnalysisProps {
   restaurantId: string;
+  branchId?: string;
 }
 
 const ROOT_CAUSE_LABELS: Record<RootCauseType, { en: string; ar: string }> = {
@@ -64,13 +65,14 @@ const ROOT_CAUSE_COLORS: Record<RootCauseType, string> = {
 
 type DatePreset = "last7" | "last30" | "thisMonth" | "lastMonth" | "thisWeek" | "custom";
 
-export function ConsumptionVarianceAnalysis({ restaurantId }: ConsumptionVarianceAnalysisProps) {
+export function ConsumptionVarianceAnalysis({ restaurantId, branchId }: ConsumptionVarianceAnalysisProps) {
   const { t, language } = useLanguage();
   const { branches, selectedBranch } = useBranchContext();
   const dateLocale = language === "ar" ? ar : enUS;
 
+  // Use prop branchId if provided, otherwise use context
+  const effectiveBranchId = branchId || selectedBranch?.id || "";
   // State
-  const [selectedBranchId, setSelectedBranchId] = useState<string>(selectedBranch?.id || "");
   const [datePreset, setDatePreset] = useState<DatePreset>("last7");
   const [customStart, setCustomStart] = useState<Date>(subDays(new Date(), 7));
   const [customEnd, setCustomEnd] = useState<Date>(new Date());
@@ -104,17 +106,10 @@ export function ConsumptionVarianceAnalysis({ restaurantId }: ConsumptionVarianc
     }
   }, [datePreset, customStart, customEnd]);
 
-  // Initialize branch selection
-  useMemo(() => {
-    if (!selectedBranchId && selectedBranch?.id) {
-      setSelectedBranchId(selectedBranch.id);
-    }
-  }, [selectedBranch, selectedBranchId]);
-
-  // Fetch variance data
+  // Fetch variance data using effective branch ID
   const { data: varianceItems = [], isLoading } = useConsumptionVariance({
     restaurantId,
-    branchId: selectedBranchId,
+    branchId: effectiveBranchId,
     startDate,
     endDate,
   });
@@ -152,11 +147,11 @@ export function ConsumptionVarianceAnalysis({ restaurantId }: ConsumptionVarianc
   };
 
   const handleSaveTag = async () => {
-    if (!selectedItem || !selectedBranchId) return;
+    if (!selectedItem || !effectiveBranchId) return;
 
     await upsertTag.mutateAsync({
       restaurantId,
-      branchId: selectedBranchId,
+      branchId: effectiveBranchId,
       inventoryItemId: selectedItem.inventoryItemId,
       periodStart: format(startDate, "yyyy-MM-dd"),
       periodEnd: format(endDate, "yyyy-MM-dd"),
@@ -205,22 +200,15 @@ export function ConsumptionVarianceAnalysis({ restaurantId }: ConsumptionVarianc
       <Card>
         <CardContent className="pt-4">
           <div className="flex flex-wrap gap-4 items-end">
-            {/* Branch Selector */}
-            <div className="space-y-2 min-w-[180px]">
-              <Label>{t("branch")}</Label>
-              <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t("select_branch")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {branches.map((branch) => (
-                    <SelectItem key={branch.id} value={branch.id}>
-                      {branch.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Show current branch info when filtering by global selector */}
+            {branchId && selectedBranch && (
+              <div className="space-y-2 min-w-[180px]">
+                <Label>{t("branch")}</Label>
+                <div className="flex items-center gap-2 h-10 px-3 rounded-md border bg-muted/50">
+                  <span className="text-sm">{selectedBranch.name}</span>
+                </div>
+              </div>
+            )}
 
             {/* Date Preset */}
             <div className="space-y-2 min-w-[160px]">

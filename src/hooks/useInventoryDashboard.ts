@@ -29,14 +29,14 @@ interface WasteSummaryItem {
   unitName: string;
 }
 
-export function useLowStockItems(restaurantId: string | undefined) {
+export function useLowStockItems(restaurantId: string | undefined, branchId?: string) {
   return useQuery({
-    queryKey: ["low-stock-items", restaurantId],
+    queryKey: ["low-stock-items", restaurantId, branchId],
     queryFn: async (): Promise<LowStockItem[]> => {
       if (!restaurantId) return [];
 
       // Get stock levels with item and branch info
-      const { data: stockLevels, error: stockError } = await supabase
+      let query = supabase
         .from("inventory_stock_levels")
         .select(`
           item_id,
@@ -53,6 +53,12 @@ export function useLowStockItems(restaurantId: string | undefined) {
           restaurant_branches!inner (id, name)
         `)
         .eq("restaurant_id", restaurantId);
+
+      if (branchId) {
+        query = query.eq("branch_id", branchId);
+      }
+
+      const { data: stockLevels, error: stockError } = await query;
 
       if (stockError) {
         console.error("Error fetching stock levels:", stockError);
@@ -83,13 +89,13 @@ export function useLowStockItems(restaurantId: string | undefined) {
   });
 }
 
-export function useNearReorderItems(restaurantId: string | undefined) {
+export function useNearReorderItems(restaurantId: string | undefined, branchId?: string) {
   return useQuery({
-    queryKey: ["near-reorder-items", restaurantId],
+    queryKey: ["near-reorder-items", restaurantId, branchId],
     queryFn: async (): Promise<LowStockItem[]> => {
       if (!restaurantId) return [];
 
-      const { data: stockLevels, error: stockError } = await supabase
+      let query = supabase
         .from("inventory_stock_levels")
         .select(`
           item_id,
@@ -106,6 +112,12 @@ export function useNearReorderItems(restaurantId: string | undefined) {
           restaurant_branches!inner (id, name)
         `)
         .eq("restaurant_id", restaurantId);
+
+      if (branchId) {
+        query = query.eq("branch_id", branchId);
+      }
+
+      const { data: stockLevels, error: stockError } = await query;
 
       if (stockError) {
         console.error("Error fetching stock levels:", stockError);
@@ -138,13 +150,13 @@ export function useNearReorderItems(restaurantId: string | undefined) {
   });
 }
 
-export function useRecentTransactions(restaurantId: string | undefined) {
+export function useRecentTransactions(restaurantId: string | undefined, branchId?: string) {
   return useQuery({
-    queryKey: ["recent-inventory-transactions", restaurantId],
+    queryKey: ["recent-inventory-transactions", restaurantId, branchId],
     queryFn: async (): Promise<RecentTransaction[]> => {
       if (!restaurantId) return [];
 
-      const { data, error } = await supabase
+      let query = supabase
         .from("inventory_transactions")
         .select(`
           id,
@@ -159,6 +171,12 @@ export function useRecentTransactions(restaurantId: string | undefined) {
         .eq("restaurant_id", restaurantId)
         .order("created_at", { ascending: false })
         .limit(10);
+
+      if (branchId) {
+        query = query.eq("branch_id", branchId);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error("Error fetching transactions:", error);
@@ -179,16 +197,16 @@ export function useRecentTransactions(restaurantId: string | undefined) {
   });
 }
 
-export function useWasteSummary(restaurantId: string | undefined) {
+export function useWasteSummary(restaurantId: string | undefined, branchId?: string) {
   return useQuery({
-    queryKey: ["waste-summary", restaurantId],
+    queryKey: ["waste-summary", restaurantId, branchId],
     queryFn: async (): Promise<WasteSummaryItem[]> => {
       if (!restaurantId) return [];
 
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      const { data, error } = await supabase
+      let query = supabase
         .from("inventory_transactions")
         .select(`
           item_id,
@@ -198,6 +216,12 @@ export function useWasteSummary(restaurantId: string | undefined) {
         .eq("restaurant_id", restaurantId)
         .eq("txn_type", "WASTE")
         .gte("created_at", sevenDaysAgo.toISOString());
+
+      if (branchId) {
+        query = query.eq("branch_id", branchId);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error("Error fetching waste summary:", error);
