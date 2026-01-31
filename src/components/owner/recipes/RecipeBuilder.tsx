@@ -480,8 +480,8 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
       
       {/* CSV Import Modal */}
       <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
-        <DialogContent className={cn("sm:max-w-md", showPreview && "sm:max-w-4xl")}>
-          <DialogHeader>
+        <DialogContent className={cn("sm:max-w-md max-h-[85vh] flex flex-col", showPreview && "sm:max-w-4xl")}>
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <Upload className="h-5 w-5" />
               {t("import_recipes_from_csv")}
@@ -500,7 +500,7 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
 
           {showResult && importResult ? (
             // Result View - After Import
-            <DialogBody className="space-y-4 py-4">
+            <DialogBody className="space-y-4 py-4 flex-1 overflow-y-auto">
               {/* Success Summary */}
               {importResult.recipes_created > 0 && (
                 <div className="p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
@@ -594,7 +594,7 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
             </DialogBody>
           ) : !showPreview ? (
             // File Upload View
-            <div className="space-y-4 py-4">
+            <DialogBody className="space-y-4 py-4 flex-1 overflow-y-auto">
               <div className="p-3 bg-muted rounded-lg">
                 <p className="text-sm text-muted-foreground mb-2">{t("csv_headers_required")}:</p>
                 <code className="text-xs bg-background px-2 py-1 rounded border block overflow-x-auto">
@@ -628,10 +628,10 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
                   </div>
                 )}
               </div>
-            </div>
+            </DialogBody>
           ) : (
             // Preview View
-            <div className="space-y-4 py-4">
+            <DialogBody className="space-y-4 py-4 flex-1 overflow-y-auto">
               {/* Summary */}
               <div className="flex flex-wrap gap-4 p-3 bg-muted rounded-lg">
                 <div className="flex items-center gap-2">
@@ -656,7 +656,7 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
               )}
 
               {/* Preview Table */}
-              <ScrollArea className="h-[300px] border rounded-lg">
+              <div className="border rounded-lg">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -693,11 +693,11 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
                     ))}
                   </TableBody>
                 </Table>
-              </ScrollArea>
-            </div>
+              </div>
+            </DialogBody>
           )}
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-2 sm:gap-0 flex-shrink-0">
             {showResult ? (
               <Button onClick={handleCloseImportModal}>
                 {t("close")}
