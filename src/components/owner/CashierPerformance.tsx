@@ -5,6 +5,7 @@ import { ChevronDown, Users, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { DateRangeFilter, DateRange, DateRangePreset, getDateRangeForPreset } from "./DateRangeFilter";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ interface CashierMetrics {
 
 export function CashierPerformance() {
   const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
+  const { selectedBranch } = useBranchContextSafe();
   const { data: settings } = useOwnerRestaurantSettings();
   const { t } = useLanguage();
   const currency = settings?.currency || "JOD";
@@ -34,17 +36,23 @@ export function CashierPerformance() {
   const [dateRange, setDateRange] = useState<DateRange>(getDateRangeForPreset("this_month"));
 
   const { data: performanceData, isLoading } = useQuery({
-    queryKey: ["cashier-performance", restaurant?.id, dateRange.from.toISOString(), dateRange.to.toISOString()],
+    queryKey: ["cashier-performance", restaurant?.id, selectedBranch?.id, dateRange.from.toISOString(), dateRange.to.toISOString()],
     queryFn: async () => {
       if (!restaurant?.id) return null;
 
       // Fetch shifts in date range
-      const { data: shifts, error: shiftsError } = await supabase
+      let shiftsQuery = supabase
         .from("shifts")
         .select("id, cashier_id")
         .eq("restaurant_id", restaurant.id)
         .gte("opened_at", dateRange.from.toISOString())
         .lt("opened_at", dateRange.to.toISOString());
+
+      if (selectedBranch?.id) {
+        shiftsQuery = shiftsQuery.eq("branch_id", selectedBranch.id);
+      }
+
+      const { data: shifts, error: shiftsError } = await shiftsQuery;
 
       if (shiftsError) throw shiftsError;
       if (!shifts || shifts.length === 0) return { cashiers: [] };

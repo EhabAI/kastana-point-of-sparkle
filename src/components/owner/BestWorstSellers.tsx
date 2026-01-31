@@ -5,6 +5,7 @@ import { ChevronDown, TrendingUp, TrendingDown, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { DateRangeFilter, DateRange, DateRangePreset, getDateRangeForPreset } from "./DateRangeFilter";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,7 @@ interface ItemSalesData {
 export function BestWorstSellers() {
   const { t } = useLanguage();
   const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
+  const { selectedBranch } = useBranchContextSafe();
   const { data: settings } = useOwnerRestaurantSettings();
   const currency = settings?.currency || "JOD";
   
@@ -29,18 +31,24 @@ export function BestWorstSellers() {
   const [dateRange, setDateRange] = useState<DateRange>(getDateRangeForPreset("last_30_days"));
 
   const { data: salesData, isLoading } = useQuery({
-    queryKey: ["best-worst-sellers", restaurant?.id, dateRange.from.toISOString(), dateRange.to.toISOString()],
+    queryKey: ["best-worst-sellers", restaurant?.id, selectedBranch?.id, dateRange.from.toISOString(), dateRange.to.toISOString()],
     queryFn: async () => {
       if (!restaurant?.id) return null;
 
       // Fetch paid orders in date range
-      const { data: orders, error: ordersError } = await supabase
+      let ordersQuery = supabase
         .from("orders")
         .select("id")
         .eq("restaurant_id", restaurant.id)
         .gte("created_at", dateRange.from.toISOString())
         .lt("created_at", dateRange.to.toISOString())
         .eq("status", "paid");
+
+      if (selectedBranch?.id) {
+        ordersQuery = ordersQuery.eq("branch_id", selectedBranch.id);
+      }
+
+      const { data: orders, error: ordersError } = await ordersQuery;
 
       if (ordersError) throw ordersError;
       if (!orders || orders.length === 0) return { items: [] };

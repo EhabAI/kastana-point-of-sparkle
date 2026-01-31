@@ -9,9 +9,11 @@ import { OperationsReports } from "./reports/OperationsReports";
 import { BranchReports } from "./reports/BranchReports";
 import { CostingReports } from "./reports/CostingReports";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { DollarSign, ShoppingCart, UtensilsCrossed, Users, Settings2, Building2, Calculator } from "lucide-react";
 
 export function ReportsModule() {
+  const { selectedBranch } = useBranchContextSafe();
   const { t } = useLanguage();
   const [preset, setPreset] = useState<DateRangePreset>("today");
   const [dateRange, setDateRange] = useState<DateRange>(getDateRangeForPreset("today"));
@@ -64,25 +66,25 @@ export function ReportsModule() {
         </TabsList>
 
         <TabsContent value="financial" className="mt-4">
-          <FinancialReports dateRange={dateRange} />
+          <FinancialReports dateRange={dateRange} branchId={selectedBranch?.id} />
         </TabsContent>
         <TabsContent value="orders" className="mt-4">
-          <OrdersReports dateRange={dateRange} />
+          <OrdersReports dateRange={dateRange} branchId={selectedBranch?.id} />
         </TabsContent>
         <TabsContent value="menu" className="mt-4">
-          <MenuReports dateRange={dateRange} />
+          <MenuReports dateRange={dateRange} branchId={selectedBranch?.id} />
         </TabsContent>
         <TabsContent value="staff" className="mt-4">
-          <StaffReports dateRange={dateRange} />
+          <StaffReports dateRange={dateRange} branchId={selectedBranch?.id} />
         </TabsContent>
         <TabsContent value="operations" className="mt-4">
-          <OperationsReports dateRange={dateRange} />
+          <OperationsReports dateRange={dateRange} branchId={selectedBranch?.id} />
         </TabsContent>
         <TabsContent value="branches" className="mt-4">
           <BranchReports dateRange={dateRange} />
         </TabsContent>
         <TabsContent value="costing" className="mt-4">
-          <CostingReports dateRange={dateRange} />
+          <CostingReports dateRange={dateRange} branchId={selectedBranch?.id} />
         </TabsContent>
       </Tabs>
     </div>

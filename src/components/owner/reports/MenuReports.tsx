@@ -17,6 +17,7 @@ import { getPaginatedData, getTotalPages } from "./utils/reportUtils";
 
 interface MenuReportsProps {
   dateRange: DateRange;
+  branchId?: string;
 }
 
 interface ItemPerformance {
@@ -26,13 +27,15 @@ interface ItemPerformance {
   category: string;
 }
 
-export function MenuReports({ dateRange }: MenuReportsProps) {
+export function MenuReports({ dateRange, branchId }: MenuReportsProps) {
   const { t, language } = useLanguage();
   const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
   const { data: settings } = useOwnerRestaurantSettings();
   const currencySymbol = language === "ar" ? "د.أ" : "JOD";
 
-  const [filters, setFilters] = useState<ReportFilterValues>({});
+  const [filters, setFilters] = useState<ReportFilterValues>(() => 
+    branchId ? { branchId } : {}
+  );
   const [showItemsDialog, setShowItemsDialog] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);

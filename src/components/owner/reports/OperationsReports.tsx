@@ -17,6 +17,7 @@ import { ReportTablePagination } from "./ReportTablePagination";
 
 interface OperationsReportsProps {
   dateRange: DateRange;
+  branchId?: string;
 }
 
 interface ShiftData {
@@ -50,13 +51,15 @@ interface CashMovement {
   time: string;
 }
 
-export function OperationsReports({ dateRange }: OperationsReportsProps) {
+export function OperationsReports({ dateRange, branchId }: OperationsReportsProps) {
   const { t, language } = useLanguage();
   const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
   const { data: settings } = useOwnerRestaurantSettings();
   const currencySymbol = language === "ar" ? "د.أ" : "JOD";
 
-  const [filters, setFilters] = useState<ReportFilterValues>({});
+  const [filters, setFilters] = useState<ReportFilterValues>(() => 
+    branchId ? { branchId } : {}
+  );
   const [showShiftsDialog, setShowShiftsDialog] = useState(false);
   const [showCashDiffDialog, setShowCashDiffDialog] = useState(false);
   const [showCashMovementsDialog, setShowCashMovementsDialog] = useState(false);

@@ -22,6 +22,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 interface OrdersReportsProps {
   dateRange: DateRange;
+  branchId?: string;
 }
 
 interface OrderDetail {
@@ -42,13 +43,15 @@ interface HiddenOrderDetail {
   hidden_reason: string;
 }
 
-export function OrdersReports({ dateRange }: OrdersReportsProps) {
+export function OrdersReports({ dateRange, branchId }: OrdersReportsProps) {
   const { t, language } = useLanguage();
   const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
   const { data: settings } = useOwnerRestaurantSettings();
   const currencySymbol = language === "ar" ? "د.أ" : "JOD";
 
-  const [filters, setFilters] = useState<ReportFilterValues>({});
+  const [filters, setFilters] = useState<ReportFilterValues>(() => 
+    branchId ? { branchId } : {}
+  );
   const [showOrdersDialog, setShowOrdersDialog] = useState(false);
   const [showHiddenOrders, setShowHiddenOrders] = useState(false);
 

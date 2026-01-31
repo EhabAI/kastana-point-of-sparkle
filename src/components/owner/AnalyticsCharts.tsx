@@ -5,6 +5,7 @@ import { ChevronDown, LineChart, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { DateRangeFilter, DateRange, DateRangePreset, getDateRangeForPreset } from "./DateRangeFilter";
 import { format, eachDayOfInterval, startOfDay, endOfDay } from "date-fns";
@@ -38,6 +39,7 @@ const CHART_COLORS = [
 export function AnalyticsCharts() {
   const { t, language } = useLanguage();
   const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
+  const { selectedBranch } = useBranchContextSafe();
   const { data: settings } = useOwnerRestaurantSettings();
   const currencySymbol = language === "ar" ? "د.أ" : "JOD";
   
@@ -47,17 +49,23 @@ export function AnalyticsCharts() {
 
   // Fetch orders with category info
   const { data: ordersData, isLoading } = useQuery({
-    queryKey: ["analytics-orders", restaurant?.id, dateRange.from.toISOString(), dateRange.to.toISOString()],
+    queryKey: ["analytics-orders", restaurant?.id, selectedBranch?.id, dateRange.from.toISOString(), dateRange.to.toISOString()],
     queryFn: async () => {
       if (!restaurant?.id) return null;
 
-      const { data: orders, error: ordersError } = await supabase
+      let ordersQuery = supabase
         .from("orders")
         .select("id, total, created_at, status")
         .eq("restaurant_id", restaurant.id)
         .gte("created_at", dateRange.from.toISOString())
         .lt("created_at", dateRange.to.toISOString())
         .eq("status", "paid");
+
+      if (selectedBranch?.id) {
+        ordersQuery = ordersQuery.eq("branch_id", selectedBranch.id);
+      }
+
+      const { data: orders, error: ordersError } = await ordersQuery;
 
       if (ordersError) throw ordersError;
 

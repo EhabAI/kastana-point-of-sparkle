@@ -16,6 +16,7 @@ import { ExplainTooltip } from "@/components/ui/explain-tooltip";
 
 interface FinancialReportsProps {
   dateRange: DateRange;
+  branchId?: string;
 }
 
 interface RefundDetail {
@@ -34,18 +35,20 @@ interface PaymentDetail {
   time: string;
 }
 
-export function FinancialReports({ dateRange }: FinancialReportsProps) {
+export function FinancialReports({ dateRange, branchId }: FinancialReportsProps) {
   const { t, language } = useLanguage();
   const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
   const { data: settings } = useOwnerRestaurantSettings();
   const currencySymbol = language === "ar" ? "د.أ" : "JOD";
 
-  const [filters, setFilters] = useState<ReportFilterValues>({});
+  const [filters, setFilters] = useState<ReportFilterValues>(() => 
+    branchId ? { branchId } : {}
+  );
   const [showRefundsDialog, setShowRefundsDialog] = useState(false);
   const [showPaymentsDialog, setShowPaymentsDialog] = useState(false);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["financial-reports", restaurant?.id, dateRange.from.toISOString(), dateRange.to.toISOString(), filters],
+    queryKey: ["financial-reports", restaurant?.id, branchId, dateRange.from.toISOString(), dateRange.to.toISOString(), filters],
     queryFn: async () => {
       if (!restaurant?.id) return null;
 
