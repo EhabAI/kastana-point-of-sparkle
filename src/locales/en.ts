@@ -1,5 +1,9 @@
 // English translations for Kastana POS
 export default {
+  // CSV Recipe Import - Guided Mapping
+  csv_select_correct_item: "Select correct item",
+  csv_resolve_conflicts_tooltip: "Please resolve all conflicting rows before importing",
+  csv_conflict_resolved: "Resolved",
   // Brand name - centralized localization
   brandName: 'Kastana',
   brandNameFull: 'Kastana POS',

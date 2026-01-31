@@ -1,5 +1,9 @@
 // Arabic translations for Kastana POS
 export default {
+  // CSV Recipe Import - Guided Mapping
+  csv_select_correct_item: "اختر الصنف الصحيح",
+  csv_resolve_conflicts_tooltip: "يرجى اختيار الصنف الصحيح للصفوف المتعارضة",
+  csv_conflict_resolved: "تم الحل",
   // Brand name - centralized localization
   brandName: 'كاستنا',
   brandNameFull: 'كاستنا POS',
