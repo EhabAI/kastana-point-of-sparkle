@@ -199,8 +199,10 @@ export function OwnerTrainingPanel({
       return { ar: "المستخدمين", en: "Users & Roles" };
     } else if (progress < 45) {
       return { ar: "القائمة", en: "Menu Setup" };
-    } else if (progress < 55) {
+    } else if (progress < 50) {
       return { ar: "العروض", en: "Offers" };
+    } else if (progress < 58) {
+      return { ar: "المخزون", en: "Inventory" };
     } else if (progress < 65) {
       return { ar: "إدارة الطاولات", en: "Table Management" };
     } else if (progress < 80) {

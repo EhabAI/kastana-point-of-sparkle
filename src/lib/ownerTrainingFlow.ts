@@ -220,13 +220,13 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
     },
 
     // ============================================
-    // STAGE 4 - Offers (45% → 55%)
+    // STAGE 4 - Offers (45% → 50%)
     // ============================================
     {
       id: "gs_offers_intro",
       trackId: "getting_started",
       progressStart: 45,
-      progressEnd: 48,
+      progressEnd: 47,
       message: {
         ar: "العروض تساعدك على زيادة المبيعات 🎯",
         en: "Offers help you increase sales 🎯"
@@ -238,8 +238,8 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
     {
       id: "gs_offers_explain",
       trackId: "getting_started",
-      progressStart: 48,
-      progressEnd: 52,
+      progressStart: 47,
+      progressEnd: 50,
       message: {
         ar: "• العروض تُفعّل حسب الوقت\n• تُطبق على فرع محدد\n• يمكنك إيقافها أو تعديلها بسهولة",
         en: "• Offers activate based on time\n• Apply to specific branch\n• Easy to pause or edit"
@@ -249,14 +249,31 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
         { id: "skip_offers", label: { ar: "تخطي الآن", en: "Skip for now" }, type: "next" }
       ]
     },
+
+    // ============================================
+    // STAGE 5 - Inventory Management (50% → 58%) - Explanation only
+    // ============================================
     {
-      id: "gs_offers_complete",
+      id: "gs_inventory_intro",
       trackId: "getting_started",
-      progressStart: 52,
-      progressEnd: 55,
+      progressStart: 50,
+      progressEnd: 53,
       message: {
-        ar: "ممتاز! 👍\n\nيمكنك إنشاء تصنيف 'العروض' وتحديد فترة التفعيل.",
-        en: "Excellent! 👍\n\nYou can create an 'Offers' category and set the activation period."
+        ar: "إدارة المخزون تساعدك على متابعة الكميات والتكلفة 📦",
+        en: "Inventory management helps you track quantities and costs 📦"
+      },
+      actions: [
+        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+      ]
+    },
+    {
+      id: "gs_inventory_explain",
+      trackId: "getting_started",
+      progressStart: 53,
+      progressEnd: 58,
+      message: {
+        ar: "إذا كانت إدارة المخزون مفعّلة لمطعمك:\n• يمكنك تتبع الكميات\n• معرفة النقص\n• ربط الأصناف بالمخزون\n\nأما إذا لم تكن مفعّلة:\n• يمكنك تشغيل مطعمك بشكل طبيعي بدون مخزون\n• ويمكن تفعيلها لاحقًا عند الحاجة",
+        en: "If inventory management is enabled:\n• Track quantities\n• Know shortages\n• Link items to inventory\n\nIf not enabled:\n• You can run your restaurant normally without inventory\n• It can be enabled later when needed"
       },
       actions: [
         { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
@@ -264,13 +281,13 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
     },
 
     // ============================================
-    // STAGE 5 - Table Management (55% → 65%)
+    // STAGE 6 - Table Management (58% → 65%)
     // ============================================
     {
       id: "gs_tables_intro",
       trackId: "getting_started",
-      progressStart: 55,
-      progressEnd: 58,
+      progressStart: 58,
+      progressEnd: 60,
       message: {
         ar: "إذا كان مطعمك يحتوي على صالة، إدارة الطاولات تسهّل العمل 🪑",
         en: "If your restaurant has a dining area, table management makes work easier 🪑"
@@ -282,8 +299,8 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
     {
       id: "gs_tables_explain",
       trackId: "getting_started",
-      progressStart: 58,
-      progressEnd: 62,
+      progressStart: 60,
+      progressEnd: 63,
       message: {
         ar: "• إنشاء الطاولات\n• تحديد عدد الكراسي\n• معرفة حالة كل طاولة",
         en: "• Create tables\n• Set seat count\n• See status of each table"
@@ -296,7 +313,7 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
     {
       id: "gs_tables_complete",
       trackId: "getting_started",
-      progressStart: 62,
+      progressStart: 63,
       progressEnd: 65,
       message: {
         ar: "ممتاز! 👍\n\nيمكنك إضافة طاولات حسب حاجة مطعمك.",
