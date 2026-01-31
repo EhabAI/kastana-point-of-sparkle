@@ -191,18 +191,26 @@ export function OwnerTrainingPanel({
     recommended: language === "ar" ? "موصى به" : "Recommended",
   };
 
-  // Get current stage name based on progress percentage
+  // Get current stage name based on progress percentage (9 stages)
   const getCurrentStageName = (progress: number): { ar: string; en: string } => {
-    if (progress < 25) {
+    if (progress < 15) {
       return { ar: "الإعدادات الأساسية", en: "Basic Settings" };
+    } else if (progress < 25) {
+      return { ar: "المستخدمين", en: "Users & Roles" };
     } else if (progress < 45) {
-      return { ar: "تحضير القائمة", en: "Menu Setup" };
+      return { ar: "القائمة", en: "Menu Setup" };
+    } else if (progress < 55) {
+      return { ar: "العروض", en: "Offers" };
     } else if (progress < 65) {
-      return { ar: "تشغيل الكاشيير", en: "POS Operation" };
-    } else if (progress < 85) {
+      return { ar: "إدارة الطاولات", en: "Table Management" };
+    } else if (progress < 80) {
+      return { ar: "الكاشيير", en: "POS Operation" };
+    } else if (progress < 90) {
       return { ar: "المتابعة اليومية", en: "Daily Monitoring" };
+    } else if (progress < 95) {
+      return { ar: "الفروع", en: "Branches" };
     } else {
-      return { ar: "نظرة مستقبلية", en: "What's Next" };
+      return { ar: "الخلاصة", en: "Final" };
     }
   };
 
