@@ -1459,6 +1459,8 @@ export default {
   csv_invalid_rows: "صفوف غير صحيحة",
   csv_fix_errors_before_import: "يرجى تصحيح جميع الأخطاء قبل الاستيراد. أعد رفع ملف CSV مصحح.",
   csv_row_valid: "صحيح",
+  csv_error_reason_column: "سبب الخطأ",
+  csv_row_no_error: "—",
   csv_error_menu_item_required: "اسم صنف القائمة مطلوب",
   csv_error_inventory_item_required: "اسم صنف المخزون مطلوب",
   csv_error_quantity_required: "الكمية مطلوبة",
