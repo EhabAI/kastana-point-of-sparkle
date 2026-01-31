@@ -13,11 +13,13 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useBranches } from "@/hooks/useBranches";
-import { useInventoryUnits, useCreateInventoryItem, useInventoryItems } from "@/hooks/useInventoryItems";
+import { useCreateInventoryItem, useInventoryItems } from "@/hooks/useInventoryItems";
+import { useInventoryUnits, getOrCreateUnit } from "@/hooks/useInventoryUnits";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getOwnerErrorMessage } from "@/lib/ownerErrorHandler";
 import { Upload, Loader2, FileText, AlertTriangle } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface InventoryCSVImportProps {
   restaurantId: string;
@@ -40,6 +42,7 @@ interface ImportResult {
   itemsReused: number;
   transactionsCreated: number;
   transactionsSkipped: number;
+  unitsCreated: number;
   errors: string[];
 }
 
@@ -59,10 +62,10 @@ function getTransactionErrorMessage(code: string, t: (key: string) => string): s
 export function InventoryCSVImport({ restaurantId, open, onOpenChange }: InventoryCSVImportProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: branches = [] } = useBranches(restaurantId);
-  const { data: units = [] } = useInventoryUnits(restaurantId);
-  const { data: existingItems = [] } = useInventoryItems(restaurantId);
+  const { data: existingItems = [], refetch: refetchItems } = useInventoryItems(restaurantId);
   const createItem = useCreateInventoryItem();
 
   const [file, setFile] = useState<File | null>(null);
@@ -129,7 +132,11 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
       let itemsReused = 0;
       let transactionsCreated = 0;
       let transactionsSkipped = 0;
+      let unitsCreated = 0;
       const errors: string[] = [];
+
+      // Cache for units we've already looked up or created in this import session
+      const unitCache = new Map<string, { id: string; name: string }>();
 
       for (const row of rows) {
         // Find branch by name
@@ -142,17 +149,35 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
           continue;
         }
 
-        // Find unit by name
-        const unit = units.find(
-          (u) => u.name.toLowerCase() === row.base_unit?.toLowerCase()
-        );
-
-        if (!unit) {
-          errors.push(`${row.name}: ${t("inv_unit_not_found")} "${row.base_unit}"`);
+        // Get or create unit - NEVER fail due to missing unit
+        let unit: { id: string; name: string };
+        const normalizedUnitName = row.base_unit?.toLowerCase().trim();
+        
+        if (!normalizedUnitName) {
+          errors.push(`${row.name}: ${t("inv_missing_unit")}`);
           continue;
         }
 
+        // Check cache first
+        if (unitCache.has(normalizedUnitName)) {
+          unit = unitCache.get(normalizedUnitName)!;
+        } else {
+          try {
+            const unitResult = await getOrCreateUnit(restaurantId, normalizedUnitName);
+            unit = { id: unitResult.id, name: unitResult.name };
+            unitCache.set(normalizedUnitName, unit);
+            if (unitResult.created) {
+              unitsCreated++;
+            }
+          } catch (err: any) {
+            console.error("[CSV Import] Unit error:", err);
+            errors.push(`${row.name}: ${t("inv_unit_create_failed")} "${row.base_unit}"`);
+            continue;
+          }
+        }
+
         // Check if item exists (by name + base_unit + branch)
+        // Re-fetch items to see newly created ones
         let existingItem = existingItems.find(
           (item) =>
             item.name.toLowerCase() === row.name.toLowerCase() &&
@@ -243,15 +268,21 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
         }
       }
 
-      setResults({ itemsCreated, itemsReused, transactionsCreated, transactionsSkipped, errors });
+      // Invalidate units cache if we created new ones
+      if (unitsCreated > 0) {
+        queryClient.invalidateQueries({ queryKey: ["inventory-units", restaurantId] });
+      }
+
+      setResults({ itemsCreated, itemsReused, transactionsCreated, transactionsSkipped, unitsCreated, errors });
 
       // Show success toast with summary
-      const hasChanges = itemsCreated > 0 || transactionsCreated > 0;
+      const hasChanges = itemsCreated > 0 || transactionsCreated > 0 || unitsCreated > 0;
       const hasSkipped = transactionsSkipped > 0;
       
       if (hasChanges || hasSkipped) {
         const parts: string[] = [];
         if (itemsCreated > 0) parts.push(`${itemsCreated} ${t("items_created")}`);
+        if (unitsCreated > 0) parts.push(`${unitsCreated} ${t("inv_units_created")}`);
         if (transactionsCreated > 0) parts.push(`${transactionsCreated} ${t("inv_stock_added")}`);
         if (transactionsSkipped > 0) parts.push(`${transactionsSkipped} ${t("inv_items_skipped_existing")}`);
         
@@ -354,12 +385,18 @@ export function InventoryCSVImport({ restaurantId, open, onOpenChange }: Invento
 
               {results && (
                 <div className="space-y-2">
-                  {(results.itemsCreated > 0 || results.itemsReused > 0 || results.transactionsCreated > 0 || results.transactionsSkipped > 0) && (
+                  {(results.itemsCreated > 0 || results.itemsReused > 0 || results.transactionsCreated > 0 || results.transactionsSkipped > 0 || results.unitsCreated > 0) && (
                     <div className="text-sm bg-muted/50 p-3 rounded space-y-1.5">
                       {results.itemsCreated > 0 && (
                         <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                           <span className="text-xs">✓</span>
                           <span>{results.itemsCreated} {t("items_created")}</span>
+                        </div>
+                      )}
+                      {results.unitsCreated > 0 && (
+                        <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                          <span className="text-xs">✓</span>
+                          <span>{results.unitsCreated} {t("inv_units_created")}</span>
                         </div>
                       )}
                       {results.itemsReused > 0 && (
