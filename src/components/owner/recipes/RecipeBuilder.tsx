@@ -306,13 +306,17 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
         throw new Error("Not authenticated");
       }
 
-      // Send ALL rows to the backend - it will do the full validation
-      const rowsToImport = parsedRows.filter(r => r.isValid).map(row => ({
-        menu_item_name: row.menu_item_name,
-        inventory_item_name: row.inventory_item_name,
-        quantity: parseFloat(row.quantity),
-        unit: row.unit,
-      }));
+      // Send valid rows including resolved conflicts - include resolved_inventory_item_id for conflict resolution
+      const rowsToImport = parsedRows
+        .filter(r => r.isValid || r.resolved_inventory_item_id)
+        .map(row => ({
+          menu_item_name: row.menu_item_name,
+          inventory_item_name: row.inventory_item_name,
+          quantity: parseFloat(row.quantity),
+          unit: row.unit,
+          // Include resolved inventory item ID if conflict was resolved
+          resolved_inventory_item_id: row.resolved_inventory_item_id || undefined,
+        }));
 
       const response = await supabase.functions.invoke("recipe-csv-import", {
         body: {
