@@ -33,6 +33,13 @@ interface ImportRequest {
   rows: RecipeRow[];
 }
 
+interface ImportError {
+  menu_item_name: string;
+  inventory_item_name: string;
+  reason: string;
+  reason_code: string;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -93,6 +100,7 @@ Deno.serve(async (req) => {
       return errorResponse("missing_fields", 400);
     }
 
+    // Fetch menu items for lookup
     const { data: menuItems, error: menuError } = await supabase
       .from("menu_items")
       .select("id, name, category_id, menu_categories!inner(restaurant_id)")
@@ -103,6 +111,7 @@ Deno.serve(async (req) => {
       return errorResponse("server_error", 500);
     }
 
+    // Build menu item map (case-insensitive, by name)
     const menuItemMap = new Map<string, { id: string; originalName: string }[]>();
     (menuItems || []).forEach((item: any) => {
       const normalizedName = item.name.toLowerCase().trim();
@@ -112,6 +121,7 @@ Deno.serve(async (req) => {
       menuItemMap.get(normalizedName)!.push({ id: item.id, originalName: item.name });
     });
 
+    // Fetch inventory items for lookup
     const { data: inventoryItems, error: invError } = await supabase
       .from("inventory_items")
       .select("id, name, base_unit_id")
@@ -122,6 +132,7 @@ Deno.serve(async (req) => {
       return errorResponse("server_error", 500);
     }
 
+    // Build inventory item map (case-insensitive, by name)
     const inventoryMap = new Map<string, { id: string; base_unit_id: string; originalName: string }[]>();
     (inventoryItems || []).forEach((item: any) => {
       const normalizedName = item.name.toLowerCase().trim();
@@ -135,6 +146,7 @@ Deno.serve(async (req) => {
       });
     });
 
+    // Fetch units for lookup
     const { data: units, error: unitsError } = await supabase
       .from("inventory_units")
       .select("id, name, symbol")
@@ -153,37 +165,138 @@ Deno.serve(async (req) => {
       }
     });
 
-    const groupedByMenuItem = new Map<string, RecipeRow[]>();
+    // Group rows by menu item
+    const groupedByMenuItem = new Map<string, { originalName: string; rows: RecipeRow[] }>();
     for (const row of rows) {
       const key = row.menu_item_name.toLowerCase().trim();
       if (!groupedByMenuItem.has(key)) {
-        groupedByMenuItem.set(key, []);
+        groupedByMenuItem.set(key, { originalName: row.menu_item_name, rows: [] });
       }
-      groupedByMenuItem.get(key)!.push(row);
+      groupedByMenuItem.get(key)!.rows.push(row);
     }
 
     console.log(`Processing ${groupedByMenuItem.size} unique menu items`);
 
-    let menuItemsUpdated = 0;
-    let recipeLinesInserted = 0;
-    const errors: { code: string; params: Record<string, string> }[] = [];
+    let recipesCreated = 0;
+    let recipesFailed = 0;
+    const errors: ImportError[] = [];
 
-    for (const [menuItemNameKey, menuItemRows] of groupedByMenuItem) {
+    // Process each menu item atomically
+    for (const [menuItemNameKey, { originalName: originalMenuItemName, rows: menuItemRows }] of groupedByMenuItem) {
       const menuItemMatches = menuItemMap.get(menuItemNameKey);
-      const originalMenuItemName = menuItemRows[0].menu_item_name;
       
+      // Validate menu item exists
       if (!menuItemMatches || menuItemMatches.length === 0) {
-        errors.push({ code: "menu_item_not_found", params: { name: originalMenuItemName } });
+        // Add error for each row in this menu item
+        menuItemRows.forEach(row => {
+          errors.push({
+            menu_item_name: originalMenuItemName,
+            inventory_item_name: row.inventory_item_name,
+            reason: "Menu item not found",
+            reason_code: "menu_item_not_found",
+          });
+        });
+        recipesFailed++;
         continue;
       }
       
+      // Check for ambiguous menu item name
       if (menuItemMatches.length > 1) {
-        errors.push({ code: "menu_item_not_unique", params: { name: originalMenuItemName } });
+        menuItemRows.forEach(row => {
+          errors.push({
+            menu_item_name: originalMenuItemName,
+            inventory_item_name: row.inventory_item_name,
+            reason: "Multiple menu items found with this name",
+            reason_code: "menu_item_not_unique",
+          });
+        });
+        recipesFailed++;
         continue;
       }
       
       const menuItemId = menuItemMatches[0].id;
 
+      // Validate ALL ingredients for this menu item first
+      const linesToInsert: {
+        inventory_item_id: string;
+        qty: number;
+        unit_id: string;
+        qty_in_base: number;
+      }[] = [];
+      let hasErrors = false;
+
+      for (const row of menuItemRows) {
+        // Validate inventory item
+        const invItemKey = row.inventory_item_name.toLowerCase().trim();
+        const invItemMatches = inventoryMap.get(invItemKey);
+        
+        if (!invItemMatches || invItemMatches.length === 0) {
+          errors.push({
+            menu_item_name: originalMenuItemName,
+            inventory_item_name: row.inventory_item_name,
+            reason: "Inventory item not found",
+            reason_code: "inventory_item_not_found",
+          });
+          hasErrors = true;
+          continue;
+        }
+        
+        if (invItemMatches.length > 1) {
+          errors.push({
+            menu_item_name: originalMenuItemName,
+            inventory_item_name: row.inventory_item_name,
+            reason: "Multiple inventory items found with this name",
+            reason_code: "inventory_item_not_unique",
+          });
+          hasErrors = true;
+          continue;
+        }
+        
+        const invItem = invItemMatches[0];
+
+        // Validate unit
+        const unitId = unitMap.get(row.unit.toLowerCase().trim());
+        if (!unitId) {
+          errors.push({
+            menu_item_name: originalMenuItemName,
+            inventory_item_name: row.inventory_item_name,
+            reason: `Unit '${row.unit}' not found`,
+            reason_code: "unit_not_found",
+          });
+          hasErrors = true;
+          continue;
+        }
+
+        // Validate quantity
+        if (!row.quantity || row.quantity <= 0 || isNaN(row.quantity)) {
+          errors.push({
+            menu_item_name: originalMenuItemName,
+            inventory_item_name: row.inventory_item_name,
+            reason: "Quantity must be a positive number",
+            reason_code: "invalid_quantity",
+          });
+          hasErrors = true;
+          continue;
+        }
+
+        // Calculate qty_in_base (for now, assume 1:1 conversion)
+        const qtyInBase = row.quantity;
+
+        linesToInsert.push({
+          inventory_item_id: invItem.id,
+          qty: row.quantity,
+          unit_id: unitId,
+          qty_in_base: qtyInBase,
+        });
+      }
+
+      // If ANY ingredient failed validation, skip the entire recipe for this menu item
+      if (hasErrors) {
+        recipesFailed++;
+        continue;
+      }
+
+      // All ingredients valid - now create/update the recipe atomically
       try {
         const { data: existingRecipe } = await supabase
           .from("menu_item_recipes")
@@ -197,6 +310,7 @@ Deno.serve(async (req) => {
         if (existingRecipe) {
           recipeId = existingRecipe.id;
           
+          // Delete existing lines
           const { error: deleteError } = await supabase
             .from("menu_item_recipe_lines")
             .delete()
@@ -207,11 +321,13 @@ Deno.serve(async (req) => {
             throw deleteError;
           }
           
+          // Update recipe timestamp
           await supabase
             .from("menu_item_recipes")
             .update({ updated_at: new Date().toISOString() })
             .eq("id", recipeId);
         } else {
+          // Create new recipe
           const { data: newRecipe, error: createError } = await supabase
             .from("menu_item_recipes")
             .insert({
@@ -230,69 +346,41 @@ Deno.serve(async (req) => {
           recipeId = newRecipe.id;
         }
 
-        const linesToInsert: any[] = [];
-        let lineErrors = false;
-
-        for (const row of menuItemRows) {
-          const invItemKey = row.inventory_item_name.toLowerCase().trim();
-          const invItemMatches = inventoryMap.get(invItemKey);
-          
-          if (!invItemMatches || invItemMatches.length === 0) {
-            errors.push({ code: "inventory_item_not_found", params: { invName: row.inventory_item_name, menuName: row.menu_item_name } });
-            lineErrors = true;
-            continue;
-          }
-          
-          if (invItemMatches.length > 1) {
-            errors.push({ code: "inventory_item_not_unique", params: { invName: row.inventory_item_name, menuName: row.menu_item_name } });
-            lineErrors = true;
-            continue;
-          }
-          
-          const invItem = invItemMatches[0];
-
-          const unitId = unitMap.get(row.unit.toLowerCase().trim());
-          if (!unitId) {
-            errors.push({ code: "unit_not_found", params: { unit: row.unit, menuName: row.menu_item_name } });
-            lineErrors = true;
-            continue;
-          }
-
-          const qtyInBase = unitId === invItem.base_unit_id ? row.quantity : row.quantity;
-
-          linesToInsert.push({
-            restaurant_id,
-            recipe_id: recipeId,
-            inventory_item_id: invItem.id,
-            qty: row.quantity,
-            unit_id: unitId,
-            qty_in_base: qtyInBase,
-          });
-        }
-
+        // Insert all recipe lines
         if (linesToInsert.length > 0) {
           const { error: linesError } = await supabase
             .from("menu_item_recipe_lines")
-            .insert(linesToInsert);
+            .insert(linesToInsert.map(line => ({
+              restaurant_id,
+              recipe_id: recipeId,
+              ...line,
+            })));
 
           if (linesError) {
             console.error(`Error inserting lines for ${menuItemNameKey}:`, linesError);
-            errors.push({ code: "recipe_lines_insert_failed", params: { name: originalMenuItemName } });
-            continue;
+            // Rollback: delete the recipe if lines failed
+            if (!existingRecipe) {
+              await supabase.from("menu_item_recipes").delete().eq("id", recipeId);
+            }
+            throw linesError;
           }
-
-          recipeLinesInserted += linesToInsert.length;
         }
 
-        if (!lineErrors) {
-          menuItemsUpdated++;
-        }
+        recipesCreated++;
       } catch (error) {
         console.error(`Error processing menu item ${menuItemNameKey}:`, error);
-        errors.push({ code: "recipe_process_failed", params: { name: originalMenuItemName } });
+        // Add a generic error for this menu item
+        errors.push({
+          menu_item_name: originalMenuItemName,
+          inventory_item_name: menuItemRows[0]?.inventory_item_name || "",
+          reason: "Failed to save recipe to database",
+          reason_code: "database_error",
+        });
+        recipesFailed++;
       }
     }
 
+    // Log audit entry
     await supabase.from("audit_logs").insert({
       restaurant_id,
       user_id: user.id,
@@ -301,19 +389,20 @@ Deno.serve(async (req) => {
       entity_id: null,
       details: {
         total_rows: rows.length,
-        menu_items_updated: menuItemsUpdated,
-        recipe_lines_inserted: recipeLinesInserted,
+        recipes_created: recipesCreated,
+        recipes_failed: recipesFailed,
         errors_count: errors.length,
       },
     });
 
-    console.log(`Import complete: ${menuItemsUpdated} menu items updated, ${recipeLinesInserted} lines inserted, ${errors.length} errors`);
+    console.log(`Import complete: ${recipesCreated} recipes created, ${recipesFailed} failed, ${errors.length} errors`);
 
     return new Response(
       JSON.stringify({
-        success: errors.length === 0,
-        menu_items_updated: menuItemsUpdated,
-        recipe_lines_inserted: recipeLinesInserted,
+        success: recipesFailed === 0,
+        recipes_created: recipesCreated,
+        recipes_failed: recipesFailed,
+        total_rows: rows.length,
         errors,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

@@ -43,6 +43,21 @@ interface ParsedRecipeRow {
   error?: string;
 }
 
+interface ImportError {
+  menu_item_name: string;
+  inventory_item_name: string;
+  reason: string;
+  reason_code: string;
+}
+
+interface ImportResult {
+  success: boolean;
+  recipes_created: number;
+  recipes_failed: number;
+  total_rows: number;
+  errors: ImportError[];
+}
+
 const REQUIRED_HEADERS = ["menu_item_name", "inventory_item_name", "quantity", "unit"];
 
 export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderProps) {
@@ -61,6 +76,8 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [parsedRows, setParsedRows] = useState<ParsedRecipeRow[]>([]);
   const [headerError, setHeaderError] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
@@ -80,6 +97,8 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
     setHeaderError(null);
     setParsedRows([]);
     setShowPreview(false);
+    setShowResult(false);
+    setImportResult(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -92,6 +111,8 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
     setHeaderError(null);
     setParsedRows([]);
     setShowPreview(false);
+    setShowResult(false);
+    setImportResult(null);
   };
 
   const parseCSV = (text: string): { headers: string[]; rows: string[][] } => {
@@ -204,7 +225,7 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
   };
 
   const handleImport = async () => {
-    if (!canImport || isImporting) return;
+    if (parsedRows.length === 0 || isImporting) return;
 
     setIsImporting(true);
 
@@ -214,7 +235,7 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
         throw new Error("Not authenticated");
       }
 
-      // Prepare rows for the edge function
+      // Send ALL rows to the backend - it will do the full validation
       const rowsToImport = parsedRows.filter(r => r.isValid).map(row => ({
         menu_item_name: row.menu_item_name,
         inventory_item_name: row.inventory_item_name,
@@ -233,29 +254,23 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
         throw new Error(response.error.message || t("csv_import_failed"));
       }
 
-      const result = response.data;
-
-      if (result.errors && result.errors.length > 0) {
-        // Show warning with errors but still success message
-        toast({
-          title: t("csv_import_partial_success"),
-          description: `${t("csv_menu_items_updated")}: ${result.menu_items_updated}, ${t("csv_recipe_lines_inserted")}: ${result.recipe_lines_inserted}. ${t("csv_errors")}: ${result.errors.length}`,
-          variant: "destructive",
-        });
-        console.error("Import errors:", result.errors);
-      } else {
-        toast({
-          title: t("csv_import_success"),
-          description: `${t("csv_menu_items_updated")}: ${result.menu_items_updated}, ${t("csv_recipe_lines_inserted")}: ${result.recipe_lines_inserted}`,
-        });
-      }
+      const result: ImportResult = response.data;
+      setImportResult(result);
+      setShowPreview(false);
+      setShowResult(true);
 
       // Invalidate recipes query to refresh data
       queryClient.invalidateQueries({ queryKey: ["recipes", restaurantId] });
       queryClient.invalidateQueries({ queryKey: ["recipe"] });
+      queryClient.invalidateQueries({ queryKey: ["all-recipes-menu-items", restaurantId] });
 
-      // Close modal
-      handleCloseImportModal();
+      // Only show toast for fully successful imports
+      if (result.success && result.recipes_created > 0) {
+        toast({
+          title: t("csv_import_success"),
+          description: `${t("recipes_created")}: ${result.recipes_created}`,
+        });
+      }
     } catch (error) {
       console.error("Import error:", error);
       toast({
@@ -270,7 +285,8 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
 
   const validRowsCount = parsedRows.filter(r => r.isValid).length;
   const invalidRowsCount = parsedRows.filter(r => !r.isValid).length;
-  const canImport = parsedRows.length > 0 && invalidRowsCount === 0;
+  // Allow import if there are valid rows (backend will do full validation)
+  const canImport = validRowsCount > 0;
 
   const { data: menuItems = [], isLoading: loadingMenuItems } = useAllMenuItems(restaurantId);
   const { data: inventoryItems = [], isLoading: loadingInventory } = useInventoryItems(restaurantId);
@@ -428,7 +444,103 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
             </DialogTitle>
           </DialogHeader>
 
-          {!showPreview ? (
+          {showResult && importResult ? (
+            // Result View - After Import
+            <div className="space-y-4 py-4">
+              {/* Success Summary */}
+              {importResult.recipes_created > 0 && (
+                <div className="p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                      <PartyPopper className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-green-800 dark:text-green-200">
+                        {t("recipes_created_successfully")}
+                      </p>
+                      <p className="text-sm text-green-600 dark:text-green-400">
+                        {importResult.recipes_created} {t("recipes")}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Failed Summary */}
+              {importResult.recipes_failed > 0 && (
+                <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-destructive/20 flex items-center justify-center">
+                      <XCircle className="h-5 w-5 text-destructive" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-destructive">
+                        {t("recipes_failed")}
+                      </p>
+                      <p className="text-sm text-destructive/80">
+                        {importResult.recipes_failed} {t("recipes")}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Stats */}
+              <div className="flex flex-wrap gap-4 p-3 bg-muted rounded-lg">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">{t("csv_total_rows")}:</span>
+                  <Badge variant="secondary">{importResult.total_rows}</Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">{t("recipes_created")}:</span>
+                  <Badge variant="default" className="bg-green-600">{importResult.recipes_created}</Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">{t("recipes_failed")}:</span>
+                  <Badge variant={importResult.recipes_failed > 0 ? "destructive" : "secondary"}>
+                    {importResult.recipes_failed}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Error Details */}
+              {importResult.errors.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-destructive flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    {t("import_errors")} ({importResult.errors.length})
+                  </h4>
+                  <ScrollArea className="h-[250px] border border-destructive/30 rounded-lg bg-destructive/5">
+                    <div className="p-3 space-y-2">
+                      {importResult.errors.map((error, idx) => (
+                        <div 
+                          key={idx} 
+                          className="p-3 bg-background border border-destructive/20 rounded-md text-sm"
+                        >
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{t("menu_item")}:</span>
+                              <span className="text-muted-foreground">{error.menu_item_name}</span>
+                            </div>
+                            {error.inventory_item_name && (
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{t("ingredient")}:</span>
+                                <span className="text-muted-foreground">{error.inventory_item_name}</span>
+                              </div>
+                            )}
+                            <div className="flex items-center gap-2 text-destructive">
+                              <span className="font-medium">{t("error")}:</span>
+                              <span>{t(`csv_error_${error.reason_code}`) || error.reason}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+              )}
+            </div>
+          ) : !showPreview ? (
             // File Upload View
             <div className="space-y-4 py-4">
               <div className="p-3 bg-muted rounded-lg">
@@ -485,9 +597,9 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
               </div>
 
               {invalidRowsCount > 0 && (
-                <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg flex items-center gap-2 text-destructive">
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg flex items-center gap-2 text-amber-700 dark:text-amber-400">
                   <AlertCircle className="h-5 w-5 shrink-0" />
-                  <span className="text-sm">{t("csv_fix_errors_before_import")}</span>
+                  <span className="text-sm">{t("csv_invalid_rows_warning")}</span>
                 </div>
               )}
 
@@ -534,7 +646,11 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
           )}
 
           <DialogFooter className="gap-2 sm:gap-0">
-            {showPreview ? (
+            {showResult ? (
+              <Button onClick={handleCloseImportModal}>
+                {t("close")}
+              </Button>
+            ) : showPreview ? (
               <>
                 <Button variant="outline" onClick={handleBackToUpload} className="gap-2">
                   <ArrowLeft className="h-4 w-4" />
@@ -551,7 +667,9 @@ export function RecipeBuilder({ restaurantId, currency = "JOD" }: RecipeBuilderP
                       {t("importing")}
                     </>
                   ) : (
-                    t("import")
+                    <>
+                      {t("import")} ({validRowsCount} {t("rows")})
+                    </>
                   )}
                 </Button>
               </>
