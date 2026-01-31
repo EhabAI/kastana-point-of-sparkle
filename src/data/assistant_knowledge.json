@@ -1,5 +1,5 @@
 {
-  "version": "2.4.0",
+  "version": "2.5.0",
   "lastUpdated": "2026-01-31",
   "fallbackResponses": {
     "ar": "أستطيع مساعدتك في نظام كاستنا POS. يرجى كتابة سؤالك بشكل واضح حول الطلبات، الدفع، المخزون، التقارير، أو أي ميزة أخرى في النظام.",
@@ -34,6 +34,54 @@
         ]
       },
       "overrides": "single_branch_behavior",
+      "affected_roles": ["owner"]
+    },
+    {
+      "id": "owner_training_flow_order",
+      "priority": "critical",
+      "title": {
+        "ar": "ترتيب تدريب صاحب المطعم",
+        "en": "Owner Training Flow Order"
+      },
+      "rules": {
+        "ar": [
+          "ترتيب خطوات التدريب: 1) الفروع (إلزامي - أول خطوة) 2) نظرة عامة 3) القائمة 4) الطاولات 5) الموظفين 6) الإعدادات 7) التقارير والتحليلات (آخر خطوة)",
+          "الفروع هي أول خطوة لأن جميع العمليات مرتبطة بالفرع المختار",
+          "التقارير والتحليلات تأتي في النهاية لأنها تعتمد على البيانات المسجلة أثناء العمل",
+          "إذا لم يكن هناك فرع محدد، لا يُسمح بالانتقال لأي خطوة أخرى"
+        ],
+        "en": [
+          "Training step order: 1) Branches (mandatory - first step) 2) Overview 3) Menu 4) Tables 5) Staff 6) Settings 7) Reports & Analytics (last step)",
+          "Branches come first because all operations are tied to the selected branch",
+          "Reports & Analytics come last because they depend on data recorded during operations",
+          "If no branch is selected, cannot proceed to any other step"
+        ]
+      },
+      "affected_roles": ["owner"]
+    },
+    {
+      "id": "owner_training_mode_behavior",
+      "priority": "high",
+      "title": {
+        "ar": "سلوك وضع التدريب",
+        "en": "Training Mode Behavior"
+      },
+      "rules": {
+        "ar": [
+          "أثناء التدريب، لا تظهر رسائل Toast التقنية مثل 'settings_saved' أو 'Payment methods updated'",
+          "الرسائل أثناء التدريب تكون ودية وتعليمية فقط",
+          "شرح التقارير والتحليلات لا يظهر إلا في آخر خطوة من التدريب",
+          "إذا لم يكن هناك فرع، يتوقف التدريب ويُطلب من المستخدم إنشاء فرع أولاً",
+          "لغة الشروحات تتبع لغة النظام (عربي = كاستنا، إنجليزي = Kastana)"
+        ],
+        "en": [
+          "During training, technical Toast messages like 'settings_saved' or 'Payment methods updated' are hidden",
+          "Messages during training are friendly and educational only",
+          "Reports & Analytics explanation only appears in the final training step",
+          "If no branch exists, training pauses and user is asked to create a branch first",
+          "Explanation language follows system language (Arabic = كاستنا, English = Kastana)"
+        ]
+      },
       "affected_roles": ["owner"]
     }
   ],
@@ -2213,6 +2261,72 @@
         "user_roles": ["owner"],
         "branch_scoped": true,
         "tags": ["training", "learning", "branch", "context"]
+      }
+    },
+    "owner_training_flow_structure": {
+      "id": "owner_training_flow_structure",
+      "intent": ["training_order", "training_steps", "training_flow"],
+      "keywords": {
+        "ar": ["ترتيب التدريب", "خطوات التدريب", "مسار التدريب", "مراحل التدريب", "التدريب الأساسي"],
+        "en": ["training order", "training steps", "training flow", "training stages", "basic training"]
+      },
+      "title": {
+        "ar": "مسار تدريب صاحب المطعم",
+        "en": "Owner Training Flow"
+      },
+      "content": {
+        "ar": "مسار تدريب صاحب المطعم:\n\n📋 ترتيب الخطوات:\n1️⃣ الفروع (إلزامي - أول خطوة)\n2️⃣ نظرة عامة على لوحة التحكم\n3️⃣ القائمة والأصناف\n4️⃣ الطاولات\n5️⃣ الموظفين\n6️⃣ الإعدادات\n7️⃣ التقارير والتحليلات (آخر خطوة)\n\n💡 لماذا الفروع أولاً؟\n• جميع العمليات مرتبطة بالفرع المختار\n• كل فرع له بياناته الخاصة\n• لا يمكن المتابعة بدون اختيار فرع\n\n📊 لماذا التقارير آخراً؟\n• التقارير تعتمد على البيانات المسجلة\n• في البداية قد ترى أرقاماً صفرية، وهذا طبيعي\n• بعد التشغيل الفعلي، ستمتلئ التقارير بالبيانات\n\n✅ نصائح:\n• أكمل جميع الخطوات بالترتيب\n• يمكنك إعادة التدريب في أي وقت\n• التدريب لا يؤثر على بياناتك",
+        "en": "Owner Training Flow:\n\n📋 Step Order:\n1️⃣ Branches (mandatory - first step)\n2️⃣ Dashboard Overview\n3️⃣ Menu and Items\n4️⃣ Tables\n5️⃣ Staff\n6️⃣ Settings\n7️⃣ Reports & Analytics (final step)\n\n💡 Why Branches First?\n• All operations are tied to the selected branch\n• Each branch has its own data\n• Cannot proceed without selecting a branch\n\n📊 Why Reports Last?\n• Reports depend on recorded data\n• At first, you may see zero numbers, which is normal\n• After actual operation, reports will fill with data\n\n✅ Tips:\n• Complete all steps in order\n• You can restart training anytime\n• Training does not affect your data"
+      },
+      "metadata": {
+        "feature_id": "training_flow",
+        "affected_screens": ["Owner"],
+        "user_roles": ["owner"],
+        "tags": ["training", "flow", "order", "steps"]
+      }
+    },
+    "reports_analytics_training": {
+      "id": "reports_analytics_training",
+      "intent": ["reports_training", "analytics_training", "reports_zero"],
+      "keywords": {
+        "ar": ["التقارير والتحليلات", "تقارير التدريب", "أرقام صفرية", "تقارير فارغة", "لماذا التقارير فارغة"],
+        "en": ["reports analytics", "reports training", "zero numbers", "empty reports", "why reports empty"]
+      },
+      "title": {
+        "ar": "التقارير والتحليلات في التدريب",
+        "en": "Reports & Analytics in Training"
+      },
+      "content": {
+        "ar": "📊 التقارير والتحليلات:\n\nهنا يمكنك متابعة أداء مطعمك واتخاذ قرارات أفضل.\n\n📋 ما يجب معرفته:\n• التقارير تعتمد على البيانات التي تم تسجيلها أثناء العمل\n• في البداية قد ترى أرقاماً صفرية، وهذا طبيعي تماماً\n• مع كل عملية بيع، تتحدث التقارير تلقائياً\n\n💡 لماذا تظهر التقارير في آخر التدريب؟\n• لأنها تعتمد على بيانات فعلية\n• حتى تفهم أولاً كيف تُنشأ هذه البيانات\n• القائمة والطلبات والدفع يغذون التقارير\n\n✅ ما يمكنك فعله:\n• مراجعة المبيعات اليومية\n• تحليل أداء الأصناف\n• متابعة أداء الموظفين\n• مقارنة الفترات الزمنية",
+        "en": "📊 Reports & Analytics:\n\nHere you can monitor your restaurant's performance and make better decisions.\n\n📋 What to know:\n• Reports depend on data recorded during operations\n• At first, you may see zero numbers, which is completely normal\n• With each sale, reports update automatically\n\n💡 Why Reports appear last in training?\n• Because they depend on actual data\n• So you first understand how this data is created\n• Menu, orders, and payments feed into reports\n\n✅ What you can do:\n• Review daily sales\n• Analyze item performance\n• Track staff performance\n• Compare time periods"
+      },
+      "metadata": {
+        "feature_id": "reports_training",
+        "affected_screens": ["Reports", "Owner"],
+        "user_roles": ["owner"],
+        "tags": ["reports", "analytics", "training", "zero"]
+      }
+    },
+    "training_mode_toast_behavior": {
+      "id": "training_mode_toast_behavior",
+      "intent": ["training_toast", "toast_hidden", "no_toast_training"],
+      "keywords": {
+        "ar": ["رسائل التدريب", "لماذا لا تظهر رسالة", "settings_saved", "رسائل النظام أثناء التدريب"],
+        "en": ["training messages", "why no message", "settings_saved", "system messages during training"]
+      },
+      "title": {
+        "ar": "الرسائل أثناء التدريب",
+        "en": "Messages During Training"
+      },
+      "content": {
+        "ar": "الرسائل أثناء التدريب:\n\n🎓 سلوك خاص أثناء التدريب:\n• لا تظهر رسائل Toast التقنية مثل 'settings_saved'\n• هذا مقصود لتحسين تجربة التعلم\n• التركيز يكون على الشرح والتوجيه فقط\n\n💡 لماذا؟\n• لتجنب تشتيت انتباهك\n• لجعل التدريب أكثر سلاسة\n• الرسائل التقنية ليست مهمة أثناء التعلم\n\n✅ بعد انتهاء التدريب:\n• ستظهر جميع الرسائل بشكل طبيعي\n• النظام يعمل كالمعتاد\n• لا يوجد أي تغيير في السلوك الفعلي",
+        "en": "Messages During Training:\n\n🎓 Special behavior during training:\n• Technical Toast messages like 'settings_saved' don't appear\n• This is intentional to improve learning experience\n• Focus is only on explanation and guidance\n\n💡 Why?\n• To avoid distracting you\n• To make training smoother\n• Technical messages are not important during learning\n\n✅ After training ends:\n• All messages will appear normally\n• System works as usual\n• No change in actual behavior"
+      },
+      "metadata": {
+        "feature_id": "training_toast",
+        "affected_screens": ["Owner"],
+        "user_roles": ["owner"],
+        "tags": ["training", "toast", "messages", "behavior"]
       }
     }
   }

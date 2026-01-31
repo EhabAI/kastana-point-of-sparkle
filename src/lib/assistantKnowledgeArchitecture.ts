@@ -252,6 +252,43 @@ export const SYSTEM_INVARIANTS: SystemInvariant[] = [
     category: "restaurant",
     severity: "blocking",
   },
+  // === TRAINING MODE INVARIANTS ===
+  {
+    id: "inv_training_branch_required",
+    rule: {
+      ar: "الفروع هي أول خطوة إلزامية في التدريب. لا يمكن المتابعة بدون اختيار فرع.",
+      en: "Branches is the first mandatory training step. Cannot proceed without selecting a branch.",
+    },
+    category: "restaurant",
+    severity: "blocking",
+  },
+  {
+    id: "inv_training_reports_last",
+    rule: {
+      ar: "شرح التقارير والتحليلات يظهر فقط في آخر خطوة من التدريب.",
+      en: "Reports & Analytics explanation only appears in the final training step.",
+    },
+    category: "restaurant",
+    severity: "warning",
+  },
+  {
+    id: "inv_training_no_technical_toasts",
+    rule: {
+      ar: "أثناء وضع التدريب، لا تظهر رسائل Toast التقنية (مثل settings_saved).",
+      en: "During training mode, technical Toast messages (like settings_saved) are hidden.",
+    },
+    category: "restaurant",
+    severity: "warning",
+  },
+  {
+    id: "inv_training_flow_order",
+    rule: {
+      ar: "ترتيب التدريب: الفروع ← نظرة عامة ← القائمة ← الطاولات ← الموظفين ← الإعدادات ← التقارير.",
+      en: "Training order: Branches → Overview → Menu → Tables → Staff → Settings → Reports.",
+    },
+    category: "restaurant",
+    severity: "blocking",
+  },
 ];
 
 // ============================================
