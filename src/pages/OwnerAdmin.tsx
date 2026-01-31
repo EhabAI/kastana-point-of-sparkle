@@ -230,6 +230,9 @@ export default function OwnerAdmin() {
 
         {/* Overview Tab - Compact vertical rhythm with reduced spacing */}
         <TabsContent value="overview" className="space-y-2 mt-1.5">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <BranchSelector />
+          </div>
           {/* Owner Notifications Card - Important notifications from System Admin */}
           {role === "owner" && <OwnerNotificationsCard />}
           {/* Owner Changes Banner - informational only */}
@@ -260,6 +263,9 @@ export default function OwnerAdmin() {
 
         {/* Analytics Tab */}
         <TabsContent value="analytics" className="space-y-6 mt-6">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <BranchSelector />
+          </div>
           {role === "owner" && <KitchenPerformance />}
           {role === "owner" && <AnalyticsCharts />}
           {role === "owner" && <BestWorstSellers />}
@@ -285,6 +291,9 @@ export default function OwnerAdmin() {
 
         {/* Management Tab */}
         <TabsContent value="management" className="space-y-6 mt-6">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <BranchSelector />
+          </div>
           {role === "owner" && <TableManagement restaurantId={restaurant.id} tableCount={tables.length} />}
           {role === "owner" && <StaffManagement restaurantId={restaurant.id} staffCount={cashiers.length} />}
         </TabsContent>
@@ -296,12 +305,18 @@ export default function OwnerAdmin() {
 
         {/* Inventory Tab */}
         <TabsContent value="inventory" className="space-y-6 mt-6">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <BranchSelector />
+          </div>
           {role === "owner" && inventoryEnabled && <InventoryDashboard restaurantId={restaurant.id} currency={currency} />}
           {role === "owner" && !inventoryEnabled && <InventoryDisabledCard />}
         </TabsContent>
 
         {/* Settings Tab */}
         <TabsContent value="settings" className="space-y-6 mt-6">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <BranchSelector />
+          </div>
           {role === "owner" && <RestaurantSettings />}
           {role === "owner" && <PaymentMethodsSettings restaurantId={restaurant.id} />}
           {role === "owner" && <DiscountSettings />}
