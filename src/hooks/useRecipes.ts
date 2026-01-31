@@ -1,10 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { parseEdgeFunctionError } from "@/lib/ownerErrorHandler";
 
 export interface Recipe {
   id: string;
   restaurant_id: string;
+  branch_id: string | null;
   menu_item_id: string;
   is_active: boolean;
   notes: string | null;
@@ -28,13 +31,16 @@ export interface RecipeWithLines extends Recipe {
   menu_item_name?: string;
 }
 
-export function useRecipes(restaurantId: string | undefined) {
+/**
+ * Fetch all recipes for a restaurant, optionally filtered by branch
+ */
+export function useRecipes(restaurantId: string | undefined, branchId?: string | undefined) {
   return useQuery({
-    queryKey: ["recipes", restaurantId],
+    queryKey: ["recipes", restaurantId, branchId],
     queryFn: async () => {
       if (!restaurantId) return [];
       
-      const { data, error } = await supabase
+      let query = supabase
         .from("menu_item_recipes")
         .select(`
           *,
@@ -42,6 +48,13 @@ export function useRecipes(restaurantId: string | undefined) {
         `)
         .eq("restaurant_id", restaurantId)
         .order("created_at", { ascending: false });
+
+      // If branchId is provided, filter by it
+      if (branchId) {
+        query = query.eq("branch_id", branchId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       
@@ -54,26 +67,37 @@ export function useRecipes(restaurantId: string | undefined) {
   });
 }
 
-export function useRecipeByMenuItem(restaurantId: string | undefined, menuItemId: string | undefined) {
+/**
+ * Fetch a specific recipe by menu item, scoped to branch
+ */
+export function useRecipeByMenuItem(
+  restaurantId: string | undefined, 
+  menuItemId: string | undefined,
+  branchId?: string | undefined
+) {
   return useQuery({
-    queryKey: ["recipe", restaurantId, menuItemId],
+    queryKey: ["recipe", restaurantId, branchId, menuItemId],
     queryFn: async () => {
       if (!restaurantId || !menuItemId) return null;
       
-      // First get the recipe
-      const { data: recipe, error: recipeError } = await supabase
+      // Build query - recipe lookup by (restaurant_id, branch_id, menu_item_id)
+      let query = supabase
         .from("menu_item_recipes")
         .select("*")
         .eq("restaurant_id", restaurantId)
-        .eq("menu_item_id", menuItemId)
-        .maybeSingle();
+        .eq("menu_item_id", menuItemId);
+
+      // If branchId is provided, filter by it for branch-specific recipes
+      if (branchId) {
+        query = query.eq("branch_id", branchId);
+      }
+
+      const { data: recipe, error: recipeError } = await query.maybeSingle();
 
       if (recipeError) throw recipeError;
       if (!recipe) return null;
 
       // Then get the lines
-      // NOTE: We intentionally don't join inventory_items/inventory_units here because
-      // this project may not have FK relationships defined for those joins.
       const { data: lines, error: linesError } = await supabase
         .from("menu_item_recipe_lines")
         .select("*")
@@ -104,6 +128,7 @@ export function useRecipeByMenuItem(restaurantId: string | undefined, menuItemId
 
 interface UpsertRecipeParams {
   restaurant_id: string;
+  branch_id: string;
   menu_item_id: string;
   lines: {
     inventory_item_id: string;
@@ -116,6 +141,7 @@ interface UpsertRecipeParams {
 
 export function useUpsertRecipe() {
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
 
   return useMutation({
     mutationFn: async (params: UpsertRecipeParams) => {
@@ -127,22 +153,31 @@ export function useUpsertRecipe() {
       });
 
       if (response.error) {
-        throw new Error(response.error.message || "Failed to save recipe");
+        // Try to parse bilingual error
+        const parsed = parseEdgeFunctionError(response.error, language as "ar" | "en");
+        throw new Error(parsed?.title || response.error.message || "Failed to save recipe");
+      }
+
+      // Check for API-level errors with bilingual messages
+      if (response.data && !response.data.success && response.data.message_en) {
+        const errorMsg = language === "ar" ? response.data.message_ar : response.data.message_en;
+        throw new Error(errorMsg);
       }
 
       return response.data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["recipes", variables.restaurant_id] });
-      queryClient.invalidateQueries({ queryKey: ["recipe", variables.restaurant_id, variables.menu_item_id] });
+      queryClient.invalidateQueries({ queryKey: ["recipe", variables.restaurant_id, variables.branch_id, variables.menu_item_id] });
+      queryClient.invalidateQueries({ queryKey: ["all-recipes-menu-items", variables.restaurant_id] });
       toast({
-        title: "Recipe saved",
-        description: "The recipe has been saved successfully.",
+        title: language === "ar" ? "تم حفظ الوصفة" : "Recipe saved",
+        description: language === "ar" ? "تم حفظ الوصفة بنجاح." : "The recipe has been saved successfully.",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: language === "ar" ? "خطأ" : "Error",
         description: error.message,
         variant: "destructive",
       });

@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { resolveOwnerRestaurantId } from "../_shared/owner-restaurant.ts";
 import { checkSubscriptionActive, subscriptionExpiredResponse } from "../_shared/subscription-guard.ts";
 
 const corsHeaders = {
@@ -10,6 +11,7 @@ type ErrorCode =
   | "missing_auth"
   | "invalid_token"
   | "not_authorized"
+  | "restaurant_mismatch"
   | "subscription_expired"
   | "inventory_disabled"
   | "missing_fields"
@@ -19,9 +21,31 @@ type ErrorCode =
   | "server_error"
   | "unexpected";
 
+// Bilingual error messages
+const ERROR_MESSAGES: Record<ErrorCode, { en: string; ar: string }> = {
+  missing_auth: { en: "Authentication required", ar: "المصادقة مطلوبة" },
+  invalid_token: { en: "Invalid authentication token", ar: "رمز المصادقة غير صالح" },
+  not_authorized: { en: "You are not authorized to perform this action", ar: "ليس لديك صلاحية لتنفيذ هذا الإجراء" },
+  restaurant_mismatch: { en: "Restaurant ownership verification failed", ar: "فشل التحقق من ملكية المطعم" },
+  subscription_expired: { en: "Your subscription has expired", ar: "انتهى اشتراكك" },
+  inventory_disabled: { en: "Inventory module is disabled", ar: "وحدة المخزون معطلة" },
+  missing_fields: { en: "Required fields are missing", ar: "بعض الحقول المطلوبة غير موجودة" },
+  invalid_branch: { en: "Branch does not belong to this restaurant", ar: "الفرع لا ينتمي لهذا المطعم" },
+  invalid_supplier: { en: "Supplier not found", ar: "المورد غير موجود" },
+  invalid_item: { en: "One or more inventory items are invalid", ar: "عنصر أو أكثر من المخزون غير صالح" },
+  server_error: { en: "Server error, please try again", ar: "خطأ في الخادم، يرجى المحاولة مجددًا" },
+  unexpected: { en: "An unexpected error occurred", ar: "حدث خطأ غير متوقع" },
+};
+
 function errorResponse(code: ErrorCode, status = 400) {
+  const messages = ERROR_MESSAGES[code];
   return new Response(
-    JSON.stringify({ success: false, error: { code } }),
+    JSON.stringify({ 
+      success: false, 
+      error: { code },
+      message_en: messages.en,
+      message_ar: messages.ar,
+    }),
     { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
   );
 }
@@ -42,6 +66,7 @@ interface AvgCostUpdate {
 }
 
 interface ReceiptRequest {
+  restaurant_id?: string;
   branchId: string;
   supplierId?: string;
   receiptNo: string;
@@ -89,9 +114,29 @@ Deno.serve(async (req) => {
       return errorResponse("not_authorized", 403);
     }
 
-    const restaurantId = roleData.restaurant_id;
+    const body: ReceiptRequest = await req.json();
+    const { restaurant_id: requestedRestaurantId, branchId, supplierId, receiptNo, receivedAt, notes, lines } = body;
 
-    const { isActive: subscriptionActive } = await checkSubscriptionActive(restaurantId);
+    // Resolve restaurant ID - for owners use multi-restaurant logic, for cashiers use role data
+    let resolvedRestaurantId: string;
+    
+    if (roleData.role === "owner") {
+      const { restaurantId: resolvedId, error: resolveError } = await resolveOwnerRestaurantId({
+        supabaseAdmin: supabase,
+        userId: user.id,
+        requestedRestaurantId: requestedRestaurantId || undefined,
+      });
+
+      if (resolveError || !resolvedId) {
+        console.log("[purchase-receipt-post] Restaurant resolution error:", resolveError);
+        return errorResponse("restaurant_mismatch", 403);
+      }
+      resolvedRestaurantId = resolvedId;
+    } else {
+      resolvedRestaurantId = roleData.restaurant_id;
+    }
+
+    const { isActive: subscriptionActive } = await checkSubscriptionActive(resolvedRestaurantId);
     if (!subscriptionActive) {
       console.error("[purchase-receipt-post] Restaurant subscription expired");
       return subscriptionExpiredResponse(corsHeaders);
@@ -100,7 +145,7 @@ Deno.serve(async (req) => {
     const { data: settings, error: settingsError } = await supabase
       .from("restaurant_settings")
       .select("inventory_enabled")
-      .eq("restaurant_id", restaurantId)
+      .eq("restaurant_id", resolvedRestaurantId)
       .maybeSingle();
 
     if (settingsError) {
@@ -109,12 +154,9 @@ Deno.serve(async (req) => {
     }
 
     if (!settings?.inventory_enabled) {
-      console.warn("[purchase-receipt-post] Inventory module disabled for restaurant:", restaurantId);
+      console.warn("[purchase-receipt-post] Inventory module disabled for restaurant:", resolvedRestaurantId);
       return errorResponse("inventory_disabled", 403);
     }
-
-    const body: ReceiptRequest = await req.json();
-    const { branchId, supplierId, receiptNo, receivedAt, notes, lines } = body;
 
     if (!branchId || !receiptNo || !lines || lines.length === 0) {
       return errorResponse("missing_fields", 400);
@@ -124,7 +166,7 @@ Deno.serve(async (req) => {
       .from("restaurant_branches")
       .select("id")
       .eq("id", branchId)
-      .eq("restaurant_id", restaurantId)
+      .eq("restaurant_id", resolvedRestaurantId)
       .single();
 
     if (branchError || !branch) {
@@ -136,7 +178,7 @@ Deno.serve(async (req) => {
         .from("suppliers")
         .select("id")
         .eq("id", supplierId)
-        .eq("restaurant_id", restaurantId)
+        .eq("restaurant_id", resolvedRestaurantId)
         .single();
 
       if (supplierError || !supplier) {
@@ -150,7 +192,7 @@ Deno.serve(async (req) => {
       .select("id, base_unit_id, name, avg_cost")
       .in("id", itemIds)
       .eq("branch_id", branchId)
-      .eq("restaurant_id", restaurantId);
+      .eq("restaurant_id", resolvedRestaurantId);
 
     if (itemsError || !items || items.length !== itemIds.length) {
       return errorResponse("invalid_item", 400);
@@ -161,7 +203,7 @@ Deno.serve(async (req) => {
     const { data: conversions } = await supabase
       .from("inventory_unit_conversions")
       .select("from_unit_id, to_unit_id, multiplier")
-      .eq("restaurant_id", restaurantId);
+      .eq("restaurant_id", resolvedRestaurantId);
 
     const conversionMap = new Map<string, number>();
     conversions?.forEach((c) => {
@@ -171,7 +213,7 @@ Deno.serve(async (req) => {
     const { data: receipt, error: receiptError } = await supabase
       .from("purchase_receipts")
       .insert({
-        restaurant_id: restaurantId,
+        restaurant_id: resolvedRestaurantId,
         branch_id: branchId,
         supplier_id: supplierId || null,
         receipt_no: receiptNo,
@@ -221,7 +263,7 @@ Deno.serve(async (req) => {
       });
 
       transactions.push({
-        restaurant_id: restaurantId,
+        restaurant_id: resolvedRestaurantId,
         branch_id: branchId,
         item_id: line.itemId,
         txn_type: "PURCHASE_RECEIPT",
@@ -280,7 +322,7 @@ Deno.serve(async (req) => {
         .from("inventory_stock_levels")
         .upsert(
           {
-            restaurant_id: restaurantId,
+            restaurant_id: resolvedRestaurantId,
             branch_id: branchId,
             item_id: update.itemId,
             on_hand_base: newOnHand,
@@ -313,7 +355,7 @@ Deno.serve(async (req) => {
 
     await supabase.from("audit_logs").insert({
       user_id: user.id,
-      restaurant_id: restaurantId,
+      restaurant_id: resolvedRestaurantId,
       entity_type: "purchase_receipt",
       entity_id: receipt.id,
       action: "PURCHASE_RECEIPT_POSTED",
@@ -334,6 +376,8 @@ Deno.serve(async (req) => {
         receipt,
         lineCount: receiptLines.length,
         transactionCount: transactions.length,
+        message_en: `Purchase receipt ${receiptNo} posted successfully`,
+        message_ar: `تم تسجيل فاتورة الشراء ${receiptNo} بنجاح`,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
