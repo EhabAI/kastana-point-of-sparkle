@@ -135,6 +135,12 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Validate branch selection
+    if (!effectiveMenuBranchId) {
+      setMenuResult({ success: false, message: t("select_branch_first") || 'Please select a branch first' });
+      return;
+    }
+
     setMenuFileName(file.name);
     setMenuUploading(true);
     setMenuResult(null);
@@ -181,6 +187,7 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
       let categoriesCreated = 0;
       let itemsCreated = 0;
       let itemsUpdated = 0;
+      let branchLinksCreated = 0;
 
       // Process categories (sorted alphabetically, offers excluded from this upload)
       const sortedCategories = Array.from(itemsByCategory.keys())
@@ -251,10 +258,34 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
               .eq('id', existingItemId);
 
             if (updateError) throw updateError;
+            
+            // Ensure branch_menu_items entry exists for this branch
+            const { data: existingBranchLink } = await supabase
+              .from('branch_menu_items')
+              .select('id')
+              .eq('branch_id', effectiveMenuBranchId)
+              .eq('menu_item_id', existingItemId)
+              .maybeSingle();
+
+            if (!existingBranchLink) {
+              const { error: branchLinkError } = await supabase
+                .from('branch_menu_items')
+                .insert({
+                  branch_id: effectiveMenuBranchId,
+                  menu_item_id: existingItemId,
+                  is_active: true,
+                  is_available: true,
+                  price: price,
+                  sort_order: itemIndex,
+                });
+              if (branchLinkError) throw branchLinkError;
+              branchLinksCreated++;
+            }
+            
             itemsUpdated++;
           } else {
             // Create new item
-            const { error: insertError } = await supabase
+            const { data: newItem, error: insertError } = await supabase
               .from('menu_items')
               .insert({
                 category_id: categoryId,
@@ -264,9 +295,26 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
                 is_available: true,
                 is_offer: false,
                 sort_order: itemIndex,
-              });
+              })
+              .select('id')
+              .single();
 
             if (insertError) throw insertError;
+            
+            // Create branch_menu_items entry for the selected branch
+            const { error: branchLinkError } = await supabase
+              .from('branch_menu_items')
+              .insert({
+                branch_id: effectiveMenuBranchId,
+                menu_item_id: newItem.id,
+                is_active: true,
+                is_available: true,
+                price: price,
+                sort_order: itemIndex,
+              });
+            if (branchLinkError) throw branchLinkError;
+            
+            branchLinksCreated++;
             itemsCreated++;
           }
         }
@@ -274,7 +322,7 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
 
       setMenuResult({
         success: true,
-        message: `Successfully processed: ${categoriesCreated} categories created, ${itemsCreated} items created, ${itemsUpdated} items updated`,
+        message: `Successfully processed: ${categoriesCreated} categories created, ${itemsCreated} items created, ${itemsUpdated} items updated, ${branchLinksCreated} branch links created`,
       });
 
       refreshData();
@@ -297,6 +345,12 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
   const handleOffersUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    // Validate branch selection
+    if (!effectiveOffersBranchId) {
+      setOffersResult({ success: false, message: t("select_branch_first") || 'Please select a branch first' });
+      return;
+    }
 
     setOffersFileName(file.name);
     setOffersUploading(true);
@@ -368,6 +422,7 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
 
       let itemsCreated = 0;
       let itemsUpdated = 0;
+      let branchLinksCreated = 0;
 
       // Sort offers alphabetically
       const sortedOffers = rows.sort((a, b) => a.item_en.localeCompare(b.item_en));
@@ -394,10 +449,34 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
             .eq('id', existingItemId);
 
           if (updateError) throw updateError;
+          
+          // Ensure branch_menu_items entry exists for this branch
+          const { data: existingBranchLink } = await supabase
+            .from('branch_menu_items')
+            .select('id')
+            .eq('branch_id', effectiveOffersBranchId)
+            .eq('menu_item_id', existingItemId)
+            .maybeSingle();
+
+          if (!existingBranchLink) {
+            const { error: branchLinkError } = await supabase
+              .from('branch_menu_items')
+              .insert({
+                branch_id: effectiveOffersBranchId,
+                menu_item_id: existingItemId,
+                is_active: true,
+                is_available: true,
+                price: price,
+                sort_order: i,
+              });
+            if (branchLinkError) throw branchLinkError;
+            branchLinksCreated++;
+          }
+          
           itemsUpdated++;
         } else {
           // Create new offer
-          const { error: insertError } = await supabase
+          const { data: newItem, error: insertError } = await supabase
             .from('menu_items')
             .insert({
               category_id: offersCategoryId,
@@ -407,16 +486,33 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
               is_available: true,
               is_offer: true,
               sort_order: i,
-            });
+            })
+            .select('id')
+            .single();
 
           if (insertError) throw insertError;
+          
+          // Create branch_menu_items entry for the selected branch
+          const { error: branchLinkError } = await supabase
+            .from('branch_menu_items')
+            .insert({
+              branch_id: effectiveOffersBranchId,
+              menu_item_id: newItem.id,
+              is_active: true,
+              is_available: true,
+              price: price,
+              sort_order: i,
+            });
+          if (branchLinkError) throw branchLinkError;
+          
+          branchLinksCreated++;
           itemsCreated++;
         }
       }
 
       setOffersResult({
         success: true,
-        message: `Successfully processed: ${itemsCreated} offers created, ${itemsUpdated} offers updated`,
+        message: `Successfully processed: ${itemsCreated} offers created, ${itemsUpdated} offers updated, ${branchLinksCreated} branch links created`,
       });
 
       refreshData();
