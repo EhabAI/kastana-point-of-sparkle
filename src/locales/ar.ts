@@ -200,6 +200,7 @@ export default {
   inv_txn_transfer: "تحويل مخزون",
   inv_txn_stock_count_adjustment: "تعديل جرد",
   inv_txn_initial_stock: "مخزون ابتدائي",
+  inv_txn_initial_stock_import: "استيراد CSV",
   inv_txn_sale: "بيع",
   inv_txn_unknown: "عملية مخزون",
 

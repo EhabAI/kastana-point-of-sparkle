@@ -200,6 +200,7 @@ export default {
   inv_txn_transfer: "Stock Transfer",
   inv_txn_stock_count_adjustment: "Count Adj.",
   inv_txn_initial_stock: "Initial Stock",
+  inv_txn_initial_stock_import: "CSV Import",
   inv_txn_sale: "Sale",
   inv_txn_unknown: "Inventory Transaction",
 
