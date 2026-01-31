@@ -437,13 +437,13 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
     },
 
     // ============================================
-    // STAGE 8 - Branches (90% → 95%)
+    // STAGE 8 - Branches (90% → 93%)
     // ============================================
     {
       id: "gs_branches_intro",
       trackId: "getting_started",
       progressStart: 90,
-      progressEnd: 92,
+      progressEnd: 91,
       message: {
         ar: "إذا كان لديك أكثر من فرع، يمكنك إدارتهم بسهولة 🏢",
         en: "If you have multiple branches, you can manage them easily 🏢"
@@ -455,8 +455,8 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
     {
       id: "gs_branches_explain",
       trackId: "getting_started",
-      progressStart: 92,
-      progressEnd: 94,
+      progressStart: 91,
+      progressEnd: 93,
       message: {
         ar: "• كل فرع مستقل تشغيليًا\n• التقارير منفصلة\n• التحكم مركزي",
         en: "• Each branch operates independently\n• Reports are separate\n• Control is centralized"
@@ -466,44 +466,36 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
         { id: "skip_branches", label: { ar: "تخطي الآن", en: "Skip for now" }, type: "next" }
       ]
     },
+
+    // ============================================
+    // STAGE 9 - Reports & Analytics (93% → 98%) - FINAL STEP
+    // ============================================
     {
-      id: "gs_branches_complete",
+      id: "gs_reports_intro",
       trackId: "getting_started",
-      progressStart: 94,
-      progressEnd: 95,
+      progressStart: 93,
+      progressEnd: 98,
       message: {
-        ar: "ممتاز! 👍\n\nيمكنك إضافة فروع جديدة في أي وقت.",
-        en: "Excellent! 👍\n\nYou can add new branches anytime."
+        ar: "📊 التقارير والتحليلات\n\nهنا يمكنك متابعة أداء مطعمك واتخاذ قرارات أفضل.\n\nالتقارير تعتمد على البيانات التي تم تسجيلها أثناء العمل.\nفي البداية قد ترى أرقامًا صفرية، وهذا طبيعي.",
+        en: "📊 Reports & Analytics\n\nHere you can monitor your restaurant's performance and make better decisions.\n\nReports depend on data recorded during operations.\nAt first, you may see zero numbers, which is normal."
       },
       actions: [
-        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+        { id: "go_reports", label: { ar: "الانتقال إلى التقارير", en: "Go to Reports" }, type: "navigate", navigateTo: "reports" },
+        { id: "finish", label: { ar: "إنهاء التدريب", en: "End Training" }, type: "finish_track" }
       ]
     },
 
     // ============================================
-    // STAGE 9 - Final (95% → 100%)
+    // STAGE 10 - Congratulations (98% → 100%)
     // ============================================
-    {
-      id: "gs_final_intro",
-      trackId: "getting_started",
-      progressStart: 95,
-      progressEnd: 98,
-      message: {
-        ar: "تم إكمال تدريب صاحب المطعم بنجاح ✅\n\nأنت الآن جاهز لتشغيل مطعمك على كاستنا بثقة.",
-        en: "Owner training completed successfully ✅\n\nYou are now ready to run your restaurant on Kastana with confidence."
-      },
-      actions: [
-        { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
-      ]
-    },
     {
       id: "gs_complete",
       trackId: "getting_started",
       progressStart: 98,
       progressEnd: 100,
       message: {
-        ar: "يمكنك دائمًا العودة إلى المدرب الذكي لشرح أي شاشة.\n\n🎉 حظاً موفقاً!",
-        en: "You can always return to the Smart Trainer for explanations.\n\n🎉 Good luck!"
+        ar: "🎉 تهانينا! أنهيت تدريب كاستنا بنجاح\n\nأنت الآن جاهز لتشغيل مطعمك على كاستنا بثقة.\n\nيمكنك دائمًا العودة إلى المدرب الذكي لشرح أي شاشة.",
+        en: "🎉 Congratulations! You have successfully completed Kastana training\n\nYou are now ready to run your restaurant on Kastana with confidence.\n\nYou can always return to the Smart Trainer for explanations."
       },
       actions: [
         { id: "finish", label: { ar: "إنهاء التدريب", en: "Finish Training" }, type: "finish_track" }
@@ -511,8 +503,8 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
     }
   ],
   completionMessage: {
-    ar: "تم إكمال تدريب صاحب المطعم بنجاح ✅",
-    en: "Owner training completed successfully ✅"
+    ar: "🎉 تهانينا! أنهيت تدريب كاستنا بنجاح",
+    en: "🎉 Congratulations! You have successfully completed Kastana training"
   }
 };
 
