@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from "@/contexts/LanguageContext";
+import { resolveMessage, resolveErrorMessage } from "@/lib/messageResolver";
 
 export interface KitchenStaff {
   id: string;
@@ -58,6 +60,7 @@ export function useKitchenStaff(restaurantId: string | undefined) {
 export function useAddKitchenStaff() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { language } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ 
@@ -110,15 +113,11 @@ export function useAddKitchenStaff() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['kitchen-staff', variables.restaurantId] });
-      toast({ title: 'Kitchen staff created successfully' });
+      toast({ title: resolveMessage("kitchen_staff_created", language) });
     },
     onError: (error: Error) => {
-      const message = error.message.includes('already registered')
-        ? 'This email is already registered'
-        : error.message.includes('KDS must be enabled')
-        ? 'KDS must be enabled to create kitchen staff'
-        : error.message;
-      toast({ title: 'Error creating kitchen staff', description: message, variant: 'destructive' });
+      const msg = resolveErrorMessage(error, language, "kitchen_staff_create_error");
+      toast({ title: msg.title, description: msg.description, variant: 'destructive' });
     },
   });
 }
@@ -126,6 +125,7 @@ export function useAddKitchenStaff() {
 export function useUpdateKitchenStaffStatus() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { language } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ 
@@ -163,10 +163,12 @@ export function useUpdateKitchenStaffStatus() {
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['kitchen-staff', variables.restaurantId] });
-      toast({ title: data.isActive ? 'Kitchen staff activated' : 'Kitchen staff deactivated' });
+      const messageKey = data.isActive ? "kitchen_staff_activated" : "kitchen_staff_deactivated";
+      toast({ title: resolveMessage(messageKey, language) });
     },
     onError: (error: Error) => {
-      toast({ title: 'Error updating kitchen staff status', description: error.message, variant: 'destructive' });
+      const msg = resolveErrorMessage(error, language, "kitchen_staff_status_error");
+      toast({ title: msg.title, description: msg.description, variant: 'destructive' });
     },
   });
 }

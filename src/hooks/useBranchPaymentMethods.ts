@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { resolveMessage, resolveErrorMessage } from "@/lib/messageResolver";
 
 export interface BranchPaymentMethods {
   id: string;
@@ -36,6 +38,7 @@ export function useBranchPaymentMethods(branchId: string | undefined) {
 export function useUpdateBranchPaymentMethods() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { language } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -72,10 +75,11 @@ export function useUpdateBranchPaymentMethods() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["branch-payment-methods", data.branch_id] });
-      toast({ title: "Payment methods updated" });
+      toast({ title: resolveMessage("payment_methods_updated", language) });
     },
     onError: (error: Error) => {
-      toast({ title: "Failed to update payment methods", description: error.message, variant: "destructive" });
+      const msg = resolveErrorMessage(error, language, "payment_methods_update_error");
+      toast({ title: msg.title, description: msg.description, variant: "destructive" });
     },
   });
 }

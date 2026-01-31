@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from "@/contexts/LanguageContext";
+import { resolveMessage, resolveErrorMessage } from "@/lib/messageResolver";
 
 export interface RestaurantSubscription {
   restaurant_id: string;
@@ -64,6 +66,7 @@ export function useExpiringSubscriptions() {
 export function useCreateRestaurantWithSubscription() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { language } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -100,10 +103,11 @@ export function useCreateRestaurantWithSubscription() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['restaurants'] });
       queryClient.invalidateQueries({ queryKey: ['restaurant-subscriptions'] });
-      toast({ title: 'Restaurant created with subscription' });
+      toast({ title: resolveMessage("restaurant_with_subscription_created", language) });
     },
     onError: (error: Error) => {
-      toast({ title: 'Error creating restaurant', description: error.message, variant: 'destructive' });
+      const msg = resolveErrorMessage(error, language, "restaurant_create_error");
+      toast({ title: msg.title, description: msg.description, variant: 'destructive' });
     },
   });
 }
@@ -114,6 +118,7 @@ export function useCreateRestaurantWithSubscription() {
 export function useRenewSubscription() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { language } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -153,10 +158,11 @@ export function useRenewSubscription() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['restaurants'] });
       queryClient.invalidateQueries({ queryKey: ['restaurant-subscriptions'] });
-      toast({ title: 'Subscription renewed successfully' });
+      toast({ title: resolveMessage("subscription_renewed", language) });
     },
     onError: (error: Error) => {
-      toast({ title: 'Error renewing subscription', description: error.message, variant: 'destructive' });
+      const msg = resolveErrorMessage(error, language, "subscription_renew_error");
+      toast({ title: msg.title, description: msg.description, variant: 'destructive' });
     },
   });
 }

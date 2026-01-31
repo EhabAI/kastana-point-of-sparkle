@@ -4,6 +4,7 @@ import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOwnerErrorMessage } from "@/lib/ownerErrorHandler";
+import { resolveMessage } from "@/lib/messageResolver";
 import { Json } from "@/integrations/supabase/types";
 
 export interface DayHours {
@@ -76,7 +77,7 @@ export function useUpdateOwnerRestaurantSettings() {
   const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   return useMutation({
     mutationFn: async (updates: {
@@ -119,7 +120,7 @@ export function useUpdateOwnerRestaurantSettings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["owner-restaurant-settings"] });
-      toast({ title: t("settings_saved") || "Settings saved successfully" });
+      toast({ title: resolveMessage("settings_saved", language) });
     },
     onError: (error) => {
       const msg = getOwnerErrorMessage(error, t);

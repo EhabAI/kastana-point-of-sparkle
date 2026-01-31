@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOwnerErrorMessage } from "@/lib/ownerErrorHandler";
+import { resolveMessage } from "@/lib/messageResolver";
 
 export interface Branch {
   id: string;
@@ -60,7 +61,7 @@ export function useDefaultBranch(restaurantId: string | undefined) {
 export function useCreateBranch() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   return useMutation({
     mutationFn: async (data: {
@@ -81,7 +82,7 @@ export function useCreateBranch() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["branches", data.restaurant_id] });
-      toast({ title: t("branch_created") || "Branch created successfully" });
+      toast({ title: resolveMessage("branch_created", language) });
     },
     onError: (error) => {
       const msg = getOwnerErrorMessage(error, t);
@@ -93,7 +94,7 @@ export function useCreateBranch() {
 export function useUpdateBranch() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ id, ...data }: Partial<Branch> & { id: string }) => {
@@ -109,7 +110,7 @@ export function useUpdateBranch() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["branches", data.restaurant_id] });
-      toast({ title: t("branch_updated") || "Branch updated successfully" });
+      toast({ title: resolveMessage("branch_updated", language) });
     },
     onError: (error) => {
       const msg = getOwnerErrorMessage(error, t);
@@ -121,7 +122,7 @@ export function useUpdateBranch() {
 export function useDeleteBranch() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ branchId, restaurantId }: { branchId: string; restaurantId: string }) => {
@@ -162,7 +163,7 @@ export function useDeleteBranch() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["branches", data.restaurantId] });
-      toast({ title: t("branch_deleted") || "Branch deleted successfully" });
+      toast({ title: resolveMessage("branch_deleted", language) });
     },
     onError: (error: Error) => {
       // Return specific error message for UI to handle (ACTIVE_CASHIERS / OPEN_SHIFTS)

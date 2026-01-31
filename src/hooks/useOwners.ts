@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from "@/contexts/LanguageContext";
+import { resolveMessage, resolveErrorMessage } from "@/lib/messageResolver";
 
 export interface Owner {
   id: string;
@@ -48,6 +50,7 @@ export function useOwners() {
 export function useCreateOwner() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { language } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ email, password, username }: { email: string; password: string; username: string }) => {
@@ -86,13 +89,11 @@ export function useCreateOwner() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['owners'] });
-      toast({ title: 'Owner created successfully' });
+      toast({ title: resolveMessage("owner_created", language) });
     },
     onError: (error: Error) => {
-      const message = error.message.includes('already registered')
-        ? 'This email is already registered'
-        : error.message;
-      toast({ title: 'Error creating owner', description: message, variant: 'destructive' });
+      const msg = resolveErrorMessage(error, language, "owner_create_error");
+      toast({ title: msg.title, description: msg.description, variant: 'destructive' });
     },
   });
 }
