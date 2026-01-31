@@ -12,7 +12,7 @@ interface CSVImportRow {
   name: string;
   category?: string;
   baseUnit: string;
-  branchName: string;
+  branchName?: string; // Optional - ignored, we use branch_id from context
   quantity: number;
   minLevel?: number;
   reorderPoint?: number;
@@ -25,19 +25,31 @@ interface ImportResult {
   stockEntriesCreated: number;
   stockEntriesSkipped: number;
   errors: string[];
+  message_en?: string;
+  message_ar?: string;
 }
 
-// Default units to auto-create if missing
+// Default units to auto-create if missing (case-insensitive matching)
 const DEFAULT_UNITS: Record<string, string> = {
   pcs: "pcs",
+  piece: "pcs",
+  pieces: "pcs",
   kg: "kg",
+  kilogram: "kg",
   g: "g",
+  gram: "g",
+  grams: "g",
   liter: "L",
+  litre: "L",
+  l: "L",
   ml: "ml",
+  milliliter: "ml",
   bottle: "btl",
+  btl: "btl",
   can: "can",
   cup: "cup",
   pack: "pk",
+  pk: "pk",
   box: "box",
 };
 
@@ -53,7 +65,12 @@ Deno.serve(async (req) => {
 
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ success: false, error: "missing_auth" }),
+        JSON.stringify({ 
+          success: false, 
+          error: { code: "missing_auth" },
+          message_en: "Authentication required",
+          message_ar: "المصادقة مطلوبة",
+        }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -66,20 +83,27 @@ Deno.serve(async (req) => {
     const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
     if (authError || !user) {
       return new Response(
-        JSON.stringify({ success: false, error: "invalid_token" }),
+        JSON.stringify({ 
+          success: false, 
+          error: { code: "invalid_token" },
+          message_en: "Session expired, please login again",
+          message_ar: "انتهت الجلسة، يرجى تسجيل الدخول مجددًا",
+        }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     // Parse request body early so we can resolve the intended restaurant context.
-    // Client is expected to pass `restaurant_id` and `branch_id` for Owner operations.
     const body = await req.json().catch(() => ({}));
     const rows: CSVImportRow[] = body.rows || [];
     const requestedRestaurantId: string | null = body.restaurant_id || null;
     const requestedBranchId: string | null = body.branch_id || null;
 
     // Validate Owner context - both restaurant_id and branch_id are required
-    const contextValidation = validateOwnerContext(body);
+    const contextValidation = validateOwnerContext({ 
+      restaurant_id: requestedRestaurantId, 
+      branch_id: requestedBranchId 
+    });
     if (!contextValidation.isValid) {
       console.error("[inventory-csv-import] Context validation failed:", contextValidation.error);
       return createContextErrorResponse(contextValidation, corsHeaders);
@@ -96,7 +120,12 @@ Deno.serve(async (req) => {
     if (!restaurantId) {
       const code = restaurantResolveError || "not_authorized";
       return new Response(
-        JSON.stringify({ success: false, error: code }),
+        JSON.stringify({ 
+          success: false, 
+          error: { code },
+          message_en: "You are not authorized to access this restaurant",
+          message_ar: "ليس لديك صلاحية للوصول إلى هذا المطعم",
+        }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -104,7 +133,7 @@ Deno.serve(async (req) => {
     // Validate that the requested branch belongs to the restaurant
     const { data: branchData, error: branchError } = await supabase
       .from("restaurant_branches")
-      .select("id")
+      .select("id, name")
       .eq("id", requestedBranchId!)
       .eq("restaurant_id", restaurantId)
       .maybeSingle();
@@ -114,7 +143,7 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "invalid_branch",
+          error: { code: "invalid_branch" },
           message_en: "Branch does not belong to this restaurant",
           message_ar: "الفرع لا ينتمي لهذا المطعم",
         }),
@@ -122,7 +151,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check subscription ONCE at the beginning
+    const branchId = branchData.id;
+
+    // Check subscription ONCE at the beginning using resolved restaurant ID
     const { isActive: subscriptionActive } = await checkSubscriptionActive(restaurantId);
     if (!subscriptionActive) {
       return subscriptionExpiredResponse(corsHeaders);
@@ -137,26 +168,31 @@ Deno.serve(async (req) => {
 
     if (!settings?.inventory_enabled) {
       return new Response(
-        JSON.stringify({ success: false, error: "inventory_disabled" }),
+        JSON.stringify({ 
+          success: false, 
+          error: { code: "inventory_disabled" },
+          message_en: "Inventory module is disabled",
+          message_ar: "وحدة المخزون معطلة",
+        }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     if (!rows.length) {
       return new Response(
-        JSON.stringify({ success: true, itemsCreated: 0, unitsCreated: 0, stockEntriesCreated: 0, stockEntriesSkipped: 0, errors: [] }),
+        JSON.stringify({ 
+          success: true, 
+          itemsCreated: 0, 
+          unitsCreated: 0, 
+          stockEntriesCreated: 0, 
+          stockEntriesSkipped: 0, 
+          errors: [],
+          message_en: "No items to import",
+          message_ar: "لا توجد أصناف للاستيراد",
+        }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    // Load all branches for this restaurant
-    const { data: branches } = await supabase
-      .from("restaurant_branches")
-      .select("id, name")
-      .eq("restaurant_id", restaurantId);
-
-    const branchMap = new Map<string, string>();
-    (branches || []).forEach((b) => branchMap.set(b.name.toLowerCase(), b.id));
 
     // Load existing units
     const { data: existingUnits } = await supabase
@@ -167,16 +203,17 @@ Deno.serve(async (req) => {
     const unitMap = new Map<string, string>();
     (existingUnits || []).forEach((u) => unitMap.set(u.name.toLowerCase(), u.id));
 
-    // Load existing inventory items
+    // Load existing inventory items for THIS BRANCH
     const { data: existingItems } = await supabase
       .from("inventory_items")
       .select("id, name, branch_id, base_unit_id")
-      .eq("restaurant_id", restaurantId);
+      .eq("restaurant_id", restaurantId)
+      .eq("branch_id", branchId);
 
-    // Map: "name|branchId" -> item
+    // Map: "name" -> item (for current branch only)
     const itemMap = new Map<string, { id: string; baseUnitId: string }>();
     (existingItems || []).forEach((item) => {
-      const key = `${item.name.toLowerCase()}|${item.branch_id}`;
+      const key = item.name.toLowerCase();
       itemMap.set(key, { id: item.id, baseUnitId: item.base_unit_id });
     });
 
@@ -198,71 +235,68 @@ Deno.serve(async (req) => {
     let stockEntriesSkipped = 0;
     const errors: string[] = [];
 
-    // Process each row
+    // Process each row - ALL rows go to the selected branch (ignore branchName column)
     for (const row of rows) {
       try {
-        const normalizedBranch = row.branchName?.toLowerCase().trim();
         const normalizedUnit = row.baseUnit?.toLowerCase().trim();
         const normalizedName = row.name?.trim();
 
         if (!normalizedName) {
-          errors.push("اسم صنف فارغ");
+          errors.push("اسم صنف فارغ / Empty item name");
           continue;
         }
 
-        // Validate branch
-        const branchId = branchMap.get(normalizedBranch);
-        if (!branchId) {
-          errors.push(`${normalizedName}: فرع غير موجود "${row.branchName}"`);
-          continue;
-        }
-
-        // Get or create unit
+        // Get or create unit (case-insensitive matching)
         let unitId: string | undefined = unitMap.get(normalizedUnit);
         if (!unitId) {
-          // Auto-create unit
-          const symbol = DEFAULT_UNITS[normalizedUnit] || normalizedUnit;
-          const { data: newUnit, error: unitError } = await supabase
-            .from("inventory_units")
-            .insert({
-              restaurant_id: restaurantId,
-              name: normalizedUnit,
-              symbol: symbol,
-            })
-            .select("id")
-            .single();
+          // Try to match against common unit aliases
+          const canonicalUnit = DEFAULT_UNITS[normalizedUnit] || normalizedUnit;
+          unitId = unitMap.get(canonicalUnit.toLowerCase());
+          
+          if (!unitId) {
+            // Auto-create unit
+            const symbol = DEFAULT_UNITS[normalizedUnit] || normalizedUnit;
+            const { data: newUnit, error: unitError } = await supabase
+              .from("inventory_units")
+              .insert({
+                restaurant_id: restaurantId,
+                name: normalizedUnit,
+                symbol: symbol,
+              })
+              .select("id")
+              .single();
 
-          if (unitError || !newUnit) {
-            errors.push(`${normalizedName}: فشل إنشاء وحدة "${row.baseUnit}"`);
-            continue;
+            if (unitError || !newUnit) {
+              errors.push(`${normalizedName}: فشل إنشاء وحدة "${row.baseUnit}" / Failed to create unit`);
+              continue;
+            }
+
+            unitId = newUnit.id as string;
+            unitMap.set(normalizedUnit, unitId);
+            unitsCreated++;
           }
-
-          unitId = newUnit.id as string;
-          unitMap.set(normalizedUnit, unitId);
-          unitsCreated++;
         }
 
-        // Now unitId is guaranteed to be defined (either found or created)
-        // TypeScript doesn't understand the control flow, so we assert
+        // Now unitId is guaranteed to be defined
         if (!unitId) {
-          errors.push(`${normalizedName}: وحدة القياس غير صالحة`);
+          errors.push(`${normalizedName}: وحدة القياس غير صالحة / Invalid unit`);
           continue;
         }
 
-        // Check for existing item
-        const itemKey = `${normalizedName.toLowerCase()}|${branchId}`;
+        // Check for existing item in this branch
+        const itemKey = normalizedName.toLowerCase();
         const itemData = itemMap.get(itemKey);
         let itemId: string;
 
         if (itemData) {
           // Item exists - check unit mismatch
           if (itemData.baseUnitId !== unitId) {
-            errors.push(`${normalizedName}: وحدة القياس مختلفة عن الموجودة في النظام`);
+            errors.push(`${normalizedName}: وحدة القياس مختلفة عن الموجودة في النظام / Unit mismatch`);
             continue;
           }
           itemId = itemData.id;
         } else {
-          // Create new item
+          // Create new item for this branch
           const { data: newItem, error: itemError } = await supabase
             .from("inventory_items")
             .insert({
@@ -278,7 +312,7 @@ Deno.serve(async (req) => {
             .single();
 
           if (itemError) {
-            errors.push(`${normalizedName}: فشل إنشاء الصنف`);
+            errors.push(`${normalizedName}: فشل إنشاء الصنف / Failed to create item`);
             continue;
           }
 
@@ -312,7 +346,7 @@ Deno.serve(async (req) => {
             });
 
           if (txnError) {
-            errors.push(`${normalizedName}: فشل إضافة الكمية`);
+            errors.push(`${normalizedName}: فشل إضافة الكمية / Failed to add stock`);
             continue;
           }
 
@@ -344,7 +378,7 @@ Deno.serve(async (req) => {
         }
       } catch (err) {
         console.error("[CSV Import] Row error:", err);
-        errors.push(`${row.name}: خطأ غير متوقع`);
+        errors.push(`${row.name}: خطأ غير متوقع / Unexpected error`);
       }
     }
 
@@ -356,6 +390,7 @@ Deno.serve(async (req) => {
       entity_id: null,
       action: "INVENTORY_CSV_IMPORT",
       details: {
+        branch_id: branchId,
         rows_processed: rows.length,
         items_created: itemsCreated,
         units_created: unitsCreated,
@@ -372,6 +407,8 @@ Deno.serve(async (req) => {
       stockEntriesCreated,
       stockEntriesSkipped,
       errors,
+      message_en: `Created ${itemsCreated} items, ${stockEntriesCreated} stock entries`,
+      message_ar: `تم إنشاء ${itemsCreated} صنف، ${stockEntriesCreated} إدخال مخزون`,
     };
 
     console.log(`[inventory-csv-import] Complete: ${itemsCreated} items, ${stockEntriesCreated} stock entries, ${errors.length} errors`);
@@ -384,7 +421,12 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error("[inventory-csv-import] Unexpected error:", error);
     return new Response(
-      JSON.stringify({ success: false, error: "server_error" }),
+      JSON.stringify({ 
+        success: false, 
+        error: { code: "server_error" },
+        message_en: "Server error, please try again",
+        message_ar: "خطأ في الخادم، يرجى المحاولة مجددًا",
+      }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

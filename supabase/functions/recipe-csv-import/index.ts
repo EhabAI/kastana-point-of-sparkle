@@ -1,5 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { resolveOwnerRestaurantId } from "../_shared/owner-restaurant.ts";
+import { validateOwnerContext, createContextErrorResponse } from "../_shared/owner-context-guard.ts";
+import { checkSubscriptionActive, subscriptionExpiredResponse } from "../_shared/subscription-guard.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,12 +13,30 @@ type ErrorCode =
   | "not_authorized"
   | "restaurant_mismatch"
   | "missing_fields"
+  | "subscription_expired"
   | "server_error"
   | "unexpected";
 
+// Bilingual error messages
+const ERROR_MESSAGES: Record<ErrorCode, { en: string; ar: string }> = {
+  unauthorized: { en: "Authentication required", ar: "المصادقة مطلوبة" },
+  not_authorized: { en: "You are not authorized to perform this action", ar: "ليس لديك صلاحية لتنفيذ هذا الإجراء" },
+  restaurant_mismatch: { en: "Restaurant ownership verification failed", ar: "فشل التحقق من ملكية المطعم" },
+  missing_fields: { en: "Required fields are missing", ar: "بعض الحقول المطلوبة غير موجودة" },
+  subscription_expired: { en: "Your subscription has expired", ar: "انتهى اشتراكك" },
+  server_error: { en: "Server error, please try again", ar: "خطأ في الخادم، يرجى المحاولة مجددًا" },
+  unexpected: { en: "An unexpected error occurred", ar: "حدث خطأ غير متوقع" },
+};
+
 function errorResponse(code: ErrorCode, status = 400) {
+  const messages = ERROR_MESSAGES[code];
   return new Response(
-    JSON.stringify({ success: false, error: { code } }),
+    JSON.stringify({ 
+      success: false, 
+      error: { code },
+      message_en: messages.en,
+      message_ar: messages.ar,
+    }),
     { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
   );
 }
@@ -30,6 +50,7 @@ interface RecipeRow {
 
 interface ImportRequest {
   restaurant_id: string;
+  branch_id: string;  // Now required
   rows: RecipeRow[];
 }
 
@@ -78,9 +99,16 @@ Deno.serve(async (req) => {
     }
 
     const body: ImportRequest = await req.json();
-    const { restaurant_id, rows } = body;
+    const { restaurant_id, branch_id, rows } = body;
 
-    console.log(`Importing ${rows.length} rows for restaurant ${restaurant_id}`);
+    console.log(`Importing ${rows?.length || 0} rows for restaurant ${restaurant_id}, branch ${branch_id}`);
+
+    // Validate Owner context - both restaurant_id and branch_id required
+    const contextValidation = validateOwnerContext({ restaurant_id, branch_id });
+    if (!contextValidation.isValid) {
+      console.log("Context validation failed:", contextValidation.error);
+      return createContextErrorResponse(contextValidation, corsHeaders);
+    }
 
     // For owners, validate restaurant ownership using the shared helper
     if (roleData.role === "owner") {
@@ -96,11 +124,38 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (!restaurant_id || !rows || rows.length === 0) {
+    // Validate branch belongs to restaurant
+    const { data: branchData, error: branchError } = await supabase
+      .from("restaurant_branches")
+      .select("id")
+      .eq("id", branch_id)
+      .eq("restaurant_id", restaurant_id)
+      .maybeSingle();
+
+    if (branchError || !branchData) {
+      console.log("Branch validation failed:", branchError);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: { code: "invalid_branch" },
+          message_en: "Branch does not belong to this restaurant",
+          message_ar: "الفرع لا ينتمي لهذا المطعم",
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check subscription
+    const { isActive: subscriptionActive } = await checkSubscriptionActive(restaurant_id);
+    if (!subscriptionActive) {
+      return subscriptionExpiredResponse(corsHeaders);
+    }
+
+    if (!rows || rows.length === 0) {
       return errorResponse("missing_fields", 400);
     }
 
-    // Fetch menu items for lookup
+    // Fetch menu items for lookup (restaurant-level)
     const { data: menuItems, error: menuError } = await supabase
       .from("menu_items")
       .select("id, name, category_id, menu_categories!inner(restaurant_id)")
@@ -121,11 +176,13 @@ Deno.serve(async (req) => {
       menuItemMap.get(normalizedName)!.push({ id: item.id, originalName: item.name });
     });
 
-    // Fetch inventory items for lookup
+    // Fetch inventory items for lookup - BRANCH LEVEL
+    // Inventory items are unique per (restaurant_id, branch_id, name)
     const { data: inventoryItems, error: invError } = await supabase
       .from("inventory_items")
       .select("id, name, base_unit_id")
-      .eq("restaurant_id", restaurant_id);
+      .eq("restaurant_id", restaurant_id)
+      .eq("branch_id", branch_id);
 
     if (invError) {
       console.error("Error fetching inventory items:", invError);
@@ -226,7 +283,7 @@ Deno.serve(async (req) => {
       let hasErrors = false;
 
       for (const row of menuItemRows) {
-        // Validate inventory item
+        // Validate inventory item (branch-level)
         const invItemKey = row.inventory_item_name.toLowerCase().trim();
         const invItemMatches = inventoryMap.get(invItemKey);
         
@@ -234,7 +291,7 @@ Deno.serve(async (req) => {
           errors.push({
             menu_item_name: originalMenuItemName,
             inventory_item_name: row.inventory_item_name,
-            reason: "Inventory item not found",
+            reason: "Inventory item not found in selected branch",
             reason_code: "inventory_item_not_found",
           });
           hasErrors = true;
@@ -298,6 +355,7 @@ Deno.serve(async (req) => {
 
       // All ingredients valid - now create/update the recipe atomically
       try {
+        // Recipes are restaurant-level (with optional branch_id for branch-specific recipes)
         const { data: existingRecipe } = await supabase
           .from("menu_item_recipes")
           .select("id")
@@ -333,6 +391,7 @@ Deno.serve(async (req) => {
             .insert({
               restaurant_id,
               menu_item_id: menuItemId,
+              branch_id: branch_id, // Store which branch this was created for
               is_active: true,
             })
             .select("id")
@@ -388,6 +447,7 @@ Deno.serve(async (req) => {
       entity_type: "menu_item_recipe",
       entity_id: null,
       details: {
+        branch_id,
         total_rows: rows.length,
         recipes_created: recipesCreated,
         recipes_failed: recipesFailed,
@@ -404,6 +464,12 @@ Deno.serve(async (req) => {
         recipes_failed: recipesFailed,
         total_rows: rows.length,
         errors,
+        message_en: recipesFailed === 0 
+          ? `Successfully imported ${recipesCreated} recipes`
+          : `Imported ${recipesCreated} recipes with ${recipesFailed} failures`,
+        message_ar: recipesFailed === 0
+          ? `تم استيراد ${recipesCreated} وصفة بنجاح`
+          : `تم استيراد ${recipesCreated} وصفة مع ${recipesFailed} أخطاء`,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

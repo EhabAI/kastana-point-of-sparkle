@@ -94,9 +94,10 @@ export function WasteDialog({ restaurantId, open, onOpenChange }: WasteDialogPro
     try {
       const { data, error } = await supabase.functions.invoke("inventory-create-transaction", {
         body: {
-          restaurantId,
-          branchId: selectedBranch,
+          restaurant_id: restaurantId,
+          branch_id: selectedBranch,
           itemId: selectedItem,
+          branchId: selectedBranch,
           txnType: "WASTE",
           qty: qtyNum,
           unitId: selectedUnit,
@@ -105,12 +106,15 @@ export function WasteDialog({ restaurantId, open, onOpenChange }: WasteDialogPro
       });
 
       if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || "Failed");
+      if (!data?.success) {
+        const errorMsg = data?.message_ar || data?.message_en || data?.error?.code || "Failed";
+        throw new Error(errorMsg);
+      }
 
       toast({ title: t("inv_waste_recorded") });
       onOpenChange(false);
-    } catch {
-      toast({ title: t("error_unexpected"), variant: "destructive" });
+    } catch (err) {
+      toast({ title: err instanceof Error ? err.message : t("error_unexpected"), variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
