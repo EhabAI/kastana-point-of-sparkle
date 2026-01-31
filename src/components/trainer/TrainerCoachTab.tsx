@@ -59,11 +59,15 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
   const handleNavigateToSettings = () => {
     const event = new CustomEvent("owner-training-navigate", { detail: { tab: "settings" } });
     window.dispatchEvent(event);
+    // Close the assistant panel after navigation
+    window.dispatchEvent(new CustomEvent("close-assistant-panel"));
   };
   
   const handleNavigateToTab = (tab: string) => {
     const event = new CustomEvent("owner-training-navigate", { detail: { tab } });
     window.dispatchEvent(event);
+    // Close the assistant panel after navigation
+    window.dispatchEvent(new CustomEvent("close-assistant-panel"));
   };
   
   // Build smart suggestions based on context (for non-owner roles)

@@ -545,24 +545,24 @@ export function OwnerTrainingPanel({
           {currentStep.message[language]}
         </p>
         
-        {/* State-aware inventory status */}
+        {/* State-aware inventory status - show only ONE state, not both */}
         {currentStep.isInventoryStep && !isInventoryLoading && (
           <div className={cn(
             "mt-3 p-2.5 rounded-md border text-xs",
             isInventoryEnabled 
               ? "bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800/50 text-green-700 dark:text-green-300"
-              : "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50 text-amber-700 dark:text-amber-300"
+              : "bg-muted/50 border-border text-muted-foreground"
           )}>
             <div className="flex items-center gap-2">
               <Package className="h-4 w-4 shrink-0" />
               <span>
                 {isInventoryEnabled 
                   ? (language === "ar" 
-                      ? "✅ إدارة المخزون مفعّلة وجاهزة للاستخدام." 
-                      : "✅ Inventory Management is enabled and ready to use.")
+                      ? "إدارة المخزون مفعّلة لهذا المطعم وجاهزة للاستخدام." 
+                      : "Inventory Management is enabled and ready to use.")
                   : (language === "ar" 
-                      ? "ℹ️ إدارة المخزون غير مفعّلة حاليًا لهذا المطعم." 
-                      : "ℹ️ Inventory Management is not currently enabled for this restaurant.")}
+                      ? "إدارة المخزون غير مفعّلة حاليًا لهذا المطعم." 
+                      : "Inventory Management is not currently enabled for this restaurant.")}
               </span>
             </div>
           </div>
@@ -572,8 +572,8 @@ export function OwnerTrainingPanel({
         {currentStep.isInventoryStep && (
           <p className="mt-3 text-[11px] text-muted-foreground leading-relaxed">
             {language === "ar" 
-              ? "💡 يمكنك العودة لشرح إدارة المخزون لاحقًا من أي صفحة عبر زر الشرح."
-              : "💡 You can return to the inventory explanation later from any page via the explain button."}
+              ? "يمكنك العودة لشرح إدارة المخزون لاحقًا من أي صفحة عبر زر الشرح."
+              : "You can return to the inventory explanation later from any page via the explain button."}
           </p>
         )}
       </div>
