@@ -49,9 +49,25 @@ export interface FeatureAnnouncement {
   date: string;
 }
 
+export interface SystemRule {
+  id: string;
+  priority: "critical" | "high" | "normal";
+  title: {
+    ar: string;
+    en: string;
+  };
+  rules: {
+    ar: string[];
+    en: string[];
+  };
+  overrides?: string;
+  affected_roles: string[];
+}
+
 export interface KnowledgeBase {
   version: string;
   lastUpdated: string;
+  systemRules?: SystemRule[];
   entries: Record<string, KnowledgeEntry>;
   fallbackResponses: {
     ar: string;
@@ -523,4 +539,50 @@ export function getTrainingRequiredEntries(): KnowledgeEntry[] {
   return Object.values(knowledge.entries).filter(entry =>
     entry.metadata?.training_required === true
   );
+}
+
+/**
+ * Get critical system rules for a specific role
+ * These rules override any previous assumptions
+ */
+export function getSystemRulesForRole(
+  role: string,
+  language: "ar" | "en"
+): SystemRule[] {
+  if (!knowledge.systemRules) return [];
+  
+  return knowledge.systemRules.filter(rule =>
+    rule.affected_roles.includes(role)
+  );
+}
+
+/**
+ * Get the Owner Branch Context rule specifically
+ * This is a mandatory rule that must be enforced
+ */
+export function getOwnerBranchContextRule(language: "ar" | "en"): {
+  title: string;
+  rules: string[];
+} | null {
+  const rule = knowledge.systemRules?.find(r => r.id === "owner_branch_context");
+  if (!rule) return null;
+  
+  return {
+    title: rule.title[language],
+    rules: rule.rules[language],
+  };
+}
+
+/**
+ * Check if branch context is required for a given operation
+ */
+export function requiresBranchContext(role: string): boolean {
+  if (role !== "owner") return false;
+  
+  const rule = knowledge.systemRules?.find(r => 
+    r.id === "owner_branch_context" && 
+    r.priority === "critical"
+  );
+  
+  return !!rule;
 }
