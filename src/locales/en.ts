@@ -11,6 +11,8 @@ export default {
   csv_missing_menu_items_banner: "Some menu items were not found. You can export and add them to the menu first.",
   csv_export_missing_menu_items_btn: "Export Missing Items (CSV)",
   csv_resolve_all_errors_tooltip: "Please resolve all errors or add missing menu items first",
+  export_items_without_recipes: "Export items without recipes",
+  export_items_without_recipes_tooltip: "Export menu items that don't have recipes yet",
   // Brand name - centralized localization
   brandName: 'Kastana',
   brandNameFull: 'Kastana POS',
