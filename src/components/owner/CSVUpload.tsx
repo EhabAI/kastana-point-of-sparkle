@@ -1,14 +1,14 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, FileSpreadsheet, Loader2, CheckCircle2, AlertCircle, Building2 } from 'lucide-react';
+import { Upload, FileSpreadsheet, Loader2, CheckCircle2, AlertCircle, Lightbulb } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useOwnerContext } from '@/hooks/useOwnerContext';
 import { OwnerContextIndicator, OwnerContextInlineWarning } from '@/components/owner/OwnerContextGuard';
-
+import { getCSVErrorMessage, getCSVSuccessMessage } from '@/lib/csvErrorHandler';
 
 interface CSVUploadProps {
   restaurantId: string;
@@ -97,7 +97,7 @@ function parseCSVLine(line: string): string[] {
 export function CSVUpload({ restaurantId }: CSVUploadProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   // Use unified owner context for restaurant and branch validation
   const { branchId, branchName, restaurantName, isContextReady } = useOwnerContext();
@@ -106,9 +106,12 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
   const [offersFileName, setOffersFileName] = useState<string | null>(null);
   const [menuUploading, setMenuUploading] = useState(false);
   const [offersUploading, setOffersUploading] = useState(false);
-  const [menuResult, setMenuResult] = useState<{ success: boolean; message: string } | null>(null);
-  const [offersResult, setOffersResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [menuResult, setMenuResult] = useState<{ success: boolean; message: string; hint?: string } | null>(null);
+  const [offersResult, setOffersResult] = useState<{ success: boolean; message: string; hint?: string } | null>(null);
   
+  // Check if training mode is active (from localStorage)
+  const isTrainingMode = typeof window !== 'undefined' && 
+    localStorage.getItem('ownerTrainingActive') === 'true';
   const menuInputRef = useRef<HTMLInputElement>(null);
   const offersInputRef = useRef<HTMLInputElement>(null);
   
@@ -130,7 +133,8 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
 
     // Validate branch selection
     if (!effectiveMenuBranchId) {
-      setMenuResult({ success: false, message: t("select_branch_first") || 'Please select a branch first' });
+      const errorResult = getCSVErrorMessage('branch_required', language, isTrainingMode);
+      setMenuResult({ success: false, message: errorResult.message, hint: errorResult.hint });
       return;
     }
 
@@ -143,12 +147,14 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
       const { rows, error } = parseCSV<MenuCSVRow>(text, ['category_en', 'category_ar', 'item_en', 'item_ar', 'price']);
       
       if (error) {
-        setMenuResult({ success: false, message: error });
+        const errorResult = getCSVErrorMessage(error, language, isTrainingMode);
+        setMenuResult({ success: false, message: errorResult.message, hint: errorResult.hint });
         return;
       }
 
       if (rows.length === 0) {
-        setMenuResult({ success: false, message: 'No valid data rows found in CSV' });
+        const errorResult = getCSVErrorMessage('no_valid_rows', language, isTrainingMode);
+        setMenuResult({ success: false, message: errorResult.message, hint: errorResult.hint });
         return;
       }
 
@@ -313,19 +319,27 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
         }
       }
 
+      const successMessage = getCSVSuccessMessage(language, {
+        categoriesCreated,
+        itemsCreated,
+        itemsUpdated,
+        branchLinksCreated
+      });
       setMenuResult({
         success: true,
-        message: `Successfully processed: ${categoriesCreated} categories created, ${itemsCreated} items created, ${itemsUpdated} items updated, ${branchLinksCreated} branch links created`,
+        message: successMessage,
       });
 
       refreshData();
-      toast({ title: 'Menu CSV uploaded successfully!' });
+      toast({ title: t('menu_csv_success') });
 
     } catch (err) {
       console.error('Menu upload error:', err);
+      const errorResult = getCSVErrorMessage(err, language, isTrainingMode);
       setMenuResult({ 
         success: false, 
-        message: err instanceof Error ? err.message : 'An error occurred during upload' 
+        message: errorResult.message,
+        hint: errorResult.hint
       });
     } finally {
       setMenuUploading(false);
@@ -341,7 +355,8 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
 
     // Validate branch selection
     if (!effectiveOffersBranchId) {
-      setOffersResult({ success: false, message: t("select_branch_first") || 'Please select a branch first' });
+      const errorResult = getCSVErrorMessage('branch_required', language, isTrainingMode);
+      setOffersResult({ success: false, message: errorResult.message, hint: errorResult.hint });
       return;
     }
 
@@ -354,12 +369,14 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
       const { rows, error } = parseCSV<OfferCSVRow>(text, ['item_en', 'item_ar', 'price', 'description_en', 'description_ar']);
       
       if (error) {
-        setOffersResult({ success: false, message: error });
+        const errorResult = getCSVErrorMessage(error, language, isTrainingMode);
+        setOffersResult({ success: false, message: errorResult.message, hint: errorResult.hint });
         return;
       }
 
       if (rows.length === 0) {
-        setOffersResult({ success: false, message: 'No valid data rows found in CSV' });
+        const errorResult = getCSVErrorMessage('no_valid_rows', language, isTrainingMode);
+        setOffersResult({ success: false, message: errorResult.message, hint: errorResult.hint });
         return;
       }
 
@@ -503,19 +520,26 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
         }
       }
 
+      const successMessage = getCSVSuccessMessage(language, {
+        offersCreated: itemsCreated,
+        offersUpdated: itemsUpdated,
+        branchLinksCreated
+      });
       setOffersResult({
         success: true,
-        message: `Successfully processed: ${itemsCreated} offers created, ${itemsUpdated} offers updated, ${branchLinksCreated} branch links created`,
+        message: successMessage,
       });
 
       refreshData();
-      toast({ title: 'Offers CSV uploaded successfully!' });
+      toast({ title: t('offers_csv_success') });
 
     } catch (err) {
       console.error('Offers upload error:', err);
+      const errorResult = getCSVErrorMessage(err, language, isTrainingMode);
       setOffersResult({ 
         success: false, 
-        message: err instanceof Error ? err.message : 'An error occurred during upload' 
+        message: errorResult.message,
+        hint: errorResult.hint
       });
     } finally {
       setOffersUploading(false);
@@ -588,17 +612,26 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
               )}
 
               {menuResult && (
-                <div className={`mt-3 p-3 rounded-lg flex items-start gap-2 ${
-                  menuResult.success 
-                    ? 'bg-success/10 text-success' 
-                    : 'bg-destructive/10 text-destructive'
-                }`}>
-                  {menuResult.success ? (
-                    <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <div className="mt-3 space-y-2">
+                  <div className={`p-3 rounded-lg flex items-start gap-2 ${
+                    menuResult.success 
+                      ? 'bg-success/10 text-success' 
+                      : 'bg-destructive/10 text-destructive'
+                  }`}>
+                    {menuResult.success ? (
+                      <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                    )}
+                    <p className="text-sm">{menuResult.message}</p>
+                  </div>
+                  {/* Educational hint during training mode */}
+                  {menuResult.hint && !menuResult.success && (
+                    <div className="p-2 rounded-lg bg-muted/50 flex items-start gap-2">
+                      <Lightbulb className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
+                      <p className="text-sm text-muted-foreground">{menuResult.hint}</p>
+                    </div>
                   )}
-                  <p className="text-sm">{menuResult.message}</p>
                 </div>
               )}
             </div>
@@ -649,17 +682,26 @@ export function CSVUpload({ restaurantId }: CSVUploadProps) {
               )}
 
               {offersResult && (
-                <div className={`mt-3 p-3 rounded-lg flex items-start gap-2 ${
-                  offersResult.success 
-                    ? 'bg-success/10 text-success' 
-                    : 'bg-destructive/10 text-destructive'
-                }`}>
-                  {offersResult.success ? (
-                    <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <div className="mt-3 space-y-2">
+                  <div className={`p-3 rounded-lg flex items-start gap-2 ${
+                    offersResult.success 
+                      ? 'bg-success/10 text-success' 
+                      : 'bg-destructive/10 text-destructive'
+                  }`}>
+                    {offersResult.success ? (
+                      <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                    )}
+                    <p className="text-sm">{offersResult.message}</p>
+                  </div>
+                  {/* Educational hint during training mode */}
+                  {offersResult.hint && !offersResult.success && (
+                    <div className="p-2 rounded-lg bg-muted/50 flex items-start gap-2">
+                      <Lightbulb className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
+                      <p className="text-sm text-muted-foreground">{offersResult.hint}</p>
+                    </div>
                   )}
-                  <p className="text-sm">{offersResult.message}</p>
                 </div>
               )}
             </div>
