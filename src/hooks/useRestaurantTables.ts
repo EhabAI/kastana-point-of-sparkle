@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { resolveMessage, resolveErrorMessage } from "@/lib/messageResolver";
 
 export interface RestaurantTable {
   id: string;
@@ -44,6 +46,7 @@ export function useRestaurantTables(restaurantId: string | undefined) {
 export function useCreateRestaurantTable() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { language } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -92,10 +95,11 @@ export function useCreateRestaurantTable() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["restaurant-tables", data.restaurant_id] });
-      toast({ title: "Table created successfully" });
+      toast({ title: resolveMessage("table_created", language) });
     },
     onError: (error: Error) => {
-      toast({ title: "Failed to create table", description: error.message, variant: "destructive" });
+      const msg = resolveErrorMessage(error, language, "table_create_error");
+      toast({ title: msg.title, description: msg.description, variant: "destructive" });
     },
   });
 }
@@ -103,6 +107,7 @@ export function useCreateRestaurantTable() {
 export function useUpdateRestaurantTable() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { language } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -133,10 +138,11 @@ export function useUpdateRestaurantTable() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["restaurant-tables", data.restaurant_id] });
-      toast({ title: "Table updated successfully" });
+      toast({ title: resolveMessage("table_updated", language) });
     },
     onError: (error: Error) => {
-      toast({ title: "Failed to update table", description: error.message, variant: "destructive" });
+      const msg = resolveErrorMessage(error, language, "table_update_error");
+      toast({ title: msg.title, description: msg.description, variant: "destructive" });
     },
   });
 }

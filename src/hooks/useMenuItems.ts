@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOwnerErrorMessage } from "@/lib/ownerErrorHandler";
+import { resolveMessage, isInTrainingMode } from "@/lib/messageResolver";
 
 export type MenuItemType = 'drink' | 'food' | 'ready_product' | 'addon' | 'service' | 'combo';
 
@@ -84,7 +85,7 @@ export function useAllMenuItems(restaurantId?: string) {
 export function useCreateMenuItem() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   return useMutation({
     mutationFn: async (item: {
@@ -118,7 +119,7 @@ export function useCreateMenuItem() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["menu-items"] });
       queryClient.invalidateQueries({ queryKey: ["all-menu-items"] });
-      toast({ title: t("item_created") || "Menu item created successfully" });
+      toast({ title: resolveMessage("item_created", language) });
     },
     onError: (error: Error) => {
       const msg = getOwnerErrorMessage(error, t);
@@ -130,7 +131,7 @@ export function useCreateMenuItem() {
 export function useUpdateMenuItem() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<MenuItem> & { id: string }) => {
@@ -142,7 +143,7 @@ export function useUpdateMenuItem() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["menu-items"] });
       queryClient.invalidateQueries({ queryKey: ["all-menu-items"] });
-      toast({ title: t("item_updated") || "Menu item updated successfully" });
+      toast({ title: resolveMessage("item_updated", language) });
     },
     onError: (error: Error) => {
       const msg = getOwnerErrorMessage(error, t);
@@ -154,7 +155,7 @@ export function useUpdateMenuItem() {
 export function useDeleteMenuItem() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -165,7 +166,7 @@ export function useDeleteMenuItem() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["menu-items"] });
       queryClient.invalidateQueries({ queryKey: ["all-menu-items"] });
-      toast({ title: t("item_deleted") || "Menu item deleted successfully" });
+      toast({ title: resolveMessage("item_deleted", language) });
     },
     onError: (error: Error) => {
       const msg = getOwnerErrorMessage(error, t);

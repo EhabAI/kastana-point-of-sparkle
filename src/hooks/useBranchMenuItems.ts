@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOwnerErrorMessage } from "@/lib/ownerErrorHandler";
+import { resolveMessage } from "@/lib/messageResolver";
 
 export interface BranchMenuItem {
   id: string;
@@ -117,7 +118,7 @@ export function useBranchMenuItems(branchId: string | undefined, categoryId?: st
 export function useUpdateBranchMenuItem() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ id, ...data }: Partial<BranchMenuItem> & { id: string }) => {
@@ -133,7 +134,7 @@ export function useUpdateBranchMenuItem() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["branch-menu-items", data.branch_id] });
-      toast({ title: t("item_updated") || "Item updated successfully" });
+      toast({ title: resolveMessage("item_updated", language) });
     },
     onError: (error) => {
       const msg = getOwnerErrorMessage(error, t);
@@ -145,7 +146,7 @@ export function useUpdateBranchMenuItem() {
 export function useBulkUpdateBranchMenuItems() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -169,7 +170,7 @@ export function useBulkUpdateBranchMenuItems() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["branch-menu-items", variables.branchId] });
-      toast({ title: t("items_updated") || "Items updated successfully" });
+      toast({ title: resolveMessage("items_updated", language) });
     },
     onError: (error) => {
       const msg = getOwnerErrorMessage(error, t);
@@ -181,7 +182,7 @@ export function useBulkUpdateBranchMenuItems() {
 export function useCopyBranchPrices() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -225,7 +226,7 @@ export function useCopyBranchPrices() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["branch-menu-items", variables.targetBranchId] });
-      toast({ title: t("prices_copied") || "Prices copied successfully" });
+      toast({ title: resolveMessage("prices_copied", language) });
     },
     onError: (error) => {
       const msg = getOwnerErrorMessage(error, t);

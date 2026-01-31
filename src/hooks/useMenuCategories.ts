@@ -3,13 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOwnerErrorMessage } from "@/lib/ownerErrorHandler";
-import { getActiveTraining } from "@/lib/trainerEngine";
-
-// Helper to determine if user is in training mode
-function isInTrainingMode(): boolean {
-  const activeTraining = getActiveTraining();
-  return activeTraining !== null;
-}
+import { resolveMessage } from "@/lib/messageResolver";
 
 export interface MenuCategory {
   id: string;
@@ -99,7 +93,7 @@ export function useMenuCategories(restaurantId?: string) {
 export function useCreateCategory() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ restaurantId, name }: { restaurantId: string; name: string }) => {
@@ -124,11 +118,7 @@ export function useCreateCategory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['menu-categories'] });
-      const inTraining = isInTrainingMode();
-      const message = inTraining 
-        ? t("category_created_training") 
-        : t("category_created_success");
-      toast({ title: message });
+      toast({ title: resolveMessage("category_created", language) });
     },
     onError: (error: Error) => {
       const msg = getOwnerErrorMessage(error, t);
@@ -140,7 +130,7 @@ export function useCreateCategory() {
 export function useUpdateCategory() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ 
@@ -174,11 +164,7 @@ export function useUpdateCategory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['menu-categories'] });
-      const inTraining = isInTrainingMode();
-      const message = inTraining 
-        ? t("category_updated_training") 
-        : t("category_updated_success");
-      toast({ title: message });
+      toast({ title: resolveMessage("category_updated", language) });
     },
     onError: (error: Error) => {
       const msg = getOwnerErrorMessage(error, t);
@@ -190,7 +176,7 @@ export function useUpdateCategory() {
 export function useDeleteCategory() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -203,11 +189,7 @@ export function useDeleteCategory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['menu-categories'] });
-      const inTraining = isInTrainingMode();
-      const message = inTraining 
-        ? t("category_deleted_training") 
-        : t("category_deleted_success");
-      toast({ title: message });
+      toast({ title: resolveMessage("category_deleted", language) });
     },
     onError: (error: Error) => {
       const msg = getOwnerErrorMessage(error, t);

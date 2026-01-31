@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from "@/contexts/LanguageContext";
+import { resolveMessage, resolveErrorMessage, isInTrainingMode } from "@/lib/messageResolver";
 
 export interface Cashier {
   id: string;
@@ -58,6 +60,7 @@ export function useCashiers(restaurantId: string | undefined) {
 export function useAddCashier() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { language } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ 
@@ -110,13 +113,11 @@ export function useAddCashier() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['cashiers', variables.restaurantId] });
-      toast({ title: 'Cashier created successfully' });
+      toast({ title: resolveMessage("cashier_created", language) });
     },
     onError: (error: Error) => {
-      const message = error.message.includes('already registered')
-        ? 'This email is already registered'
-        : error.message;
-      toast({ title: 'Error creating cashier', description: message, variant: 'destructive' });
+      const msg = resolveErrorMessage(error, language, "cashier_create_error");
+      toast({ title: msg.title, description: msg.description, variant: 'destructive' });
     },
   });
 }
@@ -124,6 +125,7 @@ export function useAddCashier() {
 export function useUpdateCashierStatus() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { language } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ 
@@ -161,10 +163,12 @@ export function useUpdateCashierStatus() {
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['cashiers', variables.restaurantId] });
-      toast({ title: data.isActive ? 'Cashier activated' : 'Cashier deactivated' });
+      const messageKey = data.isActive ? "cashier_activated" : "cashier_deactivated";
+      toast({ title: resolveMessage(messageKey, language) });
     },
     onError: (error: Error) => {
-      toast({ title: 'Error updating cashier status', description: error.message, variant: 'destructive' });
+      const msg = resolveErrorMessage(error, language, "cashier_status_error");
+      toast({ title: msg.title, description: msg.description, variant: 'destructive' });
     },
   });
 }

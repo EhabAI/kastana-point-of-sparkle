@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from "@/contexts/LanguageContext";
+import { resolveMessage, resolveErrorMessage } from "@/lib/messageResolver";
 
 export interface Restaurant {
   id: string;
@@ -50,6 +52,7 @@ export function useOwnerRestaurant() {
 export function useCreateRestaurant() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { language } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ name, logoUrl }: { name: string; logoUrl?: string }) => {
@@ -64,10 +67,11 @@ export function useCreateRestaurant() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['restaurants'] });
-      toast({ title: 'Restaurant created successfully' });
+      toast({ title: resolveMessage("restaurant_created", language) });
     },
     onError: (error: Error) => {
-      toast({ title: 'Error creating restaurant', description: error.message, variant: 'destructive' });
+      const msg = resolveErrorMessage(error, language, "restaurant_create_error");
+      toast({ title: msg.title, description: msg.description, variant: 'destructive' });
     },
   });
 }
@@ -75,6 +79,7 @@ export function useCreateRestaurant() {
 export function useUpdateRestaurant() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { language } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ id, name, logoUrl }: { id: string; name?: string; logoUrl?: string }) => {
@@ -95,10 +100,11 @@ export function useUpdateRestaurant() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['restaurants'] });
       queryClient.invalidateQueries({ queryKey: ['owner-restaurant'] });
-      toast({ title: 'Restaurant updated successfully' });
+      toast({ title: resolveMessage("restaurant_updated", language) });
     },
     onError: (error: Error) => {
-      toast({ title: 'Error updating restaurant', description: error.message, variant: 'destructive' });
+      const msg = resolveErrorMessage(error, language, "restaurant_update_error");
+      toast({ title: msg.title, description: msg.description, variant: 'destructive' });
     },
   });
 }
@@ -106,6 +112,7 @@ export function useUpdateRestaurant() {
 export function useAssignOwner() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { language } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ restaurantId, ownerId }: { restaurantId: string; ownerId: string }) => {
@@ -121,10 +128,11 @@ export function useAssignOwner() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['restaurants'] });
-      toast({ title: 'Owner assigned successfully' });
+      toast({ title: resolveMessage("owner_assigned", language) });
     },
     onError: (error: Error) => {
-      toast({ title: 'Error assigning owner', description: error.message, variant: 'destructive' });
+      const msg = resolveErrorMessage(error, language, "owner_assign_error");
+      toast({ title: msg.title, description: msg.description, variant: 'destructive' });
     },
   });
 }
