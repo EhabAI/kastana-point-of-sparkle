@@ -6,6 +6,27 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+type ErrorCode = 
+  | "missing_auth"
+  | "invalid_token"
+  | "not_authorized"
+  | "subscription_expired"
+  | "inventory_disabled"
+  | "missing_fields"
+  | "invalid_branch"
+  | "same_branch"
+  | "invalid_item"
+  | "insufficient_stock"
+  | "server_error"
+  | "unexpected";
+
+function errorResponse(code: ErrorCode, status = 400) {
+  return new Response(
+    JSON.stringify({ success: false, error: { code } }),
+    { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
 interface TransferLine {
   itemId: string;
   qty: number;
@@ -20,7 +41,6 @@ interface TransferRequest {
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -31,10 +51,7 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
 
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Missing authorization header" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("missing_auth", 401);
     }
 
     const supabaseUser = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
@@ -43,15 +60,11 @@ Deno.serve(async (req) => {
 
     const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
     if (authError || !user) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Invalid or expired token" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("invalid_token", 401);
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check user role - only owners can transfer between branches
     const { data: roleData, error: roleError } = await supabase
       .from("user_roles")
       .select("role, restaurant_id")
@@ -60,22 +73,17 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (roleError || !roleData) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Only owners can transfer inventory between branches" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("not_authorized", 403);
     }
 
     const restaurantId = roleData.restaurant_id;
 
-    // Validate restaurant subscription is active
     const { isActive: subscriptionActive } = await checkSubscriptionActive(restaurantId);
     if (!subscriptionActive) {
       console.error("[inventory-transfer] Restaurant subscription expired");
       return subscriptionExpiredResponse(corsHeaders);
     }
 
-    // ============ INVENTORY MODULE GUARD ============
     const { data: settings, error: settingsError } = await supabase
       .from("restaurant_settings")
       .select("inventory_enabled")
@@ -84,40 +92,25 @@ Deno.serve(async (req) => {
 
     if (settingsError) {
       console.error("[inventory-transfer] Settings check failed:", settingsError);
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to check inventory module status" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("server_error", 500);
     }
 
     if (!settings?.inventory_enabled) {
       console.warn("[inventory-transfer] Inventory module disabled for restaurant:", restaurantId);
-      return new Response(
-        JSON.stringify({ success: false, error: "Inventory module is not enabled for this restaurant" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("inventory_disabled", 403);
     }
-    // ============ END INVENTORY MODULE GUARD ============
 
-    // Parse request body
     const body: TransferRequest = await req.json();
     const { fromBranchId, toBranchId, lines, notes } = body;
 
     if (!fromBranchId || !toBranchId || !lines || lines.length === 0) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Missing required fields" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("missing_fields", 400);
     }
 
     if (fromBranchId === toBranchId) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Source and destination branches must be different" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("same_branch", 400);
     }
 
-    // Validate both branches belong to restaurant
     const { data: branches, error: branchError } = await supabase
       .from("restaurant_branches")
       .select("id, name")
@@ -125,15 +118,11 @@ Deno.serve(async (req) => {
       .eq("restaurant_id", restaurantId);
 
     if (branchError || !branches || branches.length !== 2) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Invalid branches" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("invalid_branch", 400);
     }
 
     const branchMap = new Map(branches.map((b) => [b.id, b.name]));
 
-    // Validate items exist in source branch
     const itemIds = lines.map((l) => l.itemId);
     const { data: sourceItems, error: itemsError } = await supabase
       .from("inventory_items")
@@ -143,15 +132,11 @@ Deno.serve(async (req) => {
       .eq("restaurant_id", restaurantId);
 
     if (itemsError || !sourceItems || sourceItems.length !== itemIds.length) {
-      return new Response(
-        JSON.stringify({ success: false, error: "One or more items not found in source branch" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("invalid_item", 400);
     }
 
     const sourceItemMap = new Map(sourceItems.map((i) => [i.id, i]));
 
-    // Check for existing items in destination branch or create them
     const { data: destItems } = await supabase
       .from("inventory_items")
       .select("id, name, base_unit_id")
@@ -160,7 +145,6 @@ Deno.serve(async (req) => {
 
     const destItemByName = new Map(destItems?.map((i) => [i.name, i]) || []);
 
-    // Fetch unit conversions
     const { data: conversions } = await supabase
       .from("inventory_unit_conversions")
       .select("from_unit_id, to_unit_id, multiplier")
@@ -171,7 +155,6 @@ Deno.serve(async (req) => {
       conversionMap.set(`${c.from_unit_id}->${c.to_unit_id}`, c.multiplier);
     });
 
-    // Get current stock levels for source items
     const { data: stockLevels } = await supabase
       .from("inventory_stock_levels")
       .select("item_id, on_hand_base")
@@ -180,7 +163,6 @@ Deno.serve(async (req) => {
 
     const stockMap = new Map(stockLevels?.map((s) => [s.item_id, s.on_hand_base]) || []);
 
-    // Process transfers atomically
     const transferOutTxns = [];
     const transferInTxns = [];
     const stockUpdatesOut: { itemId: string; qtyInBase: number }[] = [];
@@ -193,7 +175,6 @@ Deno.serve(async (req) => {
       const sourceItem = sourceItemMap.get(line.itemId);
       if (!sourceItem) continue;
 
-      // Calculate qty_in_base
       let qtyInBase = line.qty;
       if (line.unitId !== sourceItem.base_unit_id) {
         const convKey = `${line.unitId}->${sourceItem.base_unit_id}`;
@@ -205,26 +186,17 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Check sufficient stock
       const currentStock = stockMap.get(line.itemId) || 0;
       if (currentStock < qtyInBase) {
-        return new Response(
-          JSON.stringify({ 
-            success: false, 
-            error: `Insufficient stock for ${sourceItem.name}. Available: ${currentStock}, Requested: ${qtyInBase}` 
-          }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return errorResponse("insufficient_stock", 400);
       }
 
-      // Find or create destination item
       let destItemId: string;
       const existingDestItem = destItemByName.get(sourceItem.name);
       
       if (existingDestItem) {
         destItemId = existingDestItem.id;
       } else {
-        // Create item in destination branch
         const { data: newItem, error: newItemError } = await supabase
           .from("inventory_items")
           .insert({
@@ -245,7 +217,6 @@ Deno.serve(async (req) => {
         destItemByName.set(sourceItem.name, newItem);
       }
 
-      // Create TRANSFER_OUT transaction
       transferOutTxns.push({
         restaurant_id: restaurantId,
         branch_id: fromBranchId,
@@ -259,7 +230,6 @@ Deno.serve(async (req) => {
         created_by: user.id,
       });
 
-      // Create TRANSFER_IN transaction
       transferInTxns.push({
         restaurant_id: restaurantId,
         branch_id: toBranchId,
@@ -277,13 +247,11 @@ Deno.serve(async (req) => {
       stockUpdatesIn.push({ itemId: destItemId, qtyInBase });
     }
 
-    // Insert all transactions
     if (transferOutTxns.length > 0) {
       await supabase.from("inventory_transactions").insert(transferOutTxns);
       await supabase.from("inventory_transactions").insert(transferInTxns);
     }
 
-    // Update stock levels for source branch
     for (const update of stockUpdatesOut) {
       const { data: current } = await supabase
         .from("inventory_stock_levels")
@@ -308,7 +276,6 @@ Deno.serve(async (req) => {
         );
     }
 
-    // Update stock levels for destination branch
     for (const update of stockUpdatesIn) {
       const { data: current } = await supabase
         .from("inventory_stock_levels")
@@ -333,7 +300,6 @@ Deno.serve(async (req) => {
         );
     }
 
-    // Write audit log
     await supabase.from("audit_logs").insert({
       user_id: user.id,
       restaurant_id: restaurantId,
@@ -362,9 +328,6 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     console.error("[inventory-transfer] Unexpected error:", error);
-    return new Response(
-      JSON.stringify({ success: false, error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return errorResponse("unexpected", 500);
   }
 });

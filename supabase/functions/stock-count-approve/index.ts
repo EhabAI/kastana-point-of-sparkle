@@ -6,12 +6,31 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+type ErrorCode = 
+  | "missing_auth"
+  | "invalid_token"
+  | "not_authorized"
+  | "subscription_expired"
+  | "inventory_disabled"
+  | "missing_fields"
+  | "count_not_found"
+  | "count_immutable"
+  | "no_count_lines"
+  | "server_error"
+  | "unexpected";
+
+function errorResponse(code: ErrorCode, status = 400) {
+  return new Response(
+    JSON.stringify({ success: false, error: { code } }),
+    { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
 interface ApproveRequest {
   stockCountId: string;
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -22,10 +41,7 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
 
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Missing authorization header" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("missing_auth", 401);
     }
 
     const supabaseUser = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
@@ -34,15 +50,11 @@ Deno.serve(async (req) => {
 
     const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
     if (authError || !user) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Invalid or expired token" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("invalid_token", 401);
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check user role - only owners can approve stock counts
     const { data: roleData, error: roleError } = await supabase
       .from("user_roles")
       .select("role, restaurant_id")
@@ -51,22 +63,17 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (roleError || !roleData) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Only owners can approve stock counts" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("not_authorized", 403);
     }
 
     const restaurantId = roleData.restaurant_id;
 
-    // Validate restaurant subscription is active
     const { isActive: subscriptionActive } = await checkSubscriptionActive(restaurantId);
     if (!subscriptionActive) {
       console.error("[stock-count-approve] Restaurant subscription expired");
       return subscriptionExpiredResponse(corsHeaders);
     }
 
-    // ============ INVENTORY MODULE GUARD ============
     const { data: settings, error: settingsError } = await supabase
       .from("restaurant_settings")
       .select("inventory_enabled")
@@ -75,33 +82,21 @@ Deno.serve(async (req) => {
 
     if (settingsError) {
       console.error("[stock-count-approve] Settings check failed:", settingsError);
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to check inventory module status" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("server_error", 500);
     }
 
     if (!settings?.inventory_enabled) {
       console.warn("[stock-count-approve] Inventory module disabled for restaurant:", restaurantId);
-      return new Response(
-        JSON.stringify({ success: false, error: "Inventory module is not enabled for this restaurant" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("inventory_disabled", 403);
     }
-    // ============ END INVENTORY MODULE GUARD ============
 
-    // Parse request body
     const body: ApproveRequest = await req.json();
     const { stockCountId } = body;
 
     if (!stockCountId) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Missing stockCountId" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("missing_fields", 400);
     }
 
-    // Get stock count
     const { data: stockCount, error: countError } = await supabase
       .from("stock_counts")
       .select("id, branch_id, status, restaurant_id")
@@ -110,41 +105,22 @@ Deno.serve(async (req) => {
       .single();
 
     if (countError || !stockCount) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Stock count not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("count_not_found", 404);
     }
 
-    // Check immutability - APPROVED or CANCELLED counts cannot be modified
-    if (stockCount.status === "APPROVED") {
-      return new Response(
-        JSON.stringify({ success: false, error: "Stock count already approved - immutable" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (stockCount.status === "APPROVED" || stockCount.status === "CANCELLED") {
+      return errorResponse("count_immutable", 400);
     }
 
-    if (stockCount.status === "CANCELLED") {
-      return new Response(
-        JSON.stringify({ success: false, error: "Stock count is cancelled - immutable" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Get stock count lines with variance
     const { data: countLines, error: linesError } = await supabase
       .from("stock_count_lines")
       .select("id, item_id, expected_base, actual_base, variance_base")
       .eq("stock_count_id", stockCountId);
 
     if (linesError || !countLines || countLines.length === 0) {
-      return new Response(
-        JSON.stringify({ success: false, error: "No count lines found" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("no_count_lines", 400);
     }
 
-    // Get item details for all items in the count
     const itemIds = countLines.map((l) => l.item_id);
     const { data: items } = await supabase
       .from("inventory_items")
@@ -153,7 +129,6 @@ Deno.serve(async (req) => {
 
     const itemMap = new Map(items?.map((i) => [i.id, i]) || []);
 
-    // Get current stock levels for all items
     const { data: stockLevels } = await supabase
       .from("inventory_stock_levels")
       .select("item_id, on_hand_base")
@@ -162,8 +137,6 @@ Deno.serve(async (req) => {
 
     const stockMap = new Map(stockLevels?.map((s) => [s.item_id, s.on_hand_base]) || []);
 
-    // Build INVENTORY_ADJUSTMENT ledger entries for each variance
-    // Ledger-based: we ADD variance_qty to current stock, not overwrite
     const transactions: {
       restaurant_id: string;
       branch_id: string;
@@ -186,7 +159,6 @@ Deno.serve(async (req) => {
     for (const line of countLines) {
       const varianceQty = line.variance_base;
       
-      // Skip items with zero variance
       if (varianceQty === 0) continue;
 
       const item = itemMap.get(line.item_id);
@@ -194,9 +166,6 @@ Deno.serve(async (req) => {
 
       itemsWithVariance++;
 
-      // Create INVENTORY_ADJUSTMENT ledger entry
-      // Positive variance = stock found (add to ledger)
-      // Negative variance = stock missing (subtract from ledger)
       transactions.push({
         restaurant_id: restaurantId,
         branch_id: stockCount.branch_id,
@@ -225,7 +194,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Insert all INVENTORY_ADJUSTMENT transactions atomically
     if (transactions.length > 0) {
       const { error: txnError } = await supabase
         .from("inventory_transactions")
@@ -233,16 +201,12 @@ Deno.serve(async (req) => {
 
       if (txnError) {
         console.error("[stock-count-approve] Ledger insert error:", txnError);
-        return new Response(
-          JSON.stringify({ success: false, error: "Failed to create adjustment entries" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return errorResponse("server_error", 500);
       }
 
       console.log(`[stock-count-approve] Created ${transactions.length} INVENTORY_ADJUSTMENT entries`);
     }
 
-    // Update stock levels by ADDING variance (ledger-based, not overwrite)
     for (const update of stockUpdates) {
       const newOnHand = update.currentOnHand + update.varianceQty;
       
@@ -264,7 +228,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Update stock count status to APPROVED (immutable from here)
     const { error: updateError } = await supabase
       .from("stock_counts")
       .update({
@@ -276,13 +239,9 @@ Deno.serve(async (req) => {
 
     if (updateError) {
       console.error("[stock-count-approve] Status update error:", updateError);
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to update stock count status" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("server_error", 500);
     }
 
-    // Write audit log for STOCK_COUNT_APPROVED
     await supabase.from("audit_logs").insert({
       user_id: user.id,
       restaurant_id: restaurantId,
@@ -315,9 +274,6 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     console.error("[stock-count-approve] Unexpected error:", error);
-    return new Response(
-      JSON.stringify({ success: false, error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return errorResponse("unexpected", 500);
   }
 });

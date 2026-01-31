@@ -5,6 +5,23 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+type ErrorCode = 
+  | "missing_auth"
+  | "invalid_token"
+  | "not_authorized"
+  | "missing_fields"
+  | "invalid_format"
+  | "restaurant_not_found"
+  | "server_error"
+  | "unexpected";
+
+function errorResponse(code: ErrorCode, status = 400) {
+  return new Response(
+    JSON.stringify({ success: false, error: { code } }),
+    { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
 // Calculate months for each period
 const PERIOD_MONTHS: Record<string, number> = {
   MONTHLY: 1,
@@ -22,29 +39,20 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Get auth token from header
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Missing authorization header" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return errorResponse("missing_auth", 401);
     }
 
-    // Create client with user's token to verify identity
     const supabaseAuth = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
 
     const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
     if (userError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return errorResponse("invalid_token", 401);
     }
 
-    // Use service role client to verify system_admin role
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     const { data: roleData, error: roleError } = await supabaseAdmin
@@ -55,40 +63,27 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (roleError || !roleData) {
-      return new Response(JSON.stringify({ error: "Only system admins can create restaurants with subscriptions" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return errorResponse("not_authorized", 403);
     }
 
-    // Parse request body
     const body = await req.json();
     const { name, logo_url, start_date, period, bonus_months = 0, reason } = body;
 
-    // Validate required fields
     if (!name || typeof name !== "string" || !name.trim()) {
-      return new Response(JSON.stringify({ error: "Restaurant name is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return errorResponse("missing_fields", 400);
     }
 
     if (!period || !PERIOD_MONTHS[period]) {
-      return new Response(JSON.stringify({ error: "Invalid subscription period. Must be MONTHLY, QUARTERLY, SEMI_ANNUAL, or ANNUAL" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return errorResponse("invalid_format", 400);
     }
 
     const bonusMonthsNum = Math.min(Math.max(Math.floor(Number(bonus_months) || 0), 0), 6);
 
-    // Calculate dates
     const startDateValue = start_date ? new Date(start_date) : new Date();
     const totalMonths = PERIOD_MONTHS[period] + bonusMonthsNum;
     const endDateValue = new Date(startDateValue);
     endDateValue.setMonth(endDateValue.getMonth() + totalMonths);
 
-    // Create restaurant
     const { data: restaurant, error: restaurantError } = await supabaseAdmin
       .from("restaurants")
       .insert({ 
@@ -101,13 +96,9 @@ Deno.serve(async (req) => {
 
     if (restaurantError) {
       console.error("Error creating restaurant:", restaurantError);
-      return new Response(JSON.stringify({ error: "Failed to create restaurant" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return errorResponse("server_error", 500);
     }
 
-    // Create subscription
     const { data: subscription, error: subscriptionError } = await supabaseAdmin
       .from("restaurant_subscriptions")
       .insert({
@@ -123,15 +114,10 @@ Deno.serve(async (req) => {
 
     if (subscriptionError) {
       console.error("Error creating subscription:", subscriptionError);
-      // Rollback: delete the restaurant if subscription creation fails
       await supabaseAdmin.from("restaurants").delete().eq("id", restaurant.id);
-      return new Response(JSON.stringify({ error: "Failed to create subscription" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return errorResponse("server_error", 500);
     }
 
-    // Log to audit_logs
     await supabaseAdmin.from("audit_logs").insert({
       restaurant_id: restaurant.id,
       user_id: user.id,
@@ -149,20 +135,14 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({ 
+        success: true,
         restaurant, 
         subscription,
-        message: "Restaurant created with subscription" 
       }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Error:", error);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return errorResponse("unexpected", 500);
   }
 });
