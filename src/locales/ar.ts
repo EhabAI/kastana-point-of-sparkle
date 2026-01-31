@@ -3,6 +3,9 @@ export default {
   // Brand name - centralized localization
   brandName: 'كاستنا',
   brandNameFull: 'كاستنا POS',
+  brandSignatureTeam: 'فريق كاستنا',
+  brandSignatureManagement: 'إدارة كاستنا',
+  brandSignatureFrom: 'من فريق كاستنا',
   
   // Internal Notification System
   send_internal_notification: 'إرسال إشعار داخل النظام',
