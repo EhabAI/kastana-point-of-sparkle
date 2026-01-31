@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { ScrollText, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 
@@ -16,29 +18,45 @@ interface AuditLog {
   user_id: string;
   created_at: string;
   details: Record<string, unknown> | null;
+  branch_id?: string | null;
 }
 
 const PAGE_SIZE = 20;
 
 export function AuditLogViewer() {
   const { t } = useLanguage();
+  const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
+  const { selectedBranch } = useBranchContextSafe();
   const [page, setPage] = useState(0);
 
+  // Reset page when branch changes
+  useEffect(() => {
+    setPage(0);
+  }, [selectedBranch?.id]);
+
   const { data, isLoading } = useQuery({
-    queryKey: ["audit-logs", page],
+    queryKey: ["audit-logs", restaurant?.id, selectedBranch?.id, page],
     queryFn: async () => {
+      if (!restaurant?.id) return { logs: [], total: 0 };
+      
       const from = page * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      const { data, error, count } = await supabase
+      let query = supabase
         .from("audit_logs")
         .select("*", { count: "exact" })
-        .order("created_at", { ascending: false })
-        .range(from, to);
+        .eq("restaurant_id", restaurant.id)
+        .order("created_at", { ascending: false });
+
+      // Note: audit_logs may not have branch_id column - filter by details if needed
+      // For now, filter at restaurant level since audit logs are restaurant-scoped
+
+      const { data, error, count } = await query.range(from, to);
 
       if (error) throw error;
       return { logs: data as AuditLog[], total: count || 0 };
     },
+    enabled: !!restaurant?.id,
   });
 
   const logs = data?.logs || [];

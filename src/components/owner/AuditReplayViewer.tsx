@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { startOfDay, endOfDay, format } from "date-fns";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,22 +41,29 @@ interface AuditEntry {
 
 export function AuditReplayViewer({ restaurantId }: AuditReplayViewerProps) {
   const { t, language } = useLanguage();
+  const { selectedBranch } = useBranchContextSafe();
   const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [selectedCashier, setSelectedCashier] = useState<string>("all");
   
   const startDate = startOfDay(new Date(selectedDate)).toISOString();
   const endDate = endOfDay(new Date(selectedDate)).toISOString();
   
-  // Get cashiers for filter
+  // Get cashiers for filter - filtered by branch
   const { data: cashiers } = useQuery({
-    queryKey: ["audit-cashiers", restaurantId],
+    queryKey: ["audit-cashiers", restaurantId, selectedBranch?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      let query = supabase
         .from("user_roles")
-        .select("user_id, profiles!inner(email)")
+        .select("user_id, branch_id, profiles!inner(email)")
         .eq("restaurant_id", restaurantId)
         .eq("role", "cashier")
         .eq("is_active", true);
+      
+      if (selectedBranch?.id) {
+        query = query.eq("branch_id", selectedBranch.id);
+      }
+      
+      const { data } = await query;
       
       return data?.map(c => ({
         id: c.user_id,

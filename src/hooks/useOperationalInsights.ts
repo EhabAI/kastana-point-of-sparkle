@@ -167,7 +167,7 @@ export function useOperationalInsights(restaurantId: string | undefined, branchI
       }
       
       // =============== STEP 1: Calculate Baseline ===============
-      const baseline = await calculateBaseline(restaurantId, today);
+      const baseline = await calculateBaseline(restaurantId, today, branchId);
       
       // Check if restaurant is too new for insights
       if (baseline.activeDaysCount < MIN_ACTIVE_DAYS_FOR_INSIGHTS) {
@@ -181,7 +181,7 @@ export function useOperationalInsights(restaurantId: string | undefined, branchI
       }
       
       // =============== STEP 2: Get Today's Data ===============
-      const todayData = await getTodayData(restaurantId, todayStart, todayEnd);
+      const todayData = await getTodayData(restaurantId, todayStart, todayEnd, branchId);
       
       // =============== STEP 3: Detect Insights ===============
       const insights: OperationalInsight[] = [];
@@ -357,42 +357,66 @@ export function useOperationalInsights(restaurantId: string | undefined, branchI
 
 // ==================== BASELINE CALCULATION ====================
 
-async function calculateBaseline(restaurantId: string, today: Date): Promise<BaselineData> {
+async function calculateBaseline(restaurantId: string, today: Date, branchId?: string): Promise<BaselineData> {
   const baselineStart = startOfDay(subDays(today, BASELINE_DAYS)).toISOString();
   const yesterdayEnd = endOfDay(subDays(today, 1)).toISOString();
   
   // Get historical orders
-  const { data: historicalOrders } = await supabase
+  let ordersQuery = supabase
     .from("orders")
     .select("id, total, status, discount_value, created_at")
     .eq("restaurant_id", restaurantId)
     .gte("created_at", baselineStart)
     .lt("created_at", yesterdayEnd);
   
+  if (branchId) {
+    ordersQuery = ordersQuery.eq("branch_id", branchId);
+  }
+  
+  const { data: historicalOrders } = await ordersQuery;
+  
   // Get historical refunds (as proxy for cancellations after payment)
-  const { data: historicalRefunds } = await supabase
+  let refundsQuery = supabase
     .from("refunds")
     .select("id, created_at")
     .eq("restaurant_id", restaurantId)
     .gte("created_at", baselineStart)
     .lt("created_at", yesterdayEnd);
   
+  if (branchId) {
+    refundsQuery = refundsQuery.eq("branch_id", branchId);
+  }
+  
+  const { data: historicalRefunds } = await refundsQuery;
+  
   // Get historical shifts
-  const { data: historicalShifts } = await supabase
+  let shiftsQuery = supabase
     .from("shifts")
     .select("opened_at, closed_at, status")
     .eq("restaurant_id", restaurantId)
     .gte("opened_at", baselineStart)
     .lt("opened_at", yesterdayEnd);
   
+  if (branchId) {
+    shiftsQuery = shiftsQuery.eq("branch_id", branchId);
+  }
+  
+  const { data: historicalShifts } = await shiftsQuery;
+  
   // Get historical inventory adjustments
-  const { data: historicalAdjustments } = await supabase
+  let adjustmentsQuery = supabase
     .from("inventory_transactions")
     .select("id, item_id, created_at")
     .eq("restaurant_id", restaurantId)
     .eq("txn_type", "ADJUSTMENT")
     .gte("created_at", baselineStart)
     .lt("created_at", yesterdayEnd);
+  
+  if (branchId) {
+    adjustmentsQuery = adjustmentsQuery.eq("branch_id", branchId);
+  }
+  
+  const { data: historicalAdjustments } = await adjustmentsQuery;
   
   // Calculate active days (days with at least one paid order)
   const ordersByDate: Record<string, number> = {};
@@ -487,29 +511,42 @@ interface TodayData {
 async function getTodayData(
   restaurantId: string, 
   todayStart: string, 
-  todayEnd: string
+  todayEnd: string,
+  branchId?: string
 ): Promise<TodayData> {
   const now = new Date();
   const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000).toISOString();
   
   // Today's orders (with created_at for time-based analysis)
-  const { data: todayOrders } = await supabase
+  let ordersQuery = supabase
     .from("orders")
     .select("id, total, status, discount_value, created_at")
     .eq("restaurant_id", restaurantId)
     .gte("created_at", todayStart)
     .lt("created_at", todayEnd);
   
+  if (branchId) {
+    ordersQuery = ordersQuery.eq("branch_id", branchId);
+  }
+  
+  const { data: todayOrders } = await ordersQuery;
+  
   // Today's refunds (cancellations after payment)
-  const { data: todayRefunds } = await supabase
+  let refundsQuery = supabase
     .from("refunds")
     .select("id")
     .eq("restaurant_id", restaurantId)
     .gte("created_at", todayStart)
     .lt("created_at", todayEnd);
   
+  if (branchId) {
+    refundsQuery = refundsQuery.eq("branch_id", branchId);
+  }
+  
+  const { data: todayRefunds } = await refundsQuery;
+  
   // Today's inventory adjustments
-  const { data: todayAdjustments } = await supabase
+  let adjustmentsQuery = supabase
     .from("inventory_transactions")
     .select("id, item_id")
     .eq("restaurant_id", restaurantId)
@@ -517,19 +554,37 @@ async function getTodayData(
     .gte("created_at", todayStart)
     .lt("created_at", todayEnd);
   
+  if (branchId) {
+    adjustmentsQuery = adjustmentsQuery.eq("branch_id", branchId);
+  }
+  
+  const { data: todayAdjustments } = await adjustmentsQuery;
+  
   // Open shifts
-  const { data: openShifts } = await supabase
+  let shiftsQuery = supabase
     .from("shifts")
     .select("id, opened_at")
     .eq("restaurant_id", restaurantId)
     .eq("status", "open");
   
+  if (branchId) {
+    shiftsQuery = shiftsQuery.eq("branch_id", branchId);
+  }
+  
+  const { data: openShifts } = await shiftsQuery;
+  
   // Open orders (currently active)
-  const { data: openOrders } = await supabase
+  let openOrdersQuery = supabase
     .from("orders")
     .select("id")
     .eq("restaurant_id", restaurantId)
     .in("status", ["open", "new", "preparing"]);
+  
+  if (branchId) {
+    openOrdersQuery = openOrdersQuery.eq("branch_id", branchId);
+  }
+  
+  const { data: openOrders } = await openOrdersQuery;
   
   const paidOrders = todayOrders?.filter(o => o.status === "paid") || [];
   const totalRevenue = paidOrders.reduce((sum, o) => sum + Number(o.total), 0);
