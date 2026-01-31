@@ -1460,6 +1460,8 @@ export default {
   csv_menu_items_updated: "Menu items updated",
   csv_recipe_lines_inserted: "Recipe lines inserted",
   csv_errors: "Errors",
+  errors: "errors",
+  more_errors: "more errors",
   importing: "Importing...",
   menu_item: "Menu Item",
   import: "Import",
