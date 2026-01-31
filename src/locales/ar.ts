@@ -4,6 +4,7 @@ export default {
   csv_select_correct_item: "اختر الصنف الصحيح",
   csv_resolve_conflicts_tooltip: "يرجى اختيار الصنف الصحيح للصفوف المتعارضة",
   csv_conflict_resolved: "تم الحل",
+  csv_conflict_auto_applied: "تم تطبيق الاختيار تلقائيًا",
   export_missing_menu_items: "تصدير الأصناف الناقصة",
   export_missing_menu_items_hint: "يمكنك رفع هذا الملف مباشرة في شاشة القائمة، ثم تعديل التصنيفات والأسعار لاحقًا.",
   // Brand name - centralized localization
