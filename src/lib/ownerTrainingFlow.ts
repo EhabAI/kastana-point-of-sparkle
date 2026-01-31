@@ -77,13 +77,26 @@ const TRACK_GETTING_STARTED: TrainingTrack = {
       id: "gs_welcome",
       trackId: "getting_started",
       progressStart: 0,
-      progressEnd: 5,
+      progressEnd: 3,
       message: {
         ar: "أهلاً بك في كاستنا 👋\n\nخلّينا نراجع لوحة التحكم بسرعة حتى تتعرّف على أهم المعلومات.",
         en: "Welcome to Kastana 👋\n\nLet's quickly walk through your dashboard."
       },
       actions: [
         { id: "next", label: { ar: "التالي", en: "Next" }, type: "next" }
+      ]
+    },
+    {
+      id: "gs_branch_context",
+      trackId: "getting_started",
+      progressStart: 3,
+      progressEnd: 5,
+      message: {
+        ar: "⚠️ قاعدة هامة: سياق الفرع\n\n• تأكد دائماً من اختيار الفرع الصحيح قبل أي عملية\n• لكل فرع بياناته الخاصة (القائمة، المخزون، الموظفين)\n• تغيير الفرع يعني أنك تعمل على بيانات مختلفة",
+        en: "⚠️ Important Rule: Branch Context\n\n• Always ensure the correct branch is selected before any operation\n• Each branch has its own data (menu, inventory, staff)\n• Changing branch means you're working on different data"
+      },
+      actions: [
+        { id: "next", label: { ar: "فهمت", en: "Got it" }, type: "next" }
       ]
     },
     {

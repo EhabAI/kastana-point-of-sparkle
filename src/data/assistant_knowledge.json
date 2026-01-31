@@ -218,13 +218,14 @@
         "en": "Tables Management"
       },
       "content": {
-        "ar": "إدارة الطاولات:\n\n• عرض جميع الطاولات وحالتها\n• الطاولة الخضراء: فارغة ومتاحة\n• الطاولة الحمراء/البرتقالية: مشغولة بطلب\n\nعمليات الطاولات:\n• فتح طلب جديد على طاولة\n• عرض تفاصيل الطلب الحالي\n• نقل الطلب لطاولة أخرى\n• دمج طلبات طاولتين\n\nالإعدادات (للمالك):\n• إضافة طاولات جديدة\n• تعديل أسماء الطاولات\n• تفعيل/إيقاف الطاولات",
-        "en": "Tables Management:\n\n• View all tables and their status\n• Green table: Empty and available\n• Red/Orange table: Occupied with order\n\nTable operations:\n• Open new order on table\n• View current order details\n• Transfer order to another table\n• Merge orders from two tables\n\nSettings (Owner):\n• Add new tables\n• Edit table names\n• Enable/disable tables"
+        "ar": "إدارة الطاولات (في الفرع المختار):\n\n⚠️ هام: الطاولات خاصة بكل فرع. تأكد من اختيار الفرع الصحيح قبل إضافة أو تعديل الطاولات.\n\n• عرض جميع الطاولات وحالتها للفرع المحدد\n• الطاولة الخضراء: فارغة ومتاحة\n• الطاولة الحمراء/البرتقالية: مشغولة بطلب\n\nعمليات الطاولات:\n• فتح طلب جديد على طاولة\n• عرض تفاصيل الطلب الحالي\n• نقل الطلب لطاولة أخرى\n• دمج طلبات طاولتين\n\n🔄 تغيير الفرع يعني أنك تعمل على طاولات مختلفة.\n\nالإعدادات (للمالك):\n• إضافة طاولات جديدة للفرع المحدد\n• تعديل أسماء الطاولات\n• تفعيل/إيقاف الطاولات",
+        "en": "Tables Management (for Selected Branch):\n\n⚠️ Important: Tables are branch-specific. Make sure to select the correct branch before adding or editing tables.\n\n• View all tables and their status for the selected branch\n• Green table: Empty and available\n• Red/Orange table: Occupied with order\n\nTable operations:\n• Open new order on table\n• View current order details\n• Transfer order to another table\n• Merge orders from two tables\n\n🔄 Changing the branch means you're working on different tables.\n\nSettings (Owner):\n• Add new tables for selected branch\n• Edit table names\n• Enable/disable tables"
       },
       "metadata": {
         "feature_id": "tables",
         "affected_screens": ["Tables", "POS"],
-        "user_roles": ["cashier", "owner"]
+        "user_roles": ["cashier", "owner"],
+        "branch_scoped": true
       }
     },
     "inventory": {
@@ -239,13 +240,14 @@
         "en": "Inventory"
       },
       "content": {
-        "ar": "نظام المخزون:\n\n• يتتبع كميات المواد الخام والمنتجات\n• يدعم وحدات قياس متعددة\n• يمكن تفعيله/إيقافه من الإعدادات\n\nعمليات المخزون:\n• استلام مشتريات\n• تسجيل هدر\n• نقل بين الفروع\n• جرد المخزون\n• تعديل الكميات\n\nالخصم التلقائي:\n• يتم خصم المخزون عند الدفع\n• يعتمد على الوصفات المحددة للأصناف\n• الأصناف بدون وصفة لا تؤثر على المخزون",
-        "en": "Inventory System:\n\n• Tracks raw materials and products\n• Supports multiple units of measure\n• Can be enabled/disabled in settings\n\nInventory operations:\n• Receive purchases\n• Record waste\n• Transfer between branches\n• Stock count\n• Adjust quantities\n\nAuto-deduction:\n• Inventory deducted on payment\n• Based on recipes assigned to items\n• Items without recipes don't affect inventory"
+        "ar": "نظام المخزون (في الفرع المختار):\n\n⚠️ هام: لكل فرع بياناته الخاصة. تأكد من اختيار الفرع الصحيح قبل المتابعة.\n\n• يتتبع كميات المواد الخام والمنتجات في الفرع المحدد\n• يدعم وحدات قياس متعددة\n• يمكن تفعيله/إيقافه من الإعدادات\n\nعمليات المخزون:\n• استلام مشتريات (للفرع المحدد)\n• تسجيل هدر\n• نقل بين الفروع\n• جرد المخزون\n• تعديل الكميات\n\n🔄 تغيير الفرع يعني أنك تعمل على بيانات مختلفة.\n\nالخصم التلقائي:\n• يتم خصم المخزون عند الدفع\n• يعتمد على الوصفات المحددة للأصناف\n• الأصناف بدون وصفة لا تؤثر على المخزون",
+        "en": "Inventory System (for Selected Branch):\n\n⚠️ Important: Each branch has its own data. Make sure to select the correct branch before proceeding.\n\n• Tracks raw materials and products for the selected branch\n• Supports multiple units of measure\n• Can be enabled/disabled in settings\n\nInventory operations:\n• Receive purchases (for selected branch)\n• Record waste\n• Transfer between branches\n• Stock count\n• Adjust quantities\n\n🔄 Changing the branch means you're working on different data.\n\nAuto-deduction:\n• Inventory deducted on payment\n• Based on recipes assigned to items\n• Items without recipes don't affect inventory"
       },
       "metadata": {
         "feature_id": "inventory",
         "affected_screens": ["Inventory", "Settings"],
-        "user_roles": ["owner"]
+        "user_roles": ["owner"],
+        "branch_scoped": true
       }
     },
     "recipes": {
@@ -260,14 +262,15 @@
         "en": "Recipes"
       },
       "content": {
-        "ar": "نظام الوصفات:\n\n• يربط أصناف القائمة بمواد المخزون\n• يحدد الكميات المستخدمة من كل مادة\n• أساسي للخصم التلقائي من المخزون\n\nإنشاء وصفة:\n1. اختر الصنف من القائمة\n2. أضف مواد المخزون المستخدمة\n3. حدد الكمية لكل مادة\n4. احفظ الوصفة\n\nعند البيع:\n• يتم خصم الكميات تلقائياً عند الدفع\n• الخصم = كمية الوصفة × عدد الأصناف المباعة\n• يظهر في تقرير حركة المخزون",
-        "en": "Recipe System:\n\n• Links menu items to inventory materials\n• Specifies quantities used from each material\n• Essential for auto-deduction from inventory\n\nCreating a recipe:\n1. Select menu item\n2. Add inventory materials used\n3. Specify quantity for each\n4. Save recipe\n\nOn sale:\n• Quantities auto-deducted on payment\n• Deduction = recipe qty × items sold\n• Shows in inventory movement report"
+        "ar": "نظام الوصفات (في الفرع المختار):\n\n⚠️ هام: الوصفات تُطبق على الفرع المحدد. تأكد من اختيار الفرع الصحيح قبل الإنشاء أو التعديل.\n\n• يربط أصناف القائمة بمواد المخزون\n• يحدد الكميات المستخدمة من كل مادة\n• أساسي للخصم التلقائي من المخزون\n\nإنشاء وصفة:\n1. اختر الفرع المناسب أولاً\n2. اختر الصنف من القائمة\n3. أضف مواد المخزون المستخدمة\n4. حدد الكمية لكل مادة\n5. احفظ الوصفة\n\n🔄 تغيير الفرع يعني أنك تعمل على بيانات مختلفة.\n\nعند البيع:\n• يتم خصم الكميات تلقائياً عند الدفع\n• الخصم = كمية الوصفة × عدد الأصناف المباعة\n• يظهر في تقرير حركة المخزون\n\n📋 استيراد CSV:\n• ملفات CSV تُطبق فقط على الفرع المحدد\n• لا تُضمّن معرف الفرع في الملف",
+        "en": "Recipe System (for Selected Branch):\n\n⚠️ Important: Recipes apply to the selected branch. Make sure to select the correct branch before creating or editing.\n\n• Links menu items to inventory materials\n• Specifies quantities used from each material\n• Essential for auto-deduction from inventory\n\nCreating a recipe:\n1. Select the appropriate branch first\n2. Select menu item\n3. Add inventory materials used\n4. Specify quantity for each\n5. Save recipe\n\n🔄 Changing the branch means you're working on different data.\n\nOn sale:\n• Quantities auto-deducted on payment\n• Deduction = recipe qty × items sold\n• Shows in inventory movement report\n\n📋 CSV Import:\n• CSV files apply only to the selected branch\n• Do not include branch identifier in the file"
       },
       "metadata": {
         "feature_id": "recipes",
         "affected_screens": ["Menu", "Inventory"],
         "user_roles": ["owner"],
-        "requires_module": "inventory_enabled"
+        "requires_module": "inventory_enabled",
+        "branch_scoped": true
       }
     },
     "kds": {
@@ -474,14 +477,15 @@
         "en": "Owner Dashboard Screen"
       },
       "content": {
-        "ar": "شاشة صاحب المطعم (Owner Dashboard):\n\n🎯 هدف الشاشة:\nلوحة التحكم الرئيسية لمالك المطعم.\n\n📋 التبويبات:\n• نظرة عامة: ملخص اليوم وحالة العروض (للقراءة فقط)\n• التحليلات: رسوم بيانية وإحصائيات\n• التقارير: تقارير مالية وتشغيلية\n• القائمة: إدارة الأصناف والأسعار\n• الموظفين: إدارة الكاشيرات والمطبخ\n• الفروع: إدارة فروع المطعم\n• الطاولات: إدارة الطاولات\n• المخزون: إدارة المواد والوصفات\n• الإعدادات: إعدادات النظام\n\n✅ ملاحظات:\n• تبويب \"نظرة عامة\" للقراءة فقط\n• الهيدر يُظهر اسم المستخدم والدور\n• اسم المطعم والشعار يظهران بوضوح\n• الشاشة مُحسّنة للعرض بصفحة واحدة",
-        "en": "Owner Dashboard Screen:\n\n🎯 Purpose:\nMain control panel for restaurant owner.\n\n📋 Tabs:\n• Overview: Today's summary and offers status (read-only)\n• Analytics: Charts and statistics\n• Reports: Financial and operational reports\n• Menu: Manage items and prices\n• Staff: Manage cashiers and kitchen\n• Branches: Manage restaurant branches\n• Tables: Manage tables\n• Inventory: Manage materials and recipes\n• Settings: System settings\n\n✅ Notes:\n• Overview tab is read-only\n• Header shows username and role\n• Restaurant name and logo shown clearly\n• Screen optimized for single-page view"
+        "ar": "شاشة صاحب المطعم (Owner Dashboard):\n\n🎯 هدف الشاشة:\nلوحة التحكم الرئيسية لمالك المطعم.\n\n⚠️ قاعدة هامة: سياق الفرع (إلزامي)\n• جميع العمليات مرتبطة بالفرع المحدد\n• لا يُسمح بأي عملية (إنشاء، تعديل، استيراد، حذف) بدون اختيار فرع\n• لكل فرع بياناته الخاصة (القائمة، المخزون، الموظفين، الطاولات)\n• تغيير الفرع يغيّر سياق العمل بالكامل\n\n📋 التبويبات:\n• نظرة عامة: ملخص اليوم وحالة العروض (للقراءة فقط)\n• التحليلات: رسوم بيانية وإحصائيات للفرع المحدد\n• التقارير: تقارير مالية وتشغيلية للفرع المحدد\n• القائمة: إدارة الأصناف والأسعار للفرع المحدد\n• الموظفين: إدارة الكاشيرات والمطبخ للفرع المحدد\n• الفروع: إدارة فروع المطعم\n• الطاولات: إدارة طاولات الفرع المحدد\n• المخزون: إدارة المواد والوصفات للفرع المحدد\n• الإعدادات: إعدادات النظام\n\n✅ ملاحظات:\n• تأكد من اختيار الفرع الصحيح قبل أي عملية\n• تبويب \"نظرة عامة\" للقراءة فقط\n• الهيدر يُظهر اسم المستخدم والدور\n• الشاشة مُحسّنة للعرض بصفحة واحدة",
+        "en": "Owner Dashboard Screen:\n\n🎯 Purpose:\nMain control panel for restaurant owner.\n\n⚠️ Important Rule: Branch Context (Mandatory)\n• All operations are scoped to the selected branch\n• No action (create, edit, import, delete) is allowed without selecting a branch\n• Each branch has its own data (menu, inventory, staff, tables)\n• Changing the branch changes the entire working context\n\n📋 Tabs:\n• Overview: Today's summary and offers status (read-only)\n• Analytics: Charts and statistics for selected branch\n• Reports: Financial and operational reports for selected branch\n• Menu: Manage items and prices for selected branch\n• Staff: Manage cashiers and kitchen for selected branch\n• Branches: Manage restaurant branches\n• Tables: Manage tables for selected branch\n• Inventory: Manage materials and recipes for selected branch\n• Settings: System settings\n\n✅ Notes:\n• Make sure to select the correct branch before any operation\n• Overview tab is read-only\n• Header shows username and role\n• Screen optimized for single-page view"
       },
       "metadata": {
         "feature_id": "screen_owner_dashboard",
         "affected_screens": ["Owner", "Admin", "Dashboard"],
         "user_roles": ["owner"],
-        "sections": ["overview", "analytics", "reports", "menu", "staff", "branches", "tables", "inventory", "settings"]
+        "sections": ["overview", "analytics", "reports", "menu", "staff", "branches", "tables", "inventory", "settings"],
+        "branch_context_required": true
       }
     },
     "section_owner_branches": {
@@ -519,15 +523,16 @@
         "en": "Staff Management Section"
       },
       "content": {
-        "ar": "قسم إدارة الموظفين في شاشة صاحب المطعم:\n\n🎯 الغرض:\nإدارة جميع مستخدمي النظام وصلاحياتهم.\n\n✅ ما يمكنك فعله:\n• إضافة كاشير جديد\n• إضافة موظف مطبخ (Kitchen)\n• تعديل بيانات الموظفين\n• تفعيل أو إيقاف حساب موظف\n• إعادة تعيين كلمة المرور\n• تعيين الموظف لفرع معين\n\n📋 أنواع الموظفين:\n• كاشير (Cashier): يدير الطلبات والدفع\n• طباخ (Kitchen): يرى شاشة المطبخ KDS\n\n⚠️ ملاحظات مهمة:\n• كل موظف يحتاج بريد إلكتروني فريد\n• الموظف المُوقف لا يستطيع الدخول للنظام\n• كلمة المرور الأولية يجب تغييرها بعد أول دخول\n• الكاشير مرتبط بفرع واحد فقط\n\n💡 نصائح:\n• استخدم أسماء واضحة للموظفين\n• راجع أداء الكاشيرات من التقارير\n• أوقف الحسابات غير المستخدمة لأمان النظام",
-        "en": "Staff Management Section in Owner Dashboard:\n\n🎯 Purpose:\nManage all system users and their permissions.\n\n✅ What You Can Do:\n• Add new cashier\n• Add kitchen staff\n• Edit employee details\n• Enable or disable employee account\n• Reset password\n• Assign employee to specific branch\n\n📋 Employee Types:\n• Cashier: Manages orders and payments\n• Kitchen: Views KDS (Kitchen Display System)\n\n⚠️ Important Notes:\n• Each employee needs a unique email\n• Disabled employee cannot access the system\n• Initial password should be changed after first login\n• Cashier is linked to one branch only\n\n💡 Tips:\n• Use clear employee names\n• Review cashier performance from reports\n• Disable unused accounts for system security"
+        "ar": "قسم إدارة الموظفين (في الفرع المختار):\n\n⚠️ هام: الموظفون مرتبطون بالفرع المحدد. تأكد من اختيار الفرع الصحيح قبل إضافة موظف.\n\n🎯 الغرض:\nإدارة جميع مستخدمي النظام وصلاحياتهم للفرع المحدد.\n\n✅ ما يمكنك فعله:\n• إضافة كاشير جديد (للفرع المحدد)\n• إضافة موظف مطبخ (Kitchen)\n• تعديل بيانات الموظفين\n• تفعيل أو إيقاف حساب موظف\n• إعادة تعيين كلمة المرور\n\n📋 أنواع الموظفين:\n• كاشير (Cashier): يدير الطلبات والدفع\n• طباخ (Kitchen): يرى شاشة المطبخ KDS\n\n🔄 تغيير الفرع يعني أنك تعمل على بيانات مختلفة.\n\n⚠️ ملاحظات مهمة:\n• كل موظف يحتاج بريد إلكتروني فريد\n• الموظف المُوقف لا يستطيع الدخول للنظام\n• الكاشير مرتبط بفرع واحد فقط\n• لكل فرع موظفيه الخاصين\n\n💡 نصائح:\n• استخدم أسماء واضحة للموظفين\n• راجع أداء الكاشيرات من التقارير\n• أوقف الحسابات غير المستخدمة لأمان النظام",
+        "en": "Staff Management Section (for Selected Branch):\n\n⚠️ Important: Staff are linked to the selected branch. Make sure to select the correct branch before adding staff.\n\n🎯 Purpose:\nManage all system users and their permissions for the selected branch.\n\n✅ What You Can Do:\n• Add new cashier (for selected branch)\n• Add kitchen staff\n• Edit employee details\n• Enable or disable employee account\n• Reset password\n\n📋 Employee Types:\n• Cashier: Manages orders and payments\n• Kitchen: Views KDS (Kitchen Display System)\n\n🔄 Changing the branch means you're working on different data.\n\n⚠️ Important Notes:\n• Each employee needs a unique email\n• Disabled employee cannot access the system\n• Cashier is linked to one branch only\n• Each branch has its own staff\n\n💡 Tips:\n• Use clear employee names\n• Review cashier performance from reports\n• Disable unused accounts for system security"
       },
       "metadata": {
         "feature_id": "section_owner_staff",
         "affected_screens": ["Owner", "Admin"],
         "user_roles": ["owner"],
         "parent_screen": "screen_owner_dashboard",
-        "section_key": "staff"
+        "section_key": "staff",
+        "branch_scoped": true
       }
     },
     "section_owner_menu": {
@@ -542,15 +547,16 @@
         "en": "Menu Management Section"
       },
       "content": {
-        "ar": "قسم إدارة القائمة في شاشة صاحب المطعم:\n\n🎯 الغرض:\nإدارة جميع الأصناف والفئات والأسعار.\n\n✅ ما يمكنك فعله:\n• إضافة فئات جديدة (مثل: مشروبات، وجبات رئيسية)\n• إضافة أصناف جديدة للقائمة\n• تعديل الأسعار\n• تفعيل أو إيقاف صنف\n• ترتيب الأصناف والفئات\n• إضافة وصف للصنف\n• إنشاء كومبو (مجموعات)\n• ربط الأصناف بوصفات المخزون\n\n📋 معلومات الصنف:\n• اسم الصنف\n• السعر الأساسي\n• الفئة\n• متوفر/غير متوفر\n• صنف مفضل (يظهر في المفضلات)\n\n⚠️ ملاحظات مهمة:\n• تغييرات الأسعار تظهر فوراً للكاشير\n• إيقاف صنف يمنع بيعه من POS\n• الوصفة مهمة للخصم التلقائي من المخزون\n\n💡 نصائح:\n• رتب الفئات حسب الأكثر طلباً\n• استخدم صور واضحة للأصناف\n• حدّث الأسعار بانتظام",
-        "en": "Menu Management Section in Owner Dashboard:\n\n🎯 Purpose:\nManage all items, categories, and prices.\n\n✅ What You Can Do:\n• Add new categories (e.g., Drinks, Main Courses)\n• Add new menu items\n• Edit prices\n• Enable or disable items\n• Sort items and categories\n• Add item descriptions\n• Create combos\n• Link items to inventory recipes\n\n📋 Item Information:\n• Item name\n• Base price\n• Category\n• Available/Unavailable\n• Favorite item (shows in favorites)\n\n⚠️ Important Notes:\n• Price changes appear immediately for cashier\n• Disabling item prevents selling from POS\n• Recipe is important for auto inventory deduction\n\n💡 Tips:\n• Sort categories by most ordered\n• Use clear item images\n• Update prices regularly"
+        "ar": "قسم إدارة القائمة (في الفرع المختار):\n\n⚠️ هام: لكل فرع إعدادات قائمة منفصلة. تأكد من اختيار الفرع الصحيح قبل المتابعة.\n\n🎯 الغرض:\nإدارة جميع الأصناف والفئات والأسعار للفرع المحدد.\n\n✅ ما يمكنك فعله:\n• إضافة فئات جديدة (مثل: مشروبات، وجبات رئيسية)\n• إضافة أصناف جديدة للقائمة\n• تعديل الأسعار حسب الفرع\n• تفعيل أو إيقاف صنف في فرع معين\n• ترتيب الأصناف والفئات\n• إضافة وصف للصنف\n• إنشاء كومبو (مجموعات)\n• ربط الأصناف بوصفات المخزون\n\n🔄 تغيير الفرع يعني أنك تعمل على بيانات مختلفة.\n\n📋 استيراد CSV:\n• ملفات CSV تُطبق فقط على الفرع المحدد\n• لا تُضمّن معرف الفرع في الملف\n\n⚠️ ملاحظات مهمة:\n• تغييرات الأسعار تظهر فوراً للكاشير\n• إيقاف صنف يمنع بيعه من POS في هذا الفرع\n• الوصفة مهمة للخصم التلقائي من المخزون\n\n💡 نصائح:\n• رتب الفئات حسب الأكثر طلباً\n• استخدم صور واضحة للأصناف\n• حدّث الأسعار بانتظام",
+        "en": "Menu Management Section (for Selected Branch):\n\n⚠️ Important: Each branch has separate menu settings. Make sure to select the correct branch before proceeding.\n\n🎯 Purpose:\nManage all items, categories, and prices for the selected branch.\n\n✅ What You Can Do:\n• Add new categories (e.g., Drinks, Main Courses)\n• Add new menu items\n• Edit prices per branch\n• Enable or disable items in specific branch\n• Sort items and categories\n• Add item descriptions\n• Create combos\n• Link items to inventory recipes\n\n🔄 Changing the branch means you're working on different data.\n\n📋 CSV Import:\n• CSV files apply only to the selected branch\n• Do not include branch identifier in the file\n\n⚠️ Important Notes:\n• Price changes appear immediately for cashier\n• Disabling item prevents selling from POS in this branch\n• Recipe is important for auto inventory deduction\n\n💡 Tips:\n• Sort categories by most ordered\n• Use clear item images\n• Update prices regularly"
       },
       "metadata": {
         "feature_id": "section_owner_menu",
         "affected_screens": ["Owner", "Menu"],
         "user_roles": ["owner"],
         "parent_screen": "screen_owner_dashboard",
-        "section_key": "menu"
+        "section_key": "menu",
+        "branch_scoped": true
       }
     },
     "section_owner_reports": {
@@ -565,15 +571,16 @@
         "en": "Reports Section"
       },
       "content": {
-        "ar": "قسم التقارير في شاشة صاحب المطعم:\n\n🎯 الغرض:\nعرض تقارير تفصيلية لمتابعة أداء المطعم.\n\n📋 التقارير المتوفرة:\n• تقارير الطلبات: عدد الطلبات، متوسط القيمة، الأكثر مبيعاً\n• التقارير المالية: المبيعات، الإيرادات، المرتجعات\n• تقارير المخزون: الحركات، الفروقات، المواد الناقصة\n• تقارير الموظفين: أداء الكاشيرات، فروقات الكاش\n• تقارير الفروع: مقارنة أداء الفروع\n• التقارير التشغيلية: أوقات الذروة، أكثر الأصناف طلباً\n\n✅ ما يمكنك فعله:\n• تحديد نطاق التاريخ (يوم، أسبوع، شهر، مخصص)\n• فلترة حسب الفرع\n• تصدير التقارير\n• مقارنة فترات مختلفة\n• عرض رسوم بيانية\n\n⚠️ ملاحظات مهمة:\n• التقارير تعتمد على الطلبات المدفوعة فقط\n• تقرير Z يُنشأ عند إغلاق كل وردية\n• فروقات الكاش تظهر إذا وُجد اختلاف\n\n💡 نصائح:\n• راجع التقارير يومياً\n• قارن أداء الفروع أسبوعياً\n• تابع فروقات الكاش فوراً",
-        "en": "Reports Section in Owner Dashboard:\n\n🎯 Purpose:\nView detailed reports to monitor restaurant performance.\n\n📋 Available Reports:\n• Order Reports: Order count, average value, best sellers\n• Financial Reports: Sales, revenue, refunds\n• Inventory Reports: Movements, variances, low stock\n• Staff Reports: Cashier performance, cash differences\n• Branch Reports: Branch performance comparison\n• Operations Reports: Peak hours, most ordered items\n\n✅ What You Can Do:\n• Set date range (day, week, month, custom)\n• Filter by branch\n• Export reports\n• Compare different periods\n• View charts and graphs\n\n⚠️ Important Notes:\n• Reports are based on paid orders only\n• Z Report is generated when closing each shift\n• Cash differences appear if discrepancy exists\n\n💡 Tips:\n• Review reports daily\n• Compare branch performance weekly\n• Address cash differences immediately"
+        "ar": "قسم التقارير (في الفرع المختار):\n\n⚠️ هام: التقارير تعرض بيانات الفرع المحدد. تأكد من اختيار الفرع الصحيح قبل مراجعة التقارير.\n\n🎯 الغرض:\nعرض تقارير تفصيلية لمتابعة أداء الفرع المحدد.\n\n📋 التقارير المتوفرة:\n• تقارير الطلبات: عدد الطلبات، متوسط القيمة، الأكثر مبيعاً\n• التقارير المالية: المبيعات، الإيرادات، المرتجعات\n• تقارير المخزون: الحركات، الفروقات، المواد الناقصة\n• تقارير الموظفين: أداء الكاشيرات، فروقات الكاش\n• التقارير التشغيلية: أوقات الذروة، أكثر الأصناف طلباً\n\n🔄 تغيير الفرع يعني أنك تعرض بيانات مختلفة.\n\n✅ ما يمكنك فعله:\n• تحديد نطاق التاريخ (يوم، أسبوع، شهر، مخصص)\n• مقارنة أداء الفروع من تقرير الفروع\n• تصدير التقارير\n• عرض رسوم بيانية\n\n⚠️ ملاحظات مهمة:\n• التقارير تعتمد على الطلبات المدفوعة فقط\n• تقرير Z يُنشأ عند إغلاق كل وردية\n• فروقات الكاش تظهر إذا وُجد اختلاف\n\n💡 نصائح:\n• راجع تقارير كل فرع بشكل منفصل\n• قارن أداء الفروع أسبوعياً\n• تابع فروقات الكاش فوراً",
+        "en": "Reports Section (for Selected Branch):\n\n⚠️ Important: Reports display data for the selected branch. Make sure to select the correct branch before reviewing reports.\n\n🎯 Purpose:\nView detailed reports to monitor the selected branch performance.\n\n📋 Available Reports:\n• Order Reports: Order count, average value, best sellers\n• Financial Reports: Sales, revenue, refunds\n• Inventory Reports: Movements, variances, low stock\n• Staff Reports: Cashier performance, cash differences\n• Operations Reports: Peak hours, most ordered items\n\n🔄 Changing the branch means you're viewing different data.\n\n✅ What You Can Do:\n• Set date range (day, week, month, custom)\n• Compare branch performance from Branch Report\n• Export reports\n• View charts and graphs\n\n⚠️ Important Notes:\n• Reports are based on paid orders only\n• Z Report is generated when closing each shift\n• Cash differences appear if discrepancy exists\n\n💡 Tips:\n• Review each branch reports separately\n• Compare branch performance weekly\n• Address cash differences immediately"
       },
       "metadata": {
         "feature_id": "section_owner_reports",
         "affected_screens": ["Owner", "Reports"],
         "user_roles": ["owner"],
         "parent_screen": "screen_owner_dashboard",
-        "section_key": "reports"
+        "section_key": "reports",
+        "branch_scoped": true
       }
     },
     "section_owner_inventory": {
@@ -588,15 +595,16 @@
         "en": "Inventory Section"
       },
       "content": {
-        "ar": "قسم المخزون في شاشة صاحب المطعم:\n\n🎯 الغرض:\nإدارة المواد الخام ومتابعة الكميات والوصفات.\n\n✅ ما يمكنك فعله:\n• إضافة مواد جديدة للمخزون\n• تحديد وحدات القياس (كيلو، جرام، لتر، قطعة)\n• تعيين حد أدنى للتنبيه\n• استلام مشتريات\n• تسجيل هدر\n• نقل بين الفروع\n• إجراء جرد\n• إنشاء وصفات للأصناف\n• مراجعة الفروقات\n\n📋 عمليات المخزون:\n• استلام (Purchase Receipt): إضافة مشتريات\n• هدر (Waste): تسجيل التالف والمفقود\n• نقل (Transfer): بين الفروع\n• تعديل (Adjustment): تصحيح الكميات\n• جرد (Stock Count): مطابقة الفعلي بالنظري\n\n⚠️ ملاحظات مهمة:\n• يجب تفعيل المخزون من الإعدادات أولاً\n• الخصم التلقائي يعتمد على الوصفات\n• الفروقات الكبيرة تحتاج مراجعة\n\n💡 نصائح:\n• أنشئ وصفات لجميع الأصناف\n• راجع الكميات الناقصة يومياً\n• أجرِ جرد دوري أسبوعي أو شهري",
-        "en": "Inventory Section in Owner Dashboard:\n\n🎯 Purpose:\nManage raw materials, track quantities, and recipes.\n\n✅ What You Can Do:\n• Add new inventory items\n• Set units of measure (kg, gram, liter, piece)\n• Set minimum level for alerts\n• Receive purchases\n• Record waste\n• Transfer between branches\n• Conduct stock count\n• Create item recipes\n• Review variances\n\n📋 Inventory Operations:\n• Purchase Receipt: Add purchases\n• Waste: Record damaged/lost items\n• Transfer: Between branches\n• Adjustment: Correct quantities\n• Stock Count: Match actual vs theoretical\n\n⚠️ Important Notes:\n• Must enable inventory in settings first\n• Auto deduction depends on recipes\n• Large variances need review\n\n💡 Tips:\n• Create recipes for all items\n• Review low stock daily\n• Conduct weekly or monthly stock counts"
+        "ar": "قسم المخزون (في الفرع المختار):\n\n⚠️ هام: لكل فرع مخزونه الخاص. تأكد من اختيار الفرع الصحيح قبل إجراء أي عملية.\n\n🎯 الغرض:\nإدارة المواد الخام ومتابعة الكميات والوصفات للفرع المحدد.\n\n✅ ما يمكنك فعله:\n• إضافة مواد جديدة للمخزون (للفرع المحدد)\n• تحديد وحدات القياس (كيلو، جرام، لتر، قطعة)\n• تعيين حد أدنى للتنبيه\n• استلام مشتريات\n• تسجيل هدر\n• نقل بين الفروع\n• إجراء جرد\n• إنشاء وصفات للأصناف\n• مراجعة الفروقات\n\n🔄 تغيير الفرع يعني أنك تعمل على بيانات مختلفة.\n\n📋 استيراد CSV:\n• ملفات CSV تُطبق فقط على الفرع المحدد\n• لا تُضمّن معرف الفرع في الملف\n\n📋 عمليات المخزون:\n• استلام (Purchase Receipt): إضافة مشتريات للفرع\n• هدر (Waste): تسجيل التالف والمفقود\n• نقل (Transfer): بين الفروع\n• تعديل (Adjustment): تصحيح الكميات\n• جرد (Stock Count): مطابقة الفعلي بالنظري\n\n⚠️ ملاحظات مهمة:\n• يجب تفعيل المخزون من الإعدادات أولاً\n• الخصم التلقائي يعتمد على الوصفات\n• الفروقات الكبيرة تحتاج مراجعة\n\n💡 نصائح:\n• أنشئ وصفات لجميع الأصناف\n• راجع الكميات الناقصة يومياً\n• أجرِ جرد دوري أسبوعي أو شهري",
+        "en": "Inventory Section (for Selected Branch):\n\n⚠️ Important: Each branch has its own inventory. Make sure to select the correct branch before performing any operation.\n\n🎯 Purpose:\nManage raw materials, track quantities, and recipes for the selected branch.\n\n✅ What You Can Do:\n• Add new inventory items (for selected branch)\n• Set units of measure (kg, gram, liter, piece)\n• Set minimum level for alerts\n• Receive purchases\n• Record waste\n• Transfer between branches\n• Conduct stock count\n• Create item recipes\n• Review variances\n\n🔄 Changing the branch means you're working on different data.\n\n📋 CSV Import:\n• CSV files apply only to the selected branch\n• Do not include branch identifier in the file\n\n📋 Inventory Operations:\n• Purchase Receipt: Add purchases for branch\n• Waste: Record damaged/lost items\n• Transfer: Between branches\n• Adjustment: Correct quantities\n• Stock Count: Match actual vs theoretical\n\n⚠️ Important Notes:\n• Must enable inventory in settings first\n• Auto deduction depends on recipes\n• Large variances need review\n\n💡 Tips:\n• Create recipes for all items\n• Review low stock daily\n• Conduct weekly or monthly stock counts"
       },
       "metadata": {
         "feature_id": "section_owner_inventory",
         "affected_screens": ["Owner", "Inventory"],
         "user_roles": ["owner"],
         "parent_screen": "screen_owner_dashboard",
-        "section_key": "inventory"
+        "section_key": "inventory",
+        "branch_scoped": true
       }
     },
     "section_owner_settings": {
@@ -2159,6 +2167,52 @@
         "affected_screens": ["SystemAdmin"],
         "user_roles": ["system_admin"],
         "tags": ["ownership", "assignment", "transfer"]
+      }
+    },
+    "csv_import_branch_guidance": {
+      "id": "csv_import_branch_guidance",
+      "intent": ["csv_import", "csv_troubleshooting", "import_data"],
+      "keywords": {
+        "ar": ["استيراد CSV", "رفع ملف", "استيراد بيانات", "CSV", "ملف اكسل", "استيراد قائمة", "استيراد مخزون", "استيراد وصفات", "رفع CSV"],
+        "en": ["csv import", "upload file", "import data", "csv file", "excel import", "menu import", "inventory import", "recipe import", "csv upload"]
+      },
+      "title": {
+        "ar": "استيراد CSV (للفرع المحدد)",
+        "en": "CSV Import (for Selected Branch)"
+      },
+      "content": {
+        "ar": "استيراد CSV (للفرع المحدد):\n\n⚠️ قواعد هامة:\n• جميع ملفات CSV تُطبق فقط على الفرع المحدد\n• لا تُضمّن معرف الفرع (branch_id) في الملف\n• تأكد من اختيار الفرع الصحيح قبل رفع الملف\n\n🔄 تغيير الفرع يعني أنك تستورد لفرع مختلف!\n\n📋 أنواع الاستيراد المتاحة:\n• القائمة: الأصناف والفئات\n• المخزون: المواد الخام والكميات\n• الوصفات: ربط الأصناف بالمواد\n\n✅ قبل الاستيراد:\n1. تأكد من اختيار المطعم الصحيح\n2. تأكد من اختيار الفرع الصحيح\n3. راجع بنية الملف المطلوبة\n4. تحقق من الأعمدة الإلزامية\n\n⚠️ ملاحظات:\n• إذا تكررت البيانات، سيتم تخطيها\n• الأخطاء تظهر في ملخص الاستيراد\n• يمكن إعادة الاستيراد بعد تصحيح الأخطاء\n\n💡 نصائح:\n• جرب ملف صغير أولاً\n• استخدم القوالب المتوفرة\n• راجع البيانات بعد الاستيراد",
+        "en": "CSV Import (for Selected Branch):\n\n⚠️ Important Rules:\n• All CSV files apply only to the selected branch\n• Do not include branch_id in the file\n• Make sure to select the correct branch before uploading\n\n🔄 Changing the branch means you're importing to a different branch!\n\n📋 Available Import Types:\n• Menu: Items and categories\n• Inventory: Raw materials and quantities\n• Recipes: Linking items to materials\n\n✅ Before Importing:\n1. Make sure the correct restaurant is selected\n2. Make sure the correct branch is selected\n3. Review required file structure\n4. Verify mandatory columns\n\n⚠️ Notes:\n• Duplicate data will be skipped\n• Errors appear in import summary\n• Can re-import after fixing errors\n\n💡 Tips:\n• Try a small file first\n• Use available templates\n• Review data after import"
+      },
+      "metadata": {
+        "feature_id": "csv_import_branch",
+        "affected_screens": ["Owner", "Menu", "Inventory"],
+        "user_roles": ["owner"],
+        "branch_scoped": true,
+        "tags": ["csv", "import", "upload", "data"]
+      }
+    },
+    "training_branch_awareness": {
+      "id": "training_branch_awareness",
+      "intent": ["training", "help_training", "training_mode"],
+      "keywords": {
+        "ar": ["التدريب", "وضع التدريب", "التدريب للفرع", "تغيير الفرع أثناء التدريب"],
+        "en": ["training", "training mode", "branch training", "branch change during training"]
+      },
+      "title": {
+        "ar": "التدريب والفرع",
+        "en": "Training and Branch"
+      },
+      "content": {
+        "ar": "التدريب وسياق الفرع:\n\n⚠️ قاعدة هامة:\nالتدريب مرتبط بالفرع المحدد.\n\n🔄 ماذا يحدث عند تغيير الفرع؟\n• يتوقف التدريب مؤقتاً\n• يسألك النظام: هل تريد إعادة التدريب للفرع الجديد؟\n\n📋 سبب هذا السلوك:\n• لكل فرع بياناته الخاصة\n• الشروحات يجب أن تعكس الفرع الحالي\n• التدريب على فرع لا يُطبق على فرع آخر\n\n✅ ما يجب فعله:\n1. اختر الفرع المناسب قبل بدء التدريب\n2. أكمل التدريب على فرع واحد أولاً\n3. إذا غيّرت الفرع، يمكنك إعادة بدء التدريب\n\n💡 نصائح:\n• ابدأ بالفرع الرئيسي\n• أكمل جميع المراحل قبل الانتقال\n• يمكنك إعادة التدريب في أي وقت",
+        "en": "Training and Branch Context:\n\n⚠️ Important Rule:\nTraining is linked to the selected branch.\n\n🔄 What happens when you change branch?\n• Training pauses\n• System asks: Do you want to restart training for the new branch?\n\n📋 Why this behavior:\n• Each branch has its own data\n• Explanations must reflect the current branch\n• Training on one branch doesn't apply to another\n\n✅ What to do:\n1. Select the appropriate branch before starting training\n2. Complete training on one branch first\n3. If you change branch, you can restart training\n\n💡 Tips:\n• Start with the main branch\n• Complete all stages before switching\n• You can restart training anytime"
+      },
+      "metadata": {
+        "feature_id": "training_branch",
+        "affected_screens": ["Owner"],
+        "user_roles": ["owner"],
+        "branch_scoped": true,
+        "tags": ["training", "learning", "branch", "context"]
       }
     }
   }
