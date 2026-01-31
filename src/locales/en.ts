@@ -5,6 +5,7 @@ export default {
   csv_resolve_conflicts_tooltip: "Please resolve all conflicting rows before importing",
   csv_conflict_resolved: "Resolved",
   csv_conflict_auto_applied: "Auto-applied",
+  csv_row_successful: "Successful",
   export_missing_menu_items: "Export missing menu items",
   export_missing_menu_items_hint: "You can upload this file directly in the Menu screen, then adjust categories and prices later.",
   // Brand name - centralized localization

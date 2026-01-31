@@ -922,7 +922,10 @@ export function RecipeBuilder({ restaurantId, branchId: propBranchId, currency =
                             <TableCell>{row.unit || "-"}</TableCell>
                             <TableCell>
                               {showAsValid && !hasConflicts ? (
-                                <span className="text-muted-foreground">{t("csv_row_no_error")}</span>
+                                <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                                  <CheckCircle2 className="h-4 w-4" />
+                                  <span className="text-sm font-medium">{t("csv_row_successful")}</span>
+                                </div>
                               ) : isResolved ? (
                                 <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                                   <Check className="h-4 w-4" />
