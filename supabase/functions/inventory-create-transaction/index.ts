@@ -6,6 +6,27 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+type ErrorCode = 
+  | "missing_auth"
+  | "invalid_token"
+  | "not_authorized"
+  | "subscription_expired"
+  | "inventory_disabled"
+  | "missing_fields"
+  | "invalid_input"
+  | "invalid_branch"
+  | "invalid_item"
+  | "insufficient_stock"
+  | "server_error"
+  | "unexpected";
+
+function errorResponse(code: ErrorCode, status = 400) {
+  return new Response(
+    JSON.stringify({ success: false, error: { code } }),
+    { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
 interface TransactionRequest {
   itemId: string;
   branchId: string;
@@ -16,7 +37,6 @@ interface TransactionRequest {
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -28,31 +48,21 @@ Deno.serve(async (req) => {
 
     if (!authHeader) {
       console.error("[inventory-create-transaction] Missing authorization header");
-      return new Response(
-        JSON.stringify({ success: false, error: "Missing authorization header" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("missing_auth", 401);
     }
 
-    // Create client with user token for auth validation
     const supabaseUser = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Validate JWT and get user
     const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
     if (authError || !user) {
       console.error("[inventory-create-transaction] Auth error:", authError);
-      return new Response(
-        JSON.stringify({ success: false, error: "Invalid or expired token" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("invalid_token", 401);
     }
 
-    // Create service role client for DB operations (bypasses RLS)
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check user role
     const { data: roleData, error: roleError } = await supabase
       .from("user_roles")
       .select("role, restaurant_id, branch_id")
@@ -62,22 +72,17 @@ Deno.serve(async (req) => {
 
     if (roleError || !roleData) {
       console.error("[inventory-create-transaction] Role check failed:", roleError);
-      return new Response(
-        JSON.stringify({ success: false, error: "Unauthorized role" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("not_authorized", 403);
     }
 
     const restaurantId = roleData.restaurant_id;
 
-    // Validate restaurant subscription is active
     const { isActive: subscriptionActive } = await checkSubscriptionActive(restaurantId);
     if (!subscriptionActive) {
       console.error("[inventory-create-transaction] Restaurant subscription expired");
       return subscriptionExpiredResponse(corsHeaders);
     }
 
-    // ============ INVENTORY MODULE GUARD ============
     const { data: settings, error: settingsError } = await supabase
       .from("restaurant_settings")
       .select("inventory_enabled")
@@ -86,51 +91,30 @@ Deno.serve(async (req) => {
 
     if (settingsError) {
       console.error("[inventory-create-transaction] Settings check failed:", settingsError);
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to check inventory module status" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("server_error", 500);
     }
 
     if (!settings?.inventory_enabled) {
       console.warn("[inventory-create-transaction] Inventory module disabled for restaurant:", restaurantId);
-      return new Response(
-        JSON.stringify({ success: false, error: "Inventory module is not enabled for this restaurant" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("inventory_disabled", 403);
     }
-    // ============ END INVENTORY MODULE GUARD ============
 
-    // Parse request body
     const body: TransactionRequest = await req.json();
     const { itemId, branchId, txnType, qty, unitId, notes } = body;
 
-    // Validate required fields
     if (!itemId || !branchId || !txnType || !qty || !unitId) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Missing required fields" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("missing_fields", 400);
     }
 
-    // Validate transaction type
     const validTypes = ["ADJUSTMENT_IN", "ADJUSTMENT_OUT", "WASTE", "INITIAL_STOCK"];
     if (!validTypes.includes(txnType)) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Invalid transaction type" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("invalid_input", 400);
     }
 
-    // Validate qty is positive
     if (qty <= 0) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Quantity must be positive" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("invalid_input", 400);
     }
 
-    // Validate branch belongs to restaurant
     const { data: branch, error: branchError } = await supabase
       .from("restaurant_branches")
       .select("id")
@@ -139,13 +123,9 @@ Deno.serve(async (req) => {
       .single();
 
     if (branchError || !branch) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Invalid branch" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("invalid_branch", 400);
     }
 
-    // Validate item exists and belongs to this branch
     const { data: item, error: itemError } = await supabase
       .from("inventory_items")
       .select("id, base_unit_id, name")
@@ -155,16 +135,12 @@ Deno.serve(async (req) => {
       .single();
 
     if (itemError || !item) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Invalid inventory item" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("invalid_item", 400);
     }
 
-    // Calculate qty_in_base using unit conversion
     let qtyInBase = qty;
     if (unitId !== item.base_unit_id) {
-      const { data: conversion, error: convError } = await supabase
+      const { data: conversion } = await supabase
         .from("inventory_unit_conversions")
         .select("multiplier")
         .eq("restaurant_id", restaurantId)
@@ -175,7 +151,6 @@ Deno.serve(async (req) => {
       if (conversion) {
         qtyInBase = qty * conversion.multiplier;
       } else {
-        // Try reverse conversion
         const { data: reverseConv } = await supabase
           .from("inventory_unit_conversions")
           .select("multiplier")
@@ -187,15 +162,12 @@ Deno.serve(async (req) => {
         if (reverseConv) {
           qtyInBase = qty / reverseConv.multiplier;
         }
-        // If no conversion found, assume same unit
       }
     }
 
-    // Determine signed qty for ledger
     const signedQty = ["ADJUSTMENT_OUT", "WASTE", "TRANSFER_OUT"].includes(txnType) ? -qty : qty;
     const signedQtyInBase = ["ADJUSTMENT_OUT", "WASTE", "TRANSFER_OUT"].includes(txnType) ? -qtyInBase : qtyInBase;
 
-    // Get current stock level
     const { data: currentStock } = await supabase
       .from("inventory_stock_levels")
       .select("on_hand_base")
@@ -206,18 +178,10 @@ Deno.serve(async (req) => {
     const currentOnHand = currentStock?.on_hand_base || 0;
     const newOnHand = currentOnHand + signedQtyInBase;
 
-    // Block negative stock for outgoing transactions
     if (signedQtyInBase < 0 && newOnHand < 0) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: `Insufficient stock. Current: ${currentOnHand}, Requested: ${Math.abs(signedQtyInBase)}` 
-        }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("insufficient_stock", 400);
     }
 
-    // Start transaction - insert ledger entry
     const { data: txn, error: txnError } = await supabase
       .from("inventory_transactions")
       .insert({
@@ -236,13 +200,9 @@ Deno.serve(async (req) => {
 
     if (txnError) {
       console.error("[inventory-create-transaction] Insert error:", txnError);
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to create transaction" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("server_error", 500);
     }
 
-    // Upsert stock level cache
     const { error: stockError } = await supabase
       .from("inventory_stock_levels")
       .upsert(
@@ -258,10 +218,8 @@ Deno.serve(async (req) => {
 
     if (stockError) {
       console.error("[inventory-create-transaction] Stock update error:", stockError);
-      // Transaction already created, log but don't fail
     }
 
-    // Write audit log
     await supabase.from("audit_logs").insert({
       user_id: user.id,
       restaurant_id: restaurantId,
@@ -291,9 +249,6 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     console.error("[inventory-create-transaction] Unexpected error:", error);
-    return new Response(
-      JSON.stringify({ success: false, error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return errorResponse("unexpected", 500);
   }
 });

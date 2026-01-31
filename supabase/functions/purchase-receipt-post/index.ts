@@ -6,6 +6,26 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+type ErrorCode = 
+  | "missing_auth"
+  | "invalid_token"
+  | "not_authorized"
+  | "subscription_expired"
+  | "inventory_disabled"
+  | "missing_fields"
+  | "invalid_branch"
+  | "invalid_supplier"
+  | "invalid_item"
+  | "server_error"
+  | "unexpected";
+
+function errorResponse(code: ErrorCode, status = 400) {
+  return new Response(
+    JSON.stringify({ success: false, error: { code } }),
+    { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
 interface ReceiptLine {
   itemId: string;
   qty: number;
@@ -31,7 +51,6 @@ interface ReceiptRequest {
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -43,31 +62,21 @@ Deno.serve(async (req) => {
 
     if (!authHeader) {
       console.error("[purchase-receipt-post] Missing authorization header");
-      return new Response(
-        JSON.stringify({ success: false, error: "Missing authorization header" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("missing_auth", 401);
     }
 
-    // Create client with user token for auth validation
     const supabaseUser = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Validate JWT and get user
     const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
     if (authError || !user) {
       console.error("[purchase-receipt-post] Auth error:", authError);
-      return new Response(
-        JSON.stringify({ success: false, error: "Invalid or expired token" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("invalid_token", 401);
     }
 
-    // Create service role client for DB operations
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check user role
     const { data: roleData, error: roleError } = await supabase
       .from("user_roles")
       .select("role, restaurant_id")
@@ -77,22 +86,17 @@ Deno.serve(async (req) => {
 
     if (roleError || !roleData) {
       console.error("[purchase-receipt-post] Role check failed:", roleError);
-      return new Response(
-        JSON.stringify({ success: false, error: "Unauthorized role" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("not_authorized", 403);
     }
 
     const restaurantId = roleData.restaurant_id;
 
-    // Validate restaurant subscription is active
     const { isActive: subscriptionActive } = await checkSubscriptionActive(restaurantId);
     if (!subscriptionActive) {
       console.error("[purchase-receipt-post] Restaurant subscription expired");
       return subscriptionExpiredResponse(corsHeaders);
     }
 
-    // ============ INVENTORY MODULE GUARD ============
     const { data: settings, error: settingsError } = await supabase
       .from("restaurant_settings")
       .select("inventory_enabled")
@@ -101,34 +105,21 @@ Deno.serve(async (req) => {
 
     if (settingsError) {
       console.error("[purchase-receipt-post] Settings check failed:", settingsError);
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to check inventory module status" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("server_error", 500);
     }
 
     if (!settings?.inventory_enabled) {
       console.warn("[purchase-receipt-post] Inventory module disabled for restaurant:", restaurantId);
-      return new Response(
-        JSON.stringify({ success: false, error: "Inventory module is not enabled for this restaurant" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("inventory_disabled", 403);
     }
-    // ============ END INVENTORY MODULE GUARD ============
 
-    // Parse request body
     const body: ReceiptRequest = await req.json();
     const { branchId, supplierId, receiptNo, receivedAt, notes, lines } = body;
 
-    // Validate required fields
     if (!branchId || !receiptNo || !lines || lines.length === 0) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Missing required fields (branchId, receiptNo, lines)" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("missing_fields", 400);
     }
 
-    // Validate branch belongs to restaurant
     const { data: branch, error: branchError } = await supabase
       .from("restaurant_branches")
       .select("id")
@@ -137,13 +128,9 @@ Deno.serve(async (req) => {
       .single();
 
     if (branchError || !branch) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Invalid branch" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("invalid_branch", 400);
     }
 
-    // Validate supplier if provided
     if (supplierId) {
       const { data: supplier, error: supplierError } = await supabase
         .from("suppliers")
@@ -153,14 +140,10 @@ Deno.serve(async (req) => {
         .single();
 
       if (supplierError || !supplier) {
-        return new Response(
-          JSON.stringify({ success: false, error: "Invalid supplier" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return errorResponse("invalid_supplier", 400);
       }
     }
 
-    // Validate all items exist and belong to this branch (include avg_cost for weighted avg calculation)
     const itemIds = lines.map((l) => l.itemId);
     const { data: items, error: itemsError } = await supabase
       .from("inventory_items")
@@ -170,15 +153,11 @@ Deno.serve(async (req) => {
       .eq("restaurant_id", restaurantId);
 
     if (itemsError || !items || items.length !== itemIds.length) {
-      return new Response(
-        JSON.stringify({ success: false, error: "One or more invalid inventory items" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("invalid_item", 400);
     }
 
     const itemMap = new Map(items.map((i) => [i.id, { ...i, avg_cost: i.avg_cost || 0 }]));
 
-    // Fetch unit conversions for this restaurant
     const { data: conversions } = await supabase
       .from("inventory_unit_conversions")
       .select("from_unit_id, to_unit_id, multiplier")
@@ -189,7 +168,6 @@ Deno.serve(async (req) => {
       conversionMap.set(`${c.from_unit_id}->${c.to_unit_id}`, c.multiplier);
     });
 
-    // Create receipt
     const { data: receipt, error: receiptError } = await supabase
       .from("purchase_receipts")
       .insert({
@@ -206,13 +184,9 @@ Deno.serve(async (req) => {
 
     if (receiptError) {
       console.error("[purchase-receipt-post] Receipt insert error:", receiptError);
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to create receipt" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("server_error", 500);
     }
 
-    // Create receipt lines and inventory transactions
     const receiptLines = [];
     const transactions = [];
     const stockUpdates: { itemId: string; qtyInBase: number }[] = [];
@@ -224,7 +198,6 @@ Deno.serve(async (req) => {
       const item = itemMap.get(line.itemId);
       if (!item) continue;
 
-      // Calculate qty_in_base
       let qtyInBase = line.qty;
       if (line.unitId !== item.base_unit_id) {
         const convKey = `${line.unitId}->${item.base_unit_id}`;
@@ -236,7 +209,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Calculate unit_cost and total_cost
       const unitCost = line.unitCost != null && line.unitCost > 0 ? line.unitCost : 0;
       const totalCost = qtyInBase * unitCost;
 
@@ -266,11 +238,10 @@ Deno.serve(async (req) => {
 
       stockUpdates.push({ itemId: line.itemId, qtyInBase });
 
-      // Prepare avg_cost update only if unit_cost is provided
       if (unitCost > 0) {
         avgCostUpdates.push({
           itemId: line.itemId,
-          oldQty: 0, // Will be filled later from stock levels
+          oldQty: 0,
           oldAvgCost: item.avg_cost,
           receivedQty: qtyInBase,
           unitCost: unitCost,
@@ -278,7 +249,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Insert receipt lines
     const { error: linesError } = await supabase
       .from("purchase_receipt_lines")
       .insert(receiptLines);
@@ -287,7 +257,6 @@ Deno.serve(async (req) => {
       console.error("[purchase-receipt-post] Lines insert error:", linesError);
     }
 
-    // Insert inventory transactions
     const { error: txnError } = await supabase
       .from("inventory_transactions")
       .insert(transactions);
@@ -296,7 +265,6 @@ Deno.serve(async (req) => {
       console.error("[purchase-receipt-post] Transactions insert error:", txnError);
     }
 
-    // Update stock levels and calculate weighted average cost
     for (const update of stockUpdates) {
       const { data: currentStock } = await supabase
         .from("inventory_stock_levels")
@@ -321,20 +289,16 @@ Deno.serve(async (req) => {
           { onConflict: "restaurant_id,branch_id,item_id" }
         );
 
-      // Update weighted average cost if unit_cost was provided
       const avgUpdate = avgCostUpdates.find((a) => a.itemId === update.itemId);
       if (avgUpdate) {
         const item = itemMap.get(update.itemId);
         const oldAvgCost = item?.avg_cost || 0;
         
-        // Weighted Average Cost formula:
-        // new_avg = ((old_qty × old_avg) + (received_qty × unit_cost)) / (old_qty + received_qty)
         let newAvgCost = oldAvgCost;
         const totalQty = oldOnHand + avgUpdate.receivedQty;
         if (totalQty > 0) {
           newAvgCost = ((oldOnHand * oldAvgCost) + (avgUpdate.receivedQty * avgUpdate.unitCost)) / totalQty;
         } else {
-          // Edge case: if there's no stock, set avg_cost to the new unit cost
           newAvgCost = avgUpdate.unitCost;
         }
 
@@ -347,7 +311,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Write audit log
     await supabase.from("audit_logs").insert({
       user_id: user.id,
       restaurant_id: restaurantId,
@@ -376,9 +339,6 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     console.error("[purchase-receipt-post] Unexpected error:", error);
-    return new Response(
-      JSON.stringify({ success: false, error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return errorResponse("unexpected", 500);
   }
 });
