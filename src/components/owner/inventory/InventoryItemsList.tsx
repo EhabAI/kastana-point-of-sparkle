@@ -40,10 +40,11 @@ import {
 
 interface InventoryItemsListProps {
   restaurantId: string;
+  branchId?: string;
   isReadOnly?: boolean;
 }
 
-export function InventoryItemsList({ restaurantId, isReadOnly = false }: InventoryItemsListProps) {
+export function InventoryItemsList({ restaurantId, branchId, isReadOnly = false }: InventoryItemsListProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
   const { data: items = [], isLoading } = useInventoryItems(restaurantId);
@@ -71,6 +72,8 @@ export function InventoryItemsList({ restaurantId, isReadOnly = false }: Invento
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
+      // Branch filter (from global BranchSelector)
+      if (branchId && item.branchId !== branchId) return false;
       // Search filter
       if (search && !item.name.toLowerCase().includes(search.toLowerCase())) {
         return false;
@@ -82,7 +85,7 @@ export function InventoryItemsList({ restaurantId, isReadOnly = false }: Invento
       if (lowStockOnly && item.onHandBase >= item.minLevel) return false;
       return true;
     });
-  }, [items, search, statusFilter, lowStockOnly]);
+  }, [items, search, statusFilter, lowStockOnly, branchId]);
 
   const handleExportCSV = () => {
     const headers = ["Name", "Branch", "Unit", "On Hand", "Min Level", "Reorder Point", "Status"];

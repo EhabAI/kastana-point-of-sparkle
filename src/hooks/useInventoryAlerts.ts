@@ -60,16 +60,16 @@ const THRESHOLDS = {
 
 // ============= MAIN HOOK =============
 
-export function useInventoryAlerts(restaurantId: string | undefined) {
+export function useInventoryAlerts(restaurantId: string | undefined, branchId?: string) {
   return useQuery({
-    queryKey: ["inventory-alerts", restaurantId],
+    queryKey: ["inventory-alerts", restaurantId, branchId],
     queryFn: async (): Promise<InventoryAlert[]> => {
       if (!restaurantId) return [];
 
       // Fetch recent approved stock counts (last 60 days for trend analysis)
       const startDate = subDays(new Date(), 60);
 
-      const { data: stockCounts, error: scError } = await supabase
+      let query = supabase
         .from("stock_counts")
         .select(`
           id,
@@ -81,6 +81,12 @@ export function useInventoryAlerts(restaurantId: string | undefined) {
         .eq("status", "APPROVED")
         .gte("approved_at", startDate.toISOString())
         .order("approved_at", { ascending: true });
+
+      if (branchId) {
+        query = query.eq("branch_id", branchId);
+      }
+
+      const { data: stockCounts, error: scError } = await query;
 
       if (scError) {
         console.error("Error fetching stock counts for alerts:", scError);

@@ -12,15 +12,16 @@ import { ar, enUS } from "date-fns/locale";
 
 interface VarianceTrendsChartProps {
   restaurantId: string;
+  branchId?: string;
 }
 
-export function VarianceTrendsChart({ restaurantId }: VarianceTrendsChartProps) {
+export function VarianceTrendsChart({ restaurantId, branchId }: VarianceTrendsChartProps) {
   const { t, language, isRTL } = useLanguage();
   const [granularity, setGranularity] = useState<"daily" | "weekly">("daily");
   const [days, setDays] = useState(30);
 
-  const { data: trends = [], isLoading } = useVarianceTrends(restaurantId, granularity, days);
-  const { data: summary } = useVarianceSummary(restaurantId, days);
+  const { data: trends = [], isLoading } = useVarianceTrends(restaurantId, granularity, days, branchId);
+  const { data: summary } = useVarianceSummary(restaurantId, days, branchId);
 
   const dateLocale = language === "ar" ? ar : enUS;
 

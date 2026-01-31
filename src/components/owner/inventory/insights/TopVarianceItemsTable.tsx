@@ -10,15 +10,16 @@ import { BarChart3, ArrowUpDown, DollarSign, Package } from "lucide-react";
 
 interface TopVarianceItemsTableProps {
   restaurantId: string;
+  branchId?: string;
 }
 
-export function TopVarianceItemsTable({ restaurantId }: TopVarianceItemsTableProps) {
+export function TopVarianceItemsTable({ restaurantId, branchId }: TopVarianceItemsTableProps) {
   const { t, language } = useLanguage();
   const [days, setDays] = useState(30);
   const [sortBy, setSortBy] = useState<"quantity" | "value">("quantity");
   const [limit, setLimit] = useState(10);
 
-  const { data: items = [], isLoading } = useTopVarianceItems(restaurantId, days, limit, sortBy);
+  const { data: items = [], isLoading } = useTopVarianceItems(restaurantId, days, limit, sortBy, branchId);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat(language === "ar" ? "ar-JO" : "en-JO", {
