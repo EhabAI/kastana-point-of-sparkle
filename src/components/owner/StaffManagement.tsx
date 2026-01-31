@@ -41,10 +41,9 @@ import { OwnerContextGuard } from "@/components/owner/OwnerContextGuard";
 
 interface StaffManagementProps {
   restaurantId: string;
-  staffCount?: number;
 }
 
-export function StaffManagement({ restaurantId, staffCount }: StaffManagementProps) {
+export function StaffManagement({ restaurantId }: StaffManagementProps) {
   const { data: cashiers = [], isLoading: cashiersLoading } = useCashiers(restaurantId);
   const { data: kitchenStaff = [], isLoading: kitchenLoading } = useKitchenStaff(restaurantId);
   const { data: branches = [] } = useBranches(restaurantId);
