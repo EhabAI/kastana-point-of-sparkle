@@ -3,6 +3,7 @@ import { ChevronDown, Bell, AlertTriangle, AlertCircle, Info, CheckCircle, Loade
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useRestaurantContextSafe } from "@/contexts/RestaurantContext";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { useOwnerRestaurantSettings } from "@/hooks/useOwnerRestaurantSettings";
 import { useBranches } from "@/hooks/useBranches";
 import { startOfDay, endOfDay, subDays, format, differenceInMinutes, differenceInHours } from "date-fns";
@@ -28,6 +29,7 @@ const THRESHOLDS = {
 
 export const NotificationsAlerts = forwardRef<HTMLDivElement>(function NotificationsAlerts(_, ref) {
   const { selectedRestaurant: restaurant } = useRestaurantContextSafe();
+  const { selectedBranch } = useBranchContextSafe();
   const { data: settings } = useOwnerRestaurantSettings();
   const { data: branches = [] } = useBranches(restaurant?.id);
   const { t, language } = useLanguage();
@@ -60,7 +62,7 @@ export const NotificationsAlerts = forwardRef<HTMLDivElement>(function Notificat
   };
 
   const { data: alertsData, isLoading } = useQuery({
-    queryKey: ["owner-alerts", restaurant?.id],
+    queryKey: ["owner-alerts", restaurant?.id, selectedBranch?.id],
     queryFn: async () => {
       if (!restaurant?.id) return { alerts: [] };
 
@@ -70,27 +72,45 @@ export const NotificationsAlerts = forwardRef<HTMLDivElement>(function Notificat
       const lastWeek = subDays(today, 7);
 
       // Get today's orders
-      const { data: todayOrders } = await supabase
+      let todayOrdersQuery = supabase
         .from("orders")
         .select("id, total, status, discount_value")
         .eq("restaurant_id", restaurant.id)
         .gte("created_at", startOfDay(today).toISOString())
         .lt("created_at", endOfDay(today).toISOString());
 
+      if (selectedBranch?.id) {
+        todayOrdersQuery = todayOrdersQuery.eq("branch_id", selectedBranch.id);
+      }
+
+      const { data: todayOrders } = await todayOrdersQuery;
+
       // Get yesterday's orders for comparison
-      const { data: yesterdayOrders } = await supabase
+      let yesterdayOrdersQuery = supabase
         .from("orders")
         .select("id, total, status")
         .eq("restaurant_id", restaurant.id)
         .gte("created_at", startOfDay(yesterday).toISOString())
         .lt("created_at", endOfDay(yesterday).toISOString());
 
+      if (selectedBranch?.id) {
+        yesterdayOrdersQuery = yesterdayOrdersQuery.eq("branch_id", selectedBranch.id);
+      }
+
+      const { data: yesterdayOrders } = await yesterdayOrdersQuery;
+
       // Get this week's voided items
-      const { data: weekOrders } = await supabase
+      let weekOrdersQuery = supabase
         .from("orders")
         .select("id")
         .eq("restaurant_id", restaurant.id)
         .gte("created_at", lastWeek.toISOString());
+
+      if (selectedBranch?.id) {
+        weekOrdersQuery = weekOrdersQuery.eq("branch_id", selectedBranch.id);
+      }
+
+      const { data: weekOrders } = await weekOrdersQuery;
 
       const weekOrderIds = weekOrders?.map(o => o.id) || [];
       let weekVoidedCount = 0;
@@ -106,11 +126,17 @@ export const NotificationsAlerts = forwardRef<HTMLDivElement>(function Notificat
       }
 
       // Get open shifts with branch info
-      const { data: openShifts } = await supabase
+      let openShiftsQuery = supabase
         .from("shifts")
         .select("id, opened_at, cashier_id, branch_id")
         .eq("restaurant_id", restaurant.id)
         .eq("status", "open");
+
+      if (selectedBranch?.id) {
+        openShiftsQuery = openShiftsQuery.eq("branch_id", selectedBranch.id);
+      }
+
+      const { data: openShifts } = await openShiftsQuery;
 
       // ========== OPERATIONAL ALERTS ==========
 
@@ -133,11 +159,17 @@ export const NotificationsAlerts = forwardRef<HTMLDivElement>(function Notificat
       });
 
       // 2. Stuck Orders (open/in-progress > 30 minutes)
-      const { data: stuckOrders } = await supabase
+      let stuckOrdersQuery = supabase
         .from("orders")
         .select("id, order_number, created_at, status, table_id")
         .eq("restaurant_id", restaurant.id)
         .in("status", ["open", "in_progress", "confirmed"]);
+
+      if (selectedBranch?.id) {
+        stuckOrdersQuery = stuckOrdersQuery.eq("branch_id", selectedBranch.id);
+      }
+
+      const { data: stuckOrders } = await stuckOrdersQuery;
 
       stuckOrders?.forEach(order => {
         const orderAgeMinutes = differenceInMinutes(today, new Date(order.created_at));
@@ -157,18 +189,30 @@ export const NotificationsAlerts = forwardRef<HTMLDivElement>(function Notificat
 
       // 3. Long Occupied Tables (>90 minutes)
       // Get active orders with tables to find occupied tables
-      const { data: activeTableOrders } = await supabase
+      let activeTableOrdersQuery = supabase
         .from("orders")
         .select("id, table_id, created_at")
         .eq("restaurant_id", restaurant.id)
         .in("status", ["open", "in_progress", "confirmed", "on_hold"])
         .not("table_id", "is", null);
 
+      if (selectedBranch?.id) {
+        activeTableOrdersQuery = activeTableOrdersQuery.eq("branch_id", selectedBranch.id);
+      }
+
+      const { data: activeTableOrders } = await activeTableOrdersQuery;
+
       // Get table info
-      const { data: tables } = await supabase
+      let tablesQuery = supabase
         .from("restaurant_tables")
         .select("id, table_name")
         .eq("restaurant_id", restaurant.id);
+
+      if (selectedBranch?.id) {
+        tablesQuery = tablesQuery.eq("branch_id", selectedBranch.id);
+      }
+
+      const { data: tables } = await tablesQuery;
 
       // Group by table and find oldest order per table
       const tableOccupancy: Record<string, { tableName: string; oldestOrderTime: Date }> = {};
@@ -205,12 +249,18 @@ export const NotificationsAlerts = forwardRef<HTMLDivElement>(function Notificat
       });
 
       // 4. Excessive Refunds Today (>5)
-      const { data: todayRefunds } = await supabase
+      let todayRefundsQuery = supabase
         .from("refunds")
         .select("id")
         .eq("restaurant_id", restaurant.id)
         .gte("created_at", startOfDay(today).toISOString())
         .lt("created_at", endOfDay(today).toISOString());
+
+      if (selectedBranch?.id) {
+        todayRefundsQuery = todayRefundsQuery.eq("branch_id", selectedBranch.id);
+      }
+
+      const { data: todayRefunds } = await todayRefundsQuery;
 
       const refundCount = todayRefunds?.length || 0;
       if (refundCount > THRESHOLDS.EXCESSIVE_REFUNDS_COUNT) {

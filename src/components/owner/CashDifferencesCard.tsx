@@ -8,6 +8,7 @@
 import { useState } from "react";
 import { useCashDifferences } from "@/hooks/useCashDifferencesToday";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { formatJOD, cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -32,9 +33,10 @@ interface CashDifferencesCardProps {
 export function CashDifferencesCard({ restaurantId, currency = "JOD", compact = false }: CashDifferencesCardProps) {
   const { language } = useLanguage();
   const t = translations[language as keyof typeof translations] || translations.en;
+  const { selectedBranch } = useBranchContextSafe();
   
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const { data, isLoading } = useCashDifferences(restaurantId, selectedDate);
+  const { data, isLoading } = useCashDifferences(restaurantId, selectedDate, selectedBranch?.id);
 
   if (isLoading) {
     return (

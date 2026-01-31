@@ -6,6 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { startOfDay, endOfDay, subDays } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,28 +24,35 @@ interface PatternInfo {
 
 export function MistakePatternDetector({ restaurantId }: MistakePatternDetectorProps) {
   const { t, language } = useLanguage();
+  const { selectedBranch } = useBranchContextSafe();
   
   const today = new Date();
   const todayStart = startOfDay(today).toISOString();
   const todayEnd = endOfDay(today).toISOString();
   
   const { data: patterns } = useQuery({
-    queryKey: ["mistake-patterns", restaurantId, todayStart],
+    queryKey: ["mistake-patterns", restaurantId, selectedBranch?.id, todayStart],
     queryFn: async () => {
       const detectedPatterns: PatternInfo[] = [];
       
       // Check for excessive voids by cashier
-      const { data: voidedItems } = await supabase
+      let voidedQuery = supabase
         .from("order_items")
         .select(`
           id,
           order_id,
-          orders!inner(shift_id)
+          orders!inner(shift_id, branch_id)
         `)
         .eq("restaurant_id", restaurantId)
         .eq("voided", true)
         .gte("created_at", todayStart)
         .lt("created_at", todayEnd);
+
+      if (selectedBranch?.id) {
+        voidedQuery = voidedQuery.eq("orders.branch_id", selectedBranch.id);
+      }
+
+      const { data: voidedItems } = await voidedQuery;
       
       // Group by shift to check for patterns
       const voidsByShift: Record<string, number> = {};
@@ -66,12 +74,18 @@ export function MistakePatternDetector({ restaurantId }: MistakePatternDetectorP
       }
       
       // Check for repeated refunds on same items
-      const { data: refunds } = await supabase
+      let refundsQuery = supabase
         .from("refunds")
         .select("id, order_id")
         .eq("restaurant_id", restaurantId)
         .gte("created_at", todayStart)
         .lt("created_at", todayEnd);
+
+      if (selectedBranch?.id) {
+        refundsQuery = refundsQuery.eq("branch_id", selectedBranch.id);
+      }
+
+      const { data: refunds } = await refundsQuery;
       
       // If more than 5 refunds today, flag it
       if (refunds && refunds.length >= 5) {

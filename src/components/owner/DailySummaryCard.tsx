@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { startOfDay, endOfDay, format } from "date-fns";
 import { formatJOD, cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,39 +40,58 @@ interface DailySummaryCardProps {
 export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummaryCardProps) {
   const { language } = useLanguage();
   const t = translations[language as keyof typeof translations] || translations.en;
+  const { selectedBranch } = useBranchContextSafe();
   
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [detailsOpen, setDetailsOpen] = useState(false);
   
   const { data: summary, isLoading } = useQuery({
-    queryKey: ["daily-summary-card", restaurantId, format(selectedDate, "yyyy-MM-dd")],
+    queryKey: ["daily-summary-card", restaurantId, selectedBranch?.id, format(selectedDate, "yyyy-MM-dd")],
     queryFn: async () => {
       const dayStart = startOfDay(selectedDate).toISOString();
       const dayEnd = endOfDay(selectedDate).toISOString();
       
       // Today's orders
-      const { data: todayOrders } = await supabase
+      let ordersQuery = supabase
         .from("orders")
         .select("id, total, subtotal, status, discount_value")
         .eq("restaurant_id", restaurantId)
         .gte("created_at", dayStart)
         .lt("created_at", dayEnd);
       
+      if (selectedBranch?.id) {
+        ordersQuery = ordersQuery.eq("branch_id", selectedBranch.id);
+      }
+      
+      const { data: todayOrders } = await ordersQuery;
+      
       // Today's refunds with reasons
-      const { data: todayRefunds } = await supabase
+      let refundsQuery = supabase
         .from("refunds")
         .select("amount, reason")
         .eq("restaurant_id", restaurantId)
         .gte("created_at", dayStart)
         .lt("created_at", dayEnd);
       
+      if (selectedBranch?.id) {
+        refundsQuery = refundsQuery.eq("branch_id", selectedBranch.id);
+      }
+      
+      const { data: todayRefunds } = await refundsQuery;
+      
       // Today's payments
-      const { data: todayPayments } = await supabase
+      let paymentsQuery = supabase
         .from("payments")
         .select("amount")
         .eq("restaurant_id", restaurantId)
         .gte("created_at", dayStart)
         .lt("created_at", dayEnd);
+      
+      if (selectedBranch?.id) {
+        paymentsQuery = paymentsQuery.eq("branch_id", selectedBranch.id);
+      }
+      
+      const { data: todayPayments } = await paymentsQuery;
       
       // Get top seller today
       const { data: topSeller } = await supabase
