@@ -93,6 +93,7 @@ type SelectedItem = {
 type TableInfo = {
   id: string;
   branch_id: string | null;
+  table_name: string | null;
 };
 
 /* =======================
@@ -571,7 +572,7 @@ export default function Menu() {
           return;
         }
 
-        setTableInfo({ id: table.id, branch_id: table.branch_id });
+        setTableInfo({ id: table.id, branch_id: table.branch_id, table_name: table.table_name || null });
         effectiveBranchId = table.branch_id || effectiveBranchId;
         
         // Fetch branch name for header display
@@ -875,13 +876,13 @@ export default function Menu() {
                   <span className="text-sm text-muted-foreground">• {branchName}</span>
                 )}
               </div>
-              {/* Enhanced Table Identifier - Clear two-line layout */}
+              {/* Enhanced Table Identifier - Shows table name prominently */}
               <div className="mt-1">
                 <p className="text-[11px] text-muted-foreground">
                   {language === "ar" ? "أنت على طاولة" : "You're at table"}
                 </p>
                 <span className="inline-flex items-center mt-0.5 px-2.5 py-1 text-xs font-bold text-primary bg-primary/10 border border-primary/25 rounded-md tracking-wide">
-                  {tableCode}
+                  {tableInfo?.table_name || tableCode}
                 </span>
               </div>
             </div>
