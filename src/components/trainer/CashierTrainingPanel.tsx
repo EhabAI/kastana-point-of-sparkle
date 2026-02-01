@@ -316,7 +316,7 @@ export function CashierTrainingPanel({
       </div>
 
       {/* Step content */}
-      <div className="bg-white dark:bg-card rounded-md p-3 mb-3 border">
+      <div className="bg-white dark:bg-card rounded-md p-3 mb-3 border max-h-[280px] overflow-y-auto">
         <p className="text-sm leading-relaxed whitespace-pre-line">
           {currentStep.message[language]}
         </p>
