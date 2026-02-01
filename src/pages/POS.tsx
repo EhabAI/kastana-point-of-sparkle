@@ -655,6 +655,9 @@ export default function POS() {
     
     if (!orderId || !restaurant) return;
 
+    // CRITICAL: Preserve activeOrderId before any mutations to prevent UI state loss
+    const preservedOrderId = orderId;
+
     try {
       // Calculate price with modifiers
       const modifierTotal = modifiers.reduce((sum, m) => sum + m.price_adjustment, 0);
@@ -671,7 +674,7 @@ export default function POS() {
 
       // Add item to order
       const orderItem = await addItemMutation.mutateAsync({
-        orderId: orderId,
+        orderId: preservedOrderId,
         restaurantId: restaurant.id,
         menuItem: menuItemWithPrice,
         kdsEnabled: settings?.kds_enabled ?? false,
@@ -691,6 +694,9 @@ export default function POS() {
         setPendingItemAfterDraft(null);
       }
 
+      // CRITICAL: Re-assert activeOrderId BEFORE refetch to prevent state loss during query invalidation
+      setActiveOrderId(preservedOrderId);
+
       await refetchOrder();
 
       // Update order totals
@@ -702,7 +708,7 @@ export default function POS() {
       const totals = calculateTotals(newSubtotal, discountType, discountValue);
 
       await updateOrderMutation.mutateAsync({
-        orderId: orderId,
+        orderId: preservedOrderId,
         updates: {
           subtotal: newSubtotal,
           tax_amount: totals.taxAmount,
@@ -711,14 +717,23 @@ export default function POS() {
         },
       });
 
+      // CRITICAL: Final re-assertion of activeOrderId after all mutations complete
+      setActiveOrderId(preservedOrderId);
+
       setSelectedItemForModifiers(null);
     } catch (error) {
+      // Even on error, preserve the order ID so UI doesn't lose state
+      setActiveOrderId(preservedOrderId);
       toast.error(t("failed_add_item"));
     }
   };
 
   const handleUpdateQuantity = async (itemId: string, quantity: number) => {
     if (!currentOrder) return;
+    
+    // CRITICAL: Preserve activeOrderId before mutations
+    const preservedOrderId = currentOrder.id;
+    
     try {
       await updateQuantityMutation.mutateAsync({ itemId, quantity });
       
@@ -737,7 +752,7 @@ export default function POS() {
       const totals = calculateTotals(newSubtotal, currentOrder.discount_type, currentOrder.discount_value);
       
       await updateOrderMutation.mutateAsync({
-        orderId: currentOrder.id,
+        orderId: preservedOrderId,
         updates: {
           subtotal: newSubtotal,
           tax_amount: totals.taxAmount,
@@ -746,8 +761,12 @@ export default function POS() {
         },
       });
       
+      // CRITICAL: Re-assert activeOrderId after mutations
+      setActiveOrderId(preservedOrderId);
       await refetchOrder();
     } catch (error) {
+      // Preserve order ID even on error
+      setActiveOrderId(preservedOrderId);
       toast.error(t("failed_update_quantity"));
     }
   };
@@ -763,6 +782,9 @@ export default function POS() {
       console.error("handleRemoveItem: No item ID provided");
       return;
     }
+
+    // CRITICAL: Preserve activeOrderId before mutations
+    const preservedOrderId = currentOrder.id;
 
     // Optimistic UI: remove immediately from cache so the list + totals re-render instantly
     queryClient.setQueriesData(
@@ -801,7 +823,7 @@ export default function POS() {
       );
 
       await updateOrderMutation.mutateAsync({
-        orderId: currentOrder.id,
+        orderId: preservedOrderId,
         updates: {
           subtotal: newSubtotal,
           tax_amount: totals.taxAmount,
@@ -810,13 +832,17 @@ export default function POS() {
         },
       });
 
+      // CRITICAL: Re-assert activeOrderId before query invalidation
+      setActiveOrderId(preservedOrderId);
+
       // Ensure server truth sync
       queryClient.invalidateQueries({ queryKey: ["current-order"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["open-orders"], exact: false });
       await refetchOrder();
     } catch (error) {
       console.error("handleRemoveItem error:", error);
-      // Roll back by refetching from server
+      // Preserve order ID and roll back by refetching from server
+      setActiveOrderId(preservedOrderId);
       queryClient.invalidateQueries({ queryKey: ["current-order"], exact: false });
       await refetchOrder();
       toast.error(t("failed_remove_item"));
@@ -839,6 +865,10 @@ export default function POS() {
 
   const handleVoidConfirm = async (reason: string) => {
     if (!selectedItemForVoid || !currentOrder) return;
+    
+    // CRITICAL: Preserve activeOrderId before mutations
+    const preservedOrderId = currentOrder.id;
+    
     try {
       await voidItemMutation.mutateAsync({ itemId: selectedItemForVoid.id, reason });
       setVoidDialogOpen(false);
@@ -855,7 +885,7 @@ export default function POS() {
       const totals = calculateTotals(newSubtotal, currentOrder.discount_type, currentOrder.discount_value);
       
       await updateOrderMutation.mutateAsync({
-        orderId: currentOrder.id,
+        orderId: preservedOrderId,
         updates: {
           subtotal: newSubtotal,
           tax_amount: totals.taxAmount,
@@ -864,9 +894,13 @@ export default function POS() {
         },
       });
       
+      // CRITICAL: Re-assert activeOrderId after mutations
+      setActiveOrderId(preservedOrderId);
       await refetchOrder();
       toast.success(t("item_voided"));
     } catch (error) {
+      // Preserve order ID even on error
+      setActiveOrderId(preservedOrderId);
       toast.error(t("failed_void_item"));
     }
   };
@@ -881,12 +915,25 @@ export default function POS() {
 
   const handleSaveNotes = async (notes: string) => {
     if (!selectedItemForNotes) return;
+    
+    // CRITICAL: Preserve activeOrderId before mutations
+    const preservedOrderId = currentOrder?.id;
+    
     try {
       await updateNotesMutation.mutateAsync({ itemId: selectedItemForNotes.id, notes });
       setNotesDialogOpen(false);
       setSelectedItemForNotes(null);
+      
+      // CRITICAL: Re-assert activeOrderId after mutation
+      if (preservedOrderId) {
+        setActiveOrderId(preservedOrderId);
+      }
       await refetchOrder();
     } catch (error) {
+      // Preserve order ID even on error
+      if (preservedOrderId) {
+        setActiveOrderId(preservedOrderId);
+      }
       toast.error(t("failed_save_notes"));
     }
   };
