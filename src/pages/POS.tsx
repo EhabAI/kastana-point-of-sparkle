@@ -560,6 +560,9 @@ export default function POS() {
         customerInfo,
       });
 
+      // CRITICAL: Set the created order as active IMMEDIATELY for UI sync
+      setActiveOrderId(createdOrder.id);
+
       // Resume the order to make it the current active order
       await resumeOrderMutation.mutateAsync(createdOrder.id);
 
@@ -602,6 +605,9 @@ export default function POS() {
           tableId: draftOrder.orderType === "takeaway" ? null : draftOrder.tableId,
           customerInfo: draftOrder.customerInfo,
         });
+
+        // CRITICAL: Set the created order as active IMMEDIATELY for UI sync
+        setActiveOrderId(createdOrder.id);
 
         // Immediately resume to ensure it's the active current order in cache
         // This also triggers proper query invalidation
