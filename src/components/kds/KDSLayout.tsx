@@ -55,6 +55,26 @@ export function KDSLayout({ restaurantId, branchId }: KDSLayoutProps) {
     enabled: !!restaurantId,
   });
   
+  // Fetch branch info for header
+  const { data: branch } = useQuery({
+    queryKey: ["kds-branch", branchId],
+    queryFn: async () => {
+      if (!branchId) return null;
+      const { data, error } = await supabase
+        .from("restaurant_branches")
+        .select("name")
+        .eq("id", branchId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error fetching branch:", error);
+        return null;
+      }
+      return data;
+    },
+    enabled: !!branchId,
+  });
+  
   // Sound state
   const [soundEnabled, setSoundEnabled] = useState(true);
   const { playSound } = useKDSSound();
@@ -154,6 +174,7 @@ export function KDSLayout({ restaurantId, branchId }: KDSLayoutProps) {
       <KDSHeader
         restaurantName={restaurant?.name}
         restaurantLogo={restaurant?.logo_url}
+        branchName={branch?.name}
         soundEnabled={soundEnabled}
         onSoundToggle={() => setSoundEnabled(!soundEnabled)}
         autoClearEnabled={autoClearEnabled}
