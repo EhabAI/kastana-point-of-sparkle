@@ -354,6 +354,62 @@ export const SYSTEM_INVARIANTS: SystemInvariant[] = [
     category: "inventory",
     severity: "blocking",
   },
+  // === CASHIER TRAINING INVARIANTS ===
+  {
+    id: "inv_cashier_shift_required_for_work",
+    rule: {
+      ar: "الكاشير لا يمكنه استقبال طلبات أو إجراء أي عملية قبل فتح الوردية.",
+      en: "Cashier cannot receive orders or perform any operation before opening a shift.",
+    },
+    category: "shift",
+    severity: "blocking",
+  },
+  {
+    id: "inv_cashier_training_state_aware",
+    rule: {
+      ar: "تدريب الكاشير يتكيف مع حالة الوردية: خطوات الشرح تختلف قبل وبعد فتح الوردية.",
+      en: "Cashier training adapts to shift state: explanation steps differ before and after opening shift.",
+    },
+    category: "shift",
+    severity: "warning",
+  },
+  {
+    id: "inv_cashier_training_progressive",
+    rule: {
+      ar: "ترتيب تدريب الكاشير: الوردية ← فتح الوردية ← التبويبات ← حالات الطلب ← إغلاق الوردية ← تقرير Z.",
+      en: "Cashier training order: Shift → Opening Shift → Tabs → Order States → Closing Shift → Z Report.",
+    },
+    category: "shift",
+    severity: "blocking",
+  },
+  // === KITCHEN TRAINING INVARIANTS ===
+  {
+    id: "inv_kitchen_view_only",
+    rule: {
+      ar: "شاشة المطبخ للعرض والتحديث فقط. لا تعديل أسعار، لا دفع، لا إلغاء.",
+      en: "Kitchen screen is for viewing and status updates only. No price edits, no payments, no cancellation.",
+    },
+    category: "kds",
+    severity: "blocking",
+  },
+  {
+    id: "inv_kitchen_status_sequence",
+    rule: {
+      ar: "ترتيب حالات المطبخ: جديد ← قيد التحضير ← جاهز. لا يمكن العودة للخلف.",
+      en: "Kitchen status sequence: New → In Progress → Ready. Cannot go backwards.",
+    },
+    category: "kds",
+    severity: "blocking",
+  },
+  {
+    id: "inv_kitchen_training_simple",
+    rule: {
+      ar: "تدريب المطبخ بسيط: 4 خطوات فقط تشرح الشاشة والحالات والإجراءات والقيود.",
+      en: "Kitchen training is simple: 4 steps only explaining screen, statuses, actions, and restrictions.",
+    },
+    category: "kds",
+    severity: "warning",
+  },
 ];
 
 // ============================================
