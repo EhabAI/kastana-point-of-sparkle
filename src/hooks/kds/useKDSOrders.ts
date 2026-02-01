@@ -134,7 +134,8 @@ export function useKDSOrders(
           }
 
           // DINE-IN: visible when status = "open" (sent to kitchen before payment)
-          if (isDineIn && status === "open") {
+          // Also visible when "paid" since payment can happen before kitchen finishes
+          if (isDineIn && (status === "open" || status === "paid")) {
             return true;
           }
 
