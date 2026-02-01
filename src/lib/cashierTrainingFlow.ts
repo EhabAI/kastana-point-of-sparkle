@@ -10,6 +10,7 @@ export type CashierStepId =
   | "what_is_shift"
   | "opening_shift"
   | "tabs_overview"
+  | "creating_new_order"
   | "order_states"
   | "closing_shift"
   | "z_report"
@@ -41,19 +42,19 @@ export const CASHIER_TRAINING_STEPS: CashierTrainingStep[] = [
   {
     id: "what_is_shift",
     progressStart: 0,
-    progressEnd: 15,
+    progressEnd: 12,
     requiresNoShift: true,
     message: {
-      ar: "🕐 ما هي الوردية؟\n\nالوردية هي فترة عملك من بداية الدوام حتى نهايته.\n\nخلال الوردية، يتتبع النظام:\n• جميع الطلبات التي تستقبلها\n• المبالغ النقدية المستلمة\n• المدفوعات بجميع أنواعها\n\nلماذا الوردية مهمة؟\nلأنها تضمن محاسبة دقيقة وشفافة في نهاية كل دوام.",
-      en: "🕐 What is a Shift?\n\nA shift is your work period from start to finish.\n\nDuring a shift, the system tracks:\n• All orders you receive\n• Cash amounts collected\n• All payment types\n\nWhy are shifts important?\nThey ensure accurate and transparent accounting at the end of each workday."
+      ar: "🕐 ما هي الوردية؟\n\nالوردية هي فترة عملك من بداية الدوام حتى نهايته.\n\nخلال الوردية، يتتبع النظام:\n• جميع الطلبات التي تستقبلها\n• المبالغ النقدية المستلمة\n• المدفوعات بجميع أنواعها\n\n⚠️ لا يمكن استقبال طلبات بدون وردية مفتوحة.",
+      en: "🕐 What is a Shift?\n\nA shift is your work period from start to finish.\n\nDuring a shift, the system tracks:\n• All orders you receive\n• Cash amounts collected\n• All payment types\n\n⚠️ You cannot receive orders without an open shift."
     }
   },
 
   // STEP 2: Opening a shift (NO SHIFT REQUIRED)
   {
     id: "opening_shift",
-    progressStart: 15,
-    progressEnd: 30,
+    progressStart: 12,
+    progressEnd: 25,
     requiresNoShift: true,
     message: {
       ar: "🔓 فتح الوردية\n\nقبل أن تبدأ العمل، يجب فتح وردية.\n\nعند الضغط على \"فتح الوردية\":\n• أدخل رصيد الصندوق الافتتاحي (المبلغ النقدي المتوفر)\n• بعد الفتح، ستتمكن من استقبال الطلبات\n\n📍 زر فتح الوردية يظهر في أعلى الشاشة.",
@@ -64,19 +65,31 @@ export const CASHIER_TRAINING_STEPS: CashierTrainingStep[] = [
   // STEP 3: Cashier Tabs Overview (SHIFT REQUIRED)
   {
     id: "tabs_overview",
-    progressStart: 30,
-    progressEnd: 50,
+    progressStart: 25,
+    progressEnd: 40,
     requiresShift: true,
     message: {
-      ar: "📑 التبويبات الرئيسية\n\nبعد فتح الوردية، ستظهر لك التبويبات التالية:\n\n• طلب جديد: لإنشاء طلبات جديدة\n• الطاولات: لعرض حالة الطاولات (إن وُجدت)\n• الطلبات المعلقة: الطلبات المحتفظ بها مؤقتًا\n• طلبات QR: الطلبات الواردة من العملاء (إن كانت مفعّلة)\n\nكل تبويب له وظيفة محددة. استخدمها حسب الحاجة.",
-      en: "📑 Main Tabs\n\nAfter opening a shift, you'll see these tabs:\n\n• New Order: Create new orders\n• Tables: View table status (if available)\n• Held Orders: Temporarily held orders\n• QR Orders: Customer orders via QR (if enabled)\n\nEach tab has a specific function. Use them as needed."
+      ar: "📑 نظرة عامة على التبويبات\n\nبعد فتح الوردية، ستظهر لك التبويبات التالية:\n\n• طلب جديد: لإنشاء طلبات جديدة\n• الطاولات: لعرض حالة الطاولات\n• الطلبات المعلقة: الطلبات المحتفظ بها مؤقتًا\n• الدفع: لإتمام عملية الدفع\n\nكل تبويب له وظيفة محددة حسب مرحلة الطلب.",
+      en: "📑 Tabs Overview\n\nAfter opening a shift, you'll see these tabs:\n\n• New Order: Create new orders\n• Tables: View table status\n• Held Orders: Temporarily held orders\n• Payment: Complete payment process\n\nEach tab has a specific function depending on the order stage."
     }
   },
 
-  // STEP 4: Order States (SHIFT REQUIRED)
+  // STEP 4.1: Creating a New Order (SHIFT REQUIRED)
+  {
+    id: "creating_new_order",
+    progressStart: 40,
+    progressEnd: 55,
+    requiresShift: true,
+    message: {
+      ar: "🛒 إنشاء طلب جديد\n\nهذا هو المكان الذي تبدأ فيه الطلب.\n\n1️⃣ اختر نوع الطلب:\n• تيك أواي: طلب بدون طاولة، يستلمه العميل مباشرة\n• داخل الصالة: طلب مرتبط بطاولة\n\n2️⃣ إذا اخترت \"داخل الصالة\":\n• يجب اختيار طاولة أولاً\n• الطاولة تصبح مشغولة بعد إنشاء الطلب\n\n3️⃣ بعد إنشاء الطلب:\n• ينتقل الطلب إلى \"الطلب الحالي\"\n• يمكنك الآن إضافة الأصناف",
+      en: "🛒 Creating a New Order\n\nThis is where an order begins.\n\n1️⃣ Choose order type:\n• Takeaway: Order without a table, customer receives directly\n• Dine-in: Order linked to a table\n\n2️⃣ If you choose \"Dine-in\":\n• You must select a table first\n• The table becomes occupied after creating the order\n\n3️⃣ After creating the order:\n• Order moves to \"Current Order\"\n• You can now add items"
+    }
+  },
+
+  // STEP 5: Order States (SHIFT REQUIRED)
   {
     id: "order_states",
-    progressStart: 50,
+    progressStart: 55,
     progressEnd: 70,
     requiresShift: true,
     message: {
@@ -85,38 +98,38 @@ export const CASHIER_TRAINING_STEPS: CashierTrainingStep[] = [
     }
   },
 
-  // STEP 5: Closing a Shift (SHIFT REQUIRED)
+  // STEP 6: Closing a Shift (SHIFT REQUIRED)
   {
     id: "closing_shift",
     progressStart: 70,
     progressEnd: 85,
     requiresShift: true,
     message: {
-      ar: "🔒 إغلاق الوردية\n\nفي نهاية دوامك، يجب إغلاق الوردية.\n\nعند الإغلاق:\n• أدخل المبلغ النقدي الموجود في الصندوق\n• النظام يقارنه مع المبلغ المتوقع\n• إذا وُجد فرق، سيتم تسجيله\n\nلماذا الإغلاق مهم؟\n• يُنهي فترة عملك رسميًا\n• يمنع أي إضافات أو تعديلات بعد الإغلاق\n• يوفر محاسبة دقيقة",
-      en: "🔒 Closing a Shift\n\nAt the end of your workday, you must close the shift.\n\nWhen closing:\n• Enter the cash amount in the drawer\n• The system compares it to the expected amount\n• Any difference will be recorded\n\nWhy is closing important?\n• Officially ends your work period\n• Prevents additions or changes after closing\n• Provides accurate accounting"
+      ar: "🔒 إغلاق الوردية\n\nفي نهاية دوامك، يجب إغلاق الوردية.\n\nعند الإغلاق:\n• أدخل المبلغ النقدي الموجود في الصندوق\n• النظام يقارنه مع المبلغ المتوقع\n• إذا وُجد فرق، سيتم تسجيله\n\nلماذا الإغلاق مهم؟\n• يُنهي فترة عملك رسميًا\n• يمنع أي إضافات أو تعديلات بعد الإغلاق",
+      en: "🔒 Closing a Shift\n\nAt the end of your workday, you must close the shift.\n\nWhen closing:\n• Enter the cash amount in the drawer\n• The system compares it to the expected amount\n• Any difference will be recorded\n\nWhy is closing important?\n• Officially ends your work period\n• Prevents additions or changes after closing"
     }
   },
 
-  // STEP 6: Z Report (SHIFT REQUIRED)
+  // STEP 7: Z Report (SHIFT REQUIRED)
   {
     id: "z_report",
     progressStart: 85,
     progressEnd: 95,
     requiresShift: true,
     message: {
-      ar: "📊 تقرير Z (التقرير الختامي)\n\nتقرير Z هو ملخص الوردية الذي يظهر عند الإغلاق.\n\nيعرض:\n• إجمالي المبيعات\n• عدد الطلبات\n• المبالغ حسب طريقة الدفع\n• الفرق النقدي (إن وُجد)\n\nماذا يجب أن تتأكد منه؟\n• تطابق النقد الفعلي مع المتوقع\n• عدم وجود طلبات مفتوحة غير مكتملة",
+      ar: "📊 تقرير Z (التقرير الختامي)\n\nتقرير Z هو ملخص الوردية الذي يظهر عند الإغلاق.\n\nيعرض:\n• إجمالي المبيعات\n• عدد الطلبات\n• المبالغ حسب طريقة الدفع\n• الفرق النقدي (إن وُجد)\n\nماذا يجب أن تتأكد منه؟\n• تطابق النقد الفعلي مع المتوقع\n• عدم وجود طلبات مفتوحة",
       en: "📊 Z Report (End-of-Day Report)\n\nThe Z Report is the shift summary shown at closing.\n\nIt displays:\n• Total sales\n• Number of orders\n• Amounts by payment method\n• Cash difference (if any)\n\nWhat should you verify?\n• Actual cash matches expected\n• No incomplete open orders remain"
     }
   },
 
-  // STEP 7: Training Complete
+  // STEP 8: Training Complete
   {
     id: "complete",
     progressStart: 95,
     progressEnd: 100,
     message: {
-      ar: "🎉 تهانينا!\n\nأنت الآن جاهز للعمل على شاشة الكاشير.\n\nتذكّر:\n• افتح الوردية قبل بدء العمل\n• أغلق الوردية في نهاية الدوام\n• راجع تقرير Z للتأكد من صحة الأرقام\n\nيمكنك دائمًا إعادة التدريب من البداية.",
-      en: "🎉 Congratulations!\n\nYou're now ready to work on the cashier screen.\n\nRemember:\n• Open shift before starting work\n• Close shift at the end of the day\n• Review Z Report to verify numbers\n\nYou can always restart training from the beginning."
+      ar: "🎉 تهانينا!\n\nأنت الآن جاهز للعمل على شاشة الكاشير.\n\nتذكّر:\n• افتح الوردية قبل بدء العمل\n• اختر نوع الطلب المناسب\n• أغلق الوردية في نهاية الدوام\n\nيمكنك دائمًا إعادة التدريب من البداية.",
+      en: "🎉 Congratulations!\n\nYou're now ready to work on the cashier screen.\n\nRemember:\n• Open shift before starting work\n• Choose the appropriate order type\n• Close shift at the end of the day\n\nYou can always restart training from the beginning."
     }
   }
 ];
