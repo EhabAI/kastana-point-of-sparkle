@@ -2,8 +2,9 @@
 // Shows smart suggestions based on current screen and user actions
 // For Owner: Shows dedicated Owner Training Panel with multi-track support
 // For Cashier: Shows shift-aware training cards
+// For Kitchen: Shows state-aware operational guidance with order counts
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Brain, Lightbulb, ChevronRight, Sparkles, GraduationCap, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -16,6 +17,8 @@ import { OwnerTrainingPanel } from "./OwnerTrainingPanel";
 import { CashierTrainingPanel } from "./CashierTrainingPanel";
 import { KitchenTrainingPanel } from "./KitchenTrainingPanel";
 import { useCurrentShift } from "@/hooks/pos/useShift";
+import { useKitchenSession } from "@/hooks/kds/useKitchenSession";
+import { useKDSOrders } from "@/hooks/kds/useKDSOrders";
 import { 
   ownerNeedsTraining, 
   isOwnerTrainingActive, 
@@ -68,6 +71,36 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
   const { data: currentShift } = useCurrentShift();
   const hasActiveShift = currentShift?.status === "open";
   
+  // Kitchen session and orders (for KDS operational status)
+  const { 
+    restaurantId: kitchenRestaurantId, 
+    branchId: kitchenBranchId,
+    isFetched: kitchenSessionFetched,
+  } = useKitchenSession();
+  
+  const isKitchenRole = role === "kitchen";
+  const isKDSScreen = location.pathname.includes("/kds");
+  
+  // Fetch KDS orders only for kitchen users on KDS screen
+  const { data: kdsOrders = [] } = useKDSOrders(
+    isKitchenRole && isKDSScreen ? kitchenRestaurantId : null,
+    isKitchenRole && isKDSScreen ? kitchenBranchId : null
+  );
+  
+  // Calculate order counts for kitchen operational status
+  const kitchenOrderCounts = useMemo(() => {
+    if (!isKitchenRole || !isKDSScreen) return undefined;
+    
+    // Filter orders similar to KDSLayout logic
+    const newOrders = kdsOrders.filter((o) => 
+      o.status === "new" || o.status === "open" || o.status === "paid"
+    ).length;
+    const inProgressOrders = kdsOrders.filter((o) => o.status === "in_progress").length;
+    const readyOrders = kdsOrders.filter((o) => o.status === "ready").length;
+    
+    return { newOrders, inProgressOrders, readyOrders };
+  }, [kdsOrders, isKitchenRole, isKDSScreen]);
+
   const stats = getStats();
   
   // Get screen-specific suggestions
@@ -85,14 +118,14 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
   const screenId = getScreenId();
   const isOwnerScreen = screenId === "owner";
   const isPOSScreen = screenId === "pos";
-  const isKDSScreen = screenId === "kds";
+  // Note: isKDSScreen is already defined above for order fetching
   
   // Show dedicated training for each role
   const showOwnerTraining = role === "owner" && isOwnerScreen && (
     ownerNeedsTraining() || isOwnerTrainingActive() || isOwnerTrainingPaused() || isOwnerTrainingCompleted()
   );
   const showCashierTraining = role === "cashier" && isPOSScreen;
-  const showKitchenTraining = role === "kitchen" && isKDSScreen;
+  const showKitchenTraining = isKitchenRole && isKDSScreen;
   
   // Handle reset for cashier
   const handleCashierReset = useCallback(() => {
@@ -418,6 +451,7 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
             <KitchenTrainingPanel 
               key={`kitchen-coach-${restartKey}`}
               language={language}
+              orderCounts={kitchenOrderCounts}
             />
           )}
           
