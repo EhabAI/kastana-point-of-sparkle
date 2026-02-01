@@ -1,9 +1,10 @@
 // Trainer Coach Tab - Rule-based contextual suggestions
 // Shows smart suggestions based on current screen and user actions
 // For Owner: Shows dedicated Owner Training Panel with multi-track support
+// For Cashier: Shows shift-aware training cards
 
-import { useState } from "react";
-import { Brain, Lightbulb, ChevronRight, Sparkles, GraduationCap } from "lucide-react";
+import { useState, useCallback } from "react";
+import { Brain, Lightbulb, ChevronRight, Sparkles, GraduationCap, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -12,6 +13,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "react-router-dom";
 import { getModulesForContext } from "@/lib/trainerRegistry";
 import { OwnerTrainingPanel } from "./OwnerTrainingPanel";
+import { CashierTrainingPanel } from "./CashierTrainingPanel";
+import { KitchenTrainingPanel } from "./KitchenTrainingPanel";
+import { useCurrentShift } from "@/hooks/pos/useShift";
 import { 
   ownerNeedsTraining, 
   isOwnerTrainingActive, 
@@ -20,6 +24,16 @@ import {
   resetOwnerTraining,
   startOwnerTraining
 } from "@/lib/ownerTrainingFlow";
+import {
+  startCashierTraining,
+  resetCashierTraining,
+  getCashierTrainingPercentage,
+  isCashierTrainingCompleted,
+} from "@/lib/cashierTrainingFlow";
+import {
+  resetKitchenTraining,
+  getKitchenTrainingPercentage,
+} from "@/lib/kitchenTrainingFlow";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,6 +65,8 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
   const location = useLocation();
   const { getStats } = useTrainer();
   const [restartKey, setRestartKey] = useState(0);
+  const { data: currentShift } = useCurrentShift();
+  const hasActiveShift = currentShift?.status === "open";
   
   const stats = getStats();
   
@@ -65,11 +81,36 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
   
   const contextModules = role ? getModulesForContext(role, getScreenId()) : [];
   
-  // Check if we're on owner screen and should show owner training
-  const isOwnerScreen = getScreenId() === "owner";
+  // Check screen and role conditions
+  const screenId = getScreenId();
+  const isOwnerScreen = screenId === "owner";
+  const isPOSScreen = screenId === "pos";
+  const isKDSScreen = screenId === "kds";
+  
+  // Show dedicated training for each role
   const showOwnerTraining = role === "owner" && isOwnerScreen && (
     ownerNeedsTraining() || isOwnerTrainingActive() || isOwnerTrainingPaused() || isOwnerTrainingCompleted()
   );
+  const showCashierTraining = role === "cashier" && isPOSScreen;
+  const showKitchenTraining = role === "kitchen" && isKDSScreen;
+  
+  // Handle reset for cashier
+  const handleCashierReset = useCallback(() => {
+    resetCashierTraining();
+    setRestartKey(prev => prev + 1);
+    toast({
+      title: language === "ar" ? "🎓 بدأ تدريب الكاشير من البداية" : "🎓 Cashier training restarted",
+    });
+  }, [language]);
+  
+  // Handle reset for kitchen
+  const handleKitchenReset = useCallback(() => {
+    resetKitchenTraining();
+    setRestartKey(prev => prev + 1);
+    toast({
+      title: language === "ar" ? "🎓 بدأ تدريب المطبخ من البداية" : "🎓 Kitchen training restarted",
+    });
+  }, [language]);
   
   // Handle navigation from owner training
   const handleNavigateToSettings = () => {
@@ -212,7 +253,7 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
         </div>
         <p className="text-xs text-muted-foreground">{labels.subtitle}</p>
         
-        {/* Restart Training Button - Only for owners */}
+        {/* Restart Training Button - Role-specific */}
         {role === "owner" && isOwnerScreen && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -242,8 +283,68 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
           </AlertDialog>
         )}
         
-        {/* Progress bar - hide for owner with dedicated training */}
-        {stats.totalCount > 0 && !showOwnerTraining && (
+        {/* Cashier Reset Button */}
+        {showCashierTraining && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-3 w-full text-xs gap-2"
+              >
+                <RotateCcw className="h-4 w-4" />
+                {labels.restartTraining}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{labels.restartConfirmTitle}</AlertDialogTitle>
+                <AlertDialogDescription className="whitespace-pre-line">
+                  {labels.restartConfirmDescription}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{labels.cancelBtn}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleCashierReset}>
+                  {labels.startTrainingBtn}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+        
+        {/* Kitchen Reset Button */}
+        {showKitchenTraining && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-3 w-full text-xs gap-2"
+              >
+                <RotateCcw className="h-4 w-4" />
+                {labels.restartTraining}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{labels.restartConfirmTitle}</AlertDialogTitle>
+                <AlertDialogDescription className="whitespace-pre-line">
+                  {labels.restartConfirmDescription}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{labels.cancelBtn}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleKitchenReset}>
+                  {labels.startTrainingBtn}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+        
+        {/* Progress bar - hide for roles with dedicated training */}
+        {stats.totalCount > 0 && !showOwnerTraining && !showCashierTraining && !showKitchenTraining && (
           <div className="mt-3">
             <div className="flex justify-between text-xs mb-1">
               <span className="text-muted-foreground">{labels.progress}</span>
@@ -253,6 +354,38 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
               <div 
                 className="h-full bg-primary transition-all duration-500"
                 style={{ width: `${stats.percentage}%` }}
+              />
+            </div>
+          </div>
+        )}
+        
+        {/* Cashier progress bar */}
+        {showCashierTraining && (
+          <div className="mt-3">
+            <div className="flex justify-between text-xs mb-1">
+              <span className="text-muted-foreground">{labels.progress}</span>
+              <span className="font-medium">{getCashierTrainingPercentage()}% {labels.completed}</span>
+            </div>
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-primary transition-all duration-500"
+                style={{ width: `${getCashierTrainingPercentage()}%` }}
+              />
+            </div>
+          </div>
+        )}
+        
+        {/* Kitchen progress bar */}
+        {showKitchenTraining && (
+          <div className="mt-3">
+            <div className="flex justify-between text-xs mb-1">
+              <span className="text-muted-foreground">{labels.progress}</span>
+              <span className="font-medium">{getKitchenTrainingPercentage()}% {labels.completed}</span>
+            </div>
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-primary transition-all duration-500"
+                style={{ width: `${getKitchenTrainingPercentage()}%` }}
               />
             </div>
           </div>
@@ -271,41 +404,60 @@ export function TrainerCoachTab({ language, onStartTraining }: TrainerCoachTabPr
             />
           )}
           
-          {/* Regular suggestions for non-owner roles or after owner training */}
-          {(!showOwnerTraining || isOwnerTrainingCompleted()) && suggestions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground text-sm">
-              <Sparkles className="h-8 w-8 mx-auto mb-2 text-primary/30" />
-              {labels.noSuggestions}
-            </div>
-          ) : (!showOwnerTraining || isOwnerTrainingCompleted()) && (
-            suggestions.map(suggestion => (
-              <div
-                key={suggestion.id}
-                className={cn(
-                  "p-3 rounded-lg border transition-all",
-                  suggestion.moduleId 
-                    ? "bg-card hover:border-primary/50 cursor-pointer" 
-                    : "bg-muted/30 border-muted"
-                )}
-                onClick={() => suggestion.moduleId && onStartTraining(suggestion.moduleId)}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5">{getIcon(suggestion.icon)}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm">{suggestion.title[language]}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {suggestion.description[language]}
-                    </p>
-                  </div>
-                  {suggestion.moduleId && (
-                    <Button variant="ghost" size="sm" className="shrink-0 h-7 text-xs">
-                      {labels.startTraining}
-                      <ChevronRight className="h-3 w-3 ms-1" />
-                    </Button>
-                  )}
-                </div>
+          {/* Cashier Training Panel - shown for cashiers on POS screen */}
+          {showCashierTraining && (
+            <CashierTrainingPanel 
+              key={`cashier-coach-${restartKey}`}
+              language={language}
+              hasActiveShift={hasActiveShift}
+            />
+          )}
+          
+          {/* Kitchen Training Panel - shown for kitchen on KDS screen */}
+          {showKitchenTraining && (
+            <KitchenTrainingPanel 
+              key={`kitchen-coach-${restartKey}`}
+              language={language}
+            />
+          )}
+          
+          {/* Regular suggestions for roles without dedicated training */}
+          {!showOwnerTraining && !showCashierTraining && !showKitchenTraining && (
+            suggestions.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground text-sm">
+                <Sparkles className="h-8 w-8 mx-auto mb-2 text-primary/30" />
+                {labels.noSuggestions}
               </div>
-            ))
+            ) : (
+              suggestions.map(suggestion => (
+                <div
+                  key={suggestion.id}
+                  className={cn(
+                    "p-3 rounded-lg border transition-all",
+                    suggestion.moduleId 
+                      ? "bg-card hover:border-primary/50 cursor-pointer" 
+                      : "bg-muted/30 border-muted"
+                  )}
+                  onClick={() => suggestion.moduleId && onStartTraining(suggestion.moduleId)}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5">{getIcon(suggestion.icon)}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">{suggestion.title[language]}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {suggestion.description[language]}
+                      </p>
+                    </div>
+                    {suggestion.moduleId && (
+                      <Button variant="ghost" size="sm" className="shrink-0 h-7 text-xs">
+                        {labels.startTraining}
+                        <ChevronRight className="h-3 w-3 ms-1" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )
           )}
         </div>
       </ScrollArea>
