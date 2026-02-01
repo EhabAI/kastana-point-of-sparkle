@@ -1621,6 +1621,18 @@ export default {
   enter_fullscreen: "Enter Fullscreen",
   exit_fullscreen: "Exit Fullscreen",
 
+  // Kitchen Explainer - State-aware contextual guidance
+  kitchen_state_no_orders_title: "No orders right now",
+  kitchen_state_no_orders_desc: "Orders will appear here once sent from the cashier.",
+  kitchen_state_new_order_title: "New order waiting",
+  kitchen_state_new_order_desc: "Start working on it to change status to In Progress.",
+  kitchen_state_in_progress_title: "Order in progress",
+  kitchen_state_in_progress_desc: "When done, change the status to Ready.",
+  kitchen_state_ready_title: "Order ready for pickup",
+  kitchen_state_ready_desc: "The cashier will be notified automatically.",
+  kitchen_state_restrictions_title: "Preparation screen only",
+  kitchen_state_restrictions_desc: "Orders cannot be edited or paid from the kitchen screen.",
+
   // Kitchen Performance Reports
   kitchen_performance: "Kitchen Performance",
   kitchen_performance_desc: "Real-time kitchen metrics",

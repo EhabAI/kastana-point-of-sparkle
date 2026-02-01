@@ -1619,6 +1619,18 @@ export default {
   enter_fullscreen: "ملء الشاشة",
   exit_fullscreen: "الخروج من ملء الشاشة",
 
+  // Kitchen Explainer - State-aware contextual guidance
+  kitchen_state_no_orders_title: "لا توجد طلبات حالياً",
+  kitchen_state_no_orders_desc: "ستظهر الطلبات هنا فور إرسالها من الكاشيير.",
+  kitchen_state_new_order_title: "طلب جديد بانتظار التحضير",
+  kitchen_state_new_order_desc: "ابدأ العمل عليه لتغيير حالته إلى قيد التحضير.",
+  kitchen_state_in_progress_title: "طلب قيد التحضير",
+  kitchen_state_in_progress_desc: "عند الانتهاء، غيّر حالته إلى جاهز.",
+  kitchen_state_ready_title: "الطلب جاهز للتسليم",
+  kitchen_state_ready_desc: "سيتم إشعار الكاشيير تلقائياً.",
+  kitchen_state_restrictions_title: "شاشة التحضير فقط",
+  kitchen_state_restrictions_desc: "لا يمكن تعديل الطلب أو الدفع من شاشة المطبخ.",
+
   // Kitchen Performance Reports
   kitchen_performance: "أداء المطبخ",
   kitchen_performance_desc: "مقاييس المطبخ الحية",

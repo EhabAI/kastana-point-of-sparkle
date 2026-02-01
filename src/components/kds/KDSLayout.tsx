@@ -6,6 +6,7 @@ import { useKDSFullscreen } from "@/hooks/kds/useKDSFullscreen";
 import { useKDSKeyboardShortcuts } from "@/hooks/kds/useKDSKeyboardShortcuts";
 import { KDSHeader } from "./KDSHeader";
 import { KDSColumn } from "./KDSColumn";
+import { KitchenExplainer, deriveKitchenState } from "./KitchenExplainer";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -140,7 +141,7 @@ export function KDSLayout({ restaurantId, branchId }: KDSLayoutProps) {
     isUpdating: updateStatus.isPending,
   });
 
-  const { newOrders, inProgressOrders, readyOrders, hasAnyOrders } = useMemo(() => {
+  const { newOrders, inProgressOrders, readyOrders, hasAnyOrders, kitchenState } = useMemo(() => {
     // KDS visibility mapping (display-only):
     // - Dine-in enters kitchen queue at status = "open"
     // - Takeaway enters kitchen queue at status = "paid"
@@ -148,11 +149,20 @@ export function KDSLayout({ restaurantId, branchId }: KDSLayoutProps) {
     const newOrd = visibleOrders.filter((o) => o.status === "new" || o.status === "open" || o.status === "paid");
     const inProgressOrd = visibleOrders.filter((o) => o.status === "in_progress");
     const readyOrd = visibleOrders.filter((o) => o.status === "ready");
+    
+    // Derive state for the KitchenExplainer
+    const state = deriveKitchenState({
+      newOrders: newOrd.length,
+      inProgressOrders: inProgressOrd.length,
+      readyOrders: readyOrd.length,
+    });
+    
     return {
       newOrders: newOrd,
       inProgressOrders: inProgressOrd,
       readyOrders: readyOrd,
       hasAnyOrders: newOrd.length > 0 || inProgressOrd.length > 0 || readyOrd.length > 0,
+      kitchenState: state,
     };
   }, [visibleOrders]);
 
@@ -186,6 +196,9 @@ export function KDSLayout({ restaurantId, branchId }: KDSLayoutProps) {
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
       />
+
+      {/* Kitchen Explainer - contextual state-aware guidance */}
+      <KitchenExplainer state={kitchenState} />
 
       {/* Kanban Columns */}
       <main className="flex-1 p-4 overflow-hidden">
