@@ -21,6 +21,7 @@ import { AutoClearDelay } from "@/hooks/kds/useKDSAutoClear";
 interface KDSHeaderProps {
   restaurantName?: string;
   restaurantLogo?: string | null;
+  branchName?: string | null;
   soundEnabled: boolean;
   onSoundToggle: () => void;
   autoClearEnabled: boolean;
@@ -45,6 +46,7 @@ interface KDSHeaderProps {
 export function KDSHeader({
   restaurantName,
   restaurantLogo,
+  branchName,
   soundEnabled,
   onSoundToggle,
   autoClearEnabled,
@@ -100,9 +102,16 @@ export function KDSHeader({
               className="h-6 sm:h-7 w-auto object-contain rounded-lg"
             />
             <div className="flex flex-col">
-              <span className="text-xs font-semibold text-blue-900 dark:text-blue-100 leading-tight">
-                {restaurantName || t("brandNameFull")}
-              </span>
+              <div className="flex items-center gap-1">
+                <span className="text-xs font-semibold text-blue-900 dark:text-blue-100 leading-tight">
+                  {restaurantName || t("brandNameFull")}
+                </span>
+                {branchName && (
+                  <span className="text-[10px] text-blue-600 dark:text-blue-400 leading-tight">
+                    • {branchName}
+                  </span>
+                )}
+              </div>
               <span className="text-[10px] text-blue-700 dark:text-blue-300 leading-tight">
                 {t("kitchen_display")}
               </span>

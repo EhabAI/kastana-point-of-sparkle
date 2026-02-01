@@ -2022,6 +2022,7 @@ export default function POS() {
       <POSHeader
         restaurantName={restaurant.name}
         restaurantLogo={restaurant.logo_url}
+        branchName={branch?.name}
         cashierDisplayName={displayName ? `${displayName} - ${role?.replace('_', ' ')}` : (user?.email || "")}
         shiftStatus={shiftOpen ? "open" : "closed"}
         onSignOut={signOut}

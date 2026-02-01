@@ -15,6 +15,7 @@ import posLogoNew from "@/assets/pos-logo-new.png";
 interface POSHeaderProps {
   restaurantName: string;
   restaurantLogo?: string | null;
+  branchName?: string | null;
   cashierDisplayName: string;
   shiftStatus: "open" | "closed";
   onSignOut: () => void;
@@ -32,6 +33,7 @@ interface POSHeaderProps {
 export function POSHeader({
   restaurantName,
   restaurantLogo,
+  branchName,
   cashierDisplayName,
   shiftStatus,
   onSignOut,
@@ -59,9 +61,16 @@ export function POSHeader({
               className="h-6 sm:h-7 w-auto object-contain rounded-lg"
             />
             <div className="flex flex-col">
-              <span className="text-xs font-semibold text-blue-900 dark:text-blue-100 leading-tight">
-                {restaurantName}
-              </span>
+              <div className="flex items-center gap-1">
+                <span className="text-xs font-semibold text-blue-900 dark:text-blue-100 leading-tight">
+                  {restaurantName}
+                </span>
+                {branchName && (
+                  <span className="text-[10px] text-blue-600 dark:text-blue-400 leading-tight">
+                    • {branchName}
+                  </span>
+                )}
+              </div>
               <span className="text-[10px] text-blue-700 dark:text-blue-300 leading-tight capitalize">
                 {cashierDisplayName}
               </span>
