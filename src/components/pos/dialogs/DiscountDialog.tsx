@@ -39,7 +39,21 @@ export function DiscountDialog({
   const [discountType, setDiscountType] = useState<"percent" | "fixed">(
     (currentDiscountType as "percent" | "fixed") || "percent"
   );
-  const [value, setValue] = useState("");
+  // Default: 5% for percentage, 0 for fixed
+  const [value, setValue] = useState(
+    currentDiscountValue ? String(currentDiscountValue) : "5"
+  );
+
+  // Update value when discount type changes
+  const handleTypeChange = (newType: "percent" | "fixed") => {
+    setDiscountType(newType);
+    // Set appropriate default when switching types
+    if (newType === "percent") {
+      setValue("5");
+    } else {
+      setValue("0");
+    }
+  };
 
   const handleApply = () => {
     const numValue = parseFloat(value);
@@ -81,7 +95,7 @@ export function DiscountDialog({
         <div className="space-y-4 py-4">
           <RadioGroup
             value={discountType}
-            onValueChange={(v) => setDiscountType(v as "percent" | "fixed")}
+            onValueChange={handleTypeChange}
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="percent" id="percent" />
