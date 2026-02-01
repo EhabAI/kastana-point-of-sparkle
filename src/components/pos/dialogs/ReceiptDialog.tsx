@@ -7,6 +7,7 @@ import { Printer, Undo2 } from "lucide-react";
 import { format } from "date-fns";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatJOD } from "@/lib/utils";
+import { calculateOrderTotals } from "@/lib/orderCalculations";
 
 interface OrderItem {
   id: string;
@@ -106,6 +107,17 @@ export function ReceiptDialog({
   const { type: orderType, tableName } = getOrderTypeAndTable();
   const customerInfo = getCustomerInfo();
 
+  // Use shared calculation utility for consistent discount display
+  const calculatedTotals = calculateOrderTotals({
+    subtotal: Number(order.subtotal),
+    discountType: order.discount_type,
+    discountValue: order.discount_value,
+    serviceChargeRate: 0, // Already have service_charge from order
+    taxRate: 0, // Already have tax_amount from order
+    currency,
+  });
+  const discountAmount = calculatedTotals.discountAmount;
+
   const handlePrint = () => {
     window.print();
   };
@@ -175,11 +187,7 @@ export function ReceiptDialog({
             {order.discount_value && Number(order.discount_value) > 0 && (
               <div className="flex justify-between text-green-600">
                 <span>{t("discount")}{(order.discount_type === "percent" || order.discount_type === "percentage") && ` ${order.discount_value}%`}</span>
-                <span className="font-mono">
-                  -{(order.discount_type === "percent" || order.discount_type === "percentage")
-                    ? formatJOD((Number(order.subtotal) * Number(order.discount_value)) / 100)
-                    : formatJOD(Number(order.discount_value))}
-                </span>
+                <span className="font-mono">-{formatJOD(discountAmount)}</span>
               </div>
             )}
             {Number(order.service_charge) > 0 && (
