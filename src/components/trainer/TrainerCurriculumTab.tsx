@@ -132,6 +132,7 @@ export function TrainerCurriculumTab({ language, onStartTraining }: TrainerCurri
             
             {/* Cashier Training Panel */}
             <CashierTrainingPanel 
+              key={`cashier-panel-${refreshKey}`}
               language={language}
               hasActiveShift={hasActiveShift}
             />
@@ -207,7 +208,7 @@ export function TrainerCurriculumTab({ language, onStartTraining }: TrainerCurri
             </AlertDialog>
             
             {/* Kitchen Training Panel */}
-            <KitchenTrainingPanel language={language} />
+            <KitchenTrainingPanel key={`kitchen-panel-${refreshKey}`} language={language} />
           </div>
         </ScrollArea>
       </div>
