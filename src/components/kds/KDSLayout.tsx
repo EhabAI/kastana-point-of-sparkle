@@ -57,23 +57,42 @@ export function KDSLayout({ restaurantId, branchId }: KDSLayoutProps) {
   });
   
   // Fetch branch info for header
+  // If branchId is provided, fetch that specific branch
+  // If branchId is null (owner viewing all), fetch the default branch for context
   const { data: branch } = useQuery({
-    queryKey: ["kds-branch", branchId],
+    queryKey: ["kds-branch", branchId, restaurantId],
     queryFn: async () => {
-      if (!branchId) return null;
-      const { data, error } = await supabase
-        .from("restaurant_branches")
-        .select("name")
-        .eq("id", branchId)
-        .maybeSingle();
-      
-      if (error) {
-        console.error("Error fetching branch:", error);
-        return null;
+      if (branchId) {
+        // Specific branch requested
+        const { data, error } = await supabase
+          .from("restaurant_branches")
+          .select("name")
+          .eq("id", branchId)
+          .maybeSingle();
+        
+        if (error) {
+          console.error("Error fetching branch:", error);
+          return null;
+        }
+        return data;
+      } else if (restaurantId) {
+        // No specific branch - fetch the default branch for display context
+        const { data, error } = await supabase
+          .from("restaurant_branches")
+          .select("name")
+          .eq("restaurant_id", restaurantId)
+          .eq("is_default", true)
+          .maybeSingle();
+        
+        if (error) {
+          console.error("Error fetching default branch:", error);
+          return null;
+        }
+        return data;
       }
-      return data;
+      return null;
     },
-    enabled: !!branchId,
+    enabled: !!restaurantId,
   });
   
   // Sound state
