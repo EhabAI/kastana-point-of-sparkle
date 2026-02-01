@@ -55,7 +55,7 @@ export function FinancialReports({ dateRange, branchId }: FinancialReportsProps)
       // Build base query for orders
       let ordersQuery = supabase
         .from("orders")
-        .select("id, order_number, total, subtotal, discount_value, tax_amount, service_charge, status, branch_id, shift_id, created_at")
+        .select("id, order_number, total, subtotal, discount_type, discount_value, tax_amount, service_charge, status, branch_id, shift_id, created_at")
         .eq("restaurant_id", restaurant.id)
         .gte("created_at", dateRange.from.toISOString())
         .lt("created_at", dateRange.to.toISOString())
@@ -197,10 +197,25 @@ export function FinancialReports({ dateRange, branchId }: FinancialReportsProps)
         })) || [];
       }
 
-      // Calculate financial metrics
-      const grossSales = orders?.reduce((sum, o) => sum + Number(o.subtotal) + Number(o.discount_value || 0), 0) || 0;
-      const totalDiscounts = orders?.reduce((sum, o) => sum + Number(o.discount_value || 0), 0) || 0;
-      const netSales = orders?.reduce((sum, o) => sum + Number(o.subtotal), 0) || 0;
+      // Calculate financial metrics using shared calculation utility
+      // Gross Sales = subtotal (pre-discount value of all items)
+      const grossSales = orders?.reduce((sum, o) => sum + Number(o.subtotal), 0) || 0;
+      
+      // Calculate actual discount amounts (handling both percent and fixed types)
+      const totalDiscounts = orders?.reduce((sum, o) => {
+        const discountValue = Number(o.discount_value || 0);
+        if (discountValue <= 0) return sum;
+        
+        // If percent type, calculate the actual discount amount
+        if (o.discount_type === "percent" || o.discount_type === "percentage") {
+          return sum + (Number(o.subtotal) * discountValue / 100);
+        }
+        // Fixed discount
+        return sum + discountValue;
+      }, 0) || 0;
+      
+      // Net Sales = Gross Sales - Discounts
+      const netSales = grossSales - totalDiscounts;
       const totalTax = orders?.reduce((sum, o) => sum + Number(o.tax_amount), 0) || 0;
       const totalServiceCharge = orders?.reduce((sum, o) => sum + Number(o.service_charge), 0) || 0;
       const finalTotal = orders?.reduce((sum, o) => sum + Number(o.total), 0) || 0;
