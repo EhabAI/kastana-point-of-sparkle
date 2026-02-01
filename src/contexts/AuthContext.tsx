@@ -75,10 +75,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { role: null as AppRole, isActive: false, restaurantId: data?.restaurant_id || null };
     }
 
+    let restaurantId = data?.restaurant_id || null;
+
+    // For owners, if restaurant_id is null in user_roles, fetch from restaurants table
+    // This handles multi-restaurant owners - we pick the first active one
+    if (data?.role === "owner" && !restaurantId) {
+      const { data: restaurants, error: restError } = await supabase
+        .from("restaurants")
+        .select("id")
+        .eq("owner_id", userId)
+        .eq("is_active", true)
+        .order("created_at", { ascending: true })
+        .limit(1);
+
+      if (!restError && restaurants && restaurants.length > 0) {
+        restaurantId = restaurants[0].id;
+      }
+    }
+
     return {
       role: (data?.role as AppRole) ?? null,
       isActive: data?.is_active ?? true,
-      restaurantId: data?.restaurant_id || null,
+      restaurantId,
     };
   };
 
