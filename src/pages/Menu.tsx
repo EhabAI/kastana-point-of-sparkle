@@ -430,6 +430,9 @@ export default function Menu() {
   
   // Table info derived from table_code lookup
   const [tableInfo, setTableInfo] = useState<TableInfo | null>(null);
+  
+  // Branch name for header display
+  const [branchName, setBranchName] = useState<string | null>(null);
 
   // Cart state (local only) - now tracks quantities per item
   const [cart, setCart] = useState<SelectedItem[]>([]);
@@ -570,6 +573,20 @@ export default function Menu() {
 
         setTableInfo({ id: table.id, branch_id: table.branch_id });
         effectiveBranchId = table.branch_id || effectiveBranchId;
+        
+        // Fetch branch name for header display
+        if (table.branch_id) {
+          const { data: branchData } = await supabase
+            .from("restaurant_branches")
+            .select("name")
+            .eq("id", table.branch_id)
+            .eq("is_active", true)
+            .maybeSingle();
+          
+          if (branchData?.name) {
+            setBranchName(branchData.name);
+          }
+        }
       }
 
       /* 3️⃣ Categories - include promo_start/promo_end for time filtering */
@@ -852,7 +869,12 @@ export default function Menu() {
               />
             )}
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">{restaurant?.name ?? "Restaurant"}</h1>
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-2xl font-bold tracking-tight">{restaurant?.name ?? "Restaurant"}</h1>
+                {branchName && (
+                  <span className="text-sm text-muted-foreground">• {branchName}</span>
+                )}
+              </div>
               {/* Enhanced Table Identifier - Clear two-line layout */}
               <div className="mt-1">
                 <p className="text-[11px] text-muted-foreground">
