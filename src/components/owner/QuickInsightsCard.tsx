@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfDay, endOfDay } from "date-fns";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { TrendingUp, AlertTriangle, Award } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +17,7 @@ interface QuickInsightsCardProps {
 export function QuickInsightsCard({ restaurantId, currency }: QuickInsightsCardProps) {
   const { t, language } = useLanguage();
   const { isEnabled: inventoryEnabled } = useInventoryEnabled();
+  const { selectedBranch } = useBranchContextSafe();
   const currencySymbol = language === "ar" ? "د.أ" : currency;
 
   const today = new Date();
@@ -24,21 +26,27 @@ export function QuickInsightsCard({ restaurantId, currency }: QuickInsightsCardP
 
   // Fetch top selling item today
   const { data: topSeller, isLoading: loadingTopSeller } = useQuery({
-    queryKey: ["quick-insights-top-seller", restaurantId, startOfToday],
+    queryKey: ["quick-insights-top-seller", restaurantId, selectedBranch?.id, startOfToday],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("order_items")
         .select(`
           menu_item_id,
           name,
           quantity,
-          orders!inner(restaurant_id, created_at, status)
+          orders!inner(restaurant_id, branch_id, created_at, status)
         `)
         .eq("orders.restaurant_id", restaurantId)
         .eq("orders.status", "paid")
         .gte("orders.created_at", startOfToday)
         .lt("orders.created_at", endOfToday)
         .eq("voided", false);
+      
+      if (selectedBranch?.id) {
+        query = query.eq("orders.branch_id", selectedBranch.id);
+      }
+      
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -60,22 +68,28 @@ export function QuickInsightsCard({ restaurantId, currency }: QuickInsightsCardP
 
   // Fetch highest variance item today (if inventory enabled)
   const { data: highestVariance, isLoading: loadingVariance } = useQuery({
-    queryKey: ["quick-insights-variance", restaurantId, startOfToday],
+    queryKey: ["quick-insights-variance", restaurantId, selectedBranch?.id, startOfToday],
     queryFn: async () => {
       // Get recent stock count variances
-      const { data, error } = await supabase
+      let query = supabase
         .from("stock_count_lines")
         .select(`
           item_id,
           variance_base,
-          inventory_items!inner(name, avg_cost),
-          stock_counts!inner(restaurant_id, status, approved_at)
+          inventory_items!inner(name, avg_cost, branch_id),
+          stock_counts!inner(restaurant_id, branch_id, status, approved_at)
         `)
         .eq("stock_counts.restaurant_id", restaurantId)
         .eq("stock_counts.status", "approved")
         .not("variance_base", "eq", 0)
         .order("stock_counts.approved_at", { ascending: false })
         .limit(50);
+      
+      if (selectedBranch?.id) {
+        query = query.eq("stock_counts.branch_id", selectedBranch.id);
+      }
+      
+      const { data, error } = await query;
 
       if (error) throw error;
 

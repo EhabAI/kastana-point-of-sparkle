@@ -10,6 +10,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useOwnerRestaurant } from "@/hooks/useRestaurants";
 import { useInventoryEnabled } from "@/hooks/useInventoryEnabled";
 import { useOperationalInsights } from "@/hooks/useOperationalInsights";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { startOfDay, endOfDay, subDays, format } from "date-fns";
 import { formatJOD } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,12 +39,13 @@ export function SmartEndOfDaySummary({ restaurantId, currency = "JOD" }: SmartEn
   const { t, language } = useLanguage();
   const { isEnabled: inventoryEnabled } = useInventoryEnabled();
   const { data: insightsData } = useOperationalInsights(restaurantId);
+  const { selectedBranch } = useBranchContextSafe();
   
   const today = new Date();
   const yesterday = subDays(today, 1);
   
   const { data: summary, isLoading } = useQuery({
-    queryKey: ["smart-end-of-day", restaurantId, format(today, "yyyy-MM-dd")],
+    queryKey: ["smart-end-of-day", restaurantId, selectedBranch?.id, format(today, "yyyy-MM-dd")],
     queryFn: async () => {
       const todayStart = startOfDay(today).toISOString();
       const todayEnd = endOfDay(today).toISOString();
@@ -51,46 +53,72 @@ export function SmartEndOfDaySummary({ restaurantId, currency = "JOD" }: SmartEn
       const yesterdayEnd = endOfDay(yesterday).toISOString();
       
       // Today's stats
-      const { data: todayOrders } = await supabase
+      let todayQuery = supabase
         .from("orders")
         .select("id, total, status, discount_value")
         .eq("restaurant_id", restaurantId)
         .gte("created_at", todayStart)
         .lt("created_at", todayEnd);
       
+      if (selectedBranch?.id) {
+        todayQuery = todayQuery.eq("branch_id", selectedBranch.id);
+      }
+      
+      const { data: todayOrders } = await todayQuery;
+      
       // Yesterday's stats for comparison
-      const { data: yesterdayOrders } = await supabase
+      let yesterdayQuery = supabase
         .from("orders")
         .select("id, total, status")
         .eq("restaurant_id", restaurantId)
         .gte("created_at", yesterdayStart)
         .lt("created_at", yesterdayEnd);
       
+      if (selectedBranch?.id) {
+        yesterdayQuery = yesterdayQuery.eq("branch_id", selectedBranch.id);
+      }
+      
+      const { data: yesterdayOrders } = await yesterdayQuery;
+      
       // Today's refunds
-      const { data: todayRefunds } = await supabase
+      let refundsQuery = supabase
         .from("refunds")
         .select("amount")
         .eq("restaurant_id", restaurantId)
         .gte("created_at", todayStart)
         .lt("created_at", todayEnd);
       
-      // Today's voided items
-      const { data: todayVoids } = await supabase
-        .from("order_items")
-        .select("id")
-        .eq("restaurant_id", restaurantId)
-        .eq("voided", true)
-        .gte("created_at", todayStart)
-        .lt("created_at", todayEnd);
+      if (selectedBranch?.id) {
+        refundsQuery = refundsQuery.eq("branch_id", selectedBranch.id);
+      }
       
-      // Get top seller today
-      const { data: topSeller } = await supabase
-        .from("order_items")
-        .select("name, quantity")
-        .eq("restaurant_id", restaurantId)
-        .eq("voided", false)
-        .gte("created_at", todayStart)
-        .lt("created_at", todayEnd);
+      const { data: todayRefunds } = await refundsQuery;
+      
+      // Today's voided items - filter through order_ids for branch scoping
+      const todayOrderIds = todayOrders?.map(o => o.id) || [];
+      let todayVoids: { id: string }[] = [];
+      
+      if (todayOrderIds.length > 0) {
+        const { data } = await supabase
+          .from("order_items")
+          .select("id")
+          .in("order_id", todayOrderIds)
+          .eq("voided", true);
+        todayVoids = data || [];
+      }
+      
+      // Get top seller today - use branch-scoped order ids
+      let topSeller: { name: string; quantity: number }[] = [];
+      const paidTodayOrderIds = todayOrders?.filter(o => o.status === "paid").map(o => o.id) || [];
+      
+      if (paidTodayOrderIds.length > 0) {
+        const { data } = await supabase
+          .from("order_items")
+          .select("name, quantity")
+          .in("order_id", paidTodayOrderIds)
+          .eq("voided", false);
+        topSeller = data || [];
+      }
       
       // Calculate stats
       const paidTodayOrders = todayOrders?.filter(o => o.status === "paid") || [];
