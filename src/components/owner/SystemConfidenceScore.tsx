@@ -6,6 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useBranchContextSafe } from "@/contexts/BranchContext";
 import { startOfDay, endOfDay } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,45 +21,68 @@ type ConfidenceLevel = "excellent" | "good" | "needs_attention";
 
 export function SystemConfidenceScore({ restaurantId }: SystemConfidenceScoreProps) {
   const { t, language } = useLanguage();
+  const { selectedBranch } = useBranchContextSafe();
   
   const today = new Date();
   const todayStart = startOfDay(today).toISOString();
   const todayEnd = endOfDay(today).toISOString();
   
   const { data: score } = useQuery({
-    queryKey: ["system-confidence", restaurantId, todayStart],
+    queryKey: ["system-confidence", restaurantId, selectedBranch?.id, todayStart],
     queryFn: async () => {
       // Get today's orders
-      const { data: orders } = await supabase
+      let ordersQuery = supabase
         .from("orders")
         .select("id, status, cancelled_reason")
         .eq("restaurant_id", restaurantId)
         .gte("created_at", todayStart)
         .lt("created_at", todayEnd);
       
-      // Get voided items today
-      const { data: voidedItems } = await supabase
-        .from("order_items")
-        .select("id")
-        .eq("restaurant_id", restaurantId)
-        .eq("voided", true)
-        .gte("created_at", todayStart)
-        .lt("created_at", todayEnd);
+      if (selectedBranch?.id) {
+        ordersQuery = ordersQuery.eq("branch_id", selectedBranch.id);
+      }
+      
+      const { data: orders } = await ordersQuery;
+      
+      // Get voided items today - filter via order_ids for branch scoping
+      const orderIds = orders?.map(o => o.id) || [];
+      let voidedItems: { id: string }[] = [];
+      
+      if (orderIds.length > 0) {
+        const { data } = await supabase
+          .from("order_items")
+          .select("id")
+          .in("order_id", orderIds)
+          .eq("voided", true);
+        voidedItems = data || [];
+      }
       
       // Get refunds today
-      const { data: refunds } = await supabase
+      let refundsQuery = supabase
         .from("refunds")
         .select("id")
         .eq("restaurant_id", restaurantId)
         .gte("created_at", todayStart)
         .lt("created_at", todayEnd);
       
+      if (selectedBranch?.id) {
+        refundsQuery = refundsQuery.eq("branch_id", selectedBranch.id);
+      }
+      
+      const { data: refunds } = await refundsQuery;
+      
       // Get long open shifts
-      const { data: openShifts } = await supabase
+      let shiftsQuery = supabase
         .from("shifts")
         .select("id, opened_at")
         .eq("restaurant_id", restaurantId)
         .eq("status", "open");
+      
+      if (selectedBranch?.id) {
+        shiftsQuery = shiftsQuery.eq("branch_id", selectedBranch.id);
+      }
+      
+      const { data: openShifts } = await shiftsQuery;
       
       const totalOrders = orders?.length || 0;
       const cancelledOrders = orders?.filter(o => o.status === "cancelled")?.length || 0;

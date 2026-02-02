@@ -93,14 +93,18 @@ export function DailySummaryCard({ restaurantId, currency = "JOD" }: DailySummar
       
       const { data: todayPayments } = await paymentsQuery;
       
-      // Get top seller today
-      const { data: topSeller } = await supabase
-        .from("order_items")
-        .select("name, quantity")
-        .eq("restaurant_id", restaurantId)
-        .eq("voided", false)
-        .gte("created_at", dayStart)
-        .lt("created_at", dayEnd);
+      // Get top seller today - join via order_id to filter by branch
+      const orderIds = todayOrders?.filter(o => o.status === "paid").map(o => o.id) || [];
+      let topSeller: { name: string; quantity: number }[] | null = null;
+      
+      if (orderIds.length > 0) {
+        const { data } = await supabase
+          .from("order_items")
+          .select("name, quantity")
+          .eq("voided", false)
+          .in("order_id", orderIds);
+        topSeller = data;
+      }
       
       // Calculate stats
       const paidOrders = todayOrders?.filter(o => o.status === "paid") || [];
