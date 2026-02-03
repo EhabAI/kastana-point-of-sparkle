@@ -1098,9 +1098,22 @@ export default function POS() {
       // Inventory deduction - only if module is enabled
       // If inventory_enabled = false: skip silently, no errors, no warnings, no logs
       if (settings?.inventory_enabled) {
-        // TODO: Re-enable in Phase 2 when inventory system is fully tested
-        // inventoryDeductionMutation.mutateAsync(currentOrder.id);
-        console.info("[handlePaymentConfirm] Inventory enabled but Phase 1 - deduction skipped for order:", currentOrder.id);
+        // Trigger inventory deduction asynchronously - non-blocking
+        // Payment is already successful at this point
+        inventoryDeductionMutation.mutateAsync(currentOrder.id)
+          .then((result) => {
+            if (result.warnings.length > 0) {
+              // Show warnings to cashier (negative stock alerts)
+              setInventoryWarnings(result.warnings);
+            }
+            if (result.cogs_computed) {
+              console.info("[handlePaymentConfirm] COGS computed for order:", currentOrder.id);
+            }
+          })
+          .catch((err) => {
+            // Non-blocking - payment already succeeded, just log
+            console.error("[handlePaymentConfirm] Inventory deduction failed (non-blocking):", err);
+          });
       }
       // When inventory disabled: proceed silently - this is intended behavior
       
@@ -1841,6 +1854,29 @@ export default function POS() {
           payments: payments.map(p => ({ method: p.method, amount: p.amount })),
         },
       });
+      
+      // Inventory deduction for each order - only if module is enabled
+      // Non-blocking: payment already succeeded
+      if (settings?.inventory_enabled) {
+        const allWarnings: DeductionWarning[] = [];
+        
+        // Trigger deduction for each order asynchronously
+        for (const orderId of orderIds) {
+          inventoryDeductionMutation.mutateAsync(orderId)
+            .then((result) => {
+              if (result.warnings.length > 0) {
+                allWarnings.push(...result.warnings);
+              }
+              // If this is the last order, show all warnings
+              if (orderId === orderIds[orderIds.length - 1] && allWarnings.length > 0) {
+                setInventoryWarnings(allWarnings);
+              }
+            })
+            .catch((err) => {
+              console.error("[handleTableCheckoutConfirm] Inventory deduction failed (non-blocking):", err);
+            });
+        }
+      }
       
       setTableCheckoutDialogOpen(false);
       setTableOrdersDialogOpen(false);
