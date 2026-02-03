@@ -1,5 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMutation } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 // Hook to get all restaurants' KDS status
@@ -29,7 +28,8 @@ interface ToggleKDSCallbacks {
 }
 
 /**
- * Toggle KDS module for a restaurant
+ * Toggle KDS module for a restaurant (System Admin only)
+ * Uses edge function for proper authorization and audit logging
  * Toast messages should be handled by the caller for proper localization
  */
 export function useToggleKDSModule(callbacks?: ToggleKDSCallbacks) {
@@ -37,38 +37,23 @@ export function useToggleKDSModule(callbacks?: ToggleKDSCallbacks) {
 
   return useMutation({
     mutationFn: async ({ restaurantId, enabled }: { restaurantId: string; enabled: boolean }) => {
-      // Check if settings exist
-      const { data: existingSettings } = await supabase
-        .from("restaurant_settings")
-        .select("id")
-        .eq("restaurant_id", restaurantId)
-        .maybeSingle();
+      const { data, error } = await supabase.functions.invoke("toggle-kds-module", {
+        body: { restaurantId, enabled },
+      });
 
-      if (existingSettings) {
-        // Update existing settings
-        const { error } = await supabase
-          .from("restaurant_settings")
-          .update({ kds_enabled: enabled, updated_at: new Date().toISOString() })
-          .eq("restaurant_id", restaurantId);
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
-        if (error) throw error;
-      } else {
-        // Create new settings
-        const { error } = await supabase
-          .from("restaurant_settings")
-          .insert({ restaurant_id: restaurantId, kds_enabled: enabled });
-
-        if (error) throw error;
-      }
-
-      return { restaurantId, enabled };
+      return { ...data, enabled };
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["all-restaurants-kds-status"] });
       queryClient.invalidateQueries({ queryKey: ["kds-enabled"] });
+      queryClient.invalidateQueries({ queryKey: ["restaurant-settings"] });
       callbacks?.onSuccessCallback?.(variables.enabled);
     },
     onError: (error: Error) => {
+      console.error("Toggle KDS module error:", error);
       callbacks?.onErrorCallback?.(error);
     },
   });

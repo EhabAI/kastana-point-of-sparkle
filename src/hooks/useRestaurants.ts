@@ -116,18 +116,26 @@ export function useAssignOwner() {
 
   return useMutation({
     mutationFn: async ({ restaurantId, ownerId }: { restaurantId: string; ownerId: string }) => {
-      const { data, error } = await supabase
-        .from('restaurants')
-        .update({ owner_id: ownerId })
-        .eq('id', restaurantId)
-        .select()
-        .single();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Not authenticated');
+      }
+
+      const { data, error } = await supabase.functions.invoke('system-admin-assign-owner', {
+        body: {
+          restaurant_id: restaurantId,
+          owner_id: ownerId,
+        },
+      });
       
-      if (error) throw error;
-      return data;
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error.code || 'Failed to assign owner');
+      
+      return data.restaurant;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['restaurants'] });
+      queryClient.invalidateQueries({ queryKey: ['owner-restaurant'] });
       toast({ title: resolveMessage("owner_assigned", language) });
     },
     onError: (error: Error) => {
