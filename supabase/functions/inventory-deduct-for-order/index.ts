@@ -211,7 +211,7 @@ Deno.serve(async (req) => {
     // Get order items (non-voided) with id for COGS update
     const { data: orderItems, error: itemsError } = await supabaseAdmin
       .from("order_items")
-      .select("id, menu_item_id, quantity, total_price")
+      .select("id, menu_item_id, quantity, price")
       .eq("order_id", order_id)
       .eq("voided", false);
 
@@ -540,7 +540,9 @@ Deno.serve(async (req) => {
       
       // This order item's COGS = cogsPerUnit × orderItem.quantity
       const itemCogs = cogsPerUnit * orderItem.quantity;
-      const itemProfit = Number(orderItem.total_price || 0) - itemCogs;
+      // Calculate total revenue: price × quantity (price is unit price per item)
+      const itemRevenue = Number(orderItem.price || 0) * orderItem.quantity;
+      const itemProfit = itemRevenue - itemCogs;
 
       const { error: cogsUpdateError } = await supabaseAdmin
         .from("order_items")
