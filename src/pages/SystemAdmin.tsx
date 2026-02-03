@@ -693,6 +693,9 @@ export default function SystemAdmin() {
           .from('restaurant_settings')
           .insert({ restaurant_id: selectedRestaurant, owner_phone: phoneValue });
       }
+      
+      // Invalidate owner phones query so the UI reflects the new phone
+      queryClient.invalidateQueries({ queryKey: ['all-owner-phones'] });
     }
     
     setSelectedRestaurant("");
@@ -1554,6 +1557,7 @@ export default function SystemAdmin() {
                     }
                     
                     queryClient.invalidateQueries({ queryKey: ['owners'] });
+                    queryClient.invalidateQueries({ queryKey: ['all-owner-phones'] });
                     toast({ title: "Owner updated successfully" });
                     setEditOwnerDialogOpen(false);
                     setEditingOwner(null);
