@@ -78,6 +78,13 @@ import {
   wasOnboardingShown,
   type AdoptionContext,
 } from "@/lib/assistantOnboardingAdoption";
+import {
+  isClarificationRequest,
+  getClarificationResponse,
+  shouldUseStyleVariation,
+  recordStyleUsage,
+  getNextStyle,
+} from "@/lib/assistantStyleVariation";
 import type { ScreenContext } from "@/lib/smartAssistantContext";
 
 interface IntentResult {
@@ -281,12 +288,65 @@ export function useAssistantAI(): UseAssistantAIReturn {
       }
       // ===== END SMART TRAINER CONTEXT PRESERVATION =====
       
+      // ===== CLARIFICATION REQUEST HANDLER (HIGH PRIORITY) =====
+      // CRITICAL: When user asks "اشرح أكثر", "وضّح أكثر", etc.
+      // NEVER repeat the same explanation - use style variation
+      if (isClarificationRequest(query) && activeTopic) {
+        // User is asking for clarification on the active topic
+        const baseContent = getDirectAnswer(activeTopic.id, language) || "";
+        
+        if (baseContent) {
+          setIsLoading(false);
+          
+          // Get a DIFFERENT explanation style - never repeat
+          const styledResponse = getClarificationResponse(activeTopic.id, baseContent, language);
+          
+          // Update conversation history
+          conversationHistoryRef.current.push({ role: "user", content: query });
+          conversationHistoryRef.current.push({ role: "assistant", content: styledResponse });
+          
+          if (conversationHistoryRef.current.length > 6) {
+            conversationHistoryRef.current = conversationHistoryRef.current.slice(-6);
+          }
+          
+          return styledResponse;
+        }
+      }
+      // ===== END CLARIFICATION REQUEST HANDLER =====
+      
       // ===== SESSION MEMORY: CONTEXT-LESS FOLLOW-UP HANDLING =====
       // Check if this is a follow-up that relies on session memory (e.g., "طيب الكمية؟")
-      if (isContextlessFollowUp(query)) {
+      // Also handles clarification requests when no active topic (fallback to session memory)
+      if (isContextlessFollowUp(query) || (isClarificationRequest(query) && !activeTopic)) {
         const memory = getSessionMemory();
         if (memory.lastTopicId && memory.lastTopicName) {
-          // Use session memory to continue the context
+          // Check if this is a clarification request - use style variation
+          if (isClarificationRequest(query)) {
+            const baseContent = getDirectAnswer(memory.lastTopicId, language) || "";
+            if (baseContent) {
+              setIsLoading(false);
+              
+              // Get a DIFFERENT explanation style
+              const styledResponse = getClarificationResponse(memory.lastTopicId, baseContent, language);
+              
+              // Update session memory
+              const intent = detectIntentFromMessage(query);
+              const entity = detectEntityFromMessage(query);
+              updateSessionMemory(intent, entity, memory.lastTopicId, memory.lastTopicName);
+              
+              // Update conversation history
+              conversationHistoryRef.current.push({ role: "user", content: query });
+              conversationHistoryRef.current.push({ role: "assistant", content: styledResponse });
+              
+              if (conversationHistoryRef.current.length > 6) {
+                conversationHistoryRef.current = conversationHistoryRef.current.slice(-6);
+              }
+              
+              return styledResponse;
+            }
+          }
+          
+          // Regular follow-up - use session memory to continue the context
           const directAnswer = getDirectAnswer(memory.lastTopicId, language);
           if (directAnswer) {
             setIsLoading(false);
