@@ -14,6 +14,7 @@ export interface DeductionResult {
   warnings: DeductionWarning[];
   error: string | null;
   deducted_count: number;
+  cogs_computed: boolean;
 }
 
 /**
@@ -36,6 +37,7 @@ export function useInventoryDeduction() {
             warnings: [],
             error: error.message || "Inventory deduction failed",
             deducted_count: 0,
+            cogs_computed: false,
           };
         }
 
@@ -47,6 +49,7 @@ export function useInventoryDeduction() {
           warnings: [],
           error: err instanceof Error ? err.message : "Unexpected error",
           deducted_count: 0,
+          cogs_computed: false,
         };
       }
     },
