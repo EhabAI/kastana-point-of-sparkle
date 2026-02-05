@@ -56,8 +56,8 @@ export const UI_ELEMENTS: UIElement[] = [
         en: "At the start of work to open shift, and at end to close it"
       },
       example: {
-        ar: "بداية اليوم: افتح الوردية بـ 500 ريال نقد افتتاحي",
-        en: "Start of day: Open shift with 500 SAR opening cash"
+       ar: "بداية اليوم: افتح الوردية بـ 500 دينار نقد افتتاحي",
+       en: "Start of day: Open shift with 500 JOD opening cash"
       },
       commonMistake: {
         ar: "نسيان فتح الوردية قبل تسجيل أول طلب",
@@ -208,8 +208,8 @@ export const UI_ELEMENTS: UIElement[] = [
         en: "To monitor today's performance vs previous days"
       },
       example: {
-        ar: "دخل اليوم 15,000 ريال مقابل 12,000 أمس = نمو 25%",
-        en: "Today 15,000 SAR vs 12,000 yesterday = 25% growth"
+       ar: "دخل اليوم 15,000 دينار مقابل 12,000 أمس = نمو 25%",
+       en: "Today 15,000 JOD vs 12,000 yesterday = 25% growth"
       },
       commonMistake: {
         ar: "عدم مراعاة أن الرقم يشمل الضريبة",
