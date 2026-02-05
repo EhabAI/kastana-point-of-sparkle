@@ -367,7 +367,7 @@ export function AIAssistantBubble() {
       /أقل|أكثر|زيادة|نقص/,
       /less|more|lower|higher|down|up/,
       /\%/,
-      /ريال|دينار|jod|sar/i,
+     /دينار|jod/i,
     ];
     return dataPatterns.some((pattern) => pattern.test(message));
   };
