@@ -242,11 +242,11 @@ export function RestaurantListRow({
               </span>
             </button>
 
-            {/* Edit Actions */}
+          {/* Edit Actions */}
             <Button
               variant="ghost"
               size="sm"
-              className="h-8"
+              className="h-8 bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-200 dark:hover:bg-slate-700/60"
               onClick={() => onEditName(restaurant.id, restaurant.name)}
             >
               <Pencil className="h-3.5 w-3.5 me-1.5" />
@@ -255,7 +255,7 @@ export function RestaurantListRow({
             <Button
               variant="ghost"
               size="sm"
-              className="h-8"
+              className="h-8 bg-violet-50 dark:bg-violet-950/40 hover:bg-violet-100 dark:hover:bg-violet-900/40 text-violet-700 dark:text-violet-300"
               onClick={() => onEditLogo(restaurant.id, restaurant.logo_url)}
             >
               <Image className="h-3.5 w-3.5 me-1.5" />
@@ -265,7 +265,7 @@ export function RestaurantListRow({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8"
+                className="h-8 bg-cyan-50 dark:bg-cyan-950/40 hover:bg-cyan-100 dark:hover:bg-cyan-900/40 text-cyan-700 dark:text-cyan-300"
                 onClick={() => onEditOwner(restaurant.owner_id!, ownerEmail || '', ownerUsername || undefined, restaurant.id)}
               >
                 <Key className="h-3.5 w-3.5 me-1.5" />
@@ -277,7 +277,7 @@ export function RestaurantListRow({
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 text-primary hover:bg-primary/10"
+              className="h-8 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-700 dark:text-blue-300"
               onClick={(e) => {
                 e.stopPropagation();
                 onContactRestaurant();
@@ -291,7 +291,7 @@ export function RestaurantListRow({
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+              className="h-8 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-300"
               onClick={(e) => {
                 e.stopPropagation();
                 onSendNotification();
@@ -308,7 +308,7 @@ export function RestaurantListRow({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8"
+                    className="h-8 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300"
                     onClick={(e) => {
                       e.stopPropagation();
                       onBranchLimitClick(
