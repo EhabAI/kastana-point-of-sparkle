@@ -39,6 +39,7 @@ import { useAllRestaurantsKDSStatus, useToggleKDSModule } from "@/hooks/useKDSMo
 import { useAllRestaurantsQRStatus, useToggleQRModule } from "@/hooks/useQRModuleToggle";
 import { useAllRestaurantsHealthData } from "@/hooks/useSystemHealthSnapshot";
 import { useAllOwnerPhones } from "@/hooks/useAllOwnerPhones";
+import { useAllRestaurantsBranchInfo, useUpdateBranchLimit } from "@/hooks/useBranchLimitAdmin";
 import { 
   RestaurantSummaryBar, 
   RestaurantFilterBar, 
@@ -96,6 +97,7 @@ export default function SystemAdmin() {
   const { data: qrStatusMap = new Map() } = useAllRestaurantsQRStatus();
   const { data: healthDataMap = new Map() } = useAllRestaurantsHealthData();
   const { data: ownerPhoneMap = new Map() } = useAllOwnerPhones();
+  const { data: branchInfoMap = new Map() } = useAllRestaurantsBranchInfo();
   const { data: subscriptions = [] } = useRestaurantSubscriptions();
   const { data: expiringSubscriptions = [] } = useExpiringSubscriptions();
   const createRestaurantWithSub = useCreateRestaurantWithSubscription();
@@ -105,6 +107,7 @@ export default function SystemAdmin() {
   const createOwner = useCreateOwner();
   const assignOwner = useAssignOwner();
   const toggleActive = useToggleRestaurantActive();
+  const updateBranchLimit = useUpdateBranchLimit();
   const { toast } = useToast();
   
   // Module toggles with localized toast callbacks
@@ -274,6 +277,16 @@ export default function SystemAdmin() {
     restaurant: { id: string; name: string };
     ownerEmail: string | null;
   } | null>(null);
+
+  // Branch limit dialog
+  const [branchLimitDialogOpen, setBranchLimitDialogOpen] = useState(false);
+  const [branchLimitTarget, setBranchLimitTarget] = useState<{
+    id: string;
+    name: string;
+    currentLimit: number | null;
+    currentBranchCount: number;
+  } | null>(null);
+  const [branchLimitValue, setBranchLimitValue] = useState<string>("");
 
   // Helper to get subscription for a restaurant
   const getSubscription = (restaurantId: string) => {
@@ -1145,6 +1158,8 @@ export default function SystemAdmin() {
                   const owner = owners.find(o => o.user_id === restaurant.owner_id);
                   const subscription = getSubscription(restaurant.id);
                   
+                  const branchInfo = branchInfoMap.get(restaurant.id);
+                  
                   return (
                     <RestaurantListRow
                       key={restaurant.id}
@@ -1157,6 +1172,7 @@ export default function SystemAdmin() {
                       kdsEnabled={kdsStatusMap.get(restaurant.id) ?? false}
                       qrEnabled={qrStatusMap.get(restaurant.id) ?? false}
                       healthData={healthDataMap.get(restaurant.id)}
+                      branchInfo={branchInfo}
                       onToggleActive={handleToggleActive}
                       onInventoryToggle={handleInventoryToggle}
                       onKDSToggle={handleKDSToggle}
@@ -1205,6 +1221,11 @@ export default function SystemAdmin() {
                           ownerEmail: owner?.email || null,
                         });
                         setInternalNotifDialogOpen(true);
+                      }}
+                      onBranchLimitClick={(id, name, currentLimit, currentBranchCount) => {
+                        setBranchLimitTarget({ id, name, currentLimit, currentBranchCount });
+                        setBranchLimitValue(currentLimit === null ? "unlimited" : String(currentLimit));
+                        setBranchLimitDialogOpen(true);
                       }}
                       togglesPending={{
                         active: toggleActive.isPending,
@@ -2067,6 +2088,78 @@ export default function SystemAdmin() {
           restaurant={internalNotifTarget?.restaurant || null}
           ownerEmail={internalNotifTarget?.ownerEmail}
         />
+
+        {/* Branch Limit Dialog */}
+        <Dialog open={branchLimitDialogOpen} onOpenChange={(open) => {
+          setBranchLimitDialogOpen(open);
+          if (!open) {
+            setBranchLimitTarget(null);
+            setBranchLimitValue("");
+          }
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t('sa_branch_limit')}</DialogTitle>
+              <DialogDescription>
+                {t('sa_branch_limit_desc')} {branchLimitTarget?.name}.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">{t('sa_branch_limit_current')}:</span>
+                <Badge variant="secondary">{branchLimitTarget?.currentBranchCount ?? 0}</Badge>
+              </div>
+              <div className="space-y-2">
+                <Label>{t('sa_branch_limit')}</Label>
+                <Select
+                  value={branchLimitValue}
+                  onValueChange={setBranchLimitValue}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('sa_branch_limit_set')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unlimited">{t('sa_branch_limit_unlimited')}</SelectItem>
+                    <SelectItem value="1">1</SelectItem>
+                    <SelectItem value="2">2</SelectItem>
+                    <SelectItem value="3">3</SelectItem>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setBranchLimitDialogOpen(false);
+                setBranchLimitTarget(null);
+                setBranchLimitValue("");
+              }}>
+                {t('cancel')}
+              </Button>
+              <Button
+                onClick={async () => {
+                  if (!branchLimitTarget || !branchLimitValue) return;
+                  
+                  const newLimit = branchLimitValue === "unlimited" ? null : parseInt(branchLimitValue, 10);
+                  
+                  await updateBranchLimit.mutateAsync({
+                    restaurantId: branchLimitTarget.id,
+                    maxBranchesAllowed: newLimit,
+                  });
+                  
+                  setBranchLimitDialogOpen(false);
+                  setBranchLimitTarget(null);
+                  setBranchLimitValue("");
+                }}
+                disabled={updateBranchLimit.isPending || !branchLimitValue}
+              >
+                {updateBranchLimit.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                {t('save')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );

@@ -58,6 +58,32 @@ export function useDefaultBranch(restaurantId: string | undefined) {
   });
 }
 
+export function useBranchLimit(restaurantId: string | undefined) {
+  const { data: branches = [] } = useBranches(restaurantId);
+  
+  return useQuery({
+    queryKey: ["branch-limit", restaurantId],
+    queryFn: async () => {
+      if (!restaurantId) return { maxAllowed: null, currentCount: 0, canAddBranch: true };
+
+      const { data, error } = await supabase
+        .from("restaurants")
+        .select("max_branches_allowed")
+        .eq("id", restaurantId)
+        .single();
+
+      if (error) throw error;
+      
+      const maxAllowed = data?.max_branches_allowed ?? null;
+      const currentCount = branches.length;
+      const canAddBranch = maxAllowed === null || currentCount < maxAllowed;
+      
+      return { maxAllowed, currentCount, canAddBranch };
+    },
+    enabled: !!restaurantId,
+  });
+}
+
 export function useCreateBranch() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -71,6 +97,28 @@ export function useCreateBranch() {
       address?: string;
       phone?: string;
     }) => {
+      // Check branch limit before creating
+      const { data: restaurant, error: restaurantError } = await supabase
+        .from("restaurants")
+        .select("max_branches_allowed")
+        .eq("id", data.restaurant_id)
+        .single();
+
+      if (restaurantError) throw restaurantError;
+
+      if (restaurant?.max_branches_allowed !== null) {
+        const { count, error: countError } = await supabase
+          .from("restaurant_branches")
+          .select("id", { count: "exact", head: true })
+          .eq("restaurant_id", data.restaurant_id);
+
+        if (countError) throw countError;
+
+        if (count !== null && count >= restaurant.max_branches_allowed) {
+          throw new Error("BRANCH_LIMIT_REACHED");
+        }
+      }
+
       const { data: branch, error } = await supabase
         .from("restaurant_branches")
         .insert(data)
@@ -84,7 +132,15 @@ export function useCreateBranch() {
       queryClient.invalidateQueries({ queryKey: ["branches", data.restaurant_id] });
       toast({ title: resolveMessage("branch_created", language) });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
+      if (error.message === "BRANCH_LIMIT_REACHED") {
+        toast({ 
+          title: t("branch_limit_reached_title"), 
+          description: t("branch_limit_reached_desc"), 
+          variant: "destructive" 
+        });
+        return;
+      }
       const msg = getOwnerErrorMessage(error, t);
       toast({ title: msg.title, description: msg.description, variant: "destructive" });
     },

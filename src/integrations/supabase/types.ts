@@ -1621,6 +1621,7 @@ export type Database = {
           is_active: boolean
           last_renewal_reminder_stage: string | null
           logo_url: string | null
+          max_branches_allowed: number | null
           name: string
           owner_id: string | null
           updated_at: string
@@ -1631,6 +1632,7 @@ export type Database = {
           is_active?: boolean
           last_renewal_reminder_stage?: string | null
           logo_url?: string | null
+          max_branches_allowed?: number | null
           name: string
           owner_id?: string | null
           updated_at?: string
@@ -1641,6 +1643,7 @@ export type Database = {
           is_active?: boolean
           last_renewal_reminder_stage?: string | null
           logo_url?: string | null
+          max_branches_allowed?: number | null
           name?: string
           owner_id?: string | null
           updated_at?: string

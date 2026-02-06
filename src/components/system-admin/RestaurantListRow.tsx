@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Store, ChevronDown, ChevronUp, Package, ChefHat, QrCode, 
-  CheckCircle2, XCircle, Power, PowerOff, Pencil, Image, Key, Calendar, MessagesSquare, RotateCcw, Bell
+  CheckCircle2, XCircle, Power, PowerOff, Pencil, Image, Key, Calendar, MessagesSquare, RotateCcw, Bell, Building2
 } from "lucide-react";
 import { RestaurantStatusBadge, getRestaurantOperationalState, RestaurantOperationalState } from "./RestaurantStatusBadge";
 import { SystemHealthSnapshot } from "./SystemHealthSnapshot";
@@ -12,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { format, differenceInDays } from "date-fns";
 import { Restaurant } from "@/hooks/useRestaurants";
 import { RestaurantSubscription } from "@/hooks/useRestaurantSubscriptions";
+import { RestaurantBranchInfo } from "@/hooks/useBranchLimitAdmin";
 
 interface RestaurantListRowProps {
   restaurant: Restaurant;
@@ -23,6 +24,7 @@ interface RestaurantListRowProps {
   kdsEnabled: boolean;
   qrEnabled: boolean;
   healthData: { hasOpenShift: boolean } | undefined;
+  branchInfo: RestaurantBranchInfo | undefined;
   onToggleActive: (id: string, name: string, currentlyActive: boolean) => void;
   onInventoryToggle: (id: string, name: string, enabled: boolean) => void;
   onKDSToggle: (id: string, name: string, enabled: boolean) => void;
@@ -34,6 +36,7 @@ interface RestaurantListRowProps {
   onRenewSubscription: (id: string, name: string) => void;
   onContactRestaurant: () => void;
   onSendNotification: () => void;
+  onBranchLimitClick: (id: string, name: string, currentLimit: number | null, currentBranchCount: number) => void;
   togglesPending: {
     active: boolean;
     inventory: boolean;
@@ -53,6 +56,7 @@ export function RestaurantListRow({
   kdsEnabled,
   qrEnabled,
   healthData,
+  branchInfo,
   onToggleActive,
   onInventoryToggle,
   onKDSToggle,
@@ -64,6 +68,7 @@ export function RestaurantListRow({
   onRenewSubscription,
   onContactRestaurant,
   onSendNotification,
+  onBranchLimitClick,
   togglesPending,
 }: RestaurantListRowProps) {
   const { t, language } = useLanguage();
@@ -295,6 +300,46 @@ export function RestaurantListRow({
               <Bell className="h-3.5 w-3.5 me-1.5" />
               {t('send_notification_button')}
             </Button>
+
+            {/* Branch Limit Button */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onBranchLimitClick(
+                        restaurant.id,
+                        restaurant.name,
+                        branchInfo?.maxBranchesAllowed ?? null,
+                        branchInfo?.currentBranchCount ?? 0
+                      );
+                    }}
+                  >
+                    <Building2 className="h-3.5 w-3.5 me-1.5" />
+                    {t('sa_branch_limit')}
+                    <Badge variant="secondary" className="ms-1.5 text-[10px] px-1.5">
+                      {branchInfo?.currentBranchCount ?? 0}
+                      {branchInfo?.maxBranchesAllowed !== null && branchInfo?.maxBranchesAllowed !== undefined
+                        ? `/${branchInfo.maxBranchesAllowed}`
+                        : ''
+                      }
+                    </Badge>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    {branchInfo?.maxBranchesAllowed === null
+                      ? t('sa_branch_limit_unlimited')
+                      : `${branchInfo?.currentBranchCount ?? 0} / ${branchInfo?.maxBranchesAllowed}`
+                    }
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
           {/* Add-ons Row */}

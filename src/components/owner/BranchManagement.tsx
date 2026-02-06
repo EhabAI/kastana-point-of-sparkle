@@ -24,11 +24,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useBranches, useCreateBranch, useUpdateBranch, useDeleteBranch, Branch } from "@/hooks/useBranches";
-import { Building2, Plus, Edit2, Trash2, Loader2, ChevronDown, MapPin, Phone, Hash, Star, AlertTriangle } from "lucide-react";
+import { useBranches, useCreateBranch, useUpdateBranch, useDeleteBranch, useBranchLimit, Branch } from "@/hooks/useBranches";
+import { Building2, Plus, Edit2, Trash2, Loader2, ChevronDown, MapPin, Phone, Hash, Star, AlertTriangle, Ban } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface BranchManagementProps {
   restaurantId: string;
@@ -38,6 +39,7 @@ export function BranchManagement({ restaurantId }: BranchManagementProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
   const { data: branches = [], isLoading } = useBranches(restaurantId);
+  const { data: branchLimit } = useBranchLimit(restaurantId);
   const createBranch = useCreateBranch();
   const updateBranch = useUpdateBranch();
   const deleteBranch = useDeleteBranch();
@@ -192,13 +194,30 @@ export function BranchManagement({ restaurantId }: BranchManagementProps) {
                 </div>
               </button>
             </CollapsibleTrigger>
-            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" onClick={resetForm}>
-                  <Plus className="h-4 w-4 me-2" />
-                  {t("add_branch")}
-                </Button>
-              </DialogTrigger>
+            {branchLimit && !branchLimit.canAddBranch ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Button size="sm" disabled className="opacity-50">
+                        <Ban className="h-4 w-4 me-2" />
+                        {t("add_branch")}
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t("branch_limit_reached_tooltip")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" onClick={resetForm}>
+                    <Plus className="h-4 w-4 me-2" />
+                    {t("add_branch")}
+                  </Button>
+                </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>{t("add_branch")}</DialogTitle>
@@ -251,6 +270,7 @@ export function BranchManagement({ restaurantId }: BranchManagementProps) {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+            )}
           </div>
         </CardHeader>
         <CollapsibleContent>
