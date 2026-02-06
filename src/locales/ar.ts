@@ -1,5 +1,13 @@
 // Arabic translations for Kastana POS
 export default {
+  // System Admin action button tooltips
+  sa_tooltip_edit: "تعديل بيانات وإعدادات المطعم",
+  sa_tooltip_logo: "إدارة شعار المطعم",
+  sa_tooltip_owner: "عرض معلومات صاحب المطعم",
+  sa_tooltip_contact: "التواصل المباشر مع المطعم",
+  sa_tooltip_notification: "إرسال إشعار إداري إلى صاحب المطعم",
+  sa_tooltip_branch_limit: "تحديد الحد الأقصى لعدد الفروع المسموح بها لهذا المطعم",
+  sa_tooltip_power_toggle: "تشغيل أو إيقاف المطعم في النظام",
   // CSV Recipe Import - Guided Mapping & Export Missing Menu Items
   csv_select_correct_item: "اختر الصنف الصحيح",
   csv_resolve_conflicts_tooltip: "يرجى اختيار الصنف الصحيح للصفوف المتعارضة",

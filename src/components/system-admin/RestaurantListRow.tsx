@@ -220,86 +220,142 @@ export function RestaurantListRow({
           {/* Power Toggle + Actions Row */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Power Toggle */}
-            <button
-              onClick={() => onToggleActive(restaurant.id, restaurant.name, restaurant.is_active)}
-              disabled={togglesPending.active}
-              className={`
-                flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-all
-                ${restaurant.is_active 
-                  ? 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-950/60' 
-                  : 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-950/60'
-                }
-                disabled:opacity-50 disabled:cursor-not-allowed
-              `}
-            >
-              {restaurant.is_active ? (
-                <Power className="h-4 w-4" strokeWidth={2.5} />
-              ) : (
-                <PowerOff className="h-4 w-4" strokeWidth={2.5} />
-              )}
-              <span className="text-xs font-semibold">
-                {restaurant.is_active ? t('sa_status_on') : t('sa_status_off')}
-              </span>
-            </button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => onToggleActive(restaurant.id, restaurant.name, restaurant.is_active)}
+                    disabled={togglesPending.active}
+                    className={`
+                      flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-all
+                      ${restaurant.is_active 
+                        ? 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-950/60' 
+                        : 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-950/60'
+                      }
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                    `}
+                  >
+                    {restaurant.is_active ? (
+                      <Power className="h-4 w-4" strokeWidth={2.5} />
+                    ) : (
+                      <PowerOff className="h-4 w-4" strokeWidth={2.5} />
+                    )}
+                    <span className="text-xs font-semibold">
+                      {restaurant.is_active ? t('sa_status_on') : t('sa_status_off')}
+                    </span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">{t('sa_tooltip_power_toggle')}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
-          {/* Edit Actions */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-200 dark:hover:bg-slate-700/60"
-              onClick={() => onEditName(restaurant.id, restaurant.name)}
-            >
-              <Pencil className="h-3.5 w-3.5 me-1.5" />
-              {t('edit')}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 bg-violet-50 dark:bg-violet-950/40 hover:bg-violet-100 dark:hover:bg-violet-900/40 text-violet-700 dark:text-violet-300"
-              onClick={() => onEditLogo(restaurant.id, restaurant.logo_url)}
-            >
-              <Image className="h-3.5 w-3.5 me-1.5" />
-              {t('sa_logo')}
-            </Button>
+            {/* Edit Actions */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-200 dark:hover:bg-slate-700/60"
+                    onClick={() => onEditName(restaurant.id, restaurant.name)}
+                  >
+                    <Pencil className="h-3.5 w-3.5 me-1.5" />
+                    {t('edit')}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">{t('sa_tooltip_edit')}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 bg-violet-50 dark:bg-violet-950/40 hover:bg-violet-100 dark:hover:bg-violet-900/40 text-violet-700 dark:text-violet-300"
+                    onClick={() => onEditLogo(restaurant.id, restaurant.logo_url)}
+                  >
+                    <Image className="h-3.5 w-3.5 me-1.5" />
+                    {t('sa_logo')}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">{t('sa_tooltip_logo')}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
             {restaurant.owner_id && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 bg-cyan-50 dark:bg-cyan-950/40 hover:bg-cyan-100 dark:hover:bg-cyan-900/40 text-cyan-700 dark:text-cyan-300"
-                onClick={() => onEditOwner(restaurant.owner_id!, ownerEmail || '', ownerUsername || undefined, restaurant.id)}
-              >
-                <Key className="h-3.5 w-3.5 me-1.5" />
-                {t('sa_owner_label')}
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 bg-cyan-50 dark:bg-cyan-950/40 hover:bg-cyan-100 dark:hover:bg-cyan-900/40 text-cyan-700 dark:text-cyan-300"
+                      onClick={() => onEditOwner(restaurant.owner_id!, ownerEmail || '', ownerUsername || undefined, restaurant.id)}
+                    >
+                      <Key className="h-3.5 w-3.5 me-1.5" />
+                      {t('sa_owner_label')}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">{t('sa_tooltip_owner')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
             
             {/* Unified Contact Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-700 dark:text-blue-300"
-              onClick={(e) => {
-                e.stopPropagation();
-                onContactRestaurant();
-              }}
-            >
-              <MessagesSquare className="h-3.5 w-3.5 me-1.5" />
-              {t('contact_button')}
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-700 dark:text-blue-300"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onContactRestaurant();
+                    }}
+                  >
+                    <MessagesSquare className="h-3.5 w-3.5 me-1.5" />
+                    {t('contact_button')}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">{t('sa_tooltip_contact')}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             
             {/* Send In-App Notification Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-300"
-              onClick={(e) => {
-                e.stopPropagation();
-                onSendNotification();
-              }}
-            >
-              <Bell className="h-3.5 w-3.5 me-1.5" />
-              {t('send_notification_button')}
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-300"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSendNotification();
+                    }}
+                  >
+                    <Bell className="h-3.5 w-3.5 me-1.5" />
+                    {t('send_notification_button')}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">{t('sa_tooltip_notification')}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
             {/* Branch Limit Button */}
             <TooltipProvider>
@@ -331,12 +387,7 @@ export function RestaurantListRow({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>
-                    {branchInfo?.maxBranchesAllowed === null
-                      ? t('sa_branch_limit_unlimited')
-                      : `${branchInfo?.currentBranchCount ?? 0} / ${branchInfo?.maxBranchesAllowed}`
-                    }
-                  </p>
+                  <p className="text-xs">{t('sa_tooltip_branch_limit')}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

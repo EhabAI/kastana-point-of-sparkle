@@ -1,5 +1,13 @@
 // English translations for Kastana POS
 export default {
+  // System Admin action button tooltips
+  sa_tooltip_edit: "Edit restaurant details and settings",
+  sa_tooltip_logo: "Manage restaurant logo",
+  sa_tooltip_owner: "View restaurant owner information",
+  sa_tooltip_contact: "Contact the restaurant directly",
+  sa_tooltip_notification: "Send an administrative notification to the restaurant owner",
+  sa_tooltip_branch_limit: "Set the maximum number of branches allowed for this restaurant",
+  sa_tooltip_power_toggle: "Activate or deactivate the restaurant in the system",
   // CSV Recipe Import - Guided Mapping & Export Missing Menu Items
   csv_select_correct_item: "Select correct item",
   csv_resolve_conflicts_tooltip: "Please resolve all conflicting rows before importing",
