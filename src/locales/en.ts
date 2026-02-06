@@ -2162,4 +2162,17 @@ export default {
   notification_type_welcome: "Welcome",
   notification_type_technical: "Technical",
   notification_type_custom: "General",
+  
+  // Branch Limit
+  branch_limit_reached_title: "Cannot add branch",
+  branch_limit_reached_desc: "You cannot add a new branch at the moment. Please contact Kastana management.",
+  branch_limit_reached_tooltip: "You cannot add a new branch at the moment. Please contact Kastana management.",
+  
+  // System Admin - Branch Limit
+  sa_branch_limit: "Branch Limit",
+  sa_branch_limit_unlimited: "Unlimited",
+  sa_branch_limit_set: "Set Limit",
+  sa_branch_limit_current: "Current Branches",
+  sa_branch_limit_updated: "Branch limit updated",
+  sa_branch_limit_desc: "Set the maximum number of branches allowed or choose unlimited",
 } as const;

@@ -2167,4 +2167,17 @@ export default {
   notification_type_welcome: "ترحيب",
   notification_type_technical: "تقني",
   notification_type_custom: "عام",
+  
+  // Branch Limit
+  branch_limit_reached_title: "لا يمكن إضافة فرع",
+  branch_limit_reached_desc: "لا يمكنك إضافة فرع جديد حالياً. يرجى التواصل مع إدارة كاستنا.",
+  branch_limit_reached_tooltip: "لا يمكنك إضافة فرع جديد حالياً. يرجى التواصل مع إدارة كاستنا.",
+  
+  // System Admin - Branch Limit
+  sa_branch_limit: "حد الفروع",
+  sa_branch_limit_unlimited: "غير محدود",
+  sa_branch_limit_set: "تحديد حد",
+  sa_branch_limit_current: "الفروع الحالية",
+  sa_branch_limit_updated: "تم تحديث حد الفروع",
+  sa_branch_limit_desc: "حدد عدد الفروع المسموح به أو اختر غير محدود",
 } as const;

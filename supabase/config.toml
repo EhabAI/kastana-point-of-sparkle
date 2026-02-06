@@ -77,3 +77,6 @@ verify_jwt = false
 
 [functions.send-subscription-renewal-reminder]
 verify_jwt = false
+
+[functions.system-admin-update-branch-limit]
+verify_jwt = false
