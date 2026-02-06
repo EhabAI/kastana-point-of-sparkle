@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -2109,25 +2110,38 @@ export default function SystemAdmin() {
                 <span className="text-muted-foreground">{t('sa_branch_limit_current')}:</span>
                 <Badge variant="secondary">{branchLimitTarget?.currentBranchCount ?? 0}</Badge>
               </div>
-              <div className="space-y-2">
-                <Label>{t('sa_branch_limit')}</Label>
-                <Select
-                  value={branchLimitValue}
-                  onValueChange={setBranchLimitValue}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('sa_branch_limit_set')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="unlimited">{t('sa_branch_limit_unlimited')}</SelectItem>
-                    <SelectItem value="1">1</SelectItem>
-                    <SelectItem value="2">2</SelectItem>
-                    <SelectItem value="3">3</SelectItem>
-                    <SelectItem value="5">5</SelectItem>
-                    <SelectItem value="10">10</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <RadioGroup
+                value={branchLimitValue === "unlimited" ? "unlimited" : "specific"}
+                onValueChange={(val) => {
+                  if (val === "unlimited") {
+                    setBranchLimitValue("unlimited");
+                  } else {
+                    const currentLimit = branchLimitTarget?.currentLimit;
+                    setBranchLimitValue(currentLimit !== null && currentLimit !== undefined ? String(currentLimit) : "1");
+                  }
+                }}
+                className="space-y-3"
+              >
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="unlimited" id="branch-unlimited" />
+                  <Label htmlFor="branch-unlimited" className="cursor-pointer">{t('sa_branch_limit_unlimited')}</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="specific" id="branch-specific" />
+                  <Label htmlFor="branch-specific" className="cursor-pointer">{t('sa_branch_limit')}</Label>
+                </div>
+                {branchLimitValue !== "unlimited" && (
+                  <Input
+                    type="number"
+                    min={1}
+                    step={1}
+                    value={branchLimitValue}
+                    onChange={(e) => setBranchLimitValue(e.target.value)}
+                    className="w-full"
+                    placeholder="1"
+                  />
+                )}
+              </RadioGroup>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => {
@@ -2152,7 +2166,7 @@ export default function SystemAdmin() {
                   setBranchLimitTarget(null);
                   setBranchLimitValue("");
                 }}
-                disabled={updateBranchLimit.isPending || !branchLimitValue}
+                disabled={updateBranchLimit.isPending || !branchLimitValue || (branchLimitValue !== "unlimited" && (!Number.isInteger(Number(branchLimitValue)) || Number(branchLimitValue) < 1))}
               >
                 {updateBranchLimit.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 {t('save')}
