@@ -137,7 +137,19 @@ export default function Login() {
               <h2 className="text-2xl font-bold text-foreground mb-4">Login</h2>
 
               <form onSubmit={handleSubmit} className="space-y-5">
-                {/* Email Input */}
+                {/* Error Message Box */}
+                {loginError && (
+                  <div className="flex items-start gap-3 p-4 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive animate-fade-in">
+                    <AlertCircle className="h-5 w-5 mt-0.5 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm">{loginError.title}</p>
+                      <p className="text-sm opacity-90 mt-0.5">{loginError.description}</p>
+                    </div>
+                    <button type="button" onClick={() => setLoginError(null)} className="shrink-0 p-0.5 rounded hover:bg-destructive/20 transition-colors">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary/60" />
                   <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" className="h-12 pl-12 pr-4 rounded-xl border-border bg-muted/30 focus:bg-background transition-colors" />
