@@ -63,7 +63,7 @@ export function KDSOrderCard({ order, onUpdateStatus, isUpdating }: KDSOrderCard
   const { t } = useLanguage();
   const [elapsedMinutes, setElapsedMinutes] = useState(() => getElapsedTime(order.created_at));
   const [isExpanded, setIsExpanded] = useState(false);
-  const expandTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const expandTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
