@@ -5,12 +5,11 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Lock, Moon, Sun, Eye, EyeOff } from "lucide-react";
+import { Loader2, Mail, Lock, Moon, Sun, Eye, EyeOff, AlertCircle, X } from "lucide-react";
 import { z } from "zod";
 import posLogoNew from "@/assets/pos-logo-new.png";
 import cashierIllustration from "@/assets/cashier-illustration.png";
-import { showSystemError } from "@/lib/systemErrorHandler";
+import { getSystemErrorMessage } from "@/lib/systemErrorHandler";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
