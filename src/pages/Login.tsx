@@ -5,12 +5,11 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Lock, Moon, Sun, Eye, EyeOff } from "lucide-react";
+import { Loader2, Mail, Lock, Moon, Sun, Eye, EyeOff, AlertCircle, X } from "lucide-react";
 import { z } from "zod";
 import posLogoNew from "@/assets/pos-logo-new.png";
 import cashierIllustration from "@/assets/cashier-illustration.png";
-import { showSystemError } from "@/lib/systemErrorHandler";
+import { getSystemErrorMessage } from "@/lib/systemErrorHandler";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -24,6 +23,8 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDark, setIsDark] = useState(() => localStorage.getItem('kastana-theme') === 'dark');
+  const [loginError, setLoginError] = useState<{ title: string; description: string } | null>(null);
+  
   useEffect(() => {
     const root = document.documentElement;
     if (isDark) {
@@ -41,9 +42,6 @@ export default function Login() {
     loading
   } = useAuth();
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
 
   // Detect browser language for error messages
   const browserLanguage = navigator.language.startsWith("ar") ? "ar" : "en";
@@ -53,45 +51,38 @@ export default function Login() {
     const logoutReason = sessionStorage.getItem("logout_reason");
     if (logoutReason === "RESTAURANT_INACTIVE") {
       sessionStorage.removeItem("logout_reason");
-      showSystemError("restaurant inactive", browserLanguage);
+      const err = getSystemErrorMessage("restaurant inactive", browserLanguage);
+      setLoginError({ title: err.title, description: err.description });
     }
   }, [browserLanguage]);
   useEffect(() => {
     if (!loading && user && role) {
       if (role === "system_admin") {
-        navigate("/system-admin", {
-          replace: true
-        });
+        navigate("/system-admin", { replace: true });
       } else if (role === "owner") {
-        navigate("/admin", {
-          replace: true
-        });
+        navigate("/admin", { replace: true });
       } else if (role === "cashier") {
-        navigate("/pos", {
-          replace: true
-        });
+        navigate("/pos", { replace: true });
       } else if (role === "kitchen") {
-        navigate("/kds", {
-          replace: true
-        });
+        navigate("/kds", { replace: true });
       }
     }
   }, [user, role, loading, navigate]);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const validation = loginSchema.safeParse({
-      email,
-      password
-    });
+    setLoginError(null);
+    const validation = loginSchema.safeParse({ email, password });
     if (!validation.success) {
       const errorMessage = validation.error.errors[0].message;
-      // Map Zod validation errors to system error patterns
       if (errorMessage.includes("email")) {
-        showSystemError("invalid email format", browserLanguage);
+        const err = getSystemErrorMessage("invalid email format", browserLanguage);
+        setLoginError({ title: err.title, description: err.description });
       } else if (errorMessage.includes("password") || errorMessage.includes("characters")) {
-        showSystemError("weak password requirements", browserLanguage);
+        const err = getSystemErrorMessage("weak password requirements", browserLanguage);
+        setLoginError({ title: err.title, description: err.description });
       } else {
-        showSystemError("validation error: " + errorMessage, browserLanguage);
+        const err = getSystemErrorMessage("validation error: " + errorMessage, browserLanguage);
+        setLoginError({ title: err.title, description: err.description });
       }
       return;
     }
@@ -99,8 +90,8 @@ export default function Login() {
     const { error } = await signIn(email, password);
     setIsLoading(false);
     if (error) {
-      // Use system error handler for bilingual error messages
-      showSystemError(error, browserLanguage);
+      const err = getSystemErrorMessage(error, browserLanguage);
+      setLoginError({ title: err.title, description: err.description });
     }
   };
   if (loading) {
@@ -146,7 +137,19 @@ export default function Login() {
               <h2 className="text-2xl font-bold text-foreground mb-4">Login</h2>
 
               <form onSubmit={handleSubmit} className="space-y-5">
-                {/* Email Input */}
+                {/* Error Message Box */}
+                {loginError && (
+                  <div className="flex items-start gap-3 p-4 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive animate-fade-in">
+                    <AlertCircle className="h-5 w-5 mt-0.5 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm">{loginError.title}</p>
+                      <p className="text-sm opacity-90 mt-0.5">{loginError.description}</p>
+                    </div>
+                    <button type="button" onClick={() => setLoginError(null)} className="shrink-0 p-0.5 rounded hover:bg-destructive/20 transition-colors">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary/60" />
                   <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" className="h-12 pl-12 pr-4 rounded-xl border-border bg-muted/30 focus:bg-background transition-colors" />
